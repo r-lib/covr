@@ -1,71 +1,93 @@
 #' @import jsonlite
+NULL
 
 expression_coverage <- function(x, ..., env = parent.frame()) {
   args <- lazyeval::lazy_dots(...)
   expression_coverage_(x, args)
 }
-expression_coverage_ <- function(x, args, env = parent.frame()) {
 
-  exprs <- lazyeval::as.lazy_dots(args, env)
-  str(exprs)
+trace_expressions <- function (x, srcref = NULL) {
+  recurse <- function(y) {
+    lapply(y, trace_expressions)
+  }
 
-  `*counts*` <- list()
+  if (is.atomic(x) || is.name(x)) {
+    x
+  }
+  else if (is.call(x)) {
+    src_ref <- attr(x, "srcref")
+    if (!is.null(src_ref)) {
+      message("type: ", typeof(x), " class: ", class(x), " length: ", length(src_ref))
+      as.call(Map(trace_expressions, x, src_ref))
+    } else if (!is.null(srcref)) {
+      key <- key(srcref)
+      covr::new_counter(key)
+      bquote(`{`(covr::count(.(key)), .(as.call(recurse(x)))))
+    } else {
+      as.call(recurse(x))
+    }
+  }
+  else if (is.function(x)) {
+    formals(x) <- trace_expressions(formals(x))
+    body(x) <- trace_expressions(body(x))
+    x
+  }
+  else if (is.pairlist(x)) {
+    as.pairlist(recurse(x))
+  }
+  else if (is.expression(x)) {
+    as.expression(recurse(x))
+  }
+  else if (is.list(x)) {
+    recurse(x)
+  }
+  else {
+    stop("Unknown language class: ", paste(class(x), collapse = "/"),
+      call. = FALSE)
+  }
+}
 
-  trace_expressions <- function (x, srcref = NULL) {
-    recurse <- function(y) {
-      lapply(y, trace_expressions)
-    }
+.counters <- new.env()
 
-    if (is.atomic(x) || is.name(x)) {
-      x
+new_counter <- function(key) {
+  .counters[[key]] <- 0
+}
+count <- function(key) {
+  .counters[[key]] <- .counters[[key]] + 1
+}
+
+clear_counters <- function() {
+  rm(envir = .counters, list=ls(envir = .counters))
+}
+environment_coverage <- function(env, ...) {
+  clear_counters()
+
+  exprs <- as.list(substitute(list(...))[-1])
+
+  old_env <- as.environment(as.list(env, all.names = TRUE))
+
+  on.exit({
+    for(n in ls(old_env, all.names=TRUE)) {
+      assign(n, get(n, old_env), env)
     }
-    else if (is.call(x)) {
-      src_ref <- attr(x, "srcref")
-      if (!is.null(src_ref)) {
-        #message("type: ", typeof(x), " class: ", class(x), " length: ", length(src_ref))
-        as.call(Map(trace_expressions, x, src_ref))
-      } else if (!is.null(srcref)) {
-        `*counts*`[key(srcref)] <<- 0
-        bquote(`{`(`*trace*`(.(srcref)), .(as.call(recurse(x)))))
-      } else {
-        as.call(recurse(x))
-      }
-    }
-    else if (is.function(x)) {
-      formals(x) <- trace_expressions(formals(x))
-      body(x) <- trace_expressions(body(x))
-      x
-    }
-    else if (is.pairlist(x)) {
-      as.pairlist(recurse(x))
-    }
-    else if (is.expression(x)) {
-      as.expression(recurse(x))
-    }
-    else if (is.list(x)) {
-      recurse(x)
-    }
-    else {
-      stop("Unknown language class: ", paste(class(x), collapse = "/"),
-        call. = FALSE)
+  })
+
+  for(name in ls(env, all.names=TRUE)) {
+    obj <- get(name, env)
+    if (is.function(obj)) {
+      val = trace_expressions(obj)
+      message("name: ", name)
+      assign(name, eval(val, env), env)
     }
   }
 
-  `*trace*` <- function(y) {
-    key <- key(y)
-    `*counts*`[[key]] <<- `*counts*`[[key]] + 1
-  }
-
-  for (file_expressions in x) {
-    eval(trace_expressions(file_expressions$expr))
-  }
-
-  print(ls())
   for (expr in exprs) {
-    lazyeval::lazy_eval(expr, environment())
+    eval(expr, envir=env)
   }
 
-  `*counts*`
+  res <- as.list(.counters)
+  clear_counters()
+  res
 }
 
 key <- function(x) {
@@ -111,3 +133,13 @@ package_coverage <- function(path = ".") {
         #)
     #)
   #)
+
+make_function <- function (args, body, env = parent.frame()) {
+    args <- as.pairlist(args)
+    stopifnot(is.language(body))
+    eval(call("function", args, body), env)
+}
+
+change_enclosing_environment <- function(f, env) {
+  make_function(formals(f), body(f), env)
+}
