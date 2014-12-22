@@ -1,11 +1,6 @@
 #' @import jsonlite
 NULL
 
-expression_coverage <- function(x, ..., env = parent.frame()) {
-  args <- lazyeval::lazy_dots(...)
-  expression_coverage_(x, args)
-}
-
 trace_expressions <- function (x, srcref = NULL) {
   recurse <- function(y) {
     lapply(y, trace_expressions)
@@ -59,10 +54,14 @@ count <- function(key) {
 clear_counters <- function() {
   rm(envir = .counters, list=ls(envir = .counters))
 }
-environment_coverage <- function(env, ...) {
-  clear_counters()
 
+environment_coverage <- function(env, ..., enc = parent.frame()) {
   exprs <- as.list(substitute(list(...))[-1])
+  environment_coverage_(env, exprs, enc = enc)
+}
+
+environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
+  clear_counters()
 
   old_env <- as.environment(as.list(env, all.names = TRUE))
 
@@ -75,14 +74,14 @@ environment_coverage <- function(env, ...) {
   for(name in ls(env, all.names=TRUE)) {
     obj <- get(name, env)
     if (is.function(obj)) {
-      val = trace_expressions(obj)
+      val <- trace_expressions(obj)
       message("name: ", name)
       assign(name, eval(val, env), env)
     }
   }
 
   for (expr in exprs) {
-    eval(expr, envir=env)
+    eval(expr, enc)
   }
 
   res <- as.list(.counters)
@@ -95,34 +94,78 @@ key <- function(x) {
   paste(sep = ":", file, paste0(collapse = ":", c(x)))
 }
 
-get_srcfile <- function(filename) {
-  lines <- readLines(filename)
-  source_file <- srcfilecopy(filename, lines, file.info(filename)[1, "mtime"], isFile = TRUE)
-  source_file$expr <- parse(text = lines, srcfile = source_file, keep.source = TRUE)
-  source_file$content <- paste0(collapse = "\n", lines)
+package_coverage <- function(path = ".", relative_path = FALSE) {
+  devtools::load_all(path)
 
-  #try(source_file$expr <- parse(text=source_file$content, srcfile=source_file, keep.source = TRUE))
+  env <- devtools::ns_env(path)
 
-   #This needs to be done twice to avoid
-     #https://bugs.r-project.org/bugzilla/show_bug.cgi?id=16041
-  #try(source_file$expr <- parse(text=source_file$content, srcfile=source_file, keep.source = TRUE))
+  testing_dir <- file.path(path, "tests", "testthat")
 
-  source_file$parsed <- getParseData(source_file)
+  res <- environment_coverage(devtools::ns_env(path),
+    testthat::test_dir(path = testing_dir, env = env),
+    enc = environment())
 
-  source_file
+  if (relative_path) {
+    names(res) <- rex::re_substitutes(names(res), normalizePath(path), ".")
+  }
+  res
 }
 
-package_coverage <- function(path = ".") {
-  source_files <- dir(file.path(path, "R"), pattern = "\\.[Rr]$", full.names = TRUE)
+per_line <- function(x) {
+    re <-
+      rex::rex(
+        capture(name = "filename", something), ":",
+        capture(name = "first_line", something), ":",
+        capture(name = "first_byte", something), ":",
+        capture(name = "last_line", something), ":",
+        capture(name = "last_byte", something), ":",
+        capture(name = "first_column", something), ":",
+        capture(name = "last_column", something), ":",
+        capture(name = "first_parsed", something), ":",
+        capture(name = "last_parsed", something))
+  df <- rex::re_matches(names(x),re)
 
-  test_files <- dir(file.path(path, "tests", "testthat"), recursive = TRUE, pattern = "\\.[Rr]$", full.names = TRUE)
+  df[] <- lapply(df, type.convert, as.is = TRUE)
+  df$value <- unlist(x)
 
-  source_parsed <- lapply(source_files, get_srcfile)
+  file_lengths <- tapply(df$last_line, df$filename,
+    function(x) {
+      max(unlist(x))
+    })
 
-  test_parsed <- lapply(test_files, function(x) parse(x))
+  res <- lapply(file_lengths,
+    function(x) {
+      rep(NA_real_, length.out = x)
+    })
 
-  expression_coverage_(source_parsed, test_parsed)
+  # get the maximum coverage per line
+  for (i in seq_len(NROW(df))) {
+    for (line in seq(df[i, "first_line"], df[i, "last_line"])) {
+      filename <- df[i, "filename"]
+      value <- df[i, "value"]
+      if (is.na(res[[filename]][line]) || res[[filename]][line] < value) {
+        res[[filename]][line] <- value
+      }
+    }
+  }
+  res
 }
+
+to_coveralls <- function(x, service_job_id, service_name = "travis-ci") {
+  coverages <- per_line(x)
+
+  names <- basename(names(coverages))
+
+  sources <- lapply(names(coverages), function(x) { readChar(x, file.info(x)$size) })
+
+  res <- mapply(function(name, source, coverage) { list("name" = unbox(name), "source" = unbox(source), "coverage" = coverage) }, names, sources, coverages, SIMPLIFY = FALSE, USE.NAMES = FALSE)
+
+  jsonlite::toJSON(na = "null", list(
+    "service_job_id" = unbox(service_job_id),
+    "service_name" = unbox(service_name),
+    "source_files" = res))
+}
+
 #jsonlite::toJSON(na="null",
   #list("service_job_id" = 123324,
     #"service_name" = "travis-ci",
@@ -133,13 +176,3 @@ package_coverage <- function(path = ".") {
         #)
     #)
   #)
-
-make_function <- function (args, body, env = parent.frame()) {
-    args <- as.pairlist(args)
-    stopifnot(is.language(body))
-    eval(call("function", args, body), env)
-}
-
-change_enclosing_environment <- function(f, env) {
-  make_function(formals(f), body(f), env)
-}
