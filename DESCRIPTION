@@ -6,5 +6,10 @@ Description: Compute test coverage statistics for your package and (optionally)
     upload the results to coveralls.
 Depends:
     R (>= 3.1.2)
+Imports:
+    jsonlite,
+    rex,
+    devtools,
+    httr
 License: MIT + file LICENSE
 LazyData: true
