@@ -12,7 +12,6 @@ trace_expressions <- function (x, srcref = NULL) {
   else if (is.call(x)) {
     src_ref <- attr(x, "srcref")
     if (!is.null(src_ref)) {
-      message("type: ", typeof(x), " class: ", class(x), " length: ", length(src_ref))
       as.call(Map(trace_expressions, x, src_ref))
     } else if (!is.null(srcref)) {
       key <- key(srcref)
@@ -79,7 +78,6 @@ environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
     obj <- get(name, env)
     if (is.function(obj)) {
       val <- trace_expressions(obj)
-      message("name: ", name)
       assign(name, eval(val, env), env)
     }
   }
@@ -98,6 +96,7 @@ key <- function(x) {
   paste(sep = ":", file, paste0(collapse = ":", c(x)))
 }
 
+#' @export
 package_coverage <- function(path = ".", relative_path = FALSE) {
   library(testthat)
   devtools::load_all(path)
@@ -111,7 +110,7 @@ package_coverage <- function(path = ".", relative_path = FALSE) {
     enc = environment())
 
   if (relative_path) {
-    names(res) <- rex::re_substitutes(names(res), normalizePath(path), ".")
+    names(res) <- rex::re_substitutes(names(res), rex::rex(normalizePath(path), "/"), "")
   }
   res
 }
@@ -159,7 +158,7 @@ per_line <- function(x) {
 to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), service_name = "travis-ci") {
   coverages <- per_line(x)
 
-  names <- basename(names(coverages))
+  names <- names(coverages)
 
   sources <- lapply(names(coverages), function(x) { readChar(x, file.info(x)$size) })
 
@@ -174,7 +173,7 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), servic
 #' @export
 coveralls <- function(path = ".") {
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
-  coverage <- to_coveralls(package_coverage(path))
+  coverage <- to_coveralls(package_coverage(path, relative_path = TRUE))
 
   name <- tempfile()
   con <- file(name)
@@ -182,14 +181,3 @@ coveralls <- function(path = ".") {
   close(con)
   httr::content(httr::POST(coveralls_url, body = list(json_file = httr::upload_file(name))))
 }
-
-#jsonlite::toJSON(na="null",
-  #list("service_job_id" = 123324,
-    #"service_name" = "travis-ci",
-    #"source_files" =
-      #list("name" = "test",
-        #"source" = "a <- 1",
-        #"coverage" = c(NA, 2, 3)
-        #)
-    #)
-  #)
