@@ -58,11 +58,13 @@ clear_counters <- function() {
   rm(envir = .counters, list=ls(envir = .counters))
 }
 
+#' @export
 environment_coverage <- function(env, ..., enc = parent.frame()) {
   exprs <- as.list(substitute(list(...))[-1])
   environment_coverage_(env, exprs, enc = enc)
 }
 
+#' @export
 environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
   clear_counters()
 

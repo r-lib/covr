@@ -3,6 +3,8 @@
 export(clear_counters)
 export(count)
 export(coveralls)
+export(environment_coverage)
+export(environment_coverage_)
 export(new_counter)
 export(package_coverage)
 import(jsonlite)
