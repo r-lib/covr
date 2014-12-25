@@ -99,7 +99,7 @@ key <- function(x) {
 }
 
 #' @export
-package_coverage <- function(path = ".", relative_path = FALSE) {
+package_coverage <- function(path = ".", relative_path = FALSE, ...) {
   library(testthat)
   devtools::load_all(path)
 
@@ -107,7 +107,8 @@ package_coverage <- function(path = ".", relative_path = FALSE) {
 
   testing_dir <- file.path(path, "tests", "testthat")
 
-  res <- environment_coverage(devtools::ns_env(path),
+  res <- environment_coverage(env,
+    ...,
     testthat::test_dir(path = testing_dir, env = env),
     enc = environment())
 
@@ -173,9 +174,9 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), servic
 }
 
 #' @export
-coveralls <- function(path = ".") {
+coveralls <- function(path = ".", ...) {
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
-  coverage <- to_coveralls(package_coverage(path, relative_path = TRUE))
+  coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...))
 
   name <- tempfile()
   con <- file(name)
