@@ -3,8 +3,9 @@ Test coverage reports for R
 
 # Installation #
 ## Coveralls.io ##
-If you are already using [Travis-CI](https://travis-ci.org) simply add the
-following lines to your `.travis.yml`.
+If you are already using [Travis-CI](https://travis-ci.org) and
+[testthat](https://github.com/hadley/testthat) simply add the following lines
+to your `.travis.yml`.
 
 ```yml
 install:
