@@ -1,5 +1,5 @@
 # Covr #
-Test coverage for R
+Test coverage reports for R
 
 # Installation #
 ## Coveralls.io ##

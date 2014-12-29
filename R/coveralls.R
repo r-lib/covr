@@ -7,6 +7,7 @@ coveralls <- function(path = ".", ...) {
   con <- file(name)
   writeChar(con = con, coverage, eos = NULL)
   close(con)
+  on.exit(unlink(name))
   httr::content(httr::POST(coveralls_url, body = list(json_file = httr::upload_file(name))))
 }
 
