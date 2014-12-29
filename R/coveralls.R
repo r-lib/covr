@@ -1,3 +1,6 @@
+#' Run covr on a package and upload the result to coveralls
+#' @param path file path to the package
+#' @param ... additional arguments passed to \code{\link{package_coverage}}
 #' @export
 coveralls <- function(path = ".", ...) {
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
