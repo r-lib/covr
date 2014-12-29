@@ -150,7 +150,7 @@ package_coverage <- function(path = ".", ..., relative_path = FALSE) {
 
   res <- environment_coverage(env,
     ...,
-    testthat::test_dir(path = testing_dir, env = env),
+    testthat::source_dir(path = testing_dir, env = env),
     enc = environment())
 
   if (relative_path) {
