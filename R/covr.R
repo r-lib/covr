@@ -1,6 +1,3 @@
-#' @import jsonlite
-NULL
-
 rex::register_shortcuts("covr")
 
 #' trace each call with a srcref attribute
