@@ -15,7 +15,7 @@ environment_coverage_(env, exprs, enc = parent.frame())
 evaluated}
 }
 \description{
-This function does not use non_standard evaulation so is more appropriate
+This function does not use non_standard evaluation so is more appropriate
 for use in other functions.
 }
 

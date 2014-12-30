@@ -1,5 +1,5 @@
 #' @export
-as.data.frame.coverage <- function(x, ...) {
+as.data.frame.coverage <- function(x, relative_path = TRUE, ...) {
   re <-
     rex::rex(
       capture(name = "filename", something), ":",
@@ -16,5 +16,10 @@ as.data.frame.coverage <- function(x, ...) {
 
   df[] <- lapply(df, type.convert, as.is = TRUE)
   df$value <- unlist(x)
-  df
+  df[order(df$filename, df$first_line, df$first_byte),]
+}
+
+#' @export
+print.coverage <- function(x, ...) {
+  print(as.data.frame(x, ...))
 }

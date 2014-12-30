@@ -83,13 +83,13 @@ clear_counters <- function() {
 #' evaluated
 #' @export
 environment_coverage <- function(env, ..., enc = parent.frame()) {
-  exprs <- as.list(substitute(list(...))[-1])
+  exprs <- dots(...)
   environment_coverage_(env, exprs, enc = enc)
 }
 
 #' calculate the coverage on an environment after evaluating some expressions.
 #'
-#' This function does not use non_standard evaulation so is more appropriate
+#' This function does not use non_standard evaluation so is more appropriate
 #' for use in other functions.
 #' @inheritParams environment_coverage
 #' @param exprs a list of parsed expressions to be evaluated.
@@ -100,8 +100,11 @@ environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
   old_env <- as.environment(as.list(env, all.names = TRUE))
 
   on.exit({
-    for(n in ls(old_env, all.names=TRUE)) {
-      assign(n, get(n, old_env), env)
+    for(name in ls(old_env, all.names=TRUE)) {
+      obj <- get(name, old_env)
+      if (is.function(obj)) {
+        assign(name, obj, env)
+      }
     }
   })
 
@@ -142,15 +145,22 @@ key <- function(x) {
 #' paths.
 #' @export
 package_coverage <- function(path = ".", ..., relative_path = FALSE) {
-  devtools::load_all(path)
 
-  env <- devtools::ns_env(path)
+  if (!file.exists(path)) {
+    return(NULL)
+  }
+
+  ns_env <- devtools::load_all(path, export_all = FALSE, quiet = TRUE)$env
+
+  env <- new.env(parent = ns_env)
 
   testing_dir <- file.path(path, "tests")
 
-  res <- environment_coverage(env,
-    ...,
-    testthat::source_dir(path = testing_dir, env = env),
+  res <- environment_coverage_(ns_env,
+    c(dots(...),
+    if (file.exists(testing_dir)) {
+      bquote(testthat::source_dir(path = .(testing_dir), env = .(env)))
+    }),
     enc = environment())
 
   if (relative_path) {
