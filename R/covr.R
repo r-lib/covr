@@ -1,10 +1,13 @@
 #' @import jsonlite
 NULL
 
+rex::register_shortcuts("covr")
+
 #' trace each call with a srcref attribute
 #'
 #' This function calls itself recursively so it can properly traverse the AST.
 #' @param x the call
+#' @param srcref argument used to set the srcref of the current call when recursing
 #' @seealso \url{http://adv-r.had.co.nz/Expressions.html}
 #' @return a modified expression with count calls inserted before each previous
 #' call.

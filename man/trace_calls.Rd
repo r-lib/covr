@@ -8,6 +8,8 @@ trace_calls(x, srcref = NULL)
 }
 \arguments{
 \item{x}{the call}
+
+\item{srcref}{argument used to set the srcref of the current call when recursing}
 }
 \value{
 a modified expression with count calls inserted before each previous

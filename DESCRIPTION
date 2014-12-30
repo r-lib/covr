@@ -10,6 +10,7 @@ Imports:
     jsonlite,
     rex,
     devtools,
-    httr
+    httr,
+    testthat
 License: MIT + file LICENSE
 LazyData: true

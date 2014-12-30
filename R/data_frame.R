@@ -1,5 +1,5 @@
 #' @export
-as.data.frame.coverage <- function(x, relative_path = TRUE, ...) {
+as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, ...) {
   re <-
     rex::rex(
       capture(name = "filename", something), ":",
