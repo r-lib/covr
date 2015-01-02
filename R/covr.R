@@ -183,12 +183,12 @@ per_line <- function(x) {
       rep(NA_real_, length.out = x)
     })
 
-  # get the maximum coverage per line
+  # get the minimum coverage per line
   for (i in seq_len(NROW(df))) {
     for (line in seq(df[i, "first_line"], df[i, "last_line"])) {
       filename <- df[i, "filename"]
       value <- df[i, "value"]
-      if (is.na(res[[filename]][line]) || res[[filename]][line] < value) {
+      if (is.na(res[[filename]][line]) || value < res[[filename]][line]) {
         res[[filename]][line] <- value
       }
     }
