@@ -127,6 +127,59 @@ key <- function(x) {
 
 #' Calculate test coverage for a package
 #'
+#' @param names function names.
+#' @param ... expressions to run.
+#' @param enc the enclosing environment which to run the expressions.
+#' @export
+function_coverage <- function(names, ..., enc = parent.frame()) {
+
+  exprs <- dots(...)
+
+  res <- rex::re_matches(names,
+    rex::rex(
+      maybe(
+        capture(name = "namespace", except_some_of(":")),
+        "::", maybe(":")
+      ),
+      capture(name = "name", anything)
+    ))
+
+  missing_namespace <- res$namespace == ""
+
+  if (any(missing_namespace)) {
+    res$namespace[missing_namespace] <-
+      lapply(res$name[missing_namespace], function(name) {
+        if (!exists(name, mode = "function")) {
+          stop("Function ", name, " not found any attached environments", call. = FALSE)
+        }
+        environment(get(name, mode = "function"))
+      })
+  }
+
+  res$namespace[] <- lapply(res$namespace, asNamespace)
+
+  clear_counters()
+
+  replacements <- Map(replacement, res$name, res$namespace)
+
+  on.exit(lapply(replacements, reset), add = TRUE)
+
+  lapply(replacements, replace)
+
+  for (expr in exprs) {
+    eval(expr, enc)
+  }
+
+  res <- as.list(.counters)
+  clear_counters()
+
+  class(res) <- "coverage"
+
+  res
+}
+
+#' Calculate test coverage for a package
+#'
 #' @param path file path to the package
 #' @param ... expressions to run
 #' @param relative_path whether to output the paths as relative or absolute
