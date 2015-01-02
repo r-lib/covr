@@ -18,6 +18,5 @@ replace <- function(replacement) {
 
 #' @useDynLib covr reassign_function
 reset <- function(replacement) {
-  str(replacement$name)
   .Call(reassign_function, replacement$name, replacement$env, replacement$target_value, replacement$orig_value)
 }
