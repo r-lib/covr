@@ -214,6 +214,15 @@ per_line <- function(x) {
 
   df <- as.data.frame(x)
 
+  filenames <- unique(df$filename)
+  sources <- lapply(filenames, readLines)
+
+  blank_lines <- lapply(sources, function(file) {
+    which(rex::re_matches(file, rex::rex(start, any_spaces, maybe("#", anything), end)))
+    })
+  names(blank_lines) <- filenames
+
+  str(blank_lines)
   file_lengths <- tapply(df$last_line, df$filename,
     function(x) {
       max(unlist(x))
@@ -229,8 +238,10 @@ per_line <- function(x) {
     for (line in seq(df[i, "first_line"], df[i, "last_line"])) {
       filename <- df[i, "filename"]
       value <- df[i, "value"]
-      if (is.na(res[[filename]][line]) || value < res[[filename]][line]) {
-        res[[filename]][line] <- value
+      if (!line %in% blank_lines[[filename]]) {
+        if (is.na(res[[filename]][line]) || value < res[[filename]][line]) {
+          res[[filename]][line] <- value
+        }
       }
     }
   }
