@@ -97,24 +97,12 @@ environment_coverage <- function(env, ..., enc = parent.frame()) {
 environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
   clear_counters()
 
-  old_env <- as.environment(as.list(env, all.names = TRUE))
+  replacements <- Filter(Negate(is.null),
+    lapply(ls(env, all.names = TRUE), replacement, env = env))
 
-  on.exit({
-    for(name in ls(old_env, all.names=TRUE)) {
-      obj <- get(name, old_env)
-      if (is.function(obj)) {
-        assign(name, obj, env)
-      }
-    }
-  })
+  on.exit(lapply(replacements, reset), add = TRUE)
 
-  for(name in ls(env, all.names=TRUE)) {
-    obj <- get(name, env)
-    if (is.function(obj)) {
-      val <- trace_calls(obj)
-      assign(name, eval(val, env), env)
-    }
-  }
+  lapply(replacements, replace)
 
   for (expr in exprs) {
     eval(expr, enc)
