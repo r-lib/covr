@@ -222,8 +222,8 @@ per_line <- function(x) {
     })
   names(blank_lines) <- filenames
 
-  str(blank_lines)
   file_lengths <- tapply(df$last_line, df$filename,
+
     function(x) {
       max(unlist(x))
     })
