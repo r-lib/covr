@@ -14,21 +14,18 @@ TestS4 <- setClass("TestS4",
 #' @export
 setGeneric("print2", function(x, y) { })
 
-#' @export
 setMethod("print2",
   c(x = "TestS4"),
   function(x) {
     1 + 1
   })
 
-#' @export
 setMethod("print2",
   c(x = "TestS4", y = "character"),
   function(x, y) {
     1 + 2
   })
 
-#' @export
 setMethod("show",
   c(object = "TestS4"),
   function(object) {

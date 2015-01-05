@@ -3,5 +3,3 @@
 export(a)
 export(print2)
 exportClasses(TestS4)
-exportMethods(print2)
-exportMethods(show)
