@@ -5,7 +5,8 @@ Authors@R: "Jim Hester <james.f.hester@gmail.com> [aut, cre]"
 Description: Compute test coverage statistics for your package and (optionally)
     upload the results to coveralls.
 Depends:
-    R (>= 3.1.2)
+    R (>= 3.1.2),
+    methods
 Imports:
     jsonlite,
     rex,

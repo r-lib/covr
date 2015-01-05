@@ -97,8 +97,10 @@ environment_coverage <- function(env, ..., enc = parent.frame()) {
 environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
   clear_counters()
 
-  replacements <- Filter(Negate(is.null),
-    lapply(ls(env, all.names = TRUE), replacement, env = env))
+  replacements <-
+    c(replacements_S4(env),
+      Filter(Negate(is.null), lapply(ls(env, all.names = TRUE), replacement, env = env))
+    )
 
   on.exit(lapply(replacements, reset), add = TRUE)
 

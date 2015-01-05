@@ -41,6 +41,7 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), servic
     "service_name" = jsonlite::unbox(service_name),
     "source_files" = res))
 }
+
 per_line <- function(x) {
 
   df <- as.data.frame(x)

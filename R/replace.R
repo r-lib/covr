@@ -2,12 +2,20 @@
 replacement <- function(name, env) {
   target_value <- get(name, envir = env)
   if (is.function(target_value)) {
+    new_value <- trace_calls(target_value)
+    attributes(new_value) <- attributes(target_value)
+
+    if (isS4(target_value)) {
+      new_value <- asS4(new_value)
+    }
+
     list(
       env = env,
       name = as.name(name),
       orig_value = .Call(duplicate_, target_value),
       target_value = target_value,
-      new_value = trace_calls(target_value))
+      new_value = new_value
+    )
   }
 }
 
