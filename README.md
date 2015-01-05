@@ -1,4 +1,6 @@
 # Covr #
+[![Build Status](https://travis-ci.org/jimhester/covr.png?branch=master)](https://travis-ci.org/jimhester/covr)
+
 Test coverage reports for R
 
 # Installation #
