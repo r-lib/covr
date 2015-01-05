@@ -14,7 +14,7 @@ install:
 script: ./travis-tool.sh run_tests
 
 after_success:
-  - sed -i -e 's/Package: covr/Package: covr_shim/' DESCRIPTION;
+  - sed -i -e 's/Package: covr/Package: covr_shim/' DESCRIPTION
   - sed -i -e 's/rex::register_shortcuts("covr")/rex::register_shortcuts("covr_shim")' R/covr.R
   - Rscript -e 'covr::coveralls()'
 
