@@ -26,3 +26,11 @@ test_that("function_coverage", {
 
   expect_equal(unname(unlist(as_df_cov)), c(1, 1, 1, 1, 1))
 })
+context("trace_calls")
+test_that("trace calls handles all possibilities", {
+  expr <- expression(y <- x * 10)
+
+  expect_equal(trace_calls(expr), expr)
+
+  expect_equal(trace_calls(list(expr)), list(expr))
+})
