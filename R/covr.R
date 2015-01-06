@@ -132,40 +132,17 @@ key <- function(x) {
 
 #' Calculate test coverage for specific function.
 #'
-#' @param names function names.
+#' @param name of function.
 #' @param ... expressions to run.
 #' @param enc the enclosing environment which to run the expressions.
 #' @export
-function_coverage <- function(names, ..., enc = parent.frame()) {
+function_coverage <- function(fun, ..., enc = parent.frame()) {
 
   exprs <- dots(...)
 
-  res <- rex::re_matches(names,
-    rex::rex(
-      maybe(
-        capture(name = "namespace", except_some_of(":")),
-        "::", maybe(":")
-      ),
-      capture(name = "name", anything)
-    ))
-
-  missing_namespace <- res$namespace == ""
-
-  if (any(missing_namespace)) {
-    res$namespace[missing_namespace] <-
-      lapply(res$name[missing_namespace], function(name) {
-        if (!exists(name, mode = "function")) {
-          stop("Function ", name, " not found any attached environments", call. = FALSE)
-        }
-        environment(get(name, mode = "function"))
-      })
-  }
-
-  res$namespace[] <- lapply(res$namespace, asNamespace)
-
   clear_counters()
 
-  replacements <- Map(replacement, res$name, res$namespace)
+  replacements <- Map(replacement, fun)
 
   on.exit(lapply(replacements, reset), add = TRUE)
 

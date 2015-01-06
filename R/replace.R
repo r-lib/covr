@@ -1,5 +1,5 @@
 #' @useDynLib covr duplicate_
-replacement <- function(name, env) {
+replacement <- function(name, env = as.environment(-1)) {
   target_value <- get(name, envir = env)
   if (is.function(target_value)) {
     new_value <- trace_calls(target_value)

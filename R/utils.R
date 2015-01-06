@@ -6,5 +6,6 @@
   }
 }
 
-dots <- function(...) eval(substitute(alist(...)))
-
+dots <- function(...) {
+  eval(substitute(alist(...)))
+}
