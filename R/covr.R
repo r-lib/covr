@@ -130,7 +130,7 @@ key <- function(x) {
   paste(sep = ":", file, paste0(collapse = ":", c(x)))
 }
 
-#' Calculate test coverage for a package
+#' Calculate test coverage for specific function.
 #'
 #' @param names function names.
 #' @param ... expressions to run.
