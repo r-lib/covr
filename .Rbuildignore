@@ -1,0 +1,6 @@
+^covr\.Rproj$
+\.tar\.gz$
+^travis-tool\.sh$
+^covr\.Rcheck$
+^\.travis\.yml$
+^\.shim_package\.sh$
