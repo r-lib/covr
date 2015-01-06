@@ -1,5 +1,6 @@
 # Covr #
 [![Build Status](https://travis-ci.org/jimhester/covr.png?branch=master)](https://travis-ci.org/jimhester/covr)
+[![Coverage Status](https://img.shields.io/coveralls/jimhester/covr.svg)](https://coveralls.io/r/jimhester/covr?branch=master)
 
 Test coverage reports for R
 

@@ -3,4 +3,4 @@
 ^travis-tool\.sh$
 ^covr\.Rcheck$
 ^\.travis\.yml$
-^\.shim_package\.sh$
+^shim_package\.sh$
