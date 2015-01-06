@@ -132,21 +132,26 @@ key <- function(x) {
 
 #' Calculate test coverage for specific function.
 #'
-#' @param name of function.
+#' @param fun name of the function.
+#' @param env environment the function is defined in.
 #' @param ... expressions to run.
 #' @param enc the enclosing environment which to run the expressions.
 #' @export
-function_coverage <- function(fun, ..., enc = parent.frame()) {
+function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 
   exprs <- dots(...)
 
   clear_counters()
 
-  replacements <- Map(replacement, fun)
+  replacement <- if (!is.null(env)) {
+    replacement(fun, env)
+  } else {
+    replacement(fun)
+  }
 
-  on.exit(lapply(replacements, reset), add = TRUE)
+  on.exit(reset(replacement), add = TRUE)
 
-  lapply(replacements, replace)
+  replace(replacement)
 
   for (expr in exprs) {
     eval(expr, enc)

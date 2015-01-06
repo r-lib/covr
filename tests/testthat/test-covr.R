@@ -14,17 +14,16 @@ test_that("package_coverage returns NULL if the path does not exist", {
 
 context("function_coverage")
 test_that("function_coverage", {
-  expect_equal(as.numeric(function_coverage("dots")), 0)
 
-  expect_equal(as.numeric(function_coverage("dots", dots(hi))), 1)
+  options(keep.source = TRUE)
+  f <- function(x) {
+    x + 1
+  }
+  expect_equal(as.numeric(function_coverage("f", env = environment(f))), 0)
 
-  expect_equal(as.numeric(function_coverage("dots", dots(hi), dots(hi2))), 2)
+  expect_equal(as.numeric(function_coverage("f", env = environment(f), f(1))), 1)
 
-  cov <- function_coverage("dots", dots(hi), dots(hi2))
-
-  as_df_cov <- function_coverage("as.data.frame.coverage", as.data.frame(cov))
-
-  expect_equal(unname(unlist(as_df_cov)), c(1, 1, 1, 1, 1))
+  expect_equal(as.numeric(function_coverage("f", env = environment(f), f(1), f(1))), 2)
 })
 context("trace_calls")
 test_that("trace calls handles all possibilities", {

@@ -2,18 +2,20 @@
 % Please edit documentation in R/covr.R
 \name{function_coverage}
 \alias{function_coverage}
-\title{Calculate test coverage for a package}
+\title{Calculate test coverage for specific function.}
 \usage{
-function_coverage(names, ..., enc = parent.frame())
+function_coverage(fun, ..., env = NULL, enc = parent.frame())
 }
 \arguments{
-\item{names}{function names.}
+\item{fun}{name of the function.}
 
 \item{...}{expressions to run.}
+
+\item{env}{environment the function is defined in.}
 
 \item{enc}{the enclosing environment which to run the expressions.}
 }
 \description{
-Calculate test coverage for a package
+Calculate test coverage for specific function.
 }
 
