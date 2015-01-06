@@ -16,3 +16,9 @@ install:
 after_success:
   - Rscript -e 'library(covr);coveralls()'
 ```
+
+Also you will need to turn on coveralls for your project at <https://coveralls.io/repos/new>.
+
+# Alternative Coverage Tools #
+- <https://github.com/MangoTheCat/testCoverage>
+- <http://r2d2.quartzbio.com/posts/r-coverage-docker.html>
