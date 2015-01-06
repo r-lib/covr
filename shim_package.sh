@@ -1,4 +1,3 @@
 #!/usr/bin/sh
 
-sed -i -e 's/Package: covr$/Package: covrShim/' DESCRIPTION
-sed -i -e 's/rex::register_shortcuts("covr")/rex::register_shortcuts("covrShim")/' R/covr.R
+perl -i -pe 's/\bcovr\b/covrShim/g;s/\breassign_function\b/reassign_function_shim/g;s/\bduplicate_\b/duplicate_shim/g' DESCRIPTION NAMESPACE R/* src/* tests/*R
