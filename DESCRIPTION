@@ -13,5 +13,7 @@ Imports:
     devtools,
     httr,
     testthat
+Suggests:
+    R6
 License: MIT + file LICENSE
 LazyData: true

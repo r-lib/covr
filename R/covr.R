@@ -185,7 +185,7 @@ package_coverage <- function(path = ".", ..., relative_path = FALSE) {
 
   env <- new.env(parent = ns_env)
 
-  testing_dir <- file.path(path, "tests")
+  testing_dir <- test_directory(path)
 
   coverage <- environment_coverage_(ns_env,
     c(dots(...),

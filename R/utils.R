@@ -45,3 +45,11 @@ sources <- function(pkg = ".") {
   srcdir <- file.path(pkg$path, "src")
   dir(srcdir, rex::rex(".", list("c", except_any_of(".")) %or% "f", end), recursive = TRUE, full.names = TRUE)
 }
+
+test_directory <- function(path) {
+  dir <- file.path(path, "inst", "tests")
+  if (!file.exists(dir)) {
+    dir <- file.path(path, "tests")
+  }
+  dir
+}
