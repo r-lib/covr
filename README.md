@@ -14,7 +14,7 @@ install:
   - ./travis-tool.sh github_package jimhester/covr
 
 after_success:
-  - Rscript -e 'covr::coveralls()'
+  - Rscript -e 'library(covr);coveralls()'
 ```
 
 Also you will need to turn on coveralls for your project at <https://coveralls.io/repos/new>.
