@@ -178,21 +178,33 @@ package_coverage <- function(path = ".", ..., relative_path = FALSE) {
     return(NULL)
   }
 
-  ns_env <- devtools::load_all(path, export_all = FALSE, quiet = TRUE)$env
+  old <- set_envvar(c(PKG_CFLAGS = "-fprofile-arcs -ftest-coverage", PKG_CXXFLAGS = "-fprofile-arcs -ftest-coverage", PKG_FFLAGS = "-fprofile-arcs -ftest-coverage", PKG_LIBS = "--coverage"), "prefix")
+  on.exit(set_envvar(old), add = TRUE)
+
+  ns_env <- devtools::load_all(path, export_all = FALSE, quiet = FALSE, recompile = TRUE)$env
 
   env <- new.env(parent = ns_env)
 
   testing_dir <- file.path(path, "tests")
 
-  res <- environment_coverage_(ns_env,
+  coverage <- environment_coverage_(ns_env,
     c(dots(...),
     if (file.exists(testing_dir)) {
       bquote(testthat::source_dir(path = .(testing_dir), env = .(env)))
     }),
     enc = environment())
 
-  if (relative_path) {
-    names(res) <- rex::re_substitutes(names(res), rex::rex(normalizePath(path), "/"), "")
+
+  sources <- sources(path)
+
+  if (length(sources) > 0) {
+    coverage <- c(coverage, unlist(lapply(sources, run_gcov)))
   }
-  res
+
+  if (relative_path) {
+    names(coverage) <- rex::re_substitutes(names(coverage), rex::rex(normalizePath(path), "/"), "")
+  }
+  class(coverage) <- "coverage"
+
+  coverage
 }
