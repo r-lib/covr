@@ -4,10 +4,10 @@
 #' @export
 percent_coverage <- function(coverage_result){
   coverage_data <- as.data.frame(coverage_result)
-  n_lines <- nrow(coverage_data)
-  n_not_zero <- sum(coverage_data$value != 0) # how many lines have a value that is not zero?
+  num_lines <- nrow(coverage_data)
+  num_not_zero <- sum(coverage_data$value != 0) # how many lines have a value that is not zero?
   
-  perc_coverage <- n_not_zero / n_lines
+  perc_coverage <- num_not_zero / num_lines
   
   perc_coverage
 }
