@@ -202,7 +202,6 @@ package_coverage <- function(path = ".", ..., relative_path = FALSE) {
     }),
     enc = environment())
 
-
   sources <- sources(path)
 
   if (length(sources) > 0) {
