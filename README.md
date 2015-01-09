@@ -19,6 +19,20 @@ after_success:
 
 Also you will need to turn on coveralls for your project at <https://coveralls.io/repos/new>.
 
+# Usage #
+Using `covr` in an interactive session is easy.
+
+```r
+# if you want the raw package output
+cov <- package_coverage()
+
+# if you want the overall percentage coverage of your package
+percent_coveage(cov)
+
+# if you only want to see those lines which are uncovered
+zero_coverage(cov)
+```
+
 # Alternative Coverage Tools #
 - <https://github.com/MangoTheCat/testCoverage>
 - <http://r2d2.quartzbio.com/posts/r-coverage-docker.html>
