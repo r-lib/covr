@@ -198,7 +198,7 @@ package_coverage <- function(path = ".", ..., relative_path = FALSE) {
   coverage <- environment_coverage_(ns_env,
     c(dots(...),
     if (file.exists(testing_dir)) {
-      bquote(testthat::source_dir(path = .(testing_dir), env = .(env)))
+      bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
     }),
     enc = environment())
 
