@@ -1,7 +1,7 @@
 context("gcov")
 test_that("gcov calls system2 with the proper arguments", {
   with_mock(
-    `base::system2` = capture_args,
+    `base::system2` = covr:::capture_args,
     `base::setwd` = function(...) invisible(),
     `base::file.exists` = function(..) TRUE,
 
