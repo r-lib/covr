@@ -12,7 +12,8 @@ Imports:
     rex,
     devtools,
     httr,
-    testthat
+    testthat,
+    crayon
 Suggests:
     R6
 License: MIT + file LICENSE
