@@ -17,7 +17,7 @@ coveralls <- function(path = ".", ...) {
 to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), service_name = "travis-ci") {
   coverages <- per_line(x)
 
-  names <- names(coverages)
+  coverage_names <- names(coverages)
 
   sources <- lapply(names(coverages),
     function(x) {
@@ -30,7 +30,7 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), servic
         "source" = jsonlite::unbox(source),
         "coverage" = coverage)
     },
-    names,
+    coverage_names,
     sources,
     coverages,
     SIMPLIFY = FALSE,

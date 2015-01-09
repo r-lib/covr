@@ -178,8 +178,16 @@ package_coverage <- function(path = ".", ..., relative_path = FALSE) {
     return(NULL)
   }
 
-  old <- set_envvar(c(PKG_CFLAGS = "-fprofile-arcs -ftest-coverage", PKG_CXXFLAGS = "-fprofile-arcs -ftest-coverage", PKG_FFLAGS = "-fprofile-arcs -ftest-coverage", PKG_LIBS = "--coverage"), "prefix")
-  on.exit(set_envvar(old), add = TRUE)
+  old_makevars <- set_makevars(
+      c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        LDFLAGS = "--coverage")
+      )
+  on.exit(reset_makevars(old_makevars), add = TRUE)
+
+  old_envs <- set_envvar(c(PKG_LIBS = "--coverage"), "prefix")
+  on.exit(set_envvar(old_envs), add = TRUE)
 
   ns_env <- devtools::load_all(path, export_all = FALSE, quiet = FALSE, recompile = TRUE)$env
 
@@ -199,6 +207,7 @@ package_coverage <- function(path = ".", ..., relative_path = FALSE) {
 
   if (length(sources) > 0) {
     coverage <- c(coverage, unlist(lapply(sources, run_gcov)))
+    clear_gcov(path)
   }
 
   if (relative_path) {

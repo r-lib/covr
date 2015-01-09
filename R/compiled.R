@@ -9,9 +9,8 @@ parse_gcov <- function(file) {
   )
 
   res <- rex::re_matches(lines, re)
-  res$coverage[res$coverage == "-"] <- NA
   res$coverage[res$coverage == "#####"] <- 0
-  res <- res[res$line > 0, ]
+  res <- res[res$line > 0 & res$coverage != "-", ]
 
   values <- as.numeric(res$coverage)
   names(values) <- paste(sep = ":",
@@ -27,6 +26,16 @@ parse_gcov <- function(file) {
 
   class(values) <- "coverage"
   values
+}
+
+clear_gcov <- function(path) {
+  pkg <- devtools::as.package(path)
+
+  src_dir <- system.file("src", package = pkg$package)
+
+  gcov_files <- dir(src_dir, pattern = rex::rex(or(".gcda", ".gcno", ".gcov"), end), full.names = TRUE)
+  unlink(gcov_files)
+  invisible()
 }
 
 run_gcov <- function(file) {
