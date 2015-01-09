@@ -172,7 +172,7 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @param relative_path whether to output the paths as relative or absolute
 #' paths.
 #' @export
-package_coverage <- function(path = ".", ..., relative_path = FALSE) {
+package_coverage <- function(path = ".", ..., relative_path = TRUE) {
 
   if (!file.exists(path)) {
     return(NULL)
@@ -189,7 +189,7 @@ package_coverage <- function(path = ".", ..., relative_path = FALSE) {
   old_envs <- set_envvar(c(PKG_LIBS = "--coverage"), "prefix")
   on.exit(set_envvar(old_envs), add = TRUE)
 
-  ns_env <- devtools::load_all(path, export_all = FALSE, quiet = FALSE, recompile = TRUE)$env
+  ns_env <- devtools::load_all(path, export_all = FALSE, quiet = TRUE, recompile = TRUE)$env
 
   env <- new.env(parent = ns_env)
 

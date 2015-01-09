@@ -4,7 +4,7 @@
 \alias{package_coverage}
 \title{Calculate test coverage for a package}
 \usage{
-package_coverage(path = ".", ..., relative_path = FALSE)
+package_coverage(path = ".", ..., relative_path = TRUE)
 }
 \arguments{
 \item{path}{file path to the package}

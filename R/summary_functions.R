@@ -29,3 +29,33 @@ zero_coverage <- function(coverage_result){
 
   coverage_zero
 }
+
+#' @export
+print.coverage <- function(x, ...) {
+  df <- as.data.frame(x)
+
+  per_file_percents <-
+    unlist(tapply(df$value, df$filename,
+      FUN = function(x) sum(x > 0) / length(x),
+      simplify = FALSE))
+
+  overall_percentage <- sum(x > 0) / length(x)
+
+  message(crayon::bold("Package Coverage: "), format_percentage(overall_percentage))
+
+  if (any(per_file_percents < 1)) {
+    by_coverage <- per_file_percents[order(per_file_percents)]
+
+    for (i in which(by_coverage < 1)) {
+      message(crayon::bold(names(by_coverage)[i], ": "), format_percentage(by_coverage[i]))
+    }
+  }
+}
+
+format_percentage <- function(x) {
+  color <- if (x >= .9) crayon::green
+    else if (x >= .75) crayon::yellow
+    else crayon::red
+
+  color(sprintf("%02.2f%%", x * 100))
+}

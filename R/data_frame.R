@@ -18,8 +18,3 @@ as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, ...) {
   df$value <- unlist(x)
   df[order(df$filename, df$first_line, df$first_byte),]
 }
-
-#' @export
-print.coverage <- function(x, ...) {
-  print(as.data.frame(x, ...))
-}
