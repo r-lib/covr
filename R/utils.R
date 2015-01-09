@@ -93,3 +93,15 @@ reset_makevars <- function(lines) {
     writeLines(con = makevars, lines)
   }
 }
+
+# functions for testing
+capture_args <- function(...) {
+  stop(capture.output(dput(list(...))))
+}
+get_args <- function(x) {
+  eval(parse(text = attr(x, "condition")$message))
+}
+return_args <- function(...) {
+  get_args(try(..., silent = TRUE))
+}
+
