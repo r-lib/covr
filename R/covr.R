@@ -34,9 +34,10 @@ trace_calls <- function (x, srcref = NULL) {
   else if (is.function(x)) {
     fun_body <- body(x)
 
-    if(is.symbol(fun_body) || fun_body[[1]] != "{") {
-      srcref <- attr(x, "srcref")
-      key <- key(srcref)
+    if((is.symbol(fun_body) || fun_body[[1]] != "{") &&
+      !is.null(attr(x, "srcref"))) {
+      src_ref <- attr(x, "srcref")
+      key <- key(src_ref)
       covr::new_counter(key)
       fun_body <- bquote(`{`(covr::count(.(key)), .(trace_calls(fun_body))))
     } else {
