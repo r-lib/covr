@@ -20,17 +20,17 @@ after_success:
 Also you will need to turn on coveralls for your project at <https://coveralls.io/repos/new>.
 
 # Usage #
-Using `covr` in an interactive session is easy.
+Using `covr` in an interactive session is also easy.
 
 ```r
-# if you want the raw package output
-cov <- package_coverage()
+# if you are in the packages base directory
+package_coverage()
 
-# if you want the overall percentage coverage of your package
-percent_coveage(cov)
+# or a package in another directory
+package_coverage("lintr")
 
-# if you only want to see those lines which are uncovered
-zero_coverage(cov)
+# use zero coverage to see which lines are uncovered.
+zero_coverage(package_coverage())
 ```
 
 # Alternative Coverage Tools #

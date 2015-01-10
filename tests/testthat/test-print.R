@@ -39,5 +39,11 @@ test_that("print.coverage only displays Package Coverage if all files are covere
     class = "coverage")
 
   expect_message(print(cov),
-    rex::rex("Package Coverage: ", anything, "100.00%"), all = TRUE)
+    rex::rex("Package Coverage: ", anything, "100.00%"))
+
+  expect_message(print(cov),
+    rex::rex("file: ", anything, "100.00%"))
+
+  expect_message(print(cov),
+    rex::rex("file2: ", anything, "100.00%"))
 })

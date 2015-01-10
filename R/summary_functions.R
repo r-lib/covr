@@ -43,12 +43,10 @@ print.coverage <- function(x, ...) {
 
   message(crayon::bold("Package Coverage: "), format_percentage(overall_percentage))
 
-  if (any(per_file_percents < 1)) {
-    by_coverage <- per_file_percents[order(per_file_percents)]
+  by_coverage <- per_file_percents[order(per_file_percents)]
 
-    for (i in which(by_coverage < 1)) {
-      message(crayon::bold(paste0(names(by_coverage)[i], ": ")), format_percentage(by_coverage[i]))
-    }
+  for (i in seq_along(by_coverage)) {
+    message(crayon::bold(paste0(names(by_coverage)[i], ": ")), format_percentage(by_coverage[i]))
   }
 }
 
