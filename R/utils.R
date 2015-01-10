@@ -64,6 +64,8 @@ set_makevars <- function(envs) {
   old <- NULL
   if (file.exists(makevars)) {
     lines <- readLines(makevars)
+    lines <- grep("^[[:space:]]*#", lines, value=TRUE, invert=TRUE)
+        print(lines)
     old <- lines
     for (env in names(envs)) {
       loc <- grep(env, lines)
