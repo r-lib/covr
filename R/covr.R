@@ -32,8 +32,19 @@ trace_calls <- function (x, srcref = NULL) {
     }
   }
   else if (is.function(x)) {
+    fun_body <- body(x)
+
+    if(is.symbol(fun_body) || fun_body[[1]] != "{") {
+      srcref <- attr(x, "srcref")
+      key <- key(srcref)
+      covr::new_counter(key)
+      fun_body <- bquote(`{`(covr::count(.(key)), .(trace_calls(fun_body))))
+    } else {
+      fun_body <- trace_calls(fun_body)
+    }
+
     formals(x) <- trace_calls(formals(x))
-    body(x) <- trace_calls(body(x))
+    body(x) <- fun_body
     x
   }
   else if (is.pairlist(x)) {
