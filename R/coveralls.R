@@ -21,7 +21,7 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), servic
 
   sources <- lapply(names(coverages),
     function(x) {
-      readChar(x, file.info(x)$size)
+      readChar(x, file.info(x)$size, useBytes=TRUE)
     })
 
   res <- mapply(
