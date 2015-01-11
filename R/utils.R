@@ -66,7 +66,7 @@ set_makevars <- function(envs) {
     lines <- readLines(makevars)
     old <- lines
     for (env in names(envs)) {
-      loc <- grep(sprintf("^[[:space:]]*%s[[:space:]]*=", env), lines)
+      loc <- grep(rex::rex(start, any_spaces, env, any_spaces, "="), lines)
       if (length(loc) == 0) {
         lines <- append(lines, paste(sep = "=", env, envs[env]))
       } else if(length(loc) == 1) {
