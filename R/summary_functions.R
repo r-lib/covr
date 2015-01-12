@@ -4,8 +4,9 @@
 #' @export
 percent_coverage <- function(coverage_result){
   coverage_data <- as.data.frame(coverage_result)
-  num_lines <- nrow(coverage_data)
-  num_not_zero <- sum(coverage_data$value != 0) # how many lines have a value that is not zero?
+  num_lines <- length(unique(coverage_data$first_line))
+  not_zero <- coverage_data$value != 0
+  num_not_zero <- length(unique(coverage_data[not_zero, 'first_line']))
 
   perc_coverage <- num_not_zero / num_lines
 
@@ -14,13 +15,18 @@ percent_coverage <- function(coverage_result){
 
 #' Provide locations of zero coverage
 #'
-#' When examining the test coverage of a package, it is useful to know if there are 
+#' When examining the test coverage of a package, it is useful to know if there are
 #' any locations where there is \bold{0} test coverage.
 #'
-#' @param coverage_result a coverage object returned from \code{\link{package_coverage}}
+#' @param coverage_result a coverage object returned from
+#' 	\code{\link{package_coverage}}, or its data frame conversion
 #' @export
-zero_coverage <- function(coverage_result){
-  coverage_data <- as.data.frame(coverage_result)
+zero_coverage <- function(coverage_result) {
+  coverage_data <- if (is.data.frame(coverage_result)) {
+    coverage_result
+  } else {
+    as.data.frame(coverage_result)
+  }
 
   zero_locs <- coverage_data$value == 0
 
@@ -34,12 +40,11 @@ zero_coverage <- function(coverage_result){
 print.coverage <- function(x, ...) {
   df <- as.data.frame(x)
 
-  per_file_percents <-
-    unlist(tapply(df$value, df$filename,
-      FUN = function(x) sum(x > 0) / length(x),
-      simplify = FALSE))
+  per_file_percents <- vapply(unique(df$filename), function(fn) {
+    percent_coverage(df[df$filename == fn, ])
+      }, 0)
 
-  overall_percentage <- sum(x > 0) / length(x)
+  overall_percentage <- percent_coverage(x)
 
   message(crayon::bold("Package Coverage: "), format_percentage(overall_percentage))
 

@@ -20,7 +20,7 @@ test_that("format_percentage works as expected", {
 test_that("print.coverage works as expected", {
   cov <- structure(list(
       `file:1:1:1:1:1:1:1:1` = 0,
-      `file:1:1:1:1:1:1:1:1` = 1
+      `file:2:1:1:1:1:1:1:1` = 1
       ),
     class = "coverage")
 
