@@ -201,18 +201,19 @@ package_coverage <- function(path = ".", ..., relative_path = TRUE) {
   old_envs <- set_envvar(c(PKG_LIBS = "--coverage"), "prefix")
   on.exit(set_envvar(old_envs), add = TRUE)
 
-  ns_env <- devtools::load_all(path, export_all = FALSE, quiet = TRUE, recompile = TRUE)$env
+  dots <- dots(...)
 
-  env <- new.env(parent = ns_env)
-
-  testing_dir <- test_directory(path)
-
-  coverage <- environment_coverage_(ns_env,
-    c(dots(...),
-    if (file.exists(testing_dir)) {
-      bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
-    }),
-    enc = environment())
+  subprocess(
+    ns_env <- devtools::load_all(path, export_all = FALSE, quiet = FALSE, recompile = TRUE)$env,
+    env <- new.env(parent = ns_env),
+    testing_dir <- covr:::test_directory(path),
+    args <-
+      c(dots,
+        if (file.exists(testing_dir)) {
+          bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
+        }),
+    enc <- environment(),
+    coverage <- covr::environment_coverage_(ns_env, args, enc))
 
   sources <- sources(path)
 

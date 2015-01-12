@@ -48,6 +48,7 @@ run_gcov <- function(file) {
   setwd(dirname(file))
   gcda <- paste0(base, ".gcda")
   gcno <- paste0(base, ".gcno")
+
   if (file.exists(gcno) && file.exists(gcda)) {
     system2("gcov", args = basename(file), stdout = NULL)
     parse_gcov(paste0(file, ".gcov"))
