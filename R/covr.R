@@ -215,6 +215,7 @@ package_coverage <- function(path = ".", ..., relative_path = TRUE) {
     enc <- environment(),
     coverage <- environment_coverage_(ns_env, args, enc)
   )
+  str(coverage)
 
   sources <- sources(path)
 

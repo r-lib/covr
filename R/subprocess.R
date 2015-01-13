@@ -26,15 +26,36 @@ subprocess <- function(..., env = parent.frame()) {
 
   save(list=ls(env), envir = env, file = tmp_read)
 
-  system2("Rscript", shQuote(
-      c("-e", "library(methods);",
-        "-e", sprintf(".vars <- load('%s')", tmp_read),
-        "-e", sprintf(".ns <- readRDS('%s');for (namespace in .ns) try(suppressPackageStartupMessages(attachNamespace(namespace)), silent = TRUE)", tmp_namespaces),
-        "-e", sprintf(".exprs <- readRDS('%s');fun <- function() { for(expr in .exprs) eval(expr); .new_objs <- ls(environment()); if (length(.new_objs) > 0) save(list = .new_objs, file = '%s') }", tmp_exprs, tmp_output),
-        "-e", sprintf(".env <- readRDS('%s');environment(fun) <- .env;fun()", tmp_env)
-      )), env = c("R_TESTS" = "", "NOT_CRAN" = "true"))
+  tmp_source <- tempfile()
+
+  command <- sprintf("
+library(methods)
+.vars <- load('%s')
+.ns <- readRDS('%s')
+for (namespace in .ns) {
+  try(suppressPackageStartupMessages(attachNamespace(namespace)), silent = TRUE)
+}
+.exprs <- readRDS('%s')
+fun <- function() {
+  for(expr in .exprs) {
+    eval(expr)
+  }
+  .new_objs <- ls(environment())
+  if (length(.new_objs) > 0) {
+    save(list = .new_objs, file = '%s')
+  }
+}
+.env <- readRDS('%s')
+environment(fun) <- .env
+fun()",
+tmp_read, tmp_namespaces, tmp_exprs, tmp_output, tmp_env)
+
+  writeChar(con = tmp_source, command, eos = NULL)
+  devtools:::RCMD("BATCH", paste0(tmp_source, " --vanilla"), path = ".")
 
   if (file.exists(tmp_output)) {
     load(envir = env, file = tmp_output)
+  } else {
+    message(tmp_output, " does not exist")
   }
 }
