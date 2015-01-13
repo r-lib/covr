@@ -206,14 +206,15 @@ package_coverage <- function(path = ".", ..., relative_path = TRUE) {
   subprocess(
     ns_env <- devtools::load_all(path, export_all = FALSE, quiet = FALSE, recompile = TRUE)$env,
     env <- new.env(parent = ns_env),
-    testing_dir <- covr:::test_directory(path),
+    testing_dir <- test_directory(path),
     args <-
       c(dots,
         if (file.exists(testing_dir)) {
           bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
         }),
     enc <- environment(),
-    coverage <- covr::environment_coverage_(ns_env, args, enc))
+    coverage <- environment_coverage_(ns_env, args, enc)
+  )
 
   sources <- sources(path)
 

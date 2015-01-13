@@ -33,9 +33,7 @@ parse_gcov <- function(file) {
 }
 
 clear_gcov <- function(path) {
-  pkg <- devtools::as.package(path)
-
-  src_dir <- system.file("src", package = pkg$package)
+  src_dir <- file.path(path, "src")
 
   gcov_files <- dir(src_dir, pattern = rex::rex(or(".gcda", ".gcno", ".gcov"), end), full.names = TRUE)
   unlink(gcov_files)
