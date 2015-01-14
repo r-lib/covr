@@ -1,16 +1,16 @@
 #' Provide percent coverage of package
 #'
 #' @param coverage_result the coverage object returned from \code{\link{package_coverage}}
+#' @param by_line whether to compute the percentage by covered lines or be covered expressions
 #' @export
-percent_coverage <- function(coverage_result){
-  coverage_data <- as.data.frame(coverage_result)
-  num_lines <- length(unique(coverage_data$first_line))
-  not_zero <- coverage_data$value != 0
-  num_not_zero <- length(unique(coverage_data[not_zero, 'first_line']))
+percent_coverage <- function(coverage_result, by_line = TRUE) {
+  cov_df <- as.data.frame(coverage_result)
+  if (by_line) {
+    cov_df <- aggregate(value ~ filename + first_line,
+      data = cov_df[c('filename', 'first_line', 'value')], FUN = sum)
+  }
 
-  perc_coverage <- num_not_zero / num_lines
-
-  perc_coverage
+  sum(cov_df$value > 0) / nrow(cov_df)
 }
 
 #' Provide locations of zero coverage
@@ -22,36 +22,36 @@ percent_coverage <- function(coverage_result){
 #' 	\code{\link{package_coverage}}, or its data frame conversion
 #' @export
 zero_coverage <- function(coverage_result) {
-  coverage_data <- if (is.data.frame(coverage_result)) {
-    coverage_result
-  } else {
-    as.data.frame(coverage_result)
-  }
+  coverage_data <- as.data.frame(coverage_result)
 
   zero_locs <- coverage_data$value == 0
 
-  coverage_zero <- coverage_data[zero_locs, c("filename", "first_line", "last_line", "value")]
+  coverage_zero <- coverage_data[zero_locs,
+    c("filename", "first_line", "last_line", "value")]
   rownames(coverage_zero) <- NULL
 
   coverage_zero
 }
 
 #' @export
-print.coverage <- function(x, ...) {
+print.coverage <- function(x, by_line = TRUE, ...) {
   df <- as.data.frame(x)
 
   per_file_percents <- vapply(unique(df$filename), function(fn) {
-    percent_coverage(df[df$filename == fn, ])
+    percent_coverage(df[df$filename == fn, ], by_line = by_line)
       }, 0)
 
-  overall_percentage <- percent_coverage(x)
+  overall_percentage <- percent_coverage(df, by_line = by_line)
 
-  message(crayon::bold("Package Coverage: "), format_percentage(overall_percentage))
+  message(crayon::bold("Package Coverage: "),
+    format_percentage(overall_percentage))
 
-  by_coverage <- per_file_percents[order(per_file_percents)]
+  by_coverage <- per_file_percents[order(per_file_percents,
+      names(per_file_percents))]
 
   for (i in seq_along(by_coverage)) {
-    message(crayon::bold(paste0(names(by_coverage)[i], ": ")), format_percentage(by_coverage[i]))
+    message(crayon::bold(paste0(names(by_coverage)[i], ": ")),
+      format_percentage(by_coverage[i]))
   }
 }
 

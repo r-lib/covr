@@ -15,3 +15,6 @@ test: build-docker-checker
 check: build-docker-checker
 	docker run --rm -ti -v $(PWD)/..:/home/docker $(RCHECKER) Rscript -e 'devtools::check("covr")'
 
+
+rox: build-docker-checker
+	docker run --rm -ti -v $(PWD)/..:/home/docker $(RCHECKER) Rscript -e 'devtools::document("covr")'

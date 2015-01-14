@@ -16,9 +16,6 @@ trace_calls <- function (x, srcref = NULL) {
     lapply(y, trace_calls)
   }
 
-#  if (is.atomic(x) || is.name(x)) {
-#    x
-#  }
   if (is.atomic(x) || is.name(x)) {
     if (is.null(srcref)) {
       x
@@ -58,7 +55,6 @@ trace_calls <- function (x, srcref = NULL) {
       fun_body <- trace_calls(fun_body)
     }
 
-    #formals(x) <- trace_calls(formals(x))
     new_formals <- trace_calls(formals(x))
     if (is.null(new_formals)) new_formals <- list()
     formals(x) <- new_formals
