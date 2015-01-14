@@ -34,8 +34,8 @@ trace_calls <- function (x, srcref = NULL) {
   else if (is.function(x)) {
     fun_body <- body(x)
 
-    if((is.symbol(fun_body) || fun_body[[1]] != "{") &&
-      !is.null(attr(x, "srcref"))) {
+    if(!is.null(fun_body) && !is.null(attr(x, "srcref")) &&
+       (is.symbol(fun_body) || fun_body[[1]] != "{")) {
       src_ref <- attr(x, "srcref")
       key <- key(src_ref)
       covr::new_counter(key)
