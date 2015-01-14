@@ -9,8 +9,7 @@ test_that("one-line functions are traced correctly", {
     c("::", "covr", "count"))
 
   fun <- function() 1
-#browser()
-#debugonce(trace_calls)
+
   expect_equal(as.character(body(trace_calls(fun))[[2]][[1]]),
       c("::", "covr", "count"))
 
