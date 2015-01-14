@@ -16,7 +16,7 @@ test_that("coveralls generates a properly formatted json file", {
     expect_equal(json$source_files$name, "R/TestS4.R"),
     expect_equal(json$source_files$source, read_file("R/TestS4.R")),
     expect_equal(json$source_files$coverage[[1]],
-      c(NA, NA, 5, 5, 5, 5, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+      c(NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
         NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1))
     )
 })
