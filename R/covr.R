@@ -215,7 +215,8 @@ package_coverage <- function(path = ".", ..., relative_path = TRUE) {
     enc <- environment(),
     coverage <- environment_coverage_(ns_env, args, enc)
   )
-  str(coverage)
+
+  devtools::clean_dll(path)
 
   sources <- sources(path)
 
