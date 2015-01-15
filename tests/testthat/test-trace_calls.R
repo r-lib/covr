@@ -37,3 +37,11 @@ test_that("one-line functions with braces are traced correctly", {
 
   expect_equal(body(trace_calls(fun))[[2]][[3]], body(fun)[[2]])
 })
+test_that("functions with NULL bodies are traced correctly", {
+  old <- options(keep.source = TRUE)
+  on.exit(options(old))
+
+  fun <- function() NULL
+
+  expect_equal(trace_calls(fun), fun)
+})
