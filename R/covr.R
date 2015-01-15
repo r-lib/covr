@@ -17,7 +17,18 @@ trace_calls <- function (x, srcref = NULL) {
   }
 
   if (is.atomic(x) || is.name(x)) {
-    x
+    if (is.null(srcref)) {
+      x
+    }
+    else {
+      if (as.character(x) == "{") {
+        x
+      } else {
+        key <- key(srcref)
+        covr::new_counter(key)
+        bquote(`{`(covr::count(.(key)), .(x)))
+      }
+    }
   }
   else if (is.call(x)) {
     src_ref <- attr(x, "srcref")
@@ -44,7 +55,9 @@ trace_calls <- function (x, srcref = NULL) {
       fun_body <- trace_calls(fun_body)
     }
 
-    formals(x) <- trace_calls(formals(x))
+    new_formals <- trace_calls(formals(x))
+    if (is.null(new_formals)) new_formals <- list()
+    formals(x) <- new_formals
     body(x) <- fun_body
     x
   }

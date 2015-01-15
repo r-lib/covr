@@ -24,11 +24,19 @@ test_that("print.coverage works as expected", {
       ),
     class = "coverage")
 
-  expect_message(print(cov),
+  expect_message(print(cov, by_line = FALSE),
     rex::rex("Package Coverage: ", anything, "50.00%"))
-
-  expect_message(print(cov),
+  expect_message(print(cov, by_line = FALSE),
     rex::rex("file: ", anything, "50.00%"))
+
+  expect_message(print(cov, by_line = TRUE),
+    rex::rex("Package Coverage: ", anything, "100.00%"))
+  expect_message(print(cov, by_line = TRUE),
+    rex::rex("file: ", anything, "100.00%"))
+
+  # test default
+  expect_message(print(cov),
+          rex::rex("Package Coverage: ", anything, "100.00%"))
 
 })
 test_that("print.coverage only displays Package Coverage if all files are covered completely", {

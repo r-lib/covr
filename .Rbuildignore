@@ -4,3 +4,6 @@
 ^covr\.Rcheck$
 ^\.travis\.yml$
 ^shim_package\.sh$
+Makefile
+docker_checker
+_dev\.R$
