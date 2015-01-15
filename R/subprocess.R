@@ -3,7 +3,7 @@
 # results to the calling environment.
 subprocess <- function(..., calling_env = parent.frame(),
                             global_env = .GlobalEnv,
-                            clean_output = FALSE) {
+                            clean_output = TRUE) {
   exprs <- eval(substitute(alist(...)))
 
   tmp_calling_env <- tempfile()
@@ -39,7 +39,7 @@ fun()",
 tmp_global_env, tmp_exprs, tmp_output, tmp_calling_env)
 
   writeChar(con = tmp_source, command, eos = NULL)
-  devtools:::RCMD("BATCH", c("--no-restore", "--no-save", tmp_source), path = ".")
+  try(devtools:::RCMD("BATCH", c("--no-restore", "--no-save", tmp_source), path = "."))
 
   rout_file <- paste0(basename(tmp_source), ".Rout")
   if (clean_output) {
