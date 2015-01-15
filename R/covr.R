@@ -213,7 +213,8 @@ package_coverage <- function(path = ".", ..., relative_path = TRUE) {
           bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
         }),
     enc <- environment(),
-    coverage <- environment_coverage_(ns_env, args, enc)
+    coverage <- environment_coverage_(ns_env, args, enc),
+    rm(ns_env, env, enc, args)
   )
 
   devtools::clean_dll(path)
