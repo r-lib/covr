@@ -82,4 +82,11 @@ test_that("last evaled expression is traced", {
 
 })
 
+test_that("functions with NULL bodies are traced correctly", {
+  old <- options(keep.source = TRUE)
+  on.exit(options(old))
 
+  fun <- function() NULL
+
+  expect_equal(trace_calls(fun), fun)
+})
