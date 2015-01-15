@@ -15,6 +15,7 @@ script: ./travis-tool.sh run_tests
 
 after_success:
   - source shim_package.sh
+  - Rscript -e 'devtools::install()'
   - Rscript -e 'library(covr);coveralls()'
 
 after_failure:
