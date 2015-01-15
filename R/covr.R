@@ -203,27 +203,39 @@ package_coverage <- function(path = ".", ..., relative_path = TRUE) {
 
   dots <- dots(...)
 
-  subprocess(
-    ns_env <- devtools::load_all(path, export_all = FALSE, quiet = FALSE, recompile = TRUE)$env,
-    env <- new.env(parent = ns_env),
-    testing_dir <- test_directory(path),
+  sources <- sources(path)
+
+  # if there are compiled components to a package we have to run in a subprocess
+  if (length(sources) > 0) {
+    subprocess(
+      ns_env <- devtools::load_all(path, export_all = FALSE, quiet = FALSE, recompile = TRUE)$env,
+      env <- new.env(parent = ns_env),
+      testing_dir <- test_directory(path),
+      args <-
+        c(dots,
+          if (file.exists(testing_dir)) {
+            bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
+          }),
+        enc <- environment(),
+        coverage <- environment_coverage_(ns_env, args, enc),
+        rm(ns_env, env, enc, args)
+        )
+
+    devtools::clean_dll(path)
+
+    coverage <- c(coverage, unlist(lapply(sources, run_gcov)))
+    clear_gcov(path)
+  } else {
+    ns_env <- devtools::load_all(path, export_all = FALSE, quiet = FALSE, recompile = TRUE)$env
+    env <- new.env(parent = ns_env)
+    testing_dir <- test_directory(path)
     args <-
       c(dots,
         if (file.exists(testing_dir)) {
           bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
-        }),
-    enc <- environment(),
-    coverage <- environment_coverage_(ns_env, args, enc),
-    rm(ns_env, env, enc, args)
-  )
-
-  devtools::clean_dll(path)
-
-  sources <- sources(path)
-
-  if (length(sources) > 0) {
-    coverage <- c(coverage, unlist(lapply(sources, run_gcov)))
-    clear_gcov(path)
+        })
+      enc <- environment()
+      coverage <- environment_coverage_(ns_env, args, enc)
   }
 
   if (relative_path) {
