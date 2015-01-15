@@ -39,11 +39,11 @@ fun()",
 tmp_global_env, tmp_exprs, tmp_output, tmp_calling_env)
 
   writeChar(con = tmp_source, command, eos = NULL)
-  output <- try(devtools:::RCMD("BATCH", c("--no-restore", "--no-save", tmp_source), path = "."))
+  output <- try(devtools:::RCMD("BATCH", c("--vanilla", "--quiet", tmp_source), path = "."))
 
   if (inherits(output, "try-error")) {
     stop("Command Output: \n",
-      paste(readLines(paste0(tmp_source, ".Rout")), collapse = "\n")
+      paste(tail(readLines(paste0(basename(tmp_source), ".Rout")), n = 25), collapse = "\n")
     )
   }
 
