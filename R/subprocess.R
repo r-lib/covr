@@ -27,6 +27,7 @@ subprocess <- function(..., calling_env = parent.frame(),
   tmp_source <- tempfile()
 
   command <- sprintf("
+library(methods)
 load('%s')
 .exprs <- readRDS('%s')
 fun <- function() {
@@ -44,7 +45,7 @@ fun()",
 tmp_global_env, tmp_exprs, tmp_output, tmp_calling_env)
 
   writeChar(con = tmp_source, command, eos = NULL)
-  devtools:::RCMD("BATCH", tmp_source, path = ".")
+  try(devtools:::RCMD("BATCH", tmp_source, path = "."))
 
   rout_file <- paste0(basename(tmp_source), ".Rout")
   if (clean_output) {
