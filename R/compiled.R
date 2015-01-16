@@ -39,7 +39,7 @@ parse_gcov <- function(file) {
 clear_gcov <- function(path) {
   src_dir <- file.path(path, "src")
 
-  gcov_files <- dir(src_dir, pattern = rex::rex(or(".gcda", ".gcno", ".gcov"), end), full.names = TRUE)
+  gcov_files <- dir(src_dir, pattern = rex::rex(or(".gcda", ".gcno", ".gcov"), end), full.names = TRUE, recursive = TRUE)
   unlink(gcov_files)
 }
 
