@@ -54,9 +54,9 @@ tmp_global_env, tmp_exprs, tmp_output, tmp_calling_env)
                               silent = quiet)
 
   if (inherits(output, "try-error")) {
-    stop("Command Output: \n",
-      paste(tail(readLines(paste0(basename(tmp_source), ".Rout")), n = 25), collapse = "\n")
-    )
+    lines <- readLines(paste0(basename(tmp_source), ".Rout"))
+    lapply(lines, message)
+    stop("Subprocess failed")
   }
 
   rout_file <- paste0(basename(tmp_source), ".Rout")
