@@ -40,12 +40,6 @@ is.named <- function (x) {
   !is.null(names(x)) && all(names(x) != "")
 }
 
-sources <- function(pkg = ".") {
-  pkg <- devtools::as.package(pkg)
-  srcdir <- file.path(pkg$path, "src")
-  dir(srcdir, rex::rex(".", list("c", except_any_of(".")) %or% "f", end), recursive = TRUE, full.names = TRUE)
-}
-
 test_directory <- function(path) {
   dir <- file.path(path, "inst", "tests")
   if (!file.exists(dir)) {

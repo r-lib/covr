@@ -1,5 +1,9 @@
 # this does not handle LCOV_EXCL_START ect.
 parse_gcov <- function(file) {
+  if (!file.exists(file)) {
+    return()
+  }
+
   lines <- readLines(file)
   re <- rex::rex(spaces,
     capture(name = "coverage", some_of(digit, "-", "#")),
@@ -39,19 +43,31 @@ clear_gcov <- function(path) {
   unlink(gcov_files)
 }
 
-run_gcov <- function(file) {
-  base <- basename(remove_extension(file))
+run_gcov <- function(path, sources) {
   old_dir <- getwd()
   on.exit(setwd(old_dir))
-  setwd(dirname(file))
-  gcda <- paste0(base, ".gcda")
-  gcno <- paste0(base, ".gcno")
-  if (file.exists(gcno) && file.exists(gcda)) {
-    system2("gcov", args = basename(file), stdout = NULL)
-    parse_gcov(paste0(file, ".gcov"))
-  }
+  setwd(file.path(path, "src"))
+
+  unlist(Filter(Negate(is.null),
+    lapply(sources,
+    function(src) {
+      gcda <- paste0(remove_extension(src), ".gcda")
+      gcno <- paste0(remove_extension(src), ".gcno")
+      if (file.exists(gcno) && file.exists(gcda)) {
+        status <- system2("gcov", args = src, stdout = NULL)
+        stopifnot(status == 0)
+        parse_gcov(paste0(basename(src), ".gcov"))
+    }
+  })))
 }
 
 remove_extension <- function(x) {
   rex::re_substitutes(x, rex::rex(".", except_any_of("."), end), "")
 }
+
+sources <- function(pkg = ".") {
+  pkg <- devtools::as.package(pkg)
+  srcdir <- file.path(pkg$path, "src")
+  dir(srcdir, rex::rex(".", list("c", except_any_of(".")) %or% "f", end), recursive = TRUE, full.names = FALSE)
+}
+

@@ -14,7 +14,7 @@ test_that("gcov calls system2 and parse_gcov with the proper arguments", {
     `base::setwd` = function(...) invisible(),
     `base::file.exists` = function(..) TRUE,
 
-    system2_args <- return_args(run_gcov("src/test.c")),
+    system2_args <- return_args(run_gcov(".", "test.c")),
 
     expect_equal(system2_args[[1]], "gcov"),
     expect_equal(system2_args[[2]], "test.c"),
@@ -39,6 +39,7 @@ test_that("gcov calls system2 and parse_gcov with the proper arguments", {
 
 test_that("parse_gcov parses files properly", {
   with_mock(
+    `base::file.exists` = function(...) TRUE,
     `base::readLines` = function(...) c(
 "        -:    0:Source:simple.c"
     ),
@@ -46,6 +47,7 @@ test_that("parse_gcov parses files properly", {
   )
 
   with_mock(
+    `base::file.exists` = function(...) TRUE,
     `base::readLines` = function(...) c(
 "        -:    0:Source:simple.c",
 "        -:    1:#define USE_RINTERNALS"
@@ -54,6 +56,7 @@ test_that("parse_gcov parses files properly", {
   )
 
   with_mock(
+    `base::file.exists` = function(...) TRUE,
     `base::readLines` = function(...) c(
 "        -:    0:Source:simple.c",
 "        -:    0:Graph:simple.gcno",
@@ -71,6 +74,7 @@ test_that("parse_gcov parses files properly", {
       structure(c(`hi.c:6:NA:6:NA:NA:NA:NA:NA` = 4), class = "coverage"))
   )
   with_mock(
+    `base::file.exists` = function(...) TRUE,
     `base::readLines` = function(...) c(
 "        -:    0:Source:simple.c",
 "        -:    0:Graph:simple.gcno",

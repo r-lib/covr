@@ -234,9 +234,9 @@ package_coverage <- function(path = ".", ..., relative_path = TRUE) {
         rm(ns_env, env, enc, args)
         )
 
-    devtools::clean_dll(path)
+    coverage <- c(coverage, run_gcov(path, sources))
 
-    coverage <- c(coverage, unlist(lapply(sources, run_gcov)))
+    devtools::clean_dll(path)
     clear_gcov(path)
   } else {
     ns_env <- devtools::load_all(path, export_all = FALSE, quiet = FALSE, recompile = TRUE)$env
