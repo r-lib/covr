@@ -44,12 +44,16 @@ clear_gcov <- function(path) {
 }
 
 run_gcov <- function(path, sources) {
+  src_path <- file.path(normalizePath(path), "src")
+
   old_dir <- getwd()
   on.exit(setwd(old_dir))
-  setwd(file.path(path, "src"))
+  setwd(src_path)
 
-  unlist(Filter(Negate(is.null),
-    lapply(sources,
+  srcs <- rex::re_substitutes(sources, rex::rex(src_path, one_of("/", "\\")), "")
+
+  res <- unlist(Filter(Negate(is.null),
+    lapply(srcs,
     function(src) {
       gcda <- paste0(remove_extension(src), ".gcda")
       gcno <- paste0(remove_extension(src), ".gcno")
@@ -59,6 +63,8 @@ run_gcov <- function(path, sources) {
         parse_gcov(paste0(basename(src), ".gcov"))
     }
   })))
+  names(res) <- file.path(src_path, names(res))
+  res
 }
 
 remove_extension <- function(x) {
@@ -68,6 +74,6 @@ remove_extension <- function(x) {
 sources <- function(pkg = ".") {
   pkg <- devtools::as.package(pkg)
   srcdir <- file.path(pkg$path, "src")
-  dir(srcdir, rex::rex(".", list("c", except_any_of(".")) %or% "f", end), recursive = TRUE, full.names = FALSE)
+  dir(srcdir, rex::rex(".", list("c", except_any_of(".")) %or% "f", end), recursive = TRUE, full.names = TRUE)
 }
 
