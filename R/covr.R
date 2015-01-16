@@ -17,7 +17,7 @@ trace_calls <- function (x, srcref = NULL) {
   }
 
   if (is.atomic(x) || is.name(x)) {
-    if (is.null(srcref)) {
+    if (length(x) == 0 || is.null(srcref)) {
       x
     }
     else {
