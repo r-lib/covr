@@ -21,7 +21,7 @@ trace_calls <- function (x, srcref = NULL) {
       x
     }
     else {
-      if (as.character(x) == "{") {
+      if ((!is.symbol(x) && is.na(x)) || as.character(x) == "{") {
         x
       } else {
         key <- key(srcref)
