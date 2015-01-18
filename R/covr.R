@@ -26,7 +26,7 @@ trace_calls <- function (x, srcref = NULL) {
       } else {
         key <- key(srcref)
         covr::new_counter(key)
-        bquote(`{`(covr::count(.(key)), .(x)))
+        bquote(`{`(covr:::count(.(key)), .(x)))
       }
     }
   }
@@ -36,8 +36,8 @@ trace_calls <- function (x, srcref = NULL) {
       as.call(Map(trace_calls, x, src_ref))
     } else if (!is.null(srcref)) {
       key <- key(srcref)
-      covr::new_counter(key)
-      bquote(`{`(covr::count(.(key)), .(as.call(recurse(x)))))
+      covr:::new_counter(key)
+      bquote(`{`(covr:::count(.(key)), .(as.call(recurse(x)))))
     } else {
       as.call(recurse(x))
     }
@@ -49,8 +49,8 @@ trace_calls <- function (x, srcref = NULL) {
        (is.symbol(fun_body) || fun_body[[1]] != "{")) {
       src_ref <- attr(x, "srcref")
       key <- key(src_ref)
-      covr::new_counter(key)
-      fun_body <- bquote(`{`(covr::count(.(key)), .(trace_calls(fun_body))))
+      covr:::new_counter(key)
+      fun_body <- bquote(`{`(covr:::count(.(key)), .(trace_calls(fun_body))))
     } else {
       fun_body <- trace_calls(fun_body)
     }
@@ -81,7 +81,6 @@ trace_calls <- function (x, srcref = NULL) {
 #' initialize a new counter
 #'
 #' @param key generated with \code{\link{key}}
-#' @export
 new_counter <- function(key) {
   .counters[[key]] <- 0
 }
@@ -89,16 +88,22 @@ new_counter <- function(key) {
 #' increment a given counter
 #'
 #' @inheritParams new_counter
-#' @export
 count <- function(key) {
   .counters[[key]] <- .counters[[key]] + 1
 }
 
 #' clear all previous counters
 #'
-#' @export
 clear_counters <- function() {
   rm(envir = .counters, list=ls(envir = .counters))
+}
+
+#' Generate a key for a  call
+#'
+#' @param x the call to create a key for
+key <- function(x) {
+  file <- attr(x, "srcfile")$filename %||% "<default>"
+  paste(sep = ":", file, paste0(collapse = ":", c(x)))
 }
 
 #' calculate the coverage on an environment after evaluating some expressions.
@@ -144,15 +149,6 @@ environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
   class(res) <- "coverage"
 
   res
-}
-
-#' Generate a key for a  call
-#'
-#' @param x the call to create a key for
-#' @export
-key <- function(x) {
-  file <- attr(x, "srcfile")$filename %||% "<default>"
-  paste(sep = ":", file, paste0(collapse = ":", c(x)))
 }
 
 #' Calculate test coverage for specific function.
