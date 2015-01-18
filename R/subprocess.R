@@ -19,6 +19,7 @@ subprocess <- function(..., calling_env = parent.frame(),
 
   tmp_exprs <- tempfile()
   tmp_output <- tempfile()
+  tmp_objs <- tempfile()
 
   saveRDS(exprs, file = tmp_exprs)
 
@@ -32,9 +33,12 @@ library(methods)
 load('%s')
 .exprs <- readRDS('%s')
 fun <- function() {
-  for(.expr in .exprs) {
-    eval(.expr)
-  }
+  .output <- capture.output(
+    for(.expr in .exprs) {
+      eval(.expr)
+    }
+  )
+  saveRDS(file = '%s', .output)
   .new_objs <- ls(environment())
   if (length(.new_objs) > 0) {
     save(list = .new_objs, file = '%s')
@@ -44,7 +48,7 @@ fun <- function() {
 .env <- readRDS('%s')
 environment(fun) <- .env
 fun()",
-tmp_global_env, tmp_exprs, tmp_output, tmp_calling_env)
+tmp_global_env, tmp_exprs, tmp_output, tmp_objs, tmp_calling_env)
 
   writeChar(con = tmp_source, command, eos = NULL)
   output <- try(devtools:::RCMD("BATCH",
@@ -68,9 +72,10 @@ tmp_global_env, tmp_exprs, tmp_output, tmp_calling_env)
     }
   }
 
-  if (file.exists(tmp_output)) {
-    load(envir = calling_env, file = tmp_output)
+  cat(readRDS(tmp_output), sep = "\n")
+  if (file.exists(tmp_objs)) {
+    load(envir = calling_env, file = tmp_objs)
   } else if (!quiet) {
-        message(tmp_output, " does not exist")
+        message(tmp_objs, " does not exist")
   }
 }
