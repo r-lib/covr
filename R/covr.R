@@ -25,7 +25,7 @@ trace_calls <- function (x, srcref = NULL) {
         x
       } else {
         key <- key(srcref)
-        covr::new_counter(key)
+        covr:::new_counter(key)
         bquote(`{`(covr:::count(.(key)), .(x)))
       }
     }
