@@ -199,13 +199,13 @@ package_coverage <- function(path = ".", ..., relative_path = TRUE) {
     return(NULL)
   }
 
-  old_makevars <- set_makevars(
-      c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-        CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-        FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-        LDFLAGS = "--coverage")
-      )
-  on.exit(reset_makevars(old_makevars), add = TRUE)
+  set_makevars(
+    c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+      CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+      FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+      LDFLAGS = "--coverage")
+    )
+  on.exit(reset_makevars(), add = TRUE)
 
   old_envs <- set_envvar(c(PKG_LIBS = "--coverage"), "prefix")
   on.exit(set_envvar(old_envs), add = TRUE)

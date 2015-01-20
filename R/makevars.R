@@ -1,13 +1,12 @@
-set_makevars <- function(envs) {
+set_makevars <- function(envs, path = file.path("~", ".R", "Makevars")) {
   if (length(envs) == 0) {
     return()
   }
   stopifnot(is.named(envs))
 
-  makevars <- file.path("~", ".R", "Makevars")
   old <- NULL
-  if (file.exists(makevars)) {
-    lines <- readLines(makevars)
+  if (file.exists(path)) {
+    lines <- readLines(path)
     old <- lines
     for (env in names(envs)) {
       loc <- grep(rex::rex(start, any_spaces, env, any_spaces, "="), lines)
@@ -26,18 +25,17 @@ set_makevars <- function(envs) {
   dir.create(file.path("~", ".R"), showWarnings = FALSE, recursive = TRUE)
 
   if (!identical(old, lines)) {
-    file.rename(makevars, backup_name(makevars))
-    writeLines(con = makevars, lines)
+    file.rename(path, backup_name(path))
+    writeLines(con = path, lines)
   }
 
   old
 }
 
-reset_makevars <- function() {
-  makevars <- file.path("~", ".R", "Makevars")
+reset_makevars <- function(path = file.path("~", ".R", "Makevars")) {
 
-  if (file.exists(backup_name(makevars))) {
-    file.rename(backup_name(makevars), makevars)
+  if (file.exists(backup_name(path))) {
+    file.rename(backup_name(path), path)
   }
 }
 
