@@ -24,16 +24,23 @@ set_makevars <- function(envs) {
   }
 
   dir.create(file.path("~", ".R"), showWarnings = FALSE, recursive = TRUE)
-  writeLines(con = makevars, lines)
+
+  if (!identical(old, lines)) {
+    file.rename(makevars, backup_name(makevars))
+    writeLines(con = makevars, lines)
+  }
 
   old
 }
-reset_makevars <- function(lines) {
+
+reset_makevars <- function() {
   makevars <- file.path("~", ".R", "Makevars")
 
-  if (is.null(lines)) {
-    unlink(makevars)
-  } else {
-    writeLines(con = makevars, lines)
+  if (file.exists(backup_name(makevars))) {
+    file.rename(backup_name(makevars), makevars)
   }
+}
+
+backup_name <- function(file) {
+  paste0(file, ".bak")
 }
