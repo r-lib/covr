@@ -41,9 +41,11 @@ is.named <- function (x) {
 }
 
 test_directory <- function(path) {
-  dir <- file.path(path, "inst", "tests")
-  if (!file.exists(dir)) {
-    dir <- file.path(path, "tests")
+  if(file.exists(file.path(path, "tests"))) {
+    file.path(path, "tests")
+  } else if (file.exists(file.path(path, "inst", "tests"))) {
+    file.path(path, "inst", "tests")
+  } else {
+    stop("No testing directory found", .call = FALSE)
   }
-  dir
 }
