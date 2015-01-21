@@ -19,7 +19,11 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), servic
 
   coverage_names <- names(coverages)
 
-  sources <- lapply(names(coverages),
+  if (!is.null(attr(x, "path"))) {
+    coverage_names <- file.path(attr(x, "path"), coverage_names)
+  }
+
+  sources <- lapply(coverage_names,
     function(x) {
       readChar(x, file.info(x)$size, useBytes=TRUE)
     })
@@ -47,6 +51,11 @@ per_line <- function(x) {
   df <- as.data.frame(x)
 
   filenames <- unique(df$filename)
+
+  if (!is.null(attr(x, "path"))) {
+    filenames <- file.path(attr(x, "path"), filenames)
+  }
+
   sources <- lapply(filenames, readLines)
 
   blank_lines <- lapply(sources, function(file) {
