@@ -43,8 +43,9 @@ package without having to resort to alternate parsing or changes to the R
 source.
 
 # Modifying the call tree ##
-The core function in covr is [R/trace_calls.R](R/trace_calls.R).  This function
-was adapted from
+The core function in covr is
+[R/trace_calls.R](https://github.com/jimhester/covr/blob/59e17a5317a0fd69a6701e19317f20e27b6c44f5/R/trace_calls.R#L9-L72).
+This function was adapted from
 [pryr::modify_lang](https://github.com/hadley/pryr/blob/2ba41e433a59025267570247b933112009691c7a/R/modify-lang.r#L21-L49).
 This recursive function modifies each of the leaves (atomic or name objects) of
 a R expression by applying a given function to them.  For non-leaves we simply
