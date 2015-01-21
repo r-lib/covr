@@ -145,9 +145,10 @@ package_coverage <- function(path = ".", ..., relative_path = TRUE) {
 
   if (relative_path) {
     names(coverage) <- rex::re_substitutes(names(coverage), rex::rex(normalizePath(path), "/"), "")
+    attr(coverage, "path") <- path
   }
 
-  structure(coverage,
-    class = "coverage",
-    path = path)
+  class(coverage) <- "coverage"
+
+  coverage
 }
