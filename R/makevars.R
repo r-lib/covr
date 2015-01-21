@@ -25,7 +25,9 @@ set_makevars <- function(envs, path = file.path("~", ".R", "Makevars")) {
   dir.create(file.path("~", ".R"), showWarnings = FALSE, recursive = TRUE)
 
   if (!identical(old, lines)) {
-    file.rename(path, backup_name(path))
+    if (!is.null(old)) {
+      file.rename(path, backup_name(path))
+    }
     writeLines(con = path, lines)
   }
 
@@ -36,6 +38,8 @@ reset_makevars <- function(path = file.path("~", ".R", "Makevars")) {
 
   if (file.exists(backup_name(path))) {
     file.rename(backup_name(path), path)
+  } else {
+    unlink(path)
   }
 }
 

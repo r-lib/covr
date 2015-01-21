@@ -35,10 +35,23 @@ test_that("makevars does nothing if the file will not change", {
 
   expect_equal(c("CFLAGS=1"), readLines(f1))
   expect_false(file.exists(backup_name(f1)))
+
+  unlink(f1)
 })
 
 test_that("makevars errors if more than one match is found", {
   f1 <- "Makevars"
   writeLines(c("CFLAGS=1", "CFLAGS=2"), con = f1)
   expect_error(set_makevars(c(CFLAGS="1"), f1), "Multiple results")
+
+  unlink(f1)
+})
+test_that("makevars handles the case without a Makevars file", {
+
+  f1 <- "Makevars"
+  set_makevars(c(CFLAGS="1"), f1)
+  expect_equal(c("CFLAGS=1"), readLines(f1))
+
+  reset_makevars(f1)
+  expect_false(file.exists(f1))
 })
