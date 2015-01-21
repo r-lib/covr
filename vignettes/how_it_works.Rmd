@@ -1,0 +1,254 @@
+---
+title: "How does covr work anyway?"
+author: "Jim Hester"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How does covr work anyway?}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+# Introduction ##
+This vignette walks you through the design of covr and breaks down the process
+of tracking code execution piece by piece.
+
+# Other coverage tools ##
+Prior to writing covr, there were a handful of coverage tools for R code.
+[R-coverage](http://r2d2.quartzbio.com/posts/r-coverage-docker.html) by Karl Forner and
+[testCoverage](https://github.com/MangoTheCat/testCoverage) by Tom Taverner, Chris Campbell, Suchen Jin were the two
+I was most aware of.
+
+## R-coverage ###
+`R-coverage` provided a very robust solution by modifying
+the R source code to instrument the code for each call.  Unfortunately this
+requires you to patch the R source and getting the changes upstreamed into the
+base R distribution would likely be challenging.
+
+## Test Coverage ###
+`testCoverage` uses an alternate parser of R-3.0 to instrument R
+code and record whether the code is run by tests. The package replaces symbols
+in the code to be tested with a unique identifier. This is then injected into a
+tracing function that will report each time the symbol is called. The first
+symbol at each level of the expression tree is traced, allowing the coverage of
+code branches to be checked.  This is a complicated implementation I do not fully
+understand, which is one of the reasons I chose to write `covr`.
+
+## Covr ###
+Covr takes an approach in-between the two previous tools, modifying the
+function definitions by parsing the abstract syntax tree and inserting trace
+statements. These modified definitions are then transparently replaced in-place
+using C. This allows us to correctly instrument every call and function in a
+package without having to resort to alternate parsing or changes to the R
+source.
+
+# Modifying the call tree ##
+The core function in covr is [R/trace_calls.R](R/trace_calls.R).  This function
+was adapted from
+[pryr::modify_lang](https://github.com/hadley/pryr/blob/2ba41e433a59025267570247b933112009691c7a/R/modify-lang.r#L21-L49).
+This recursive function modifies each of the leaves (atomic or name objects) of
+a R expression by applying a given function to them.  For non-leaves we simply
+call modify_lang recursively in various ways.  The logic behind modify_lang and
+similar functions to parse and modify R's AST is explained in more detail at
+[Walking the AST with recursive
+functions](http://adv-r.had.co.nz/Expressions.html).
+
+```{r eval = FALSE}
+modify_lang <- function(x, f, ...) {
+  recurse <- function(y) {
+    # if (!is.null(names(y))) names(y) <- f2(names(y))
+    lapply(y, modify_lang, f = f, ...)
+  }
+
+  if (is.atomic(x) || is.name(x)) {
+    # Leaf
+    f(x, ...)
+  } else if (is.call(x)) {
+    as.call(recurse(x))
+  } else if (is.function(x)) {
+    formals(x) <- modify_lang(formals(x), f, ...)
+    body(x) <- modify_lang(body(x), f, ...)
+    x
+  } else if (is.pairlist(x)) {
+    # Formal argument lists (when creating functions)
+    as.pairlist(recurse(x))
+  } else if (is.expression(x)) {
+    # shouldn't occur inside tree, but might be useful top-level
+    as.expression(recurse(x))
+  } else if (is.list(x)) {
+    # shouldn't occur inside tree, but might be useful top-level
+    recurse(x)
+  } else {
+    stop("Unknown language class: ", paste(class(x), collapse = "/"),
+      call. = FALSE)
+  }
+}
+```
+
+We can use this same framework to instead insert a trace statement before each
+call by replacing each call with a call to a counting function followed by the
+previous call.  Braces (`{`) in R may seem like language syntax, but
+they are actually a Primitive function and you can call them like any other
+function.
+
+```{r}
+identical({1+2;3+4}, `{`(1+2, 3+4))
+```
+Remembering that braces always return the value of the last evaluated
+expression we can call a counting function followed by the previous function
+substituting `as.call(recurse(x))` in our function above with.
+```{r, eval = FALSE}
+`{`(count(), as.call(recurse(x)))
+```
+
+## Source References ###
+Now that we have a way to add a counting function to any call in the AST we
+need a way to determine where in the code source that function came from.
+Luckily for us R has a built-in method to provide this information in the form
+of source references.  When `option(keep.source = TRUE)` (the default for
+interactive sessions), a reference to the source code for functions is stored
+along with the function definition.  This reference is used to provide the
+original formatting and comments for the given function source.  In particular
+each call in a function contains a `srcref` attribute, which can then be used
+as a key to count just that call.
+
+The actual source for `trace_calls` is slightly more complicated because we
+want to initialize the counter for each call while we are walking the AST and
+there are a few non-calls we also want to count.
+
+# Replacing ##
+After we have our modified function definition how do we re-define the function
+to use the updated definition, and ensure that all other functions which call
+the old function also use the new definition?  You might try redefining the function directly.
+
+```{r}
+f1 <- function() 1
+
+f1 <- function() 2
+f1() == 2
+```
+
+While this does work for the simple case of calling the new function in the
+same environment, it fails if the another function calls a function in a
+different environment.
+```{r}
+env <- new.env()
+f1 <- function() 1
+env$f2 <- function() f1() + 1
+
+env$f1 <- function() 2
+
+env$f2() == 3
+```
+As modifying external environments and correctly restoring them can be tricky
+to get correct, we use the C function
+[reassign_function](https://github.com/jimhester/covr/blob/9753e0e257b053059b85be90ef6eb614a5af9bba/src/reassign.c#L7-L20),
+which is used in `testthat::with_mock()`.  This function takes a function name,
+environment, old definition, new definition and copies the formals, body,
+attributes and environment from the old function to the new function.  This
+allows you to do an in-place replacement of a given function with a new
+function and ensure that all references to the old function will use the new
+definition.
+
+# S4 classes ##
+R's S3 and RC object oriented classes simply define functions directly in the packages
+namespace, so they can be treated the same as any other function.  S4 methods
+have a more complicated implementation where the function definitions are
+placed in an enclosing environment based on the generic method they implement.
+This makes getting the function definition more complicated.
+```{r eval = FALSE}
+replacements_S4 <- function(env) {
+  generics <- getGenerics(env)
+
+  unlist(recursive = FALSE,
+    Map(generics@.Data, generics@package, USE.NAMES = FALSE,
+      f = function(name, package) {
+      what <- methodsPackageMetaName("T", paste(name, package, sep = ":"))
+
+      table <- get(what, envir = env)
+
+      lapply(ls(table, all.names = TRUE), replacement, env = table)
+    })
+  )
+}
+```
+`replacements_S4` first gets all the generic functions for the package
+environment.  Then for each generic function if finds the mangled meta package
+name and gets the corresponding environment from the base environment.  All of
+the functions within this environment are then traced.
+
+# Compiled code ##
+## Gcov ###
+Test coverage of compiled code uses a completely different mechanism than that
+of R code.  Fortunately we can take advantage of
+[Gcov](https://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Gcov.html#Gcov), the
+built-in coverage tool for [gcc](https://gcc.gnu.org/) and compatible reports
+from [clang](http://clang.llvm.org/) versions 3.5 and greater.
+
+Both of these compilers track execution coverage when given the
+`-fprofile-arcs -ftest-coverage` flags.  In addition it is necessary to turn
+off compiler optimization `-O0`, otherwise the coverage output is difficult or
+impossible to interpret as multiple lines can be optimized into one, functions
+can be inlined ect.
+
+## Makevars ###
+R passes flags defined in `PKG_CFLAGS` to the compiler, however it also has
+default flags including `-02` (defined in `$R_HOME/etc/Makeconf`) which need to
+be overridden. Unfortunately it is not possible to override the default flags
+with environment variables (as the new flags are added to the left of the
+defaults rather than the right).  However if Make variables are defined in
+`~/.R/Makevars` they _are_ used in place of the defaults.
+
+Therefore we need to temporarily add `-O0 -fprofile-arcs -ftest-coverage` to
+the Makevars file, then restore the previous state after the coverage is run.
+The implementation of this is in
+[R/makevars.R](https://github.com/jimhester/covr/blob/9753e0e257b053059b85be90ef6eb614a5af9bba/R/makevars.R).
+
+## Subprocess ###
+The last hurdle to getting compiled code coverage working properly is that the
+coverage output is only produced when the running process ends.  Therefore you
+cannot run the tests and get the results in the same R process.  In order to
+handle this situation we use a [subprocess function](R/subprocess).  This
+function aims to replicate as much of the calling environment as possible, then
+calls the given expressions in that environment and returns any objects created
+back to the calling environment.  In this way we can have a fully transparent
+subprocess that acts like running the same code in the current
+process.
+
+## Compilation ###
+The package's code is compiled by calling `devtools::load_all()` with
+`recompile=TRUE` so while it does take some time to recompile all the code with
+tracing enabled, you do not have to do a full `R CMD build` cycle.
+
+# Running Tests ##
+R code defined in `tests` or `inst/tests` is run using
+`testthat::source_dir()`, which simply sources each of the R files in those
+directories.  This makes `covr` compatible with any testing framework.
+
+# Output Formats ##
+The output format returned by covr is a very simple one.  It consists of a
+named character vector, where the names are colon delimited information from
+the source references.  Namely the file, line and columns the traced call is
+from. The value is simply the number of times that given call was called. There
+is also an `as.data.frame` method to make subsetting by various features simple.
+
+While `covr` traces coverage by expression, typically users expect coverage to
+be reported by line.
+
+# Coveralls.io ##
+Coveralls is a web service to help you track your code coverage over time, and
+ensure that all your new code is fully covered.
+
+The [coveralls API](https://coveralls.zendesk.com/hc/en-us/articles/201774865-API-Introduction)
+is fairly simple assuming you are already building on a CI service like travis.
+You send a JSON file to coveralls with the `service_job_id` (environment
+variable TRAVIS_JOB_ID), the service name (`travis-ci`) and a list of source
+files; each with the file name, file content and coverage per line for that file.
+
+Once this JSON file is sent to the coveralls.io service it automatically
+generates coverage reports for the current state and tracks changes in test
+coverage over time.
+
+# Conclusion ##
+Covr aims to be a simple easy to understand implementation, hopefully this
+vignette helps to explain the rational of the package and explain how and why it works.
