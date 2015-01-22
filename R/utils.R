@@ -49,3 +49,12 @@ test_directory <- function(path) {
     stop("No testing directory found", .call = FALSE)
   }
 }
+
+`[.coverage` <- function(x, i, ...) {
+  attrs <- attributes(x)
+  attrs$names <- attrs$names[i]
+  res <- unclass(x)
+  res <- res[i]
+  attributes(res) <- attrs
+  res
+}
