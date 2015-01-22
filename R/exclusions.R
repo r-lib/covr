@@ -1,3 +1,17 @@
+full_exclusions <- function(coverage, exclusions) {
+  res <- as.data.frame(coverage)
+
+  filenames <- unique(res$filename)
+
+  if (!is.null(attr(coverage, "path"))) {
+    filenames <- file.path(attr(coverage, "path"), filenames)
+  }
+
+  source_exclusions <- lapply(filenames, parse_exclusions)
+
+  merge_exclusion(source_exclusions, exclusions)
+}
+
 parse_exclusions <- function(file, exclude_pattern = rex::rex("#", any_spaces, "EXCLUDE COVERAGE"),
                                    exclude_start = rex::rex("#", any_spaces, "EXCLUDE COVERAGE START"),
                                    exclude_end = rex::rex("#", any_spaces, "EXCLUDE COVERAGE END")) {
@@ -23,3 +37,9 @@ parse_exclusions <- function(file, exclude_pattern = rex::rex("#", any_spaces, "
   sort(unique(exclusions))
 }
 
+merge_exclusions <- function(x, y) {
+  nms <- union(names(x), names(y))
+  res <- lapply(union(names(x), names(y)), function(name) union(x[[name]], y[[name]]))
+  names(res) <- nms
+  res
+}

@@ -77,3 +77,35 @@ test_that("it throws an error if start and end are unpaired", {
       "test"), t1)
   expect_error(parse_exclusions(t1), "but only")
 })
+
+context("merge_exclusions")
+test_that("it merges two NULL or empty objects as an empty list", {
+  expect_equal(merge_exclusions(NULL, NULL), list())
+  expect_equal(merge_exclusions(NULL, list()), list())
+  expect_equal(merge_exclusions(list(), NULL), list())
+  expect_equal(merge_exclusions(list(), list()), list())
+})
+test_that("it returns the object if the other is NULL", {
+  t1 <- list(a = 1:10)
+
+  expect_equal(merge_exclusions(t1, NULL), t1)
+  expect_equal(merge_exclusions(NULL, t1), t1)
+})
+test_that("it returns the union of two non-overlapping lists", {
+  t1 <- list(a = 1:10)
+  t2 <- list(a = 20:30)
+
+  expect_equal(merge_exclusions(t1, t2), list(a = c(1:10, 20:30)))
+})
+test_that("it returns the union of two overlapping lists", {
+  t1 <- list(a = 1:10)
+  t2 <- list(a = 5:15)
+
+  expect_equal(merge_exclusions(t1, t2), list(a = 1:15))
+})
+test_that("it adds names if needed", {
+  t1 <- list(a = 1:10)
+  t2 <- list(b = 5:15)
+
+  expect_equal(merge_exclusions(t1, t2), list(a = 1:10, b = 5:15))
+})
