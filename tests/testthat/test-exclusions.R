@@ -109,3 +109,26 @@ test_that("it adds names if needed", {
 
   expect_equal(merge_exclusions(t1, t2), list(a = 1:10, b = 5:15))
 })
+
+context("exclude")
+test_that("it excludes lines", {
+  t1 <- package_coverage("TestSummary")
+
+  expect_equal(length(t1), 2)
+  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 3))), 1)
+  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 8))), 1)
+})
+test_that("it preserves the class", {
+  t1 <- package_coverage("TestSummary")
+
+  expect_equal(class(exclude(t1, NULL)), class(t1))
+  expect_equal(class(exclude(t1, list("R/TestSummary.R" = 3))), class(t1))
+})
+
+test_that("it excludes properly", {
+  t1 <- package_coverage("TestExclusion")
+
+  expect_equal(length(t1), 5)
+
+  expect_equal(length(exclude(t1)), 3)
+})
