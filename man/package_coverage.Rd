@@ -4,7 +4,11 @@
 \alias{package_coverage}
 \title{Calculate test coverage for a package}
 \usage{
-package_coverage(path = ".", ..., relative_path = TRUE)
+package_coverage(path = ".", ..., relative_path = TRUE, quiet = TRUE,
+  exclusions = NULL, exclude_pattern = rex::rex("#", any_spaces,
+  "EXCLUDE COVERAGE"), exclude_start = rex::rex("#", any_spaces,
+  "EXCLUDE COVERAGE START"), exclude_end = rex::rex("#", any_spaces,
+  "EXCLUDE COVERAGE END"))
 }
 \arguments{
 \item{path}{file path to the package}
@@ -13,6 +17,16 @@ package_coverage(path = ".", ..., relative_path = TRUE)
 
 \item{relative_path}{whether to output the paths as relative or absolute
 paths.}
+
+\item{quiet}{whether to load and compile the package quietly}
+
+\item{exclusions}{a named list of files with the lines to exclude from each file.}
+
+\item{exclude_pattern}{a search pattern to look for in the source to exclude a particular line.}
+
+\item{exclude_start}{a search pattern to look for in the source to start an exclude block.}
+
+\item{exclude_end}{a search pattern to look for in the source to stop an exclude block.}
 }
 \description{
 Calculate test coverage for a package
