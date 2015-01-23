@@ -99,4 +99,7 @@ clear_counters <- function() {
 key <- function(x) {
   file <- attr(x, "srcfile")$filename %||% "<default>"
   paste(sep = ":", file, paste0(collapse = ":", c(x)))
+  ## See: Issue #24 (and deprecated Pull Request #25)
+  res <- paste(sep = ":", file, paste0(collapse = ":", c(x)))
+  gsub("<text>", ".text.", res, fixed=TRUE)
 }
