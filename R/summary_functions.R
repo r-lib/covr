@@ -24,13 +24,8 @@ percent_coverage <- function(coverage_result, by_line = TRUE) {
 zero_coverage <- function(coverage_result) {
   coverage_data <- as.data.frame(coverage_result)
 
-  zero_locs <- coverage_data$value == 0
-
-  coverage_zero <- coverage_data[zero_locs,
-    c("filename", "first_line", "last_line", "value")]
-  rownames(coverage_zero) <- NULL
-
-  coverage_zero
+  coverage_data[coverage_data$value == 0,
+    c("filename", "first_line", "last_line", "first_column", "last_column", "value")]
 }
 
 #' @export
