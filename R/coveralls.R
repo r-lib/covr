@@ -2,16 +2,33 @@
 #' @param path file path to the package
 #' @param ... additional arguments passed to \code{\link{package_coverage}}
 #' @export
-coveralls <- function(path = ".", ...) {
+coveralls <- function(path = ".", quiet=TRUE, ...) {
+  coverage <- package_coverage(path, relative_path = TRUE, ...)
+
+  if (!quiet) {
+    print(coverage)
+  }
+
+  post_coveralls(coverage)
+}
+
+post_coveralls <- function(coverage, ...) {
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
-  coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...))
+
+  coverage <- to_coveralls(coverage)
 
   name <- tempfile()
   con <- file(name)
   writeChar(con = con, coverage, eos = NULL)
   close(con)
   on.exit(unlink(name))
-  httr::content(httr::POST(coveralls_url, body = list(json_file = httr::upload_file(name))))
+  body <- list(json_file = httr::upload_file(name))
+  result <- httr::POST(coveralls_url, body = body)
+  content <- httr::content(result)
+  if (isTRUE(content$error)) {
+    stop("Failed to upload coverage data. Reply by Coveralls: ", content$message)
+  }
+  content
 }
 
 to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), service_name = "travis-ci") {
