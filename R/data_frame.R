@@ -16,5 +16,7 @@ as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, ...) {
 
   df[] <- lapply(df, type.convert, as.is = TRUE)
   df$value <- unlist(x)
-  df[order(df$filename, df$first_line, df$first_byte),]
+  df <- df[order(df$filename, df$first_line, df$first_byte),]
+  rownames(df) <- NULL
+  df
 }
