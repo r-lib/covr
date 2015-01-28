@@ -15,15 +15,41 @@ exclude <- function(coverage, exclusions = NULL, ...) {
 
   excl <- merge_exclusions(source_exclusions, exclusions)
 
+  # Drop non-excludes
+  stopifnot(!any(duplicated(names(excl)))) ## Sanity check
+  excl <- excl[sapply(excl, FUN=length) > 0L]
+
+  str(list(df=df$filename, cov=names(coverage)))
+  stopifnot(all(df$filename, names(coverage)))
+
   to_exclude <- vapply(seq_len(NROW(df)),
     function(i) {
       file <- df[i,"filename"]
-      file %in% names(excl) &&
+      res <- file %in% names(excl) &&
       all(seq(df[i,"first_line"], df[i, "last_line"]) %in% excl[[file]])
+
+      if (file == "R/abort.R") {
+        stopifnot(file %in% names(excl))
+        seq <- seq(df[i,"first_line"], df[i, "last_line"])
+        drop <- all(seq %in% excl[[file]])
+        str(list(df[i,], seq=seq, excl=excl[[file]], drop=drop, res=res))
+        stopifnot(identical(res, drop))
+      }
+
+      res;
   }, logical(1))
 
-  if (any(to_exclude) == TRUE) {
-    coverage <- coverage[-as.numeric(sort(rownames(df)[to_exclude]))]
+  if (any(to_exclude)) {
+      ok <- (df$filename == "R/abort.R")
+      print(df[ok & !to_exclude,])
+      stopifnot(length(coverage) == length(to_exclude))
+      print(grep("R/abort.R", names(coverage), value=TRUE))
+      print(length(coverage))
+      print(sum(to_exclude))
+      print(names(coverage)[to_exclude])
+      coverage <- coverage[!to_exclude]
+      print(grep("R/abort.R", names(coverage), value=TRUE))
+      print(length(coverage))
   }
 
   coverage
