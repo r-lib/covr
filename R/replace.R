@@ -1,7 +1,7 @@
 #' @useDynLib covr duplicate_
 replacement <- function(name, env = as.environment(-1)) {
   target_value <- get(name, envir = env)
-  if (is.function(target_value)) {
+  if (is.function(target_value) && !is.primitive(target_value)) {
     new_value <- trace_calls(target_value)
     attributes(new_value) <- attributes(target_value)
 
