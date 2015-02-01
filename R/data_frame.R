@@ -1,5 +1,5 @@
 #' @export
-as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, ...) {
+as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, sort = TRUE, ...) {
   re <-
     rex::rex(
       capture(name = "filename", something), ":",
@@ -16,7 +16,11 @@ as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, ...) {
 
   df[] <- lapply(df, type.convert, as.is = TRUE)
   df$value <- unlist(x)
-  df <- df[order(df$filename, df$first_line, df$first_byte),]
+
+  if (sort) {
+    df <- df[order(df$filename, df$first_line, df$first_byte),]
+  }
+
   rownames(df) <- NULL
   df
 }
