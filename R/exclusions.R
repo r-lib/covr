@@ -1,5 +1,5 @@
 exclude <- function(coverage, exclusions = NULL, ...) {
-  df <- as.data.frame(coverage)
+  df <- as.data.frame(coverage, sort=FALSE)
 
   filenames <- unique(df$filename)
 
@@ -15,6 +15,8 @@ exclude <- function(coverage, exclusions = NULL, ...) {
 
   excl <- merge_exclusions(source_exclusions, exclusions)
 
+  excl <- excl[sapply(excl, FUN=length) > 0L]
+
   to_exclude <- vapply(seq_len(NROW(df)),
     function(i) {
       file <- df[i, "filename"]
@@ -24,8 +26,8 @@ exclude <- function(coverage, exclusions = NULL, ...) {
     logical(1)
   )
 
-  if (any(to_exclude) == TRUE) {
-    coverage <- coverage[-as.numeric(sort(rownames(df)[to_exclude]))]
+  if (any(to_exclude)) {
+    coverage <- coverage[!to_exclude]
   }
 
   coverage
