@@ -8,3 +8,4 @@
 Makefile
 docker_checker
 _dev\.R$
+^\.lintr$
