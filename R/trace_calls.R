@@ -20,8 +20,8 @@ trace_calls <- function (x, srcref = NULL) {
         x
       } else {
         key <- key(srcref)
-        `:::`("covr", "new_counter")(key)
-        bquote(`{`(`:::`("covr", "count")(.(key)), .(x)))
+        covr:::new_counter(key)
+        bquote(`{`(covr:::count(.(key)), .(x)))
       }
     }
   }
@@ -31,8 +31,8 @@ trace_calls <- function (x, srcref = NULL) {
       as.call(Map(trace_calls, x, src_ref))
     } else if (!is.null(srcref)) {
       key <- key(srcref)
-      `:::`("covr", "new_counter")(key)
-      bquote(`{`(`:::`("covr", "count")(.(key)), .(as.call(recurse(x)))))
+      covr:::new_counter(key)
+      bquote(`{`(covr:::count(.(key)), .(as.call(recurse(x)))))
     } else {
       as.call(recurse(x))
     }
@@ -44,8 +44,8 @@ trace_calls <- function (x, srcref = NULL) {
        (is.symbol(fun_body) || fun_body[[1]] != "{")) {
       src_ref <- attr(x, "srcref")
       key <- key(src_ref)
-      `:::`("covr", "new_counter")(key)
-      fun_body <- bquote(`{`(`:::`("covr", "count")(.(key)), .(trace_calls(fun_body))))
+      covr:::new_counter(key)
+      fun_body <- bquote(`{`(covr:::count(.(key)), .(trace_calls(fun_body))))
     } else {
       fun_body <- trace_calls(fun_body)
     }
