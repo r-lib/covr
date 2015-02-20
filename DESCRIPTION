@@ -16,7 +16,8 @@ Imports:
     crayon
 Suggests: 
     R6,
-    knitr
+    knitr,
+    lintr
 License: MIT + file LICENSE
 LazyData: true
 VignetteBuilder: knitr

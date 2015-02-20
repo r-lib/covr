@@ -1,4 +1,4 @@
 library(testthat)
-library(TestSummary)
+library("TestSummary")
 
 test_check("TestSummary")

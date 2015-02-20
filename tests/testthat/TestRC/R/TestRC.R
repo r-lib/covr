@@ -8,7 +8,7 @@ a <- function(x) {
 }
 
 #' @export
-TestRC <- setRefClass("TestRC",
+TestRC <- setRefClass("TestRC", # nolint
   fields = list(name = "character", enabled = "logical"),
   methods = list(
     show = function(x) {

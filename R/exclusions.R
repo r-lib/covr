@@ -17,10 +17,12 @@ exclude <- function(coverage, exclusions = NULL, ...) {
 
   to_exclude <- vapply(seq_len(NROW(df)),
     function(i) {
-      file <- df[i,"filename"]
+      file <- df[i, "filename"]
       file %in% names(excl) &&
-      all(seq(df[i,"first_line"], df[i, "last_line"]) %in% excl[[file]])
-  }, logical(1))
+      all(seq(df[i, "first_line"], df[i, "last_line"]) %in% excl[[file]])
+    },
+    logical(1)
+  )
 
   if (any(to_exclude) == TRUE) {
     coverage <- coverage[-as.numeric(sort(rownames(df)[to_exclude]))]

@@ -9,6 +9,7 @@ before_install:
 
 install:
   - ./travis-tool.sh github_package jimhester/covr
+  - ./travis-tool.sh github_package jimhester/lintr
   - ./travis-tool.sh install_deps
 
 script: ./travis-tool.sh run_tests

@@ -1,4 +1,4 @@
 library(testthat)
-library(TestRC)
+library("TestRC")
 
 test_check("TestRC")

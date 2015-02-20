@@ -9,7 +9,7 @@
 #' @param clean_output whether to clean the Rout files generated from the subprocess.
 #' @param quiet whether to echo the R command run.
 subprocess <- function(..., calling_env = parent.frame(),
-                            global_env = .GlobalEnv,
+                            global_env = .GlobalEnv, # nolint
                             quiet = TRUE,
                             clean_output = TRUE) {
   exprs <- eval(substitute(alist(...)))

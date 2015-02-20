@@ -7,11 +7,11 @@ test_that("regular function `a` works as expected", {
 })
 
 test_that("TestR6 class can be instantiated", {
-  t1 <- TestR6$new()
+  t1 <- TestR6$new() # nolint
 })
 
 test_that("TestR6 Methods can be evaluated", {
-  t1 <- TestR6$new()
+  t1 <- TestR6$new() # nolint
 
   t1$show()
   print(t1$print2())

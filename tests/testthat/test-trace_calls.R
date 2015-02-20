@@ -48,12 +48,18 @@ test_that("one-line functions with no calls and braces are traced correctly", {
   options(keep.source = TRUE)
   on.exit(options(keep.source = old))
 
-  fun <- function() {1}
+  fun <- function() {
+    1
+  }
+
   e2 <- body(trace_calls(fun))[[2]]
   expect_true(length(e2) > 1 &&
               identical(as.character(e2[[2]][[1]]), c(":::", "covr", "count")))
 
-  fun <- function(x) {x}
+  fun <- function(x) {
+    x
+  }
+
   e2 <- body(trace_calls(fun))[[2]]
 
   # the second expr should be a block

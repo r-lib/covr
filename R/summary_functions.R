@@ -7,7 +7,7 @@ percent_coverage <- function(coverage_result, by_line = TRUE) {
   cov_df <- as.data.frame(coverage_result)
   if (by_line) {
     cov_df <- aggregate(value ~ filename + first_line,
-      data = cov_df[c('filename', 'first_line', 'value')], FUN = sum)
+      data = cov_df[c("filename", "first_line", "value")], FUN = sum)
   }
 
   sum(cov_df$value > 0) / nrow(cov_df)
@@ -32,9 +32,12 @@ zero_coverage <- function(coverage_result) {
 print.coverage <- function(x, by_line = TRUE, ...) {
   df <- as.data.frame(x)
 
-  per_file_percents <- vapply(unique(df$filename), function(fn) {
-    percent_coverage(df[df$filename == fn, ], by_line = by_line)
-      }, 0)
+  per_file_percents <- vapply(unique(df$filename),
+    function(fn) {
+      percent_coverage(df[df$filename == fn, ], by_line = by_line)
+    },
+    numeric(1)
+  )
 
   overall_percentage <- percent_coverage(df, by_line = by_line)
 

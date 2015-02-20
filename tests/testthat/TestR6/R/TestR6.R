@@ -8,7 +8,7 @@ a <- function(x) {
 }
 
 #' @export
-TestR6 <- R6::R6Class("TestR6",
+TestR6 <- R6::R6Class("TestR6", # nolint
   public = list(
     show = function(x) {
       1 + 3
@@ -18,4 +18,3 @@ TestR6 <- R6::R6Class("TestR6",
     }
   )
 )
-

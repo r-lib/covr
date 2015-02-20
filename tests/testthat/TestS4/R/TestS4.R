@@ -8,11 +8,12 @@ a <- function(x) {
 }
 
 #' @export
-TestS4 <- setClass("TestS4",
+TestS4 <- setClass("TestS4", # nolint
   slots = list(name = "character", enabled = "logical"))
 
 #' @export
-setGeneric("print2", function(x, y) { })
+setGeneric("print2", function(x, y) {
+})
 
 setMethod("print2",
   c(x = "TestS4"),

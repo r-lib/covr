@@ -1,4 +1,4 @@
 library(testthat)
-library(TestCompiled)
+library("TestCompiled")
 
 test_check("TestCompiled")

@@ -93,7 +93,7 @@ they are actually a Primitive function and you can call them like any other
 function.
 
 ```{r}
-identical({1+2;3+4}, `{`(1+2, 3+4))
+identical({ 1 + 2; 3 + 4 }, `{`(1 + 2, 3 + 4))
 ```
 Remembering that braces always return the value of the last evaluated
 expression we can call a counting function followed by the previous function

@@ -20,10 +20,12 @@ test_that("percent_coverage", {
      if (x > 2) {
        print(x)
      }
-     res <- lapply(1:2, function(x) { x + 1 })
+     res <- lapply(1:2, function(x) {
+                          x + 1
+                        })
   }
   cov <- function_coverage("fun", env = environment(fun), fun())
 
   res <- percent_coverage(cov)
-  expect_equal(res, 3/4)
+  expect_equal(res, 0.8)
 })

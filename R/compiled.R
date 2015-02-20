@@ -39,7 +39,11 @@ parse_gcov <- function(file) {
 clear_gcov <- function(path) {
   src_dir <- file.path(path, "src")
 
-  gcov_files <- dir(src_dir, pattern = rex::rex(or(".gcda", ".gcno", ".gcov"), end), full.names = TRUE, recursive = TRUE)
+  gcov_files <- dir(src_dir,
+                    pattern = rex::rex(or(".gcda", ".gcno", ".gcov"), end),
+                    full.names = TRUE,
+                    recursive = TRUE)
+
   unlink(gcov_files)
 }
 
@@ -74,6 +78,8 @@ remove_extension <- function(x) {
 sources <- function(pkg = ".") {
   pkg <- devtools::as.package(pkg)
   srcdir <- file.path(pkg$path, "src")
-  dir(srcdir, rex::rex(".", list("c", except_any_of(".")) %or% "f", end), recursive = TRUE, full.names = TRUE)
+  dir(srcdir, rex::rex(".",
+                       list("c", except_any_of(".")) %or% "f", end),
+      recursive = TRUE,
+      full.names = TRUE)
 }
-

@@ -7,4 +7,3 @@ test_that("R6 methods coverage is reported", {
   expect_equal(cov$first_line, c(3, 4, 6))
   expect_equal(cov$last_line, c(7, 4, 6))
 })
-

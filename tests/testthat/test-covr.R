@@ -1,3 +1,10 @@
+if (requireNamespace("lintr", quietly = TRUE)) {
+  context("lints")
+  test_that("Package Style", {
+    lintr::expect_lint_free()
+  })
+}
+
 context("environment_coverage")
 test_that("environment_coverage calls environment_coverage_", {
 
@@ -64,7 +71,7 @@ test_that("duplicated first_line", {
   on.exit(options(keep.source = old))
 
   fun <- function() {
-      res <- lapply(1:2, function(x) { x + 1 })
+      res <- lapply(1:2, function(x) { x + 1 }) # nolint
   }
   cov <- function_coverage("fun", env = environment(fun))
   first_lines <- as.data.frame(cov)$first_line

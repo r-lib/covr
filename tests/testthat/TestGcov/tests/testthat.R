@@ -1,4 +1,4 @@
 library(testthat)
-library(TestGcov)
+library("TestGcov")
 
 test_check("TestGcov")

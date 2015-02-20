@@ -7,11 +7,11 @@ test_that("regular function `a` works as expected", {
 })
 
 test_that("TestS4 class can be instantiated", {
-  t1 <- TestS4()
+  t1 <- TestS4() # nolint
 })
 
 test_that("TestS4 Methods can be evaluated", {
-  t1 <- TestS4()
+  t1 <- TestS4() # nolint
 
   show(t1)
   print(print2(t1))
