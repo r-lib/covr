@@ -55,7 +55,7 @@ print.coverage <- function(x, by_line = TRUE, ...) {
 
 format_percentage <- function(x) {
   color <- if (x >= .9) crayon::green
-    else if (x >= .75) crayon::yellow
+    else if (x >= .75) crayon::orange
     else crayon::red
 
   color(sprintf("%02.2f%%", x * 100))

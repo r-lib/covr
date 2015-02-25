@@ -65,6 +65,8 @@ table.table-condensed {
 }
 
 .coverage-box {
-  width: 45px;
+  color: #fffdfa;
+  width: 50px;
   height: 20px;
+  text-align: center;
 }

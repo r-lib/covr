@@ -22,20 +22,40 @@ shine <- function(x) {
                                     covered = sum(file$coverage > 0),
                                     missed = sum(file$coverage == 0),
                                     `hits/line` = sprintf("%.0f", sum(as.numeric(file$coverage), na.rm = TRUE) / sum(file$coverage != "")), stringsAsFactors = FALSE, check.names = FALSE) }))
-  file_stats$file <- names(full)
+
+  file_stats$file <- add_link(names(full))
 
   file_stats <- file_stats[order(as.numeric(file_stats$coverage), -file_stats$relevant), c("coverage", "file", "lines", "relevant", "covered", "missed", "hits/line")]
 
-  file_stats$coverage <- box_color(file_stats$coverage)
+  file_stats$coverage <- add_color_box(file_stats$coverage)
 
-  runApp(list(
-              ui = fluidPage(includeCSS("shiny2.css"), fluidRow(column(8, offset=2, dataTableOutput(outputId="file_table")))),
+  runApp(list(ui = fluidPage(includeCSS("shiny2.css"),
+                             includeScript("shiny.js"),
+                             fluidRow(column(8, offset=2, dataTableOutput(outputId="file_table"))),
+                             fluidRow(column(8, offset=2, addHighlight(tableOutput("source_table"))))
+                                      ),
               server = function(input, output) {
-                output$file_table <- renderDataTable(file_stats, escape = FALSE, options = list(paging = FALSE, searching = FALSE, pageLength = 25, dom = "t"))
-              }))
-  }
+                output$file_table <- renderDataTable(file_stats, escape = FALSE, options = list(searching = FALSE, dom = "t"), 
+                                                     callback = "function(table) {
+                                                     table.on('click.dt', 'a', function() {
+                                                                $(this).toggleClass('selected');
+                                                                Shiny.onInputChange('filename', $(this).text());
+});
+              }")
+              shiny::observe({
+                if (!is.null(input$filename)) {
+                  output$source_table <- renderSourceTable(full[[input$filename]])
+                }
+              })
+}))
+}
+add_link <- function(files) {
+  vapply(files, character(1), FUN = function(file) {
+           as.character(shiny::a(href = "#", file))
+              })
+}
 
-box_color <- function(nums) {
+add_color_box <- function(nums) {
 
   vapply(nums, character(1), FUN = function(num) {
     nnum <- as.numeric(num)
@@ -49,7 +69,7 @@ box_color <- function(nums) {
   })
 }
 
-make_table <- function(x) {
+renderSourceTable <- function(x) {
   shiny::markRenderFunction(tableOutput, function() {
                        as.character(shiny::tags$table(class = "table-condensed",
                                                       shiny::tags$tbody(
@@ -80,34 +100,12 @@ make_table <- function(x) {
 
 }
 
-#runApp(list(
-            #ui = fluidPage(
-                           #includeScript("shiny.js"),
-                           #includeCSS("shiny2.css"),
-                           #fluidRow(column(12, selectInput("filename", "File", names(full)))),
-                           #fluidRow(column(12, addHighlight(tableOutput('table'))))
-                           #),
-            #server = function(input, output, session) {
+addHighlight <- function(x = list()) {
+  highlight <- htmltools::htmlDependency("highlight.js", "6.2",
+                                         system.file(package = "shiny",
+                                                     "www/shared/highlight"),
+                                         script = "highlight.pack.js",
+                                         stylesheet = "rstudio.css")
 
-              #update_table <- function() {
-                #session$sendCustomMessage(type = "highlight", list())
-              #}
-
-              #shiny::observe({
-                #filename <- input$filename
-                #output$table <- make_table(full[[filename]])
-                #update_table()
-              #})
-            #}
-            #))
-
-#}
-#addHighlight <- function(x = list()) {
-  #highlight <- htmltools::htmlDependency("highlight.js", "6.2",
-                                         #system.file(package = "shiny",
-                                                     #"www/shared/highlight"),
-                                         #script = "highlight.pack.js",
-                                         #stylesheet = "rstudio.css")
-
-  #htmltools::attachDependencies(x, c(htmltools::htmlDependencies(x), list(highlight)))
-#}
+  htmltools::attachDependencies(x, c(htmltools::htmlDependencies(x), list(highlight)))
+}
