@@ -64,7 +64,7 @@ run_gcov <- function(path, sources) {
       if (file.exists(gcno) && file.exists(gcda)) {
         status <- system2("gcov", args = src, stdout = NULL)
         stopifnot(status == 0)
-        parse_gcov(paste0(basename(src), ".gcov"))
+        parse_gcov(paste0(src, ".gcov"))
     }
   })))
   names(res) <- file.path(src_path, names(res))
