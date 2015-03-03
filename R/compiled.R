@@ -79,8 +79,7 @@ sources <- function(pkg = ".") {
   pkg <- devtools::as.package(pkg)
   srcdir <- file.path(pkg$path, "src")
   dir(srcdir, rex::rex(".",
-                       list("c", except_any_of(".")) %or% 
-                       list("f", except_any_of(".")), end),
+                       list("c", except_any_of(".")) %or% list("f", except_any_of(".")), end),
       recursive = TRUE,
       full.names = TRUE)
 }
