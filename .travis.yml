@@ -1,7 +1,9 @@
 language: r
 warnings_are_errors: true
 
-r_github_packages: jimhester/covr jimhester/lintr
+r_github_packages:
+  - jimhester/covr
+  - jimhester/lintr
 
 after_success:
   - source shim_package.sh
