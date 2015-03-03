@@ -121,7 +121,7 @@ add_color_box <- function(nums) {
 }
 
 renderSourceTable <- function(x) {
-  shiny::markRenderFunction(tableOutput, function() {
+  shiny::markRenderFunction(shiny::tableOutput, function() {
     table <- as.character(shiny::tags$table(class = "table-condensed",
         shiny::tags$tbody(
           lapply(seq_len(NROW(x)),
