@@ -112,6 +112,7 @@ package_coverage <- function(path = ".",
     c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
       CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
       FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+      FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
       LDFLAGS = "--coverage")
     )
   on.exit(reset_makevars(), add = TRUE)
