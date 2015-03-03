@@ -65,8 +65,12 @@ run_gcov <- function(path, sources) {
         status <- system2("gcov", args = src, stdout = NULL)
         stopifnot(status == 0)
         values <- parse_gcov(paste0(basename(src), ".gcov"))
-        if (!is.null(values) && dirname(src) != ".") {
-            names(values) <- file.path(dirname(src), names(values))
+        if (dirname(src) != ".") {
+            if (is.null(values)) {
+                values <- parse_gcov(paste0(src, ".gcov"))
+            } else {
+                names(values) <- file.path(dirname(src), names(values))
+            }
         }
         values
     }
