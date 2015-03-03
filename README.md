@@ -22,6 +22,7 @@ Also you will need to turn on coveralls for your project at <https://coveralls.i
 # Usage #
 Using `covr` in an interactive session is also easy.
 
+## REPL ##
 ```r
 # if your working directory is in the packages base directory
 package_coverage()
@@ -31,6 +32,15 @@ package_coverage("lintr")
 
 # zero_coverage() can be used to see which lines are uncovered.
 zero_coverage(package_coverage())
+```
+
+## Shiny App ##
+A [shiny](http://shiny.rstudio.com/) application is used to easily view
+coverage per line.
+```r
+cov <- package_coverage()
+
+shine(cov)
 ```
 
 # Implementation #
