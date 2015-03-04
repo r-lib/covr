@@ -2,6 +2,7 @@ language: r
 warnings_are_errors: true
 
 r_github_packages:
+  - hadley/devtools
   - jimhester/covr
   - jimhester/lintr
 

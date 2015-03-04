@@ -10,7 +10,7 @@ Depends:
 Imports: 
     jsonlite,
     rex,
-    devtools,
+    devtools (>= 1.7.0.9000),
     httr,
     testthat,
     crayon,
@@ -18,7 +18,7 @@ Imports:
 Suggests: 
     R6,
     knitr,
-    lintr
+    lintr (<= 0.3.0.9000)
 License: MIT + file LICENSE
 LazyData: true
 VignetteBuilder: knitr
