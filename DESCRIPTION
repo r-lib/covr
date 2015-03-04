@@ -13,7 +13,8 @@ Imports:
     devtools,
     httr,
     testthat,
-    crayon
+    crayon,
+    shiny
 Suggests: 
     R6,
     knitr,

@@ -51,7 +51,7 @@ fun()",
 tmp_global_env, tmp_exprs, tmp_output, tmp_objs, tmp_calling_env)
 
   writeChar(con = tmp_source, command, eos = NULL)
-  output <- try(devtools:::RCMD("BATCH",
+  output <- try(devtools::RCMD("BATCH",
                                 c("--slave", tmp_source),
                                 path = ".",
                                 quiet = TRUE),

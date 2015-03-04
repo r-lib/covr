@@ -4,6 +4,7 @@
 #' information similar to the coveralls.io website.  However it does not and
 #' will not track coverage over time.
 #' @param x a coverage dataset
+#' @examples
 #' \dontrun{
 #' x <- package_coverage()
 #' shine(x)

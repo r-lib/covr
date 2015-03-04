@@ -4,28 +4,28 @@ author: "Jim Hester"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{How does covr work anyway?}
+  %\VignetteIndexEntry{How does covr work anyway}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
 
-# Introduction ##
+# Introduction #
 This vignette walks you through the design of covr and breaks down the process
 of tracking code execution piece by piece.
 
-# Other coverage tools ##
+# Other coverage tools #
 Prior to writing covr, there were a handful of coverage tools for R code.
 [R-coverage](http://r2d2.quartzbio.com/posts/r-coverage-docker.html) by Karl Forner and
 [testCoverage](https://github.com/MangoTheCat/testCoverage) by Tom Taverner, Chris Campbell, Suchen Jin were the two
 I was most aware of.
 
-## R-coverage ###
+## R-coverage ##
 `R-coverage` provided a very robust solution by modifying
 the R source code to instrument the code for each call.  Unfortunately this
 requires you to patch the R source and getting the changes upstreamed into the
 base R distribution would likely be challenging.
 
-## Test Coverage ###
+## Test Coverage ##
 `testCoverage` uses an alternate parser of R-3.0 to instrument R
 code and record whether the code is run by tests. The package replaces symbols
 in the code to be tested with a unique identifier. This is then injected into a
@@ -34,7 +34,7 @@ symbol at each level of the expression tree is traced, allowing the coverage of
 code branches to be checked.  This is a complicated implementation I do not fully
 understand, which is one of the reasons I chose to write `covr`.
 
-## Covr ###
+## Covr ##
 Covr takes an approach in-between the two previous tools, modifying the
 function definitions by parsing the abstract syntax tree and inserting trace
 statements. These modified definitions are then transparently replaced in-place
@@ -102,7 +102,7 @@ substituting `as.call(recurse(x))` in our function above with.
 `{`(count(), as.call(recurse(x)))
 ```
 
-## Source References ###
+## Source References ##
 Now that we have a way to add a counting function to any call in the AST we
 need a way to determine where in the code source that function came from.
 Luckily for us R has a built-in method to provide this information in the form
@@ -117,7 +117,7 @@ The actual source for `trace_calls` is slightly more complicated because we
 want to initialize the counter for each call while we are walking the AST and
 there are a few non-calls we also want to count.
 
-# Replacing ##
+# Replacing #
 After we have our modified function definition how do we re-define the function
 to use the updated definition, and ensure that all other functions which call
 the old function also use the new definition?  You might try redefining the function directly.
@@ -151,7 +151,7 @@ allows you to do an in-place replacement of a given function with a new
 function and ensure that all references to the old function will use the new
 definition.
 
-# S4 classes ##
+# S4 classes #
 R's S3 and RC object oriented classes simply define functions directly in the packages
 namespace, so they can be treated the same as any other function.  S4 methods
 have a more complicated implementation where the function definitions are
@@ -178,8 +178,8 @@ environment.  Then for each generic function if finds the mangled meta package
 name and gets the corresponding environment from the base environment.  All of
 the functions within this environment are then traced.
 
-# Compiled code ##
-## Gcov ###
+# Compiled code #
+## Gcov ##
 Test coverage of compiled code uses a completely different mechanism than that
 of R code.  Fortunately we can take advantage of
 [Gcov](https://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Gcov.html#Gcov), the
@@ -192,7 +192,7 @@ off compiler optimization `-O0`, otherwise the coverage output is difficult or
 impossible to interpret as multiple lines can be optimized into one, functions
 can be inlined ect.
 
-## Makevars ###
+## Makevars ##
 R passes flags defined in `PKG_CFLAGS` to the compiler, however it also has
 default flags including `-02` (defined in `$R_HOME/etc/Makeconf`) which need to
 be overridden. Unfortunately it is not possible to override the default flags
@@ -205,7 +205,7 @@ the Makevars file, then restore the previous state after the coverage is run.
 The implementation of this is in
 [R/makevars.R](https://github.com/jimhester/covr/blob/9753e0e257b053059b85be90ef6eb614a5af9bba/R/makevars.R).
 
-## Subprocess ###
+## Subprocess ##
 The last hurdle to getting compiled code coverage working properly is that the
 coverage output is only produced when the running process ends.  Therefore you
 cannot run the tests and get the results in the same R process.  In order to
@@ -216,17 +216,17 @@ back to the calling environment.  In this way we can have a fully transparent
 subprocess that acts like running the same code in the current
 process.
 
-## Compilation ###
+## Compilation ##
 The package's code is compiled by calling `devtools::load_all()` with
 `recompile=TRUE` so while it does take some time to recompile all the code with
 tracing enabled, you do not have to do a full `R CMD build` cycle.
 
-# Running Tests ##
+# Running Tests #
 R code defined in `tests` or `inst/tests` is run using
 `testthat::source_dir()`, which simply sources each of the R files in those
 directories.  This makes `covr` compatible with any testing framework.
 
-# Output Formats ##
+# Output Formats #
 The output format returned by covr is a very simple one.  It consists of a
 named character vector, where the names are colon delimited information from
 the source references.  Namely the file, line and columns the traced call is
@@ -236,7 +236,7 @@ is also an `as.data.frame` method to make subsetting by various features simple.
 While `covr` traces coverage by expression, typically users expect coverage to
 be reported by line.
 
-# Coveralls.io ##
+# Coveralls.io #
 Coveralls is a web service to help you track your code coverage over time, and
 ensure that all your new code is fully covered.
 
@@ -250,6 +250,6 @@ Once this JSON file is sent to the coveralls.io service it automatically
 generates coverage reports for the current state and tracks changes in test
 coverage over time.
 
-# Conclusion ##
+# Conclusion #
 Covr aims to be a simple easy to understand implementation, hopefully this
 vignette helps to explain the rational of the package and explain how and why it works.

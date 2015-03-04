@@ -7,15 +7,17 @@
 shine(x)
 }
 \arguments{
-\item{x}{a coverage dataset
-\dontrun{
-x <- package_coverage()
-shine(x)
-}}
+\item{x}{a coverage dataset}
 }
 \description{
 The shiny app is designed to provide local information to coverage
 information similar to the coveralls.io website.  However it does not and
 will not track coverage over time.
+}
+\examples{
+\dontrun{
+x <- package_coverage()
+shine(x)
+}
 }
 
