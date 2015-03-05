@@ -12,6 +12,7 @@ test_that("gcov calls system2 and parse_gcov with the proper arguments", {
       stop(capture.output(dput(list(...))))
     },
     `base::setwd` = function(...) invisible(),
+    `base::file.copy` = function(...) invisible(),
     `base::file.exists` = function(..) TRUE,
 
     system2_args <- return_args(run_gcov(".", "test.c")),
