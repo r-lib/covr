@@ -49,6 +49,9 @@ fun <- function() {
 environment(fun) <- .env
 fun()",
 tmp_global_env, tmp_exprs, tmp_output, tmp_objs, tmp_calling_env)
+  if (.Platform$OS.type == "windows") {
+    command <- gsub("\\", "/", command, fixed=TRUE)
+  }
 
   writeChar(con = tmp_source, command, eos = NULL)
   output <- try(devtools:::RCMD("BATCH",
