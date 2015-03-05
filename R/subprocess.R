@@ -28,30 +28,33 @@ subprocess <- function(..., calling_env = parent.frame(),
 
   tmp_source <- tempfile()
 
-  command <- sprintf("
-library(methods)
-load('%s')
-.exprs <- readRDS('%s')
-fun <- function() {
-  .output <- capture.output(
-    for(.expr in .exprs) {
-      eval(.expr)
-    }
+  command <- sprintf(
+    paste(sep = "\n",
+      "library(methods)",
+      "load('%s')",
+      ".exprs <- readRDS('%s')",
+      "fun <- function() {",
+      "  .output <- capture.output(",
+      "    for(.expr in .exprs) {",
+      "      eval(.expr)",
+      "    }",
+      "  )",
+      "  saveRDS(file = '%s', .output)",
+      "  .new_objs <- ls(environment())",
+      "  if (length(.new_objs) > 0) {",
+      "    save(list = .new_objs, file = '%s')",
+      "  }",
+      "  .new_objs",
+      "}",
+      ".env <- readRDS('%s')",
+      "environment(fun) <- .env",
+      "fun()"),
+    normalizePath(tmp_global_env, winslash = "/", mustWork = FALSE),
+    normalizePath(tmp_exprs, winslash = "/", mustWork = FALSE),
+    normalizePath(tmp_output, winslash = "/", mustWork = FALSE),
+    normalizePath(tmp_objs, winslash = "/", mustWork = FALSE),
+    normalizePath(tmp_calling_env, winslash = "/", mustWork = FALSE)
   )
-  saveRDS(file = '%s', .output)
-  .new_objs <- ls(environment())
-  if (length(.new_objs) > 0) {
-    save(list = .new_objs, file = '%s')
-  }
-  .new_objs
-}
-.env <- readRDS('%s')
-environment(fun) <- .env
-fun()",
-tmp_global_env, tmp_exprs, tmp_output, tmp_objs, tmp_calling_env)
-  if (.Platform$OS.type == "windows") {
-    command <- gsub("\\", "/", command, fixed=TRUE)
-  }
 
   writeChar(con = tmp_source, command, eos = NULL)
   output <- try(devtools:::RCMD("BATCH",
@@ -62,8 +65,7 @@ tmp_global_env, tmp_exprs, tmp_output, tmp_objs, tmp_calling_env)
 
   if (inherits(output, "try-error")) {
     lines <- readLines(paste0(basename(tmp_source), ".Rout"))
-    lapply(lines, message)
-    stop("Subprocess failed")
+    stop("Subprocess failed:", paste0(collapse = "\n", lines))
   }
 
   rout_file <- paste0(basename(tmp_source), ".Rout")
