@@ -62,15 +62,12 @@ run_gcov <- function(path, sources) {
       gcda <- paste0(remove_extension(src), ".gcda")
       gcno <- paste0(remove_extension(src), ".gcno")
       if (file.exists(gcno) && file.exists(gcda)) {
+        file.copy(c(gcda,gcno), src_path)
         status <- system2("gcov", args = src, stdout = NULL)
         stopifnot(status == 0)
         values <- parse_gcov(paste0(basename(src), ".gcov"))
-        if (dirname(src) != ".") {
-            if (is.null(values)) {
-                values <- parse_gcov(paste0(src, ".gcov"))
-            } else {
-                names(values) <- file.path(dirname(src), names(values))
-            }
+        if (!is.null(values) && dirname(src) != ".") {
+          names(values) <- file.path(dirname(src), names(values))
         }
         values
     }
