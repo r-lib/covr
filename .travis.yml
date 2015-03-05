@@ -1,5 +1,6 @@
 language: r
-warnings_are_errors: true
+warnings_are_errors: false
+env: _R_CHECK_CRAN_INCOMING_=FALSE
 
 r_github_packages:
   - hadley/devtools
