@@ -10,7 +10,7 @@ Depends:
 Imports: 
     jsonlite,
     rex,
-    devtools (>= 1.7.0.9000),
+    devtools,
     httr,
     testthat,
     crayon,
