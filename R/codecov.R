@@ -34,7 +34,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
   # --------
   # Codeship
   # --------
-  } else if (Sys.getenv('CI') == "true" and Sys.getenv('CI_NAME') == 'codeship') {
+  } else if (Sys.getenv('CI') == "true" && Sys.getenv('CI_NAME') == 'codeship') {
     # https://www.codeship.io/documentation/continuous-integration/set-environment-variables/
     codecov_url <- paste(base_url, "/upload/v2?service=codeship",
                          "&branch=", Sys.getenv('CI_BRANCH'),
@@ -44,7 +44,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
   # ---------
   # Circle CI
   # ---------
-  } else if (Sys.getenv('CI') == "true" and Sys.getenv('CIRCLECI') == 'true') {
+  } else if (Sys.getenv('CI') == "true" && Sys.getenv('CIRCLECI') == 'true') {
     # https://circleci.com/docs/environment-variables
     codecov_url <- paste(base_url, "/upload/v2?service=circleci",
                          "&branch=", Sys.getenv('CIRCLE_BRANCH'),
@@ -56,7 +56,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
   # ---------
   # Semaphore
   # ---------
-  } else if (Sys.getenv('CI') == "true" and Sys.getenv('SEMAPHORE') == "true") {
+  } else if (Sys.getenv('CI') == "true" && Sys.getenv('SEMAPHORE') == "true") {
     # https://semaphoreapp.com/docs/available-environment-variables.html
     codecov_url <- paste(base_url, "/upload/v2?service=semaphore",
                          "&branch=", Sys.getenv('BRANCH_NAME'),
@@ -67,7 +67,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
   # --------
   # drone.io
   # --------
-  } else if (Sys.getenv('CI') == "true" and Sys.getenv('DRONE') == "true") {
+  } else if (Sys.getenv('CI') == "true" && Sys.getenv('DRONE') == "true") {
     # http://docs.drone.io/env.html
     codecov_url <- paste(base_url, "/upload/v2?service=drone.io",
                          "&branch=", Sys.getenv('DRONE_BRANCH'),
@@ -77,7 +77,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
   # --------
   # AppVeyor
   # --------
-  } else if (Sys.getenv('CI') == "True" and Sys.getenv('APPVEYOR') == 'True') {
+  } else if (Sys.getenv('CI') == "True" && Sys.getenv('APPVEYOR') == 'True') {
     # http://www.appveyor.com/docs/environment-variables
     codecov_url <- paste(base_url, "/upload/v2?service=AppVeyor",
                          "&branch=", Sys.getenv('APPVEYOR_REPO_BRANCH'),
@@ -88,7 +88,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
   # -------
   # Wercker
   # -------
-  } else if (Sys.getenv('CI') == "true" and Sys.getenv('WERCKER_GIT_BRANCH')) {
+  } else if (Sys.getenv('CI') == "true" && Sys.getenv('WERCKER_GIT_BRANCH')) {
     # http://devcenter.wercker.com/articles/steps/variables.html
     codecov_url <- paste(base_url, "/upload/v2?service=werker",
                          "&branch=", Sys.getenv('WERCKER_GIT_BRANCH'),
