@@ -40,7 +40,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
                          "&branch=", Sys.getenv('CI_BRANCH'),
                          "&build=", Sys.getenv('CI_BUILD_NUMBER'),
                          "&build_url=", Sys.getenv('CI_BUILD_URL'),
-                         "&commit=", Sys.getenv('CI_COMMIT_ID')), sep="")
+                         "&commit=", Sys.getenv('CI_COMMIT_ID'), sep="")
   # ---------
   # Circle CI
   # ---------
@@ -51,7 +51,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
                          "&build=", Sys.getenv('CIRCLE_BUILD_NUM'),
                          "&owner=", Sys.getenv('CIRCLE_PROJECT_USERNAME'),
                          "&repo=", Sys.getenv('CIRCLE_PROJECT_REPONAME'),
-                         "&commit=", Sys.getenv('CIRCLE_SHA1')), sep="")
+                         "&commit=", Sys.getenv('CIRCLE_SHA1'), sep="")
   
   # ---------
   # Semaphore
@@ -63,7 +63,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
                          "&build=", Sys.getenv('SEMAPHORE_BUILD_NUMBER'),
                          "&owner=", strsplit(Sys.getenv('SEMAPHORE_REPO_SLUG'), '/')[0],
                          "&repo=", strsplit(Sys.getenv('SEMAPHORE_REPO_SLUG'), '/')[1],
-                         "&commit=", Sys.getenv('REVISION')), sep="")
+                         "&commit=", Sys.getenv('REVISION'), sep="")
   # --------
   # drone.io
   # --------
@@ -73,7 +73,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
                          "&branch=", Sys.getenv('DRONE_BRANCH'),
                          "&build=", Sys.getenv('DRONE_BUILD_NUMBER'),
                          "&build_url=", Sys.getenv('DRONE_BUILD_URL'),
-                         "&commit=", Sys.getenv('DRONE_COMMIT')), sep="")
+                         "&commit=", Sys.getenv('DRONE_COMMIT'), sep="")
   # --------
   # AppVeyor
   # --------
@@ -84,7 +84,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
                          "&build=", Sys.getenv('APPVEYOR_BUILD_NUMBER'),
                          "&owner=", strsplit(Sys.getenv('APPVEYOR_REPO_NAME'), '/')[0],
                          "&repo=", strsplit(Sys.getenv('APPVEYOR_REPO_NAME'), '/')[1],
-                         "&commit=", Sys.getenv('APPVEYOR_REPO_COMMIT')), sep="")
+                         "&commit=", Sys.getenv('APPVEYOR_REPO_COMMIT'), sep="")
   # -------
   # Wercker
   # -------
@@ -95,7 +95,7 @@ codecov <- function(path = ".", base_url = 'https://codecov.io', ...) {
                          "&build=", Sys.getenv('WERCKER_MAIN_PIPELINE_STARTED'),
                          "&owner=", Sys.getenv('WERCKER_GIT_OWNER'),
                          "&repo=", Sys.getenv('WERCKER_GIT_REPOSITORY'),
-                         "&commit=", Sys.getenv('WERCKER_GIT_COMMIT')), sep="")
+                         "&commit=", Sys.getenv('WERCKER_GIT_COMMIT'), sep="")
 
   # ---------
   # Local GIT
