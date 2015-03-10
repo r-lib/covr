@@ -45,7 +45,7 @@ shine <- function(x) {
 
   file_stats$Coverage <- add_color_box(file_stats$Coverage)
 
-  ui <- shiny::fluidPage(shiny::includeCSS("shiny.css"),
+  ui <- shiny::fluidPage(shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
         shiny::column(8, offset = 2,
           shiny::tabsetPanel(
             shiny::tabPanel("Files", shiny::dataTableOutput(outputId="file_table")),
