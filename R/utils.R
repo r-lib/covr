@@ -10,6 +10,20 @@ dots <- function(...) {
   eval(substitute(alist(...)))
 }
 
+trim <- function(x) {
+  rex::re_substitutes(x, rex::rex(list(start,spaces) %or% list(spaces, end)),  "")
+}
+
+local_branch <- function() {
+  suppressWarnings(
+    branch <- system2("git", "rev-parse --abbrev-ref HEAD", stderr = TRUE, stdout = TRUE)
+  )
+  if (!is.null(attr(branch, "status"))) {
+    stop(branch, call. = FALSE)
+  }
+  trim(branch)
+}
+
 # this is a unexported function from devtools
 set_envvar <- function (envs, action = "replace") {
   if (length(envs) == 0) {
