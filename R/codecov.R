@@ -4,7 +4,6 @@
 #' @param ... additional arguments passed to \code{\link{package_coverage}}
 #' @export
 codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
-  
   # -------
   # Jenkins
   # -------
@@ -100,13 +99,13 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
   # ---------
   } else {
     branch <- local_branch()
-    codecov_url <- paste0(base_url, "/upload/v2")
+    codecov_url <- paste0(base_url, "/upload/v2") # nolint
     codecov_query <- list(branch = ifelse(branch == "HEAD", "master", branch),
                           commit = trim(system("git rev-parse HEAD", intern = TRUE)))
   }
 
   if (Sys.getenv("CODECOV_TOKEN")) {
-    codecov_query['token'] <- Sys.getenv("CODECOV_TOKEN")
+    codecov_query["token"] <- Sys.getenv("CODECOV_TOKEN")
   }
 
   coverage <- to_codecov(package_coverage(path, relative_path = TRUE, ...))
