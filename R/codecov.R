@@ -139,5 +139,5 @@ to_codecov <- function(x) {
     SIMPLIFY = FALSE,
     USE.NAMES = FALSE)
 
-  jsonlite::toJSON(na = "null", list("files" = res, "uploader" = "R"))
+  jsonlite::toJSON(na = "null", list("files" = res, "uploader" = jsonlite::unbox("R")))
 }
