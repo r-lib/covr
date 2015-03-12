@@ -8,7 +8,7 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
   # -------
   # Jenkins
   # -------
-  if (Sys.getenv("JENKINS_URL")) {
+  if (Sys.getenv("JENKINS_URL") != '') {
     # https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project
     # path <- Sys.getenv("WORKSPACE")
     codecov_url <- paste0(base_url, "/upload/v2?service=jenkins",
