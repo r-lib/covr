@@ -110,16 +110,11 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
 
   coverage <- to_codecov(package_coverage(path, relative_path = TRUE, ...))
 
-  name <- tempfile()
-  con <- file(name)
-  writeChar(con = con, coverage, eos = NULL)
-  close(con)
-  on.exit(unlink(name))
-  httr::content(httr::POST(url = codecov_url, query = codecov_query, body = list(json_file = httr::upload_file(name))))
+  httr::content(httr::POST(url = codecov_url, query = codecov_query, body = coverage, encode = "json"))
 }
 
 to_codecov <- function(x) {
-  coverages <- per_line(x)
+  coverages <- lapply(covr:::per_line(package_coverage()), function(x) c(NA, x))
 
   coverage_names <- names(coverages)
 
