@@ -104,7 +104,7 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
                           commit = trim(system("git rev-parse HEAD", intern = TRUE)))
   }
 
-  if (Sys.getenv("CODECOV_TOKEN")) {
+  if (Sys.getenv("CODECOV_TOKEN") != "") {
     codecov_query["token"] <- Sys.getenv("CODECOV_TOKEN")
   }
 
