@@ -27,8 +27,8 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
                           build = Sys.getenv("TRAVIS_JOB_NUMBER"),
                           pull_request = pr,
                           travis_job_id = Sys.getenv("TRAVIS_JOB_ID"),
-                          owner = strsplit(Sys.getenv("TRAVIS_REPO_SLUG"), "/")[0],
-                          repo = strsplit(Sys.getenv("TRAVIS_REPO_SLUG"), "/")[1],
+                          owner = strsplit(Sys.getenv("TRAVIS_REPO_SLUG"), "/")[[1]][1],
+                          repo = strsplit(Sys.getenv("TRAVIS_REPO_SLUG"), "/")[[1]][2],
                           commit = Sys.getenv("TRAVIS_COMMIT"))
   # --------
   # Codeship
@@ -59,8 +59,8 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
     codecov_url <- paste0(base_url, "/upload/v2?service=semaphore") # nolint
     codecov_query <- list(branch = Sys.getenv("BRANCH_NAME"),
                           build = Sys.getenv("SEMAPHORE_BUILD_NUMBER"),
-                          owner = strsplit(Sys.getenv("SEMAPHORE_REPO_SLUG"), "/")[0],
-                          repo = strsplit(Sys.getenv("SEMAPHORE_REPO_SLUG"), "/")[1],
+                          owner = strsplit(Sys.getenv("SEMAPHORE_REPO_SLUG"), "/")[[1]][1],
+                          repo = strsplit(Sys.getenv("SEMAPHORE_REPO_SLUG"), "/")[[1]][2],
                           commit = Sys.getenv("REVISION"))
   # --------
   # drone.io
@@ -80,8 +80,8 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
     codecov_url <- paste0(base_url, "/upload/v2?service=AppVeyor") # nolint
     codecov_query <- list(branch = Sys.getenv("APPVEYOR_REPO_BRANCH"),
                           build = Sys.getenv("APPVEYOR_BUILD_NUMBER"),
-                          owner = strsplit(Sys.getenv("APPVEYOR_REPO_NAME"), "/")[0],
-                          repo = strsplit(Sys.getenv("APPVEYOR_REPO_NAME"), "/")[1],
+                          owner = strsplit(Sys.getenv("APPVEYOR_REPO_NAME"), "/")[[1]][1],
+                          repo = strsplit(Sys.getenv("APPVEYOR_REPO_NAME"), "/")[[1]][2],
                           commit = Sys.getenv("APPVEYOR_REPO_COMMIT"))
   # -------
   # Wercker
