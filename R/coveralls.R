@@ -18,7 +18,9 @@ coveralls <- function(path = ".", repo_token = NULL, ...) {
   httr::content(httr::POST(coveralls_url, body = list(json_file = httr::upload_file(name))))
 }
 
-to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), service_name = "travis-ci", repo_token = NULL) {
+to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
+                         service_name = "travis-ci", repo_token = NULL) {
+
   coverages <- per_line(x)
 
   coverage_names <- names(coverages)
