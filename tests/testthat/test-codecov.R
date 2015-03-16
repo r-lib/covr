@@ -35,7 +35,26 @@ test_that("it works with local repos", {
     expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
   )
 })
+test_that("it adds the token to the query if available", {
+  with_envvar(c("CODECOV_TOKEN" = "codecov_test"),
+    with_mock(
+      `httr:::perform` = function(...) list(...),
+      `httr::content` = identity,
+      `httr:::body_config` = function(...) list(...),
+      `local_branch` = function() "master",
+      `base::system` = function(...) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 ",
 
+      res <- codecov("TestS4"),
+
+      url <- res[[4]]$url,
+
+      expect_match(url, "/upload/v2"), # nolint
+      expect_match(url, "branch=master"),
+      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
+      expect_match(url, "token=codecov_test")
+      )
+  )
+})
 test_that("it works with jenkins", {
   devtools::with_envvar(c(
     "JENKINS_URL" = "jenkins.com",
