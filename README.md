@@ -1,5 +1,6 @@
 # Covr #
 [![Build Status](https://travis-ci.org/jimhester/covr.png?branch=master)](https://travis-ci.org/jimhester/covr)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jimhester/covr?branch=master)](https://ci.appveyor.com/project/jimhester/covr)
 [![Coverage Status](https://img.shields.io/coveralls/jimhester/covr.svg?style=flat)](https://coveralls.io/r/jimhester/covr?branch=master)
 
 Track test coverage for your R package and (optionally) upload the results to
