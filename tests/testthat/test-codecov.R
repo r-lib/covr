@@ -66,6 +66,7 @@ test_that("it works with travis normal builds", {
 
       url <- res[[4]]$url,
 
+      expect_match(url, "service=travis-org"),
       expect_match(url, "branch=master"),
       expect_match(url, "travis_job_id=10"),
       expect_match(url, "pull_request=&"),
@@ -98,6 +99,7 @@ test_that("it works with travis pull requests", {
 
       url <- res[[4]]$url,
 
+      expect_match(url, "service=travis-org"),
       expect_match(url, "branch=master"),
       expect_match(url, "travis_job_id=10"),
       expect_match(url, "pull_request=5"),
@@ -128,6 +130,7 @@ test_that("it works with codeship", {
 
       url <- res[[4]]$url,
 
+      expect_match(url, "service=codeship"),
       expect_match(url, "branch=master"),
       expect_match(url, "build=5"),
       expect_match(url, "build_url=http%3A%3A%2Ftest.com%2Ftester%2Ftest"),
