@@ -18,6 +18,20 @@ test_that("it generates a properly formatted json file", {
   )
 })
 
+test_that("it works with local repos", {
+  with_mock(
+    `httr:::perform` = function(...) list(...),
+    `httr::content` = identity,
+    `httr:::body_config` = function(...) list(...),
+
+    res <- codecov("TestS4"),
+
+    url <- res[[4]]$url,
+
+    expect_match(url, "/upload/v2") # nolint
+  )
+})
+
 test_that("it works with jenkins", {
   devtools::with_envvar(c(
     "JENKINS_URL" = "jenkins.com",
