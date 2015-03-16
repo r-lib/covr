@@ -108,3 +108,30 @@ test_that("it works with travis pull requests", {
     )
   )
 })
+
+test_that("it works with codeship", {
+  devtools::with_envvar(c(
+    "CI" = "true",
+    "CI_NAME" = "codeship",
+    "CI_BRANCH" = "master",
+    "CI_BUILD_NUMBER" = "5",
+    "CI_BUILD_URL" = "http::/test.com/tester/test",
+    "CI_COMMIT_ID" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+    ),
+
+    with_mock(
+      `httr:::perform` = function(...) list(...),
+      `httr::content` = identity,
+      `httr:::body_config` = function(...) list(...),
+
+      res <- codecov("TestS4"),
+
+      url <- res[[4]]$url,
+
+      expect_match(url, "branch=master"),
+      expect_match(url, "build=5"),
+      expect_match(url, "build_url=http%3A%3A%2Ftest.com%2Ftester%2Ftest"),
+      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+    )
+  )
+})
