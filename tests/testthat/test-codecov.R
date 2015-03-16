@@ -23,12 +23,16 @@ test_that("it works with local repos", {
     `httr:::perform` = function(...) list(...),
     `httr::content` = identity,
     `httr:::body_config` = function(...) list(...),
+    `local_branch` = function() "master",
+    `base::system` = function(...) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 ",
 
     res <- codecov("TestS4"),
 
     url <- res[[4]]$url,
 
-    expect_match(url, "/upload/v2") # nolint
+    expect_match(url, "/upload/v2"), # nolint
+    expect_match(url, "branch=master"),
+    expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
   )
 })
 
