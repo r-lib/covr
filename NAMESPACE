@@ -2,6 +2,7 @@
 
 S3method(as.data.frame,coverage)
 S3method(print,coverage)
+export(codecov)
 export(coveralls)
 export(environment_coverage)
 export(environment_coverage_)
