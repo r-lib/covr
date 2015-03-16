@@ -108,7 +108,7 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
   }
 
   if (Sys.getenv("CODECOV_TOKEN") != "") {
-    codecov_query["token"] <- Sys.getenv("CODECOV_TOKEN")
+    codecov_query$token <- Sys.getenv("CODECOV_TOKEN")
   }
 
   coverage <- to_codecov(package_coverage(path, relative_path = TRUE, ...))
