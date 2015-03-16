@@ -5,10 +5,18 @@
 #' if your job is running on a service Coveralls doesn't support out-of-the-box.
 #' If set to NULL, it is assumed that the job is running on travis-ci
 #' @param ... additional arguments passed to \code{\link{package_coverage}}
+#' @import magrittr
 #' @export
 coveralls <- function(path = ".", repo_token = NULL, ...) {
+
+  service_or_null <- function() {
+    service <- Sys.getenv("CI_NAME") %>% tolower
+    ifelse(service == "", "travis-ci", service)
+  }
+
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
-  coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...), repo_token = repo_token)
+  coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...),
+    repo_token = repo_token, service_name = service_or_null())
 
   name <- tempfile()
   con <- file(name)
@@ -19,7 +27,7 @@ coveralls <- function(path = ".", repo_token = NULL, ...) {
 }
 
 to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
-                         service_name = "travis-ci", repo_token = NULL) {
+                         service_name, repo_token = NULL) {
 
   coverages <- per_line(x)
 
@@ -46,6 +54,11 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
     SIMPLIFY = FALSE,
     USE.NAMES = FALSE)
 
+  git_info <- switch(service_name,
+    drone = drone_git_info(),
+    NULL
+  )
+
   payload <- if (is.null(repo_token)) {
     list(
       "service_job_id" = jsonlite::unbox(service_job_id),
@@ -57,7 +70,37 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
       "source_files" = res)
   }
 
+  if (!is.null(git_info)) payload <- c(payload, git = list(git_info))
+
   jsonlite::toJSON(na = "null", payload)
+}
+
+drone_git_info <- function() {
+  # check https://coveralls.zendesk.com/hc/en-us/articles/201350799-API-Reference
+  # for why and how we are doing this
+  gitlog <- function(pattern) {
+    paste0("git log -n 1 --pretty=format:'", pattern, "'") %>%
+    system(., intern = TRUE) %>%
+    jsonlite::unbox(.)
+  }
+
+  head <- list(
+    id = gitlog("%H"),
+    author_name = gitlog("%an"),
+    author_email = gitlog("%ae"),
+    committer_name = gitlog("%cn"),
+    committer_email = gitlog("%ce"),
+    message = gitlog("%s")
+  )
+
+  remotes <- list(list(
+    name = jsonlite::unbox("origin"),
+    url = jsonlite::unbox(Sys.getenv("CI_REMOTE"))
+  ))
+
+  c(list(branch = jsonlite::unbox(Sys.getenv("CI_BRANCH"))),
+    head = list(head),
+    remotes = list(remotes))
 }
 
 per_line <- function(x) {
