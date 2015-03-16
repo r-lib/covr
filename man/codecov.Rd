@@ -9,9 +9,9 @@ codecov(path = ".", base_url = "https://codecov.io", ...)
 \arguments{
 \item{path}{file path to the package}
 
-\item{...}{additional arguments passed to \code{\link{package_coverage}}}
+\item{base_url}{Codecov url (change for Enterprise)}
 
-\item{Codecov}{url (change for Enterprise)}
+\item{...}{additional arguments passed to \code{\link{package_coverage}}}
 }
 \description{
 Run covr on a package and upload the result to codecov.io
