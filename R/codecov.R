@@ -89,9 +89,9 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
   # -------
   # Wercker
   # -------
-  } else if (Sys.getenv("CI") == "true" && Sys.getenv("WERCKER_GIT_BRANCH")) {
+  } else if (Sys.getenv("CI") == "true" && Sys.getenv("WERCKER_GIT_BRANCH") != "") {
     # http://devcenter.wercker.com/articles/steps/variables.html
-    codecov_url <- paste0(base_url, "/upload/v2?service=werker") # nolint
+    codecov_url <- paste0(base_url, "/upload/v2?service=wercker") # nolint
     codecov_query <- list(branch = Sys.getenv("WERCKER_GIT_BRANCH"),
                           build = Sys.getenv("WERCKER_MAIN_PIPELINE_STARTED"),
                           owner = Sys.getenv("WERCKER_GIT_OWNER"),

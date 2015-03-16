@@ -250,3 +250,31 @@ test_that("it works with AppVeyor", {
     )
   )
 })
+test_that("it works with Wercker", {
+  devtools::with_envvar(c(
+    "CI" = "true",
+    "WERCKER_GIT_BRANCH" = "master",
+    "WERCKER_MAIN_PIPELINE_STARTED" = "5",
+    "WERCKER_GIT_OWNER" = "tester",
+    "WERCKER_GIT_REPOSITORY" = "test",
+    "WERCKER_GIT_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+    ),
+
+    with_mock(
+      `httr:::perform` = function(...) list(...),
+      `httr::content` = identity,
+      `httr:::body_config` = function(...) list(...),
+
+      res <- codecov("TestS4"),
+
+      url <- res[[4]]$url,
+
+      expect_match(url, "service=wercker"),
+      expect_match(url, "branch=master"),
+      expect_match(url, "build=5"),
+      expect_match(url, "owner=tester"),
+      expect_match(url, "repo=test"),
+      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+    )
+  )
+})
