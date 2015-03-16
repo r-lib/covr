@@ -21,6 +21,16 @@ after_success:
   - Rscript -e 'library(covr);coveralls()'
 ```
 
+Alternatively, if you want to use another CI service, you can specify your
+secret repo token for the repository, found at the bottom of your
+repository's page on Coveralls. Your ```after_success``` would
+then look like this:
+
+```yml
+after_success:
+  - Rscript -e 'library(covr);coveralls(repo_token = "your_secret_token")'
+```
+
 Also you will need to turn on coveralls for your project at <https://coveralls.io/repos/new>.
 
 # Usage #

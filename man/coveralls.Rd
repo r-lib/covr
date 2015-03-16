@@ -4,10 +4,15 @@
 \alias{coveralls}
 \title{Run covr on a package and upload the result to coveralls}
 \usage{
-coveralls(path = ".", ...)
+coveralls(path = ".", repo_token = NULL, ...)
 }
 \arguments{
 \item{path}{file path to the package}
+
+\item{repo_token}{The secret repo token for your repository,
+found at the bottom of your repository's page on Coveralls. This is useful
+if your job is running on a service Coveralls doesn't support out-of-the-box.
+If set to NULL, it is assumed that the job is running on travis-ci}
 
 \item{...}{additional arguments passed to \code{\link{package_coverage}}}
 }

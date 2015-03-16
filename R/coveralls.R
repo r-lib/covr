@@ -1,10 +1,14 @@
 #' Run covr on a package and upload the result to coveralls
 #' @param path file path to the package
+#' @param repo_token The secret repo token for your repository,
+#' found at the bottom of your repository's page on Coveralls. This is useful
+#' if your job is running on a service Coveralls doesn't support out-of-the-box.
+#' If set to NULL, it is assumed that the job is running on travis-ci
 #' @param ... additional arguments passed to \code{\link{package_coverage}}
 #' @export
-coveralls <- function(path = ".", ...) {
+coveralls <- function(path = ".", repo_token = NULL, ...) {
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
-  coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...))
+  coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...), repo_token = repo_token)
 
   name <- tempfile()
   con <- file(name)
@@ -14,7 +18,9 @@ coveralls <- function(path = ".", ...) {
   httr::content(httr::POST(coveralls_url, body = list(json_file = httr::upload_file(name))))
 }
 
-to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), service_name = "travis-ci") {
+to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
+                         service_name = "travis-ci", repo_token = NULL) {
+
   coverages <- per_line(x)
 
   coverage_names <- names(coverages)
@@ -40,10 +46,18 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"), servic
     SIMPLIFY = FALSE,
     USE.NAMES = FALSE)
 
-  jsonlite::toJSON(na = "null", list(
-    "service_job_id" = jsonlite::unbox(service_job_id),
-    "service_name" = jsonlite::unbox(service_name),
-    "source_files" = res))
+  payload <- if (is.null(repo_token)) {
+    list(
+      "service_job_id" = jsonlite::unbox(service_job_id),
+      "service_name" = jsonlite::unbox(service_name),
+      "source_files" = res)
+  } else {
+    list(
+      "repo_token" = jsonlite::unbox(repo_token),
+      "source_files" = res)
+  }
+
+  jsonlite::toJSON(na = "null", payload)
 }
 
 per_line <- function(x) {
