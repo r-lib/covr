@@ -17,3 +17,30 @@ test_that("it generates a properly formatted json file", {
     expect_equal(json$uploader, "R")
   )
 })
+
+test_that("it works with jenkins", {
+  devtools::with_envvar(c(
+    "JENKINS_URL" = "jenkins.com",
+    "GIT_BRANCH" = "test",
+    "GIT_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+    "BUILD_NUMBER" = "1",
+    "BUILD_URL" = "http://test.com"
+    ),
+
+    with_mock(
+      `httr:::perform` = function(...) list(...),
+      `httr::content` = identity,
+      `httr:::body_config` = function(...) list(...),
+
+      res <- codecov("TestS4"),
+
+      url <- res[[4]]$url,
+
+      expect_match(url, "service=jenkins"),
+      expect_match(url, "branch=test"),
+      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
+      expect_match(url, "build=1"),
+      expect_match(url, "build_url=http%3A%2F%2Ftest.com")
+    )
+  )
+})
