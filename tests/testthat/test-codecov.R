@@ -76,3 +76,35 @@ test_that("it works with travis normal builds", {
     )
   )
 })
+
+test_that("it works with travis pull requests", {
+  devtools::with_envvar(c(
+    "CI" = "true",
+    "TRAVIS" = "true",
+    "TRAVIS_PULL_REQUEST" = "5",
+    "TRAVIS_REPO_SLUG" = "tester/test",
+    "TRAVIS_BRANCH" = "master",
+    "TRAVIS_JOB_NUMBER" = "100",
+    "TRAVIS_JOB_ID" = "10",
+    "TRAVIS_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+    ),
+
+    with_mock(
+      `httr:::perform` = function(...) list(...),
+      `httr::content` = identity,
+      `httr:::body_config` = function(...) list(...),
+
+      res <- codecov("TestS4"),
+
+      url <- res[[4]]$url,
+
+      expect_match(url, "branch=master"),
+      expect_match(url, "travis_job_id=10"),
+      expect_match(url, "pull_request=5"),
+      expect_match(url, "owner=tester"),
+      expect_match(url, "repo=test"),
+      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
+      expect_match(url, "build=100")
+    )
+  )
+})
