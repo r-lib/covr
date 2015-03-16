@@ -14,10 +14,10 @@ Imports:
     devtools,
     httr,
     testthat,
+    magrittr,
     crayon,
     shiny
 Suggests:
-    magrittr,
     R6,
     knitr,
     lintr (>= 0.3.0.9000)
