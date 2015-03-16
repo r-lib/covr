@@ -24,7 +24,7 @@ test_that("it works with jenkins", {
     "GIT_BRANCH" = "test",
     "GIT_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
     "BUILD_NUMBER" = "1",
-    "BUILD_URL" = "http://test.com"
+    "BUILD_URL" = "http://test.com/tester/test"
     ),
 
     with_mock(
@@ -40,7 +40,7 @@ test_that("it works with jenkins", {
       expect_match(url, "branch=test"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
       expect_match(url, "build=1"),
-      expect_match(url, "build_url=http%3A%2F%2Ftest.com")
+      expect_match(url, "build_url=http%3A%2F%2Ftest.com%2Ftester%2Ftest")
     )
   )
 })
@@ -117,7 +117,7 @@ test_that("it works with codeship", {
     "CI_NAME" = "codeship",
     "CI_BRANCH" = "master",
     "CI_BUILD_NUMBER" = "5",
-    "CI_BUILD_URL" = "http::/test.com/tester/test",
+    "CI_BUILD_URL" = "http://test.com/tester/test",
     "CI_COMMIT_ID" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
     ),
 
@@ -133,7 +133,7 @@ test_that("it works with codeship", {
       expect_match(url, "service=codeship"),
       expect_match(url, "branch=master"),
       expect_match(url, "build=5"),
-      expect_match(url, "build_url=http%3A%3A%2Ftest.com%2Ftester%2Ftest"),
+      expect_match(url, "build_url=http%3A%2F%2Ftest.com%2Ftester%2Ftest"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
     )
   )
@@ -217,7 +217,7 @@ test_that("it works with drone", {
       expect_match(url, "service=drone.io"),
       expect_match(url, "branch=master"),
       expect_match(url, "build=5"),
-      expect_match(url, "build_url=http%3A%3A%2Ftest.com%2Ftester%2Ftest"),
+      expect_match(url, "build_url=http%3A%2F%2Ftest.com%2Ftester%2Ftest"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
     )
   )
