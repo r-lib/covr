@@ -117,7 +117,7 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
 }
 
 to_codecov <- function(x) {
-  coverages <- lapply(covr:::per_line(package_coverage()), function(x) c(NA, x))
+  coverages <- lapply(per_line(x), function(x) c(NA, x))
 
   coverage_names <- names(coverages)
 
