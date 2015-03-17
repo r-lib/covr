@@ -92,7 +92,7 @@ jenkins_git_info <- function() {
       sep="\030", # http://en.wikipedia.org/wiki/Delimiter#ASCII_delimited_text
       what = "character",
       text=system(intern=TRUE,
-        paste0('git log -n 1 --pretty=format:',
+        paste0("git log -n 1 --pretty=format:",
           paste(collapse="%n", formats)
         )
       ),
