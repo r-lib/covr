@@ -11,6 +11,10 @@ install:
   ps: Bootstrap
 
 # Adapt as necessary starting from here
+#
+environment:
+  CODECOV_TOKEN:
+    secure: JHKRuudDMdMjmYdGU/oXAT+0iiwOLiTjMoJHlzA/BxbJfosom9XUnGxRSJn1y6/T
 
 build_script:
   - travis-tool.sh install_github jimhester/lintr
@@ -23,7 +27,7 @@ on_failure:
   - travis-tool.sh dump_logs
 
 on_success:
-  - source shim_package.sh
+  - perl -i -pe 's/\bcovr\b/covrShim/g;s/\breassign_function\b/reassign_function_shim/g;s/\bduplicate_\b/duplicate_shim/g' DESCRIPTION NAMESPACE R/* src/* tests/*R tests/testthat/*R
   - Rscript -e 'devtools::install()'
   - Rscript -e 'library(covr);codecov()'
 
