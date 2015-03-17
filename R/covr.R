@@ -1,4 +1,4 @@
-#' @import methods magrittr
+#' @import methods
 NULL
 
 rex::register_shortcuts("covr")

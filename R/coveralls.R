@@ -5,12 +5,11 @@
 #' if your job is running on a service Coveralls doesn't support out-of-the-box.
 #' If set to NULL, it is assumed that the job is running on travis-ci
 #' @param ... additional arguments passed to \code{\link{package_coverage}}
-#' @import magrittr
 #' @export
 coveralls <- function(path = ".", repo_token = NULL, ...) {
 
   service_or_null <- function() {
-    service <- Sys.getenv("CI_NAME") %>% tolower
+    service <- tolower(Sys.getenv("CI_NAME"))
     ifelse(service == "", "travis-ci", service)
   }
 
@@ -44,7 +43,8 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
 
   res <- mapply(
     function(name, source, coverage) {
-      list("name" = jsonlite::unbox(name),
+      list(
+        "name" = jsonlite::unbox(name),
         "source" = jsonlite::unbox(source),
         "coverage" = coverage)
     },
@@ -55,7 +55,8 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
     USE.NAMES = FALSE)
 
   git_info <- switch(service_name,
-    drone = drone_git_info(),
+    drone = jenkins_git_info(), # drone has the same env vars as jenkins
+    jenkins = jenkins_git_info(),
     NULL
   )
 
@@ -75,24 +76,30 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
   jsonlite::toJSON(na = "null", payload)
 }
 
-drone_git_info <- function() {
+jenkins_git_info <- function() {
   # check https://coveralls.zendesk.com/hc/en-us/articles/201350799-API-Reference
   # for why and how we are doing this
-  gitlog <- function(pattern) {
-    paste0("git log -n 1 --pretty=format:'", pattern, "'") %>%
-    system(., intern = TRUE) %>%
-    jsonlite::unbox(.)
-  }
-
-  head <- list(
-    id = gitlog("%H"),
-    author_name = gitlog("%an"),
-    author_email = gitlog("%ae"),
-    committer_name = gitlog("%cn"),
-    committer_email = gitlog("%ce"),
-    message = gitlog("%s")
+  formats <- c(
+    id = "%H",
+    author_name = "%an",
+    author_email = "%ae",
+    commiter_name = "%cn",
+    commiter_email = "%ce",
+    message = "%s"
   )
-
+  head <- lapply(structure(
+    scan(
+      sep="\030", # http://en.wikipedia.org/wiki/Delimiter#ASCII_delimited_text
+      what = "character",
+      text=system(intern=TRUE,
+        paste0('git log -n 1 --pretty=format:',
+          paste(collapse="%n", formats)
+        )
+      ),
+      quiet = TRUE
+    ),
+    names = names(formats)
+  ), jsonlite::unbox)
   remotes <- list(list(
     name = jsonlite::unbox("origin"),
     url = jsonlite::unbox(Sys.getenv("CI_REMOTE"))
