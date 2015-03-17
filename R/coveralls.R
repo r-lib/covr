@@ -8,14 +8,14 @@
 #' @export
 coveralls <- function(path = ".", repo_token = NULL, ...) {
 
-  service_or_null <- function() {
+  find_ci_name <- function() {
     service <- tolower(Sys.getenv("CI_NAME"))
     ifelse(service == "", "travis-ci", service)
   }
 
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
   coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...),
-    repo_token = repo_token, service_name = service_or_null())
+    repo_token = repo_token, service_name = find_ci_name())
 
   name <- tempfile()
   con <- file(name)
