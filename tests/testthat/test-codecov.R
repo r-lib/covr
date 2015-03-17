@@ -2,6 +2,7 @@ context("codecov")
 test_that("it generates a properly formatted json file", {
 
   devtools::with_envvar(c(
+      "APPVEYOR" = "False",
       "TRAVIS" = "false"
       ),
     with_mock(
@@ -24,6 +25,7 @@ test_that("it generates a properly formatted json file", {
 
 test_that("it works with local repos", {
   devtools::with_envvar(c(
+      "APPVEYOR" = "False",
       "TRAVIS" = "false"
     ),
     with_mock(
@@ -45,6 +47,7 @@ test_that("it works with local repos", {
 })
 test_that("it adds the token to the query if available", {
   devtools::with_envvar(c(
+      "APPVEYOR" = "False",
       "TRAVIS" = "false",
       "CODECOV_TOKEN" = "codecov_test"
     ),
@@ -68,6 +71,7 @@ test_that("it adds the token to the query if available", {
 })
 test_that("it works with jenkins", {
   devtools::with_envvar(c(
+      "APPVEYOR" = "False",
       "TRAVIS" = "false",
       "JENKINS_URL" = "jenkins.com",
       "GIT_BRANCH" = "test",
@@ -96,6 +100,7 @@ test_that("it works with jenkins", {
 
 test_that("it works with travis normal builds", {
   devtools::with_envvar(c(
+      "APPVEYOR" = "False",
       "CI" = "true",
       "TRAVIS" = "true",
       "TRAVIS_PULL_REQUEST" = "false",
@@ -129,6 +134,7 @@ test_that("it works with travis normal builds", {
 
 test_that("it works with travis pull requests", {
   devtools::with_envvar(c(
+      "APPVEYOR" = "False",
       "CI" = "true",
       "TRAVIS" = "true",
       "TRAVIS_PULL_REQUEST" = "5",
@@ -163,6 +169,7 @@ test_that("it works with travis pull requests", {
 test_that("it works with codeship", {
   devtools::with_envvar(c(
       "TRAVIS" = "false",
+      "APPVEYOR" = "False",
       "CI" = "true",
       "CI_NAME" = "codeship",
       "CI_BRANCH" = "master",
@@ -191,6 +198,7 @@ test_that("it works with codeship", {
 test_that("it works with circleci", {
   devtools::with_envvar(c(
       "TRAVIS" = "false",
+      "APPVEYOR" = "False",
       "CI" = "true",
       "CIRCLECI" = "true",
       "CIRCLE_BRANCH" = "master",
@@ -221,6 +229,7 @@ test_that("it works with circleci", {
 test_that("it works with semaphore", {
   devtools::with_envvar(c(
       "TRAVIS" = "false",
+      "APPVEYOR" = "False",
       "CI" = "true",
       "SEMAPHORE" = "true",
       "BRANCH_NAME" = "master",
@@ -250,6 +259,7 @@ test_that("it works with semaphore", {
 test_that("it works with drone", {
   devtools::with_envvar(c(
       "TRAVIS" = "false",
+      "APPVEYOR" = "False",
       "CI" = "true",
       "DRONE" = "true",
       "DRONE_BRANCH" = "master",
@@ -307,6 +317,7 @@ test_that("it works with AppVeyor", {
 test_that("it works with Wercker", {
   devtools::with_envvar(c(
       "TRAVIS" = "false",
+      "APPVEYOR" = "False",
       "CI" = "true",
       "WERCKER_GIT_BRANCH" = "master",
       "WERCKER_MAIN_PIPELINE_STARTED" = "5",
