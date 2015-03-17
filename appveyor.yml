@@ -22,6 +22,11 @@ test_script:
 on_failure:
   - travis-tool.sh dump_logs
 
+on_success:
+  - source shim_package.sh
+  - Rscript -e 'devtools::install()'
+  - Rscript -e 'library(covr);codecov()'
+
 artifacts:
   - path: '*.Rcheck\**\*.log'
     name: Logs

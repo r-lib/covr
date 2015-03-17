@@ -4,15 +4,17 @@
 [![Coverage Status](https://img.shields.io/coveralls/jimhester/covr.svg?style=flat)](https://coveralls.io/r/jimhester/covr?branch=master)
 
 Track test coverage for your R package and (optionally) upload the results to
-coveralls.
+[coveralls](https://coveralls.io/) or [codecov](https://codecov.io/).
 
 # Compatibility #
 Covr is compatible with any testing package, it simply executes the code in
 `tests/` on your package.
 
-# Coveralls.io Installation #
-If you are already using [Travis-CI](https://travis-ci.org) simply add the following lines
-to your project's `.travis.yml`.
+# Installation #
+## Coveralls.io ##
+If you are already using [Travis-CI](https://travis-ci.org) add the
+following to your project's `.travis.yml` to track your coverage results
+over time with [coveralls][].
 
 ```yml
 r_github_packages:
@@ -22,17 +24,41 @@ after_success:
   - Rscript -e 'library(covr);coveralls()'
 ```
 
-Alternatively, if you want to use another CI service, you can specify your
-secret repo token for the repository, found at the bottom of your
-repository's page on Coveralls. Your ```after_success``` would
-then look like this:
+To use a different CI service, you need to specify your secret repo token for
+the repository, found at the bottom of your repository's page on Coveralls.
+Your `after_success` would then look like this:
 
 ```yml
 after_success:
   - Rscript -e 'library(covr);coveralls(repo_token = "your_secret_token")'
 ```
 
+If you are using the secret repo token it is wise to use a [Secure
+Variable](http://docs.travis-ci.com/user/environment-variables/#Secure-Variables)
+so that it cannot be used maliciously.
+
 Also you will need to turn on coveralls for your project at <https://coveralls.io/repos/new>.
+
+## Codecov.io ##
+Alternatively you can track your coverage results using Codecov, which supports
+a large number of CI systems out of the box
+
+- [Jenkins](https://jenkins-ci.org)
+- [Travis CI](https://travis-ci.com)
+- [Codeship](https://www.codeship.io/)
+- [Circleci](https://circleci.com)
+- [Semaphore](https://semaphoreapp.com)
+- [drone.io](https://drone.io)
+- [AppVeyor](http://www.appveyor.com)
+- [Wercker](http://wercker.com)
+
+It also supports uploading coverage results directly from your computer.
+
+For all of the cases include the following in your build script.
+```r
+library(covr)
+codecov()
+```
 
 # Usage #
 Iterative usage of `covr`.
