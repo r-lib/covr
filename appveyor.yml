@@ -17,6 +17,7 @@ environment:
     secure: JHKRuudDMdMjmYdGU/oXAT+0iiwOLiTjMoJHlzA/BxbJfosom9XUnGxRSJn1y6/T
 
 build_script:
+  - travis-tool.sh r_binary_install igraph jsonlite rex devtools httr testthat crayon shiny digest stringdist
   - travis-tool.sh install_github jimhester/lintr
   - travis-tool.sh install_deps
 
