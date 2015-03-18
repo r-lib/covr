@@ -12,7 +12,6 @@ coveralls <- function(path = ".", repo_token = NULL, ...) {
     service <- tolower(Sys.getenv("CI_NAME"))
     ifelse(service == "", "travis-ci", service)
   }
-
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
   coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...),
     repo_token = repo_token, service_name = find_ci_name())
@@ -66,12 +65,12 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
       "service_name" = jsonlite::unbox(service_name),
       "source_files" = res)
   } else {
-    list(
+    tmp <- list(
       "repo_token" = jsonlite::unbox(repo_token),
       "source_files" = res)
+    tmp$git <- list(git_info)
+    tmp
   }
-
-  if (!is.null(git_info)) payload <- c(payload, git = list(git_info))
 
   jsonlite::toJSON(na = "null", payload)
 }
@@ -89,7 +88,7 @@ jenkins_git_info <- function() {
   )
   head <- lapply(structure(
     scan(
-      sep="\030", # http://en.wikipedia.org/wiki/Delimiter#ASCII_delimited_text
+      sep="\n", # http://en.wikipedia.org/wiki/Delimiter#ASCII_delimited_text
       what = "character",
       text=system(intern=TRUE,
         paste0("git log -n 1 --pretty=format:",
