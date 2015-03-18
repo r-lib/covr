@@ -1,4 +1,5 @@
 context("coveralls")
+library(devtools)
 read_file <- function(file) readChar(file, file.info(file)$size)
 test_that("coveralls generates a properly formatted json file", {
 
