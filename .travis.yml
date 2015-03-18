@@ -5,11 +5,9 @@ env: _R_CHECK_CRAN_INCOMING_=FALSE
 r_binary_packages:
   - igraph
   - jsonlite
-  - rex
   - devtools
   - httr
   - testthat
-  - crayon
   - shiny
   - digest
   - stringdist
