@@ -5,10 +5,10 @@ Authors@R: "Jim Hester <james.f.hester@gmail.com> [aut, cre]"
 Description: Track test coverage for your package and (optionally)
     upload the results to coveralls.  Compatible with any testing
     methodology or framework.
-Depends: 
+Depends:
     R (>= 3.1.0),
     methods
-Imports: 
+Imports:
     jsonlite,
     rex,
     devtools,
@@ -16,7 +16,7 @@ Imports:
     testthat,
     crayon,
     shiny
-Suggests: 
+Suggests:
     R6,
     knitr,
     lintr (>= 0.3.0.9000)

@@ -7,8 +7,14 @@
 #' @param ... additional arguments passed to \code{\link{package_coverage}}
 #' @export
 coveralls <- function(path = ".", repo_token = NULL, ...) {
+
+  find_ci_name <- function() {
+    service <- tolower(Sys.getenv("CI_NAME"))
+    ifelse(service == "", "travis-ci", service)
+  }
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
-  coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...), repo_token = repo_token)
+  coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...),
+    repo_token = repo_token, service_name = find_ci_name())
 
   name <- tempfile()
   con <- file(name)
@@ -19,7 +25,7 @@ coveralls <- function(path = ".", repo_token = NULL, ...) {
 }
 
 to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
-                         service_name = "travis-ci", repo_token = NULL) {
+                         service_name, repo_token = NULL) {
 
   coverages <- per_line(x)
 
@@ -36,7 +42,8 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
 
   res <- mapply(
     function(name, source, coverage) {
-      list("name" = jsonlite::unbox(name),
+      list(
+        "name" = jsonlite::unbox(name),
         "source" = jsonlite::unbox(source),
         "coverage" = coverage)
     },
@@ -46,18 +53,60 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
     SIMPLIFY = FALSE,
     USE.NAMES = FALSE)
 
+  git_info <- switch(service_name,
+    drone = jenkins_git_info(), # drone has the same env vars as jenkins
+    jenkins = jenkins_git_info(),
+    NULL
+  )
+
   payload <- if (is.null(repo_token)) {
     list(
       "service_job_id" = jsonlite::unbox(service_job_id),
       "service_name" = jsonlite::unbox(service_name),
       "source_files" = res)
   } else {
-    list(
+    tmp <- list(
       "repo_token" = jsonlite::unbox(repo_token),
       "source_files" = res)
+    tmp$git <- list(git_info)
+    tmp
   }
 
   jsonlite::toJSON(na = "null", payload)
+}
+
+jenkins_git_info <- function() {
+  # check https://coveralls.zendesk.com/hc/en-us/articles/201350799-API-Reference
+  # for why and how we are doing this
+  formats <- c(
+    id = "%H",
+    author_name = "%an",
+    author_email = "%ae",
+    commiter_name = "%cn",
+    commiter_email = "%ce",
+    message = "%s"
+  )
+  head <- lapply(structure(
+    scan(
+      sep="\n", # http://en.wikipedia.org/wiki/Delimiter#ASCII_delimited_text
+      what = "character",
+      text=system(intern=TRUE,
+        paste0("git log -n 1 --pretty=format:",
+          paste(collapse="%n", formats)
+        )
+      ),
+      quiet = TRUE
+    ),
+    names = names(formats)
+  ), jsonlite::unbox)
+  remotes <- list(list(
+    name = jsonlite::unbox("origin"),
+    url = jsonlite::unbox(Sys.getenv("CI_REMOTE"))
+  ))
+
+  c(list(branch = jsonlite::unbox(Sys.getenv("CI_BRANCH"))),
+    head = list(head),
+    remotes = list(remotes))
 }
 
 per_line <- function(x) {
