@@ -124,21 +124,48 @@ package_coverage <- function(path = ".",
 
   sources <- sources(path)
 
+  pkg <- devtools::as.package(path)
+
+  tmp_lib <- tempdir()
+
   # if there are compiled components to a package we have to run in a subprocess
   if (length(sources) > 0) {
     subprocess(
-      ns_env <- devtools::load_all(path, export_all = FALSE, quiet = quiet, recompile = TRUE)$env,
+      clean_output = FALSE,
+      quiet = FALSE,
+      #built_package <- devtools::build(pkg,
+                                       #path=tmp_lib,
+                                       #binary = FALSE,
+                                       #vignettes = FALSE,
+                                       #manual = FALSE,
+                                       #quiet = FALSE)
+      #,
+
+      devtools::RCMD("INSTALL",
+                     options = c(shQuote(pkg$path),
+                                 "--no-docs",
+                                 "--no-multiarch",
+                                 "--no-demo",
+                                 "--preclean",
+                                 "-l",
+                                 shQuote(tmp_lib))),
+
+      devtools::with_lib(tmp_lib,
+                         library(pkg$package,
+                                 character.only = TRUE)),
+
+      ns_env <- asNamespace(pkg$package),
       env <- new.env(parent = ns_env),
-      testing_dir <- test_directory(path),
+      testing_dir <- test_directory(pkg$path),
       args <-
         c(dots,
           if (file.exists(testing_dir)) {
             bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
           }),
-        enc <- environment(),
-        coverage <- environment_coverage_(ns_env, args, enc),
-        rm(ns_env, env, enc, args)
-        )
+      enc <- environment(),
+      coverage <- environment_coverage_(ns_env, args, enc),
+      rm(ns_env, env, enc, args)
+    )
 
     coverage <- c(coverage, run_gcov(path, sources))
 
