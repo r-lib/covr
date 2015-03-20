@@ -65,7 +65,8 @@ subprocess <- function(..., calling_env = parent.frame(),
 
   if (inherits(output, "try-error")) {
     lines <- readLines(paste0(basename(tmp_source), ".Rout"))
-    stop("Subprocess failed:", paste0(collapse = "\n", lines))
+    cat(lines, sep="\n")
+    stop("Subprocess failed!", call. = FALSE)
   }
 
   rout_file <- paste0(basename(tmp_source), ".Rout")
