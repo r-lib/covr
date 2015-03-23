@@ -104,8 +104,10 @@ package_coverage <- function(path = ".",
                              exclude_end = rex::rex("#", any_spaces, "EXCLUDE COVERAGE END")
                              ) {
 
+  pkg <- devtools::as.package(path)
+
   if (!file.exists(path)) {
-    return(NULL)
+    stop(sQuote(path), " does not exist!", call. = FALSE)
   }
 
   set_makevars(
@@ -114,7 +116,7 @@ package_coverage <- function(path = ".",
       FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
       FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
       LDFLAGS = "--coverage")
-    )
+    )e
   on.exit(reset_makevars(), add = TRUE)
 
   old_envs <- set_envvar(c(PKG_LIBS = "--coverage"), "prefix")
@@ -124,8 +126,6 @@ package_coverage <- function(path = ".",
 
   sources <- sources(path)
 
-  pkg <- devtools::as.package(path)
-
   tmp_lib <- tempdir()
 
   # if there are compiled components to a package we have to run in a subprocess
@@ -133,38 +133,7 @@ package_coverage <- function(path = ".",
     subprocess(
       clean_output = FALSE,
       quiet = FALSE,
-      #built_package <- devtools::build(pkg,
-                                       #path=tmp_lib,
-                                       #binary = FALSE,
-                                       #vignettes = FALSE,
-                                       #manual = FALSE,
-                                       #quiet = FALSE)
-      #,
-
-      devtools::RCMD("INSTALL",
-                     options = c(shQuote(pkg$path),
-                                 "--no-docs",
-                                 "--no-multiarch",
-                                 "--no-demo",
-                                 "--preclean",
-                                 "-l",
-                                 shQuote(tmp_lib))),
-
-      devtools::with_lib(tmp_lib,
-                         library(pkg$package,
-                                 character.only = TRUE)),
-
-      ns_env <- asNamespace(pkg$package),
-      env <- new.env(parent = ns_env),
-      testing_dir <- test_directory(pkg$path),
-      args <-
-        c(dots,
-          if (file.exists(testing_dir)) {
-            bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
-          }),
-      enc <- environment(),
-      coverage <- environment_coverage_(ns_env, args, enc),
-      rm(ns_env, env, enc, args)
+      coverage <- run_tests(pkg, tmp_lib, dots)
     )
 
     coverage <- c(coverage, run_gcov(path, sources))
@@ -172,20 +141,13 @@ package_coverage <- function(path = ".",
     devtools::clean_dll(path)
     clear_gcov(path)
   } else {
-    ns_env <- devtools::load_all(path, export_all = FALSE, quiet = quiet, recompile = TRUE)$env
-    env <- new.env(parent = ns_env)
-    testing_dir <- test_directory(path)
-    args <-
-      c(dots,
-        if (file.exists(testing_dir)) {
-          bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
-        })
-      enc <- environment()
-      coverage <- environment_coverage_(ns_env, args, enc)
+    coverage <- run_tests(pkg, tmp_lib)
   }
 
   if (relative_path) {
-    names(coverage) <- rex::re_substitutes(names(coverage), rex::rex(normalizePath(path), "/"), "")
+    names(coverage) <- rex::re_substitutes(names(coverage),
+                                           rex::rex(normalizePath(path), "/"),
+                                           "")
     attr(coverage, "path") <- path
   }
 
@@ -197,4 +159,33 @@ package_coverage <- function(path = ".",
     exclude_start = exclude_start,
     exclude_end = exclude_end
   )
+}
+
+run_tests <- function(pkg, tmp_lib, dots) {
+  devtools::RCMD("INSTALL",
+                 options = c(shQuote(pkg$path),
+                             "--no-docs",
+                             "--no-multiarch",
+                             "--no-demo",
+                             "--preclean",
+                             "--with-keep.source",
+                             "--no-byte-compile",
+                             "--no-test-load",
+                             "-l",
+                             shQuote(tmp_lib)))
+
+  devtools::with_lib(tmp_lib,
+                     library(pkg$package,
+                             character.only = TRUE))
+
+  ns_env <- asNamespace(pkg$package)
+  env <- new.env(parent = ns_env) # nolint
+  testing_dir <- test_directory(pkg$path)
+  args <-
+    c(dots,
+      if (file.exists(testing_dir)) {
+        bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
+      })
+  enc <- environment()
+  environment_coverage_(ns_env, args, enc)
 }
