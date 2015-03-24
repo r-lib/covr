@@ -125,6 +125,11 @@ to_codecov <- function(x) {
     coverage_names <- file.path(attr(x, "path"), coverage_names)
   }
 
+  sources <- lapply(coverage_names,
+    function(x) {
+      readChar(x, file.info(x)$size, useBytes=TRUE)
+    })
+
   res <- mapply(
     function(name, source, coverage) {
       list("name" = jsonlite::unbox(name),

@@ -72,3 +72,26 @@ test_directory <- function(path) {
   attributes(res) <- attrs
   res
 }
+
+source_from_dir <- function(file, path, env, chdir = TRUE) {
+  if (chdir) {
+    old <- setwd(path)
+    on.exit(setwd(old))
+  }
+  sys.source(file, env)
+}
+
+example_code <- function(file) {
+  parsed_rd <- tools::parse_Rd(file)
+
+  example_locs <- vapply(parsed_rd,
+    function(x) attr(x, "Rd_tag") == "\\examples",
+    logical(1)
+  )
+
+  unlist(parsed_rd[example_locs])
+}
+
+duplicate <- function(x) {
+  .Call(duplicate_, x)
+}

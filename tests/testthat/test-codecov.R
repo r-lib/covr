@@ -24,6 +24,8 @@ test_that("it generates a properly formatted json file", {
 })
 
 test_that("it works with local repos", {
+  system3 <- duplicate(base::system)
+
   devtools::with_envvar(c(
       "APPVEYOR" = "False",
       "TRAVIS" = "false"
@@ -33,7 +35,13 @@ test_that("it works with local repos", {
       `httr::content` = identity,
       `httr:::body_config` = function(...) list(...),
       `covr:::local_branch` = function() "master",
-      `base::system` = function(...) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 ",
+      `base::system` = function(x, ...) {
+        if (grepl("^git", x)) {
+          "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 "
+        } else {
+          system3(x, ...)
+        }
+      },
 
       res <- codecov("TestS4"),
 
@@ -46,17 +54,25 @@ test_that("it works with local repos", {
     )
 })
 test_that("it adds the token to the query if available", {
+  system3 <- duplicate(base::system)
   devtools::with_envvar(c(
       "APPVEYOR" = "False",
       "TRAVIS" = "false",
       "CODECOV_TOKEN" = "codecov_test"
     ),
     with_mock(
+      .env = environment(),
       `httr:::perform` = function(...) list(...),
       `httr::content` = identity,
       `httr:::body_config` = function(...) list(...),
       `covr:::local_branch` = function() "master",
-      `base::system` = function(...) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 ",
+      `base::system` = function(x, ...) {
+        if (grepl("^git", x)) {
+          "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 "
+        } else {
+          system3(x, ...)
+        }
+      },
 
       res <- codecov("TestS4"),
 

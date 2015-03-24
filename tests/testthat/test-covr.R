@@ -1,10 +1,3 @@
-if (requireNamespace("lintr", quietly = TRUE)) {
-  context("lints")
-  test_that("Package Style", {
-    lintr::expect_lint_free()
-  })
-}
-
 context("environment_coverage")
 test_that("environment_coverage calls environment_coverage_", {
 
@@ -12,11 +5,6 @@ test_that("environment_coverage calls environment_coverage_", {
   with_mock(environment_coverage_ = function(...) TRUE,
     expect_true(environment_coverage(NULL))
     )
-})
-
-context("package_coverage")
-test_that("package_coverage returns NULL if the path does not exist", {
-  expect_null(package_coverage("blah"))
 })
 
 context("function_coverage")

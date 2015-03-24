@@ -85,7 +85,10 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' Calculate test coverage for a package
 #'
 #' @param path file path to the package
-#' @param ... expressions to run
+#' @param ... extra expressions to run
+#' @param type run the package \sQuote{tests}, \sQuote{vignettes},
+#' \sQuote{examples}, \sQuote{all} \sQuote{three}, or \sQuote{none}. The
+#' default is \sQuote{all}.
 #' @param relative_path whether to output the paths as relative or absolute
 #' paths.
 #' @param quiet whether to load and compile the package quietly
@@ -96,6 +99,7 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @export
 package_coverage <- function(path = ".",
                              ...,
+                             type = c("tests", "vignettes", "examples", "none"),
                              relative_path = TRUE,
                              quiet = TRUE,
                              exclusions = NULL,
@@ -110,13 +114,15 @@ package_coverage <- function(path = ".",
     stop(sQuote(path), " does not exist!", call. = FALSE)
   }
 
+  type <- match.arg(type)
+
   set_makevars(
     c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
       CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
       FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
       FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
       LDFLAGS = "--coverage")
-    )e
+    )
   on.exit(reset_makevars(), add = TRUE)
 
   old_envs <- set_envvar(c(PKG_LIBS = "--coverage"), "prefix")
@@ -133,7 +139,7 @@ package_coverage <- function(path = ".",
     subprocess(
       clean_output = FALSE,
       quiet = FALSE,
-      coverage <- run_tests(pkg, tmp_lib, dots)
+      coverage <- run_tests(pkg, tmp_lib, dots, type)
     )
 
     coverage <- c(coverage, run_gcov(path, sources))
@@ -141,7 +147,7 @@ package_coverage <- function(path = ".",
     devtools::clean_dll(path)
     clear_gcov(path)
   } else {
-    coverage <- run_tests(pkg, tmp_lib)
+    coverage <- run_tests(pkg, tmp_lib, dots, type)
   }
 
   if (relative_path) {
@@ -161,7 +167,7 @@ package_coverage <- function(path = ".",
   )
 }
 
-run_tests <- function(pkg, tmp_lib, dots) {
+run_tests <- function(pkg, tmp_lib, dots, type) {
   devtools::RCMD("INSTALL",
                  options = c(shQuote(pkg$path),
                              "--no-docs",
@@ -181,11 +187,31 @@ run_tests <- function(pkg, tmp_lib, dots) {
   ns_env <- asNamespace(pkg$package)
   env <- new.env(parent = ns_env) # nolint
   testing_dir <- test_directory(pkg$path)
+  vignette_dir <- file.path(pkg$path, "vignettes")
+  example_dir <- file.path(pkg$path, "man")
   args <-
     c(dots,
-      if (file.exists(testing_dir)) {
+      if ("tests" %in% type && file.exists(testing_dir)) {
         bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
-      })
+      },
+      if ("vignettes" %in% type && file.exists(vignette_dir)) {
+        lapply(dir(vignette_dir, pattern = rex::rex(".", one_of("R", "r"), or("nw", "md")), full.names = TRUE),
+          function(file) {
+            out_file <- tempfile(fileext = ".R")
+            knitr::knit(input = file, output = out_file, tangle = TRUE)
+            bquote(source_from_dir(.(out_file), .(vignette_dir), .(env)))
+          })
+      },
+      if ("examples" %in% type && file.exists(example_dir)) {
+        lapply(dir(example_dir, pattern = rex::rex(".Rd"), full.names = TRUE),
+          function(file) {
+            out_file <- tempfile(fileext = ".R")
+            ex <- example_code(file)
+            cat(ex, file = out_file)
+            bquote(sys.source(.(out_file), .(env)))
+          })
+      }
+    )
   enc <- environment()
   environment_coverage_(ns_env, args, enc)
 }
