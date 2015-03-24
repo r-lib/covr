@@ -168,7 +168,7 @@ package_coverage <- function(path = ".",
 }
 
 run_tests <- function(pkg, tmp_lib, dots, type) {
-  devtools::RCMD("INSTALL",
+  devtools:::RCMD("INSTALL",
                  options = c(shQuote(pkg$path),
                              "--no-docs",
                              "--no-multiarch",
