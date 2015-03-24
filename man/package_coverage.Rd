@@ -5,7 +5,7 @@
 \title{Calculate test coverage for a package}
 \usage{
 package_coverage(path = ".", ..., type = c("tests", "vignettes", "examples",
-  "all", "none"), relative_path = TRUE, quiet = TRUE, exclusions = NULL,
+  "none"), relative_path = TRUE, quiet = TRUE, exclusions = NULL,
   exclude_pattern = rex::rex("#", any_spaces, "EXCLUDE COVERAGE"),
   exclude_start = rex::rex("#", any_spaces, "EXCLUDE COVERAGE START"),
   exclude_end = rex::rex("#", any_spaces, "EXCLUDE COVERAGE END"))
@@ -34,9 +34,5 @@ paths.}
 }
 \description{
 Calculate test coverage for a package
-}
-\examples{
-package_coverage(type="vignettes")
-stop("hi")
 }
 
