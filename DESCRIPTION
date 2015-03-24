@@ -15,7 +15,8 @@ Imports:
     httr,
     testthat,
     crayon,
-    shiny
+    shiny,
+    htmltools
 Suggests:
     R6,
     knitr,
