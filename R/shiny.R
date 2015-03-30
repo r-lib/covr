@@ -12,6 +12,8 @@
 #' @export
 shine <- function(x) {
 
+  loadNamespace("shiny")
+
   if (!inherits(x, "coverage")) {
     stop("shine must be called on a coverage object!", call. = FALSE)
   }
