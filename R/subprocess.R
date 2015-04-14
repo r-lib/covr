@@ -24,7 +24,10 @@ subprocess <- function(..., calling_env = parent.frame(),
   saveRDS(exprs, file = tmp_exprs)
 
   saveRDS(calling_env, file = tmp_calling_env)
-  save(list=ls(envir = global_env, all.names = TRUE), envir = global_env, file = tmp_global_env)
+
+  save(list=ls(envir = global_env, all.names = TRUE),
+       envir = global_env,
+       file = tmp_global_env)
 
   tmp_source <- tempfile()
 
