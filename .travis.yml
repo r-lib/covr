@@ -22,4 +22,5 @@ after_success:
   - Rscript -e 'library(covr);coveralls()'
 
 after_failure:
-  dump_logs
+  - cat covr.Rcheck/tests/testthat.Rout.fail
+  - cat covr.Rcheck/tests/testthat/*Rout
