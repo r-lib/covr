@@ -17,11 +17,12 @@ test_that("format_percentage works as expected", {
   expect_equal(format_percentage(0.965), "\u001b[32m96.50%\u001b[39m")
 })
 
-test_that("print.coverage works as expected", {
+test_that("print.coverage with only test coverage", {
   cov <- structure(list(
       `file:1:1:1:1:1:1:1:1` = 0,
       `file:1:1:1:1:1:1:1:1` = 1
       ),
+    type = "test",
     class = "coverage")
 
   expect_message(print(cov, by_line = FALSE),
