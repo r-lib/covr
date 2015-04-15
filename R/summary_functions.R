@@ -30,6 +30,13 @@ zero_coverage <- function(coverage_result) {
 
 #' @export
 print.coverage <- function(x, by_line = TRUE, ...) {
+
+  type <- attr(x, "type")
+
+  if (type == "none") {
+    type <- NULL
+  }
+
   df <- as.data.frame(x)
 
   per_file_percents <- vapply(unique(df$filename),
@@ -41,7 +48,7 @@ print.coverage <- function(x, by_line = TRUE, ...) {
 
   overall_percentage <- percent_coverage(df, by_line = by_line)
 
-  message(crayon::bold("Package Coverage: "),
+  message(crayon::bold(paste(collapse = " ", c(to_title(type), "Coverage: "))),
     format_percentage(overall_percentage))
 
   by_coverage <- per_file_percents[order(per_file_percents,
@@ -51,6 +58,19 @@ print.coverage <- function(x, by_line = TRUE, ...) {
     message(crayon::bold(paste0(names(by_coverage)[i], ": ")),
       format_percentage(by_coverage[i]))
   }
+  x
+}
+
+#' @export
+print.coverages <- function(x, ...) {
+  for(i in seq_along(x)) {
+    # Add a blank line between consecutive coverage items
+    if (i != 1) {
+      message()
+    }
+    print(x[[i]])
+  }
+  x
 }
 
 format_percentage <- function(x) {

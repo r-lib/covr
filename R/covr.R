@@ -86,9 +86,9 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #'
 #' @param path file path to the package
 #' @param ... extra expressions to run
-#' @param type run the package \sQuote{tests}, \sQuote{vignettes},
-#' \sQuote{examples}, \sQuote{all} \sQuote{three}, or \sQuote{none}. The
-#' default is \sQuote{all}.
+#' @param type run the package \sQuote{test}, \sQuote{vignette},
+#' \sQuote{example}, \sQuote{all}, or \sQuote{none}. The default is
+#' \sQuote{test}.
 #' @param relative_path whether to output the paths as relative or absolute
 #' paths.
 #' @param quiet whether to load and compile the package quietly
@@ -99,7 +99,7 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @export
 package_coverage <- function(path = ".",
                              ...,
-                             type = c("tests", "vignettes", "examples", "none"),
+                             type = c("test", "vignette", "example", "all", "none"),
                              relative_path = TRUE,
                              quiet = TRUE,
                              exclusions = NULL,
@@ -107,6 +107,21 @@ package_coverage <- function(path = ".",
                              exclude_start = rex::rex("#", any_spaces, "EXCLUDE COVERAGE START"),
                              exclude_end = rex::rex("#", any_spaces, "EXCLUDE COVERAGE END")
                              ) {
+  type <- match.arg(type)
+
+  if (type == "all") {
+    called_args <- as.list(match.call())[-1]
+
+    # remove the type
+    called_args$type <- NULL
+    res <- list(
+                do.call(Recall, c(called_args, type = "test")),
+                do.call(Recall, c(called_args, type = "vignette")),
+                do.call(Recall, c(called_args, type = "example"))
+                )
+    class(res) <- "coverages"
+    return(res)
+  }
 
   pkg <- devtools::as.package(path)
 
@@ -114,7 +129,6 @@ package_coverage <- function(path = ".",
     stop(sQuote(path), " does not exist!", call. = FALSE)
   }
 
-  type <- match.arg(type)
 
   set_makevars(
     c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
@@ -157,6 +171,7 @@ package_coverage <- function(path = ".",
     attr(coverage, "path") <- path
   }
 
+  attr(coverage, "type") <- type
   class(coverage) <- "coverage"
 
   exclude(coverage,
@@ -192,18 +207,16 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
   example_dir <- file.path(pkg$path, "man")
   args <-
     c(dots,
-      if ("tests" %in% type && file.exists(testing_dir)) {
+      if (type == "test" && file.exists(testing_dir)) {
         bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet))))
-      },
-      if ("vignettes" %in% type && file.exists(vignette_dir)) {
+      } else if (type == "vignette" && file.exists(vignette_dir)) {
         lapply(dir(vignette_dir, pattern = rex::rex(".", one_of("R", "r"), or("nw", "md")), full.names = TRUE),
           function(file) {
             out_file <- tempfile(fileext = ".R")
             knitr::knit(input = file, output = out_file, tangle = TRUE)
             bquote(source_from_dir(.(out_file), .(vignette_dir), .(env), quiet = .(quiet)))
           })
-      },
-      if ("examples" %in% type && file.exists(example_dir)) {
+      } else if (type == "example" && file.exists(example_dir)) {
         lapply(dir(example_dir, pattern = rex::rex(".Rd"), full.names = TRUE),
           function(file) {
             out_file <- tempfile(fileext = ".R")
