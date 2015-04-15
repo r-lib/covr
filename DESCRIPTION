@@ -20,7 +20,7 @@ Suggests:
     R6,
     knitr,
     lintr (>= 0.3.0.9000),
-    testthat,
+    testthat
 License: MIT + file LICENSE
 LazyData: true
 VignetteBuilder: knitr
