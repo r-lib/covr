@@ -4,8 +4,8 @@
 \alias{package_coverage}
 \title{Calculate test coverage for a package}
 \usage{
-package_coverage(path = ".", ..., type = c("tests", "vignettes", "examples",
-  "none"), relative_path = TRUE, quiet = TRUE, exclusions = NULL,
+package_coverage(path = ".", ..., type = c("test", "vignette", "example",
+  "all", "none"), relative_path = TRUE, quiet = TRUE, exclusions = NULL,
   exclude_pattern = rex::rex("#", any_spaces, "EXCLUDE COVERAGE"),
   exclude_start = rex::rex("#", any_spaces, "EXCLUDE COVERAGE START"),
   exclude_end = rex::rex("#", any_spaces, "EXCLUDE COVERAGE END"))
@@ -15,9 +15,9 @@ package_coverage(path = ".", ..., type = c("tests", "vignettes", "examples",
 
 \item{...}{extra expressions to run}
 
-\item{type}{run the package \sQuote{tests}, \sQuote{vignettes},
-\sQuote{examples}, \sQuote{all} \sQuote{three}, or \sQuote{none}. The
-default is \sQuote{all}.}
+\item{type}{run the package \sQuote{test}, \sQuote{vignette},
+\sQuote{example}, \sQuote{all}, or \sQuote{none}. The default is
+\sQuote{test}.}
 
 \item{relative_path}{whether to output the paths as relative or absolute
 paths.}
