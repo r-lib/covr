@@ -73,12 +73,23 @@ test_directory <- function(path) {
   res
 }
 
-source_from_dir <- function(file, path, env, chdir = TRUE) {
+source_dir <- function(path, pattern = rex::rex(".", one_of("R", "r"), end), env,
+                       chdir = TRUE, quiet = FALSE) {
+  files <- normalizePath(list.files(path, pattern, full.names = TRUE))
+  lapply(files, source_from_dir, path = path, env = env, chdir = chdir, quiet = quiet)
+}
+
+source_from_dir <- function(file, path, env, chdir = TRUE, quiet = FALSE) {
   if (chdir) {
     old <- setwd(path)
     on.exit(setwd(old))
   }
-  sys.source(file, env)
+  if (isTRUE(quiet)) {
+    capture.output(sys.source(file, env))
+    invisible()
+  } else {
+    sys.source(file, env)
+  }
 }
 
 example_code <- function(file) {

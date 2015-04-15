@@ -137,9 +137,9 @@ package_coverage <- function(path = ".",
   # if there are compiled components to a package we have to run in a subprocess
   if (length(sources) > 0) {
     subprocess(
-      clean_output = FALSE,
-      quiet = FALSE,
-      coverage <- run_tests(pkg, tmp_lib, dots, type)
+      clean_output = TRUE,
+      quiet = quiet,
+      coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
     )
 
     coverage <- c(coverage, run_gcov(path, sources))
@@ -147,7 +147,7 @@ package_coverage <- function(path = ".",
     devtools::clean_dll(path)
     clear_gcov(path)
   } else {
-    coverage <- run_tests(pkg, tmp_lib, dots, type)
+    coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
   }
 
   if (relative_path) {
@@ -167,7 +167,7 @@ package_coverage <- function(path = ".",
   )
 }
 
-run_tests <- function(pkg, tmp_lib, dots, type) {
+run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
   devtools:::RCMD("INSTALL",
                  options = c(shQuote(pkg$path),
                              "--no-docs",
@@ -178,7 +178,8 @@ run_tests <- function(pkg, tmp_lib, dots, type) {
                              "--no-byte-compile",
                              "--no-test-load",
                              "-l",
-                             shQuote(tmp_lib)))
+                             shQuote(tmp_lib)),
+                  quiet = quiet)
 
   devtools::with_lib(tmp_lib,
                      library(pkg$package,
@@ -192,14 +193,14 @@ run_tests <- function(pkg, tmp_lib, dots, type) {
   args <-
     c(dots,
       if ("tests" %in% type && file.exists(testing_dir)) {
-        bquote(try(testthat::source_dir(path = .(testing_dir), env = .(env))))
+        bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet))))
       },
       if ("vignettes" %in% type && file.exists(vignette_dir)) {
         lapply(dir(vignette_dir, pattern = rex::rex(".", one_of("R", "r"), or("nw", "md")), full.names = TRUE),
           function(file) {
             out_file <- tempfile(fileext = ".R")
             knitr::knit(input = file, output = out_file, tangle = TRUE)
-            bquote(source_from_dir(.(out_file), .(vignette_dir), .(env)))
+            bquote(source_from_dir(.(out_file), .(vignette_dir), .(env), quiet = .(quiet)))
           })
       },
       if ("examples" %in% type && file.exists(example_dir)) {
@@ -208,7 +209,7 @@ run_tests <- function(pkg, tmp_lib, dots, type) {
             out_file <- tempfile(fileext = ".R")
             ex <- example_code(file)
             cat(ex, file = out_file)
-            bquote(sys.source(.(out_file), .(env)))
+            bquote(source_from_dir(.(out_file), NULL, .(env), chdir = FALSE, quiet = .(quiet)))
           })
       }
     )

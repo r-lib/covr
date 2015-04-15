@@ -57,7 +57,8 @@ subprocess <- function(..., calling_env = parent.frame(),
   output <- try(devtools:::R(options=paste("-f", tmp_source,
                                            "--slave",
                                            collapse = " "),
-                             path = "."))
+                             path = ".",
+                             quiet = quiet))
 
   if (inherits(output, "try-error")) {
     stop("Subprocess failed!", call. = FALSE)
