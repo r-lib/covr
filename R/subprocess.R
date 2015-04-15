@@ -60,8 +60,6 @@ subprocess <- function(..., calling_env = parent.frame(),
                              path = "."))
 
   if (inherits(output, "try-error")) {
-    #lines <- readLines(paste0(basename(tmp_source), ".Rout"))
-    #cat(lines, sep="\n")
     stop("Subprocess failed!", call. = FALSE)
   }
 
