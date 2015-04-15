@@ -42,7 +42,7 @@ subprocess <- function(..., calling_env = parent.frame(),
       "  if (length(.new_objs) > 0) {",
       "    save(list = .new_objs, file = '%s')",
       "  }",
-      "  .new_objs",
+      "  invisible(.new_objs)",
       "}",
       ".env <- readRDS('%s')",
       "environment(fun) <- .env",
@@ -54,7 +54,6 @@ subprocess <- function(..., calling_env = parent.frame(),
   )
 
   writeChar(con = tmp_source, command, eos = NULL)
-  #output <- try(system(sprintf("Rscript --vanilla %s", tmp_source)))
   output <- try(devtools:::R(options=paste("-f", tmp_source,
                                            "--slave",
                                            collapse = " "),
