@@ -21,7 +21,13 @@ coveralls <- function(path = ".", repo_token = NULL, ...) {
   writeChar(con = con, coverage, eos = NULL)
   close(con)
   on.exit(unlink(name))
-  httr::content(httr::POST(coveralls_url, body = list(json_file = httr::upload_file(name))))
+  body <- list(json_file = httr::upload_file(name))
+  result <- httr::POST(coveralls_url, body = body)
+  content <- httr::content(result)
+  if (isTRUE(content$error)) {
+    stop("Failed to upload coverage data. Reply by Coveralls: ", content$message)
+  }
+  content
 }
 
 to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
