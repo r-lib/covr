@@ -72,7 +72,9 @@ run_gcov <- function(path, sources) {
         values
     }
   })))
-  names(res) <- file.path(src_path, names(res))
+  if (!is.null(res)) {
+    names(res) <- file.path(src_path, names(res))
+  }
   res
 }
 

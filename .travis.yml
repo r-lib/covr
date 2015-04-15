@@ -7,7 +7,6 @@ r_binary_packages:
   - jsonlite
   - devtools
   - httr
-  - testthat
   - shiny
   - digest
   - stringdist
@@ -15,8 +14,13 @@ r_binary_packages:
 r_github_packages:
   - jimhester/covr
   - jimhester/lintr
+  - hadley/testthat
 
 after_success:
   - source shim_package.sh
   - Rscript -e 'devtools::install()'
   - Rscript -e 'library(covr);coveralls()'
+
+after_failure:
+  - cat covr.Rcheck/tests/testthat.Rout.fail
+  - cat covr.Rcheck/tests/testthat/*Rout

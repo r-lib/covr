@@ -60,7 +60,7 @@ shine <- function(x) {
     output$file_table <- shiny::renderDataTable(
       file_stats,
       escape = FALSE,
-      options = list(searching = FALSE, dom = "t"),
+      options = list(searching = FALSE, dom = "t", paging = FALSE),
       callback = "function(table) {
       table.on('click.dt', 'a', function() {
         Shiny.onInputChange('filename', $(this).text());

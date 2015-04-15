@@ -1,6 +1,6 @@
 Package: covr
 Title: Test Coverage for R packages
-Version: 0.2.0.9002
+Version: 0.3.0.9000
 Authors@R: "Jim Hester <james.f.hester@gmail.com> [aut, cre]"
 Description: Track test coverage for your package and (optionally)
     upload the results to coveralls.  Compatible with any testing
@@ -13,13 +13,14 @@ Imports:
     rex,
     devtools,
     httr,
-    testthat,
-    crayon
+    crayon,
+    htmltools
 Suggests:
     R6,
     knitr,
     lintr (>= 0.3.0.9000),
-    shiny
+    shiny,
+    testthat
 License: MIT + file LICENSE
 LazyData: true
 VignetteBuilder: knitr
