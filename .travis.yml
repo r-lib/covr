@@ -15,6 +15,7 @@ r_github_packages:
   - jimhester/covr
   - jimhester/lintr
   - hadley/testthat
+  - kevinushey/rex
 
 after_success:
   - source shim_package.sh
