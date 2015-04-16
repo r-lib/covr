@@ -145,7 +145,7 @@ package_coverage <- function(path = ".",
     coverage <- c(coverage, run_gcov(path, sources))
 
     devtools::clean_dll(path)
-    clear_gcov(path)
+    #clear_gcov(path)
   } else {
     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
   }
@@ -159,6 +159,7 @@ package_coverage <- function(path = ".",
 
   class(coverage) <- "coverage"
 
+  return(coverage)
   exclude(coverage,
     exclusions = exclusions,
     exclude_pattern = exclude_pattern,

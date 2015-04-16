@@ -1,21 +1,18 @@
 #' @export
 as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, sort = TRUE, ...) {
-  re <-
-    rex::rex(
-      capture(name = "filename", something), ":",
-      capture(name = "first_line", something), ":",
-      capture(name = "first_byte", something), ":",
-      capture(name = "last_line", something), ":",
-      capture(name = "last_byte", something), ":",
-      capture(name = "first_column", something), ":",
-      capture(name = "last_column", something), ":",
-      capture(name = "first_parsed", something), ":",
-      capture(name = "last_parsed", something))
+  filenames <- vapply(x,
+                      function(xx) attr(xx$srcref, "srcfile")$filename,
+                      character(1), USE.NAMES = FALSE)
 
-  df <- rex::re_matches(names(x), re)
+  vals <- t(vapply(x,
+                   function(xx) c(xx$srcref, xx$value),
+                   numeric(9), USE.NAMES = FALSE))
 
-  df[] <- lapply(df, type.convert, as.is = TRUE)
-  df$value <- unlist(x)
+  colnames(vals) <- c("first_line", "first_byte", "last_line", "last_byte",
+                      "first_column", "last_column", "first_parsed",
+                      "last_parsed", "value")
+
+  df <- data.frame(filename = filenames, vals, stringsAsFactors = FALSE)
 
   if (sort) {
     df <- df[order(df$filename, df$first_line, df$first_byte),]

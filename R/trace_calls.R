@@ -6,21 +6,20 @@
 #' @seealso \url{http://adv-r.had.co.nz/Expressions.html}
 #' @return a modified expression with count calls inserted before each previous
 #' call.
-trace_calls <- function (x, srcref = NULL) {
+trace_calls <- function (x, parent_ref = NULL) {
   recurse <- function(y) {
     lapply(y, trace_calls)
   }
 
   if (is.atomic(x) || is.name(x)) {
-    if (length(x) == 0 || is.null(srcref)) {
+    if (length(x) == 0 || is.null(parent_ref)) {
       x
     }
     else {
       if ((!is.symbol(x) && is.na(x)) || as.character(x) == "{") {
         x
       } else {
-        key <- key(srcref)
-        covr:::new_counter(key)
+        key <- covr:::new_counter(parent_ref)
         bquote(`{`(covr:::count(.(key)), .(x)))
       }
     }
@@ -29,9 +28,8 @@ trace_calls <- function (x, srcref = NULL) {
     src_ref <- attr(x, "srcref")
     if (!is.null(src_ref)) {
       as.call(Map(trace_calls, x, src_ref))
-    } else if (!is.null(srcref)) {
-      key <- key(srcref)
-      covr:::new_counter(key)
+    } else if (!is.null(parent_ref)) {
+      key <- covr:::new_counter(parent_ref)
       bquote(`{`(covr:::count(.(key)), .(as.call(recurse(x)))))
     } else {
       as.call(recurse(x))
@@ -43,8 +41,7 @@ trace_calls <- function (x, srcref = NULL) {
     if(!is.null(fun_body) && !is.null(attr(x, "srcref")) &&
        (is.symbol(fun_body) || fun_body[[1]] != "{")) {
       src_ref <- attr(x, "srcref")
-      key <- key(src_ref)
-      covr:::new_counter(key)
+      key <- covr:::new_counter(src_ref)
       fun_body <- bquote(`{`(covr:::count(.(key)), .(trace_calls(fun_body))))
     } else {
       fun_body <- trace_calls(fun_body)
@@ -71,20 +68,23 @@ trace_calls <- function (x, srcref = NULL) {
   }
 }
 
-.counters <- new.env()
+.counters <- new.env(parent = emptyenv())
 
 #' initialize a new counter
 #'
 #' @param key generated with \code{\link{key}}
-new_counter <- function(key) {
-  .counters[[key]] <- 0
+new_counter <- function(src_ref) {
+  key <- key(src_ref)
+  .counters[[key]]$value <- 0
+  .counters[[key]]$srcref <- src_ref
+  key
 }
 
 #' increment a given counter
 #'
 #' @inheritParams new_counter
 count <- function(key) {
-  .counters[[key]] <- .counters[[key]] + 1
+  .counters[[key]]$value <- .counters[[key]]$value + 1
 }
 
 #' clear all previous counters
@@ -97,9 +97,6 @@ clear_counters <- function() {
 #'
 #' @param x the call to create a key for
 key <- function(x) {
-  file <- attr(x, "srcfile")$filename %||% "<default>"
-  paste(sep = ":", file, paste0(collapse = ":", c(x)))
-  ## See: Issue #24 (and deprecated Pull Request #25)
-  res <- paste(sep = ":", file, paste0(collapse = ":", c(x)))
-  gsub("<text>", ".text.", res, fixed=TRUE)
+  src_file <- attr(x, "srcfile")
+  paste(collapse = ":", c(src_file$filename, x))
 }

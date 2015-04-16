@@ -106,3 +106,22 @@ example_code <- function(file) {
 duplicate <- function(x) {
   .Call(duplicate_, x)
 }
+
+counted_files <- function(x) {
+  res <- list()
+  for (counter_name in x) {
+    src_file <- attr(.counters[[counter_name]]$srcref, "srcfile")
+    address <- address(src_file)
+    if (is.null(res[[address]])) {
+      res[[address]] <- src_file
+    }
+  }
+  res
+}
+
+# TODO: use C code to get the address directly
+address <- function(x) {
+  re_matches(capture.output(str(x)),
+             rex::rex(capture(name = "address", "0x", anything),
+                      boundary))$address
+}

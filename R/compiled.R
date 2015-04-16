@@ -1,10 +1,14 @@
 # this does not handle LCOV_EXCL_START ect.
-parse_gcov <- function(file) {
+parse_gcov <- function(file, path) {
   if (!file.exists(file)) {
     return()
   }
 
   lines <- readLines(file)
+  source_file <- remove_extension(file)
+
+  src_file <- srcfilecopy(source_file, readLines(source_file))
+
   re <- rex::rex(spaces,
     capture(name = "coverage", some_of(digit, "-", "#")),
     ":", spaces,
@@ -12,28 +16,26 @@ parse_gcov <- function(file) {
     ":"
   )
 
-  res <- rex::re_matches(lines, re)
-  res$coverage[res$coverage == "#####"] <- 0
-  res <- res[res$line > 0 & res$coverage != "-", ]
+  matches <- rex::re_matches(lines, re)
+  matches$coverage[matches$coverage == "#####"] <- 0
+  coverage_lines <- matches$line > 0 & matches$coverage != "-"
+  matches <- matches[coverage_lines, ]
 
-  if (NROW(res) > 0) {
-    values <- as.numeric(res$coverage)
-    names(values) <- paste(sep = ":",
-      remove_extension(file),
-      res$line,
-      NA,
-      res$line,
-      NA,
-      NA,
-      NA,
-      NA,
-      NA)
-  } else {
-    return()
+  values <- as.numeric(matches$coverage)
+  line_lengths <- vapply(src_file$lines[as.numeric(matches$line)], nchar, numeric(1))
+  if (any(is.na(values))) {
+    stop("values could not be coerced to numeric ", matches$coverage)
   }
 
-  class(values) <- "coverage"
-  values
+  res <- Map(function(line, length, value) {
+    src_ref <- srcref(src_file, c(line, 1, line, length))
+    list(srcref = src_ref, value = value)
+  },
+  matches$line, line_lengths, values)
+  names(res) <- lapply(res, function(x) key(x$srcref))
+
+  class(res) <- "coverage"
+  res
 }
 
 clear_gcov <- function(path) {
@@ -54,27 +56,22 @@ run_gcov <- function(path, sources) {
   on.exit(setwd(old_dir))
   setwd(src_path)
 
-  srcs <- rex::re_substitutes(sources, rex::rex(src_path, one_of("/", "\\")), "")
-
-  res <- unlist(Filter(Negate(is.null),
-    lapply(srcs,
+  res <- unlist(recursive = FALSE,
+    Filter(Negate(is.null),
+    lapply(sources,
     function(src) {
       gcda <- paste0(remove_extension(src), ".gcda")
       gcno <- paste0(remove_extension(src), ".gcno")
       if (file.exists(gcno) && file.exists(gcda)) {
-        file.copy(c(gcda,gcno), src_path)
-        status <- system2("gcov", args = src, stdout = NULL)
-        stopifnot(status == 0)
-        values <- parse_gcov(paste0(basename(src), ".gcov"))
-        if (!is.null(values) && dirname(src) != ".") {
-          names(values) <- file.path(dirname(src), names(values))
+        devtools::in_dir(dirname(src),
+          devtools::system_check("gcov", args = src, ignore.stdout = TRUE, quiet = TRUE))
+        gcov_file <- paste0(src, ".gcov")
+        if (file.exists(gcov_file)) {
+          parse_gcov(gcov_file)
         }
-        values
-    }
-  })))
-  if (!is.null(res)) {
-    names(res) <- file.path(src_path, names(res))
-  }
+      }
+    })))
+
   res
 }
 
