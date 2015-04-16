@@ -19,7 +19,7 @@ trace_calls <- function (x, parent_ref = NULL) {
       if ((!is.symbol(x) && is.na(x)) || as.character(x) == "{") {
         x
       } else {
-        key <- covr:::new_counter(parent_ref)
+        key <- covr:::new_counter(parent_ref) # nolint
         bquote(`{`(covr:::count(.(key)), .(x)))
       }
     }

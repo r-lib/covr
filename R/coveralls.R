@@ -16,13 +16,7 @@ coveralls <- function(path = ".", repo_token = NULL, ...) {
   coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...),
     repo_token = repo_token, service_name = find_ci_name())
 
-  name <- tempfile()
-  con <- file(name)
-  writeChar(con = con, coverage, eos = NULL)
-  close(con)
-  on.exit(unlink(name))
-  body <- list(json_file = httr::upload_file(name))
-  result <- httr::POST(coveralls_url, body = body)
+  result <- httr::POST(url = coveralls_url, body = coverage, encode = "json")
   content <- httr::content(result)
   if (isTRUE(content$error)) {
     stop("Failed to upload coverage data. Reply by Coveralls: ", content$message)
@@ -35,29 +29,13 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
 
   coverages <- per_line(x)
 
-  coverage_names <- names(coverages)
-
-  if (!is.null(attr(x, "path"))) {
-    coverage_names <- file.path(attr(x, "path"), coverage_names)
-  }
-
-  sources <- lapply(coverage_names,
-    function(x) {
-      readChar(x, file.info(x)$size, useBytes=TRUE)
-    })
-
-  res <- mapply(
-    function(name, source, coverage) {
+  res <- lapply(coverages,
+    function(coverage) {
       list(
-        "name" = jsonlite::unbox(name),
-        "source" = jsonlite::unbox(source),
-        "coverage" = coverage)
-    },
-    coverage_names,
-    sources,
-    coverages,
-    SIMPLIFY = FALSE,
-    USE.NAMES = FALSE)
+        "name" = jsonlite::unbox(coverage$file$filename),
+        "source" = jsonlite::unbox(paste(collapse = "\n", coverage$file$lines)),
+        "coverage" = coverage$coverage)
+    })
 
   git_info <- switch(service_name,
     drone = jenkins_git_info(), # drone has the same env vars as jenkins
@@ -94,7 +72,7 @@ jenkins_git_info <- function() {
   )
   head <- lapply(structure(
     scan(
-      sep="\n", # http://en.wikipedia.org/wiki/Delimiter#ASCII_delimited_text
+      sep="\n",
       what = "character",
       text=system(intern=TRUE,
         paste0("git log -n 1 --pretty=format:",
@@ -115,45 +93,40 @@ jenkins_git_info <- function() {
     remotes = list(remotes))
 }
 
-per_line <- function(x) {
+per_line <- function(coverage) {
 
-  df <- as.data.frame(x)
+  files <- traced_files(coverage)
 
-  filenames <- unique(df$filename)
-
-  if (!is.null(attr(x, "path"))) {
-    filenames <- file.path(attr(x, "path"), filenames)
-  }
-
-  sources <- lapply(filenames, readLines)
-
-  blank_lines <- lapply(sources, function(file) {
-    which(rex::re_matches(file, rex::rex(start, any_spaces, maybe("#", anything), end)))
+  blank_lines <- lapply(files, function(file) {
+    which(rex::re_matches(file$lines, rex::rex(start, any_spaces, maybe("#", anything), end)))
     })
-  names(blank_lines) <- filenames
 
-  file_lengths <- tapply(df$last_line, df$filename,
-
-    function(x) {
-      max(unlist(x))
-    })
+  file_lengths <- lapply(files, function(file) {
+    length(file$lines)
+  })
 
   res <- lapply(file_lengths,
     function(x) {
       rep(NA_real_, length.out = x)
     })
 
-  # get the minimum coverage per line
-  for (i in seq_len(NROW(df))) {
-    for (line in seq(df[i, "first_line"], df[i, "last_line"])) {
-      filename <- df[i, "filename"]
-      value <- df[i, "value"]
-      if (!line %in% blank_lines[[filename]]) {
-        if (is.na(res[[filename]][line]) || value < res[[filename]][line]) {
-          res[[filename]][line] <- value
+  for (i in seq_along(coverage)) {
+    x <- coverage[[i]]
+    file_address <- address(attr(x$srcref, "srcfile"))
+    value <- x$value
+    for (line in seq(x$srcref[1], x$srcref[3])) {
+      # if it is not a blank line
+      if (!line %in% blank_lines[[file_address]]) {
+
+      # if current coverage is na or coverage is less than current coverage
+        if (is.na(res[[file_address]][line]) || value < res[[file_address]][line]) {
+          res[[file_address]][line] <- value
         }
       }
     }
   }
-  res
+  Map(function(file, coverage) {
+      list(file=file, coverage=coverage)
+    },
+    files, res)
 }
