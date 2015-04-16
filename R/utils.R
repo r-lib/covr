@@ -106,3 +106,10 @@ example_code <- function(file) {
 duplicate <- function(x) {
   .Call(duplicate_, x)
 }
+
+to_title <- function(x) {
+  rex::re_substitutes(x,
+                      rex::rex(boundary, capture(any)),
+                      "\\U\\1",
+                      global = TRUE)
+}

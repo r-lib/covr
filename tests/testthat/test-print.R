@@ -17,41 +17,26 @@ test_that("format_percentage works as expected", {
   expect_equal(format_percentage(0.965), "\u001b[32m96.50%\u001b[39m")
 })
 
-test_that("print.coverage works as expected", {
+test_that("print.coverage with only test coverage", {
   cov <- structure(list(
       `file:1:1:1:1:1:1:1:1` = 0,
       `file:1:1:1:1:1:1:1:1` = 1
       ),
+    type = "test",
     class = "coverage")
 
   expect_message(print(cov, by_line = FALSE),
-    rex::rex("Package Coverage: ", anything, "50.00%"))
+    rex::rex("Test Coverage: ", anything, "50.00%"))
   expect_message(print(cov, by_line = FALSE),
     rex::rex("file: ", anything, "50.00%"))
 
   expect_message(print(cov, by_line = TRUE),
-    rex::rex("Package Coverage: ", anything, "100.00%"))
+    rex::rex("Test Coverage: ", anything, "100.00%"))
   expect_message(print(cov, by_line = TRUE),
     rex::rex("file: ", anything, "100.00%"))
 
   # test default
   expect_message(print(cov),
-          rex::rex("Package Coverage: ", anything, "100.00%"))
+          rex::rex("Test Coverage: ", anything, "100.00%"))
 
-})
-test_that("print.coverage only displays Package Coverage if all files are covered completely", {
-  cov <- structure(list(
-      `file:1:1:1:1:1:1:1:1` = 1,
-      `file2:1:1:1:1:1:1:1:1` = 1
-      ),
-    class = "coverage")
-
-  expect_message(print(cov),
-    rex::rex("Package Coverage: ", anything, "100.00%"))
-
-  expect_message(print(cov),
-    rex::rex("file: ", anything, "100.00%"))
-
-  expect_message(print(cov),
-    rex::rex("file2: ", anything, "100.00%"))
 })
