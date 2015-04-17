@@ -1,8 +1,6 @@
 #' @export
 as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, sort = TRUE, ...) {
-  filenames <- vapply(x,
-                      function(xx) attr(xx$srcref, "srcfile")$filename,
-                      character(1), USE.NAMES = FALSE)
+  filenames <- display_name(x)
 
   vals <- t(vapply(x,
                    function(xx) c(xx$srcref, xx$value),

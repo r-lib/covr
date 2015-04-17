@@ -181,8 +181,10 @@ per_line <- function(coverage) {
       }
     }
   }
-  Map(function(file, coverage) {
-      list(file=file, coverage=coverage)
+  structure(
+    Map(function(file, coverage) {
+      structure(list(file=file, coverage=coverage), class = "line_coverage")
     },
-    files, res)
+    files, res),
+    class = "line_coverages")
 }

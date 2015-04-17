@@ -30,7 +30,7 @@ shine <- function(x) {
         coverage = values,
         stringsAsFactors = FALSE)
     })
-  names(full) <- lapply(coverages, function(coverage) coverage$file$filename)
+  names(full) <- display_name(coverages)
 
   file_stats <- compute_file_stats(full)
 

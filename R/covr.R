@@ -150,14 +150,25 @@ package_coverage <- function(path = ".",
     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
   }
 
-  if (relative_path) {
-    names(coverage) <- rex::re_substitutes(names(coverage),
-                                           rex::rex(normalizePath(path), "/"),
-                                           "")
-    attr(coverage, "path") <- path
-  }
+  coverage <- lapply(coverage, function(x) {
+    name <- normalizePath(getSrcFilename(x$srcref, full.names = TRUE), mustWork = FALSE)
+    src_file <- attr(x$srcref, "srcfile")
+    if (is.null(display_name(src_file))) {
+      display_name(src_file) <-
+        if (relative_path) {
+          rex::re_substitutes(name, rex::rex(normalizePath(path, mustWork = FALSE), "/"), "")
+        } else {
+          name
+        }
+    }
+    class(x) <- "expression_coverage"
+    x
+    })
 
   class(coverage) <- "coverage"
+
+  # These BasicClasses are functions from the method package
+  coverage <- coverage[display_name(coverage) != "./R/BasicClasses.R"]
 
   return(coverage)
   exclude(coverage,

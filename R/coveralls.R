@@ -32,7 +32,7 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
   res <- lapply(coverages,
     function(coverage) {
       list(
-        "name" = jsonlite::unbox(coverage$file$filename),
+        "name" = jsonlite::unbox(display_name(coverage)),
         "source" = jsonlite::unbox(paste(collapse = "\n", coverage$file$lines)),
         "coverage" = coverage$coverage)
     })

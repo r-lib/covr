@@ -98,5 +98,5 @@ clear_counters <- function() {
 #' @param x the call to create a key for
 key <- function(x) {
   src_file <- attr(x, "srcfile")
-  paste(collapse = ":", c(src_file$filename, x))
+  paste(collapse = ":", c(address(src_file), x))
 }
