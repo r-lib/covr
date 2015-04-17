@@ -13,10 +13,12 @@ coveralls <- function(path = ".", repo_token = NULL, ...) {
     ifelse(service == "", "travis-ci", service)
   }
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
-  coverage <- to_coveralls(package_coverage(path, relative_path = TRUE, ...),
+  json_file <- to_coveralls(package_coverage(path, relative_path = TRUE, ...),
     repo_token = repo_token, service_name = find_ci_name())
 
-  result <- httr::POST(url = coveralls_url, body = coverage, encode = "json")
+  result <- httr::POST(url = coveralls_url,
+    body = list(json_file = httr::upload_file(to_file(json_file))))
+
   content <- httr::content(result)
   if (isTRUE(content$error)) {
     stop("Failed to upload coverage data. Reply by Coveralls: ", content$message)
@@ -24,18 +26,26 @@ coveralls <- function(path = ".", repo_token = NULL, ...) {
   content
 }
 
+to_file <- function(x) {
+  name <- tempfile()
+  con <- file(name)
+  writeChar(con = con, x, eos = NULL)
+  close(con)
+  name
+}
+
 to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
                          service_name, repo_token = NULL) {
 
   coverages <- per_line(x)
 
-  res <- lapply(coverages,
+  res <- unname(lapply(coverages,
     function(coverage) {
       list(
         "name" = jsonlite::unbox(display_name(coverage)),
-        "source" = jsonlite::unbox(paste(collapse = "\n", coverage$file$lines)),
+        "source" = jsonlite::unbox(paste(collapse = "\n", coverage$file$file_lines)),
         "coverage" = coverage$coverage)
-    })
+    }))
 
   git_info <- switch(service_name,
     drone = jenkins_git_info(), # drone has the same env vars as jenkins
