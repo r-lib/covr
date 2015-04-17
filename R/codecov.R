@@ -119,27 +119,13 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
 to_codecov <- function(x) {
   coverages <- lapply(per_line(x), function(x) c(NA, x))
 
-  coverage_names <- names(coverages)
-
-  if (!is.null(attr(x, "path"))) {
-    coverage_names <- file.path(attr(x, "path"), coverage_names)
-  }
-
-  sources <- lapply(coverage_names,
-    function(x) {
-      readChar(x, file.info(x)$size, useBytes=TRUE)
+  res <- lapply(coverages,
+    function(coverage) {
+      list(
+        "name" = jsonlite::unbox(coverage$file$filename),
+        "coverage" = coverage$coverage
+      )
     })
-
-  res <- mapply(
-    function(name, source, coverage) {
-      list("name" = jsonlite::unbox(name),
-        "coverage" = coverage)
-    },
-    coverage_names,
-    sources,
-    coverages,
-    SIMPLIFY = FALSE,
-    USE.NAMES = FALSE)
 
   jsonlite::toJSON(na = "null", list("files" = res, "uploader" = jsonlite::unbox("R")))
 }
