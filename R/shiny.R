@@ -19,25 +19,18 @@ shine <- function(x) {
   }
   coverages <- per_line(x)
 
-  coverage_names <- names(coverages)
-
-  if (!is.null(attr(x, "path"))) {
-    coverage_names <- file.path(attr(x, "path"), coverage_names)
-  }
-
-  sources <- lapply(coverage_names, readLines)
-
-  full <- Map(function(coverage, source){
-                   length(coverage) <- length(source)
-                   coverage[is.na(coverage)] <- ""
-                   data.frame(line = seq_along(coverage),
-                              source = source,
-                              coverage = coverage,
-                              stringsAsFactors = FALSE)
-
-              },
-              coverage = coverages,
-              source = sources)
+  full <- lapply(coverages,
+    function(coverage) {
+      lines <- coverage$file$file_lines
+      values <- coverage$coverage
+      values[is.na(values)] <- ""
+      data.frame(
+        line = seq_along(lines),
+        source = lines,
+        coverage = values,
+        stringsAsFactors = FALSE)
+    })
+  names(full) <- lapply(coverages, function(coverage) coverage$file$filename)
 
   file_stats <- compute_file_stats(full)
 
