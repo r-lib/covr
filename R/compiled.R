@@ -1,7 +1,7 @@
 # this does not handle LCOV_EXCL_START ect.
 parse_gcov <- function(file, path) {
   if (!file.exists(file)) {
-    return()
+    return(NULL)
   }
 
   lines <- readLines(file)
@@ -29,12 +29,19 @@ parse_gcov <- function(file, path) {
 
   res <- Map(function(line, length, value) {
     src_ref <- srcref(src_file, c(line, 1, line, length))
-    list(srcref = src_ref, value = value)
+    res <- list(srcref = src_ref, value = value)
+    class(res) <- "line_coverage"
+    res
   },
   matches$line, line_lengths, values)
+
+  if (!length(res)) {
+    return(NULL)
+  }
+
   names(res) <- lapply(res, function(x) key(x$srcref))
 
-  class(res) <- "coverage"
+  class(res) <- "line_coverages"
   res
 }
 
@@ -72,6 +79,7 @@ run_gcov <- function(path, sources) {
       }
     })))
 
+  class(res) <- "coverage"
   res
 }
 
