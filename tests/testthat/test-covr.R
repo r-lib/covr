@@ -41,7 +41,7 @@ test_that("function_coverage identity function", {
 test_that("function_coverage return last expr", {
 
   devtools::with_options(c(keep.source = TRUE), {
-    fun <- function() {
+    fun <- function(x = 1) {
       x
       x <- 1
     }

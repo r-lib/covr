@@ -93,6 +93,7 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @param relative_path whether to output the paths as relative or absolute
 #' paths.
 #' @param quiet whether to load and compile the package quietly
+#' @param clean whether to clean temporary output files after running.
 #' @param exclusions a named list of files with the lines to exclude from each file.
 #' @param exclude_pattern a search pattern to look for in the source to exclude a particular line.
 #' @param exclude_start a search pattern to look for in the source to start an exclude block.
@@ -103,6 +104,7 @@ package_coverage <- function(path = ".",
                              type = c("tests", "vignettes", "examples", "none"),
                              relative_path = TRUE,
                              quiet = TRUE,
+                             clean = TRUE,
                              exclusions = NULL,
                              exclude_pattern = rex::rex("#", any_spaces, "EXCLUDE COVERAGE"),
                              exclude_start = rex::rex("#", any_spaces, "EXCLUDE COVERAGE START"),
@@ -138,15 +140,17 @@ package_coverage <- function(path = ".",
   # if there are compiled components to a package we have to run in a subprocess
   if (length(sources) > 0) {
     subprocess(
-      clean_output = TRUE,
+      clean_output = clean,
       quiet = quiet,
       coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
     )
 
     coverage <- c(coverage, run_gcov(path, sources))
 
-    devtools::clean_dll(path)
-    #clear_gcov(path)
+    if (isTRUE(clean)) {
+      devtools::clean_dll(path)
+      clear_gcov(path)
+    }
   } else {
     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
   }
@@ -158,7 +162,6 @@ package_coverage <- function(path = ".",
   # These BasicClasses are functions from the method package
   coverage <- coverage[display_name(coverage) != "./R/BasicClasses.R"]
 
-  return(coverage)
   exclude(coverage,
     exclusions = exclusions,
     exclude_pattern = exclude_pattern,
