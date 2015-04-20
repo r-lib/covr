@@ -30,7 +30,6 @@ Collate:
     'codecov.R'
     'compiled.R'
     'coveralls.R'
-    'covr-package.r'
     'covr.R'
     'data_frame.R'
     'exclusions.R'
