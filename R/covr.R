@@ -42,7 +42,6 @@ environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
   res <- as.list(.counters)
   clear_counters()
 
-  res <- lapply(res, set_display_name, path = NULL)
   class(res) <- "coverage"
 
   res
