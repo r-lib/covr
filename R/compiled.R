@@ -71,7 +71,7 @@ run_gcov <- function(path, sources) {
       gcno <- paste0(remove_extension(src), ".gcno")
       if (file.exists(gcno) && file.exists(gcda)) {
         devtools::in_dir(dirname(src),
-          devtools::system_check("gcov", args = src, ignore.stdout = TRUE, quiet = TRUE))
+          devtools:::system_check("gcov", args = src, ignore.stdout = TRUE, quiet = TRUE))
         gcov_file <- paste0(src, ".gcov")
         if (file.exists(gcov_file)) {
           parse_gcov(gcov_file)
