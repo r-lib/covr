@@ -5,10 +5,11 @@
 \title{Calculate test coverage for a package}
 \usage{
 package_coverage(path = ".", ..., type = c("tests", "vignettes", "examples",
-  "none"), relative_path = TRUE, quiet = TRUE, exclusions = NULL,
-  exclude_pattern = rex::rex("#", any_spaces, "EXCLUDE COVERAGE"),
-  exclude_start = rex::rex("#", any_spaces, "EXCLUDE COVERAGE START"),
-  exclude_end = rex::rex("#", any_spaces, "EXCLUDE COVERAGE END"))
+  "none"), relative_path = TRUE, quiet = TRUE, clean = TRUE,
+  exclusions = NULL, exclude_pattern = rex::rex("#", any_spaces,
+  "EXCLUDE COVERAGE"), exclude_start = rex::rex("#", any_spaces,
+  "EXCLUDE COVERAGE START"), exclude_end = rex::rex("#", any_spaces,
+  "EXCLUDE COVERAGE END"))
 }
 \arguments{
 \item{path}{file path to the package}
@@ -23,6 +24,8 @@ default is \sQuote{all}.}
 paths.}
 
 \item{quiet}{whether to load and compile the package quietly}
+
+\item{clean}{whether to clean temporary output files after running.}
 
 \item{exclusions}{a named list of files with the lines to exclude from each file.}
 

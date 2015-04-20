@@ -1,3 +1,6 @@
+#' @include display_name.R
+NULL
+
 exclude <- function(coverage, exclusions = NULL, ...) {
   sources <- traced_files(coverage)
 

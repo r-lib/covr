@@ -7,7 +7,7 @@
 key(x)
 }
 \arguments{
-\item{x}{the call to create a key for}
+\item{x}{the srcref of the call to create a key for}
 }
 \description{
 Generate a key for a  call

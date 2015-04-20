@@ -1,3 +1,6 @@
+#' @include display_name.R
+NULL
+
 #' @export
 as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, sort = TRUE, ...) {
   filenames <- display_name(x)

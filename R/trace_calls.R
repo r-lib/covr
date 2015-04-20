@@ -2,7 +2,7 @@
 #'
 #' This function calls itself recursively so it can properly traverse the AST.
 #' @param x the call
-#' @param srcref argument used to set the srcref of the current call when recursing
+#' @param parent_ref argument used to set the srcref of the current call when recursing
 #' @seealso \url{http://adv-r.had.co.nz/Expressions.html}
 #' @return a modified expression with count calls inserted before each previous
 #' call.
@@ -72,7 +72,7 @@ trace_calls <- function (x, parent_ref = NULL) {
 
 #' initialize a new counter
 #'
-#' @param key generated with \code{\link{key}}
+#' @param src_ref a \code{\link[base]{srcref}}
 new_counter <- function(src_ref) {
   key <- key(src_ref)
   .counters[[key]]$value <- 0
@@ -82,7 +82,7 @@ new_counter <- function(src_ref) {
 
 #' increment a given counter
 #'
-#' @inheritParams new_counter
+#' @param key generated with \code{\link{key}}
 count <- function(key) {
   .counters[[key]]$value <- .counters[[key]]$value + 1
 }
@@ -95,7 +95,7 @@ clear_counters <- function() {
 
 #' Generate a key for a  call
 #'
-#' @param x the call to create a key for
+#' @param x the srcref of the call to create a key for
 key <- function(x) {
   src_file <- attr(x, "srcfile")
   paste(collapse = ":", c(address(src_file), x))

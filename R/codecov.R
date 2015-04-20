@@ -1,3 +1,6 @@
+#' @include display_name.R
+NULL
+
 #' Run covr on a package and upload the result to codecov.io
 #' @param path file path to the package
 #' @param base_url Codecov url (change for Enterprise)
