@@ -42,6 +42,7 @@ environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
   res <- as.list(.counters)
   clear_counters()
 
+  res <- lapply(res, set_display_name, path = NULL)
   class(res) <- "coverage"
 
   res
@@ -77,6 +78,7 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
   res <- as.list(.counters)
   clear_counters()
 
+  res <- lapply(res, set_display_name, path = NULL)
   class(res) <- "coverage"
 
   res
@@ -150,20 +152,7 @@ package_coverage <- function(path = ".",
     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
   }
 
-  coverage <- lapply(coverage, function(x) {
-    name <- normalizePath(getSrcFilename(x$srcref, full.names = TRUE), mustWork = FALSE)
-    src_file <- attr(x$srcref, "srcfile")
-    if (is.null(display_name(src_file))) {
-      display_name(src_file) <-
-        if (relative_path) {
-          rex::re_substitutes(name, rex::rex(normalizePath(path, mustWork = FALSE), "/"), "")
-        } else {
-          name
-        }
-    }
-    class(x) <- "expression_coverage"
-    x
-    })
+  coverage <- lapply(coverage, set_display_name, path = if (isTRUE(relative_path)) path else NULL)
 
   class(coverage) <- "coverage"
 
@@ -177,6 +166,21 @@ package_coverage <- function(path = ".",
     exclude_start = exclude_start,
     exclude_end = exclude_end
   )
+}
+
+set_display_name <- function(x, path = NULL) {
+  name <- normalizePath(getSrcFilename(x$srcref, full.names = TRUE), mustWork = FALSE)
+  src_file <- attr(x$srcref, "srcfile")
+  if (is.null(display_name(src_file))) {
+    display_name(src_file) <-
+      if (!is.null(path)) {
+        rex::re_substitutes(name, rex::rex(normalizePath(path, mustWork = FALSE), "/"), "")
+      } else {
+        name
+      }
+  }
+  class(x) <- "expression_coverage"
+  x
 }
 
 run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
