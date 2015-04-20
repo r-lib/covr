@@ -146,7 +146,7 @@ package_coverage <- function(path = ".",
       coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
     )
 
-    coverage <- c(coverage, run_gcov(path, sources))
+    coverage <- c(coverage, run_gcov(path, sources, quiet))
 
     if (isTRUE(clean)) {
       devtools::clean_dll(path)
