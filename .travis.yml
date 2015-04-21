@@ -12,6 +12,7 @@ r_binary_packages:
   - stringdist
 
 r_github_packages:
+  - jimhester/robustr
   - jimhester/covr
   - jimhester/lintr
   - hadley/testthat

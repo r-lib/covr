@@ -70,8 +70,8 @@ run_gcov <- function(path, sources, quiet = TRUE) {
       gcda <- paste0(remove_extension(src), ".gcda")
       gcno <- paste0(remove_extension(src), ".gcno")
       if (file.exists(gcno) && file.exists(gcda)) {
-        devtools::in_dir(dirname(src),
-          devtools:::system_check("gcov", args = src, ignore.stdout = TRUE, quiet = quiet))
+        robustr::in_dir(dirname(src),
+          robustr::system_check("gcov", args = src, ignore.stdout = TRUE, quiet = quiet))
         gcov_file <- paste0(src, ".gcov")
         if (file.exists(gcov_file)) {
           parse_gcov(gcov_file)

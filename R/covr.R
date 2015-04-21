@@ -104,7 +104,7 @@ package_coverage <- function(path = ".",
                              ...,
                              type = c("tests", "vignettes", "examples", "none"),
                              relative_path = TRUE,
-                             quiet = FALSE,
+                             quiet = TRUE,
                              clean = TRUE,
                              exclusions = NULL,
                              exclude_pattern = rex::rex("#", any_spaces, "EXCLUDE COVERAGE"),
@@ -120,18 +120,6 @@ package_coverage <- function(path = ".",
 
   type <- match.arg(type)
 
-  set_makevars(
-    c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-      CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-      FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-      FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-      LDFLAGS = "--coverage")
-    )
-  on.exit(reset_makevars(), add = TRUE)
-
-  old_envs <- set_envvar(c(PKG_LIBS = "--coverage"), "prefix")
-  on.exit(set_envvar(old_envs), add = TRUE)
-
   dots <- dots(...)
 
   sources <- sources(path)
@@ -140,11 +128,19 @@ package_coverage <- function(path = ".",
 
   # if there are compiled components to a package we have to run in a subprocess
   if (length(sources) > 0) {
-    subprocess(
-      clean_output = clean,
-      quiet = quiet,
-      coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
-    )
+
+    robustr::with_makevars(
+      c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        LDFLAGS = "--coverage"), {
+        robustr::subprocess(
+          clean = clean,
+          quiet = quiet,
+          coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
+          )
+      })
 
     coverage <- c(coverage, run_gcov(path, sources, quiet))
 
@@ -187,8 +183,8 @@ set_display_name <- function(x, path = NULL) {
 }
 
 run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
-  devtools:::RCMD("INSTALL",
-                 options = c(shQuote(pkg$path),
+  robustr::RCMD("INSTALL",
+                 options = c(pkg$path,
                              "--no-docs",
                              "--no-multiarch",
                              "--no-demo",
@@ -197,10 +193,10 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
                              "--no-byte-compile",
                              "--no-test-load",
                              "-l",
-                             shQuote(tmp_lib)),
+                             tmp_lib),
                   quiet = quiet)
 
-  devtools::with_lib(tmp_lib,
+  robustr::with_lib(tmp_lib,
                      library(pkg$package,
                              character.only = TRUE))
 

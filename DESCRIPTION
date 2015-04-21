@@ -14,7 +14,8 @@ Imports:
     devtools,
     httr,
     crayon,
-    htmltools
+    htmltools,
+    robustr
 Suggests:
     R6,
     knitr,
@@ -33,10 +34,8 @@ Collate:
     'covr.R'
     'data_frame.R'
     'exclusions.R'
-    'makevars.R'
     'replace.R'
     'shiny.R'
-    'subprocess.R'
     'summary_functions.R'
     'trace_calls.R'
     'utils.R'
