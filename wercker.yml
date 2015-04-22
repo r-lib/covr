@@ -1,4 +1,4 @@
-box: rocker/r-devel
+box: rocker/hadleyverse
 build:
   steps:
     - script:
