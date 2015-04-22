@@ -1,13 +1,10 @@
 # this does not handle LCOV_EXCL_START ect.
-parse_gcov <- function(file, path) {
+parse_gcov <- function(file, source_file) {
   if (!file.exists(file)) {
     return(NULL)
   }
 
   lines <- readLines(file)
-  source_file <- remove_extension(file)
-
-  src_file <- srcfilecopy(source_file, readLines(source_file))
 
   re <- rex::rex(spaces,
     capture(name = "coverage", some_of(digit, "-", "#")),
@@ -22,7 +19,12 @@ parse_gcov <- function(file, path) {
   matches <- matches[coverage_lines, ]
 
   values <- as.numeric(matches$coverage)
+
+  # create srcfile reference from the source file
+  src_file <- srcfilecopy(source_file, readLines(source_file))
+
   line_lengths <- vapply(src_file$lines[as.numeric(matches$line)], nchar, numeric(1))
+
   if (any(is.na(values))) {
     stop("values could not be coerced to numeric ", matches$coverage)
   }
@@ -57,11 +59,9 @@ clear_gcov <- function(path) {
 }
 
 run_gcov <- function(path, sources, quiet = TRUE) {
-  src_path <- file.path(normalizePath(path), "src")
 
-  old_dir <- getwd()
-  on.exit(setwd(old_dir))
-  setwd(src_path)
+  sources <- normalizePath(sources)
+  src_path <- file.path(path, "src")
 
   res <- unlist(recursive = FALSE,
     Filter(Negate(is.null),
@@ -70,11 +70,13 @@ run_gcov <- function(path, sources, quiet = TRUE) {
       gcda <- paste0(remove_extension(src), ".gcda")
       gcno <- paste0(remove_extension(src), ".gcno")
       if (file.exists(gcno) && file.exists(gcda)) {
-        robustr::in_dir(dirname(src),
-          robustr::system_check("gcov", args = src, ignore.stdout = TRUE, quiet = quiet))
-        gcov_file <- paste0(src, ".gcov")
+        robustr::in_dir(src_path,
+          robustr::system_check("gcov", args = src, ignore.stdout = TRUE, quiet = quiet)
+        )
+        # the gcov files are in the src_path with the basename of the file
+        gcov_file <- file.path(src_path, paste0(basename(src), ".gcov"))
         if (file.exists(gcov_file)) {
-          parse_gcov(gcov_file)
+          parse_gcov(gcov_file, src)
         }
       }
     })))
