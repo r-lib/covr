@@ -7,7 +7,7 @@
 zero_coverage(coverage_result)
 }
 \arguments{
-\item{coverage_result}{a coverage object returned from
+\item{coverage_result}{a coverage object returned from #'
 \code{\link{package_coverage}}, or its data frame conversion}
 }
 \description{
