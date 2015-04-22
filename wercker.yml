@@ -18,7 +18,7 @@ build:
                 -e 'devtools::install_github("jimhester/robustr")'
     - script:
       name: check
-      code: Rscript -e 'devtools::check(document = FALSE, cleanup = FALSE)'
+      code: Rscript -e 'devtools::check(document = FALSE, check_dir = ".", cleanup = FALSE)'
   after-steps:
     - script:
       name: dump_logs
