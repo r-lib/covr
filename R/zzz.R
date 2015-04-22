@@ -1,4 +1,4 @@
-.onLoad <- function(libname, pkgname) {
+.onLoad <- function(libname, pkgname) { # nolint
   op <- options()
   op_covr <- list(
     covr.gcov = "gcov",
