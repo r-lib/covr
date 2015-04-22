@@ -22,7 +22,9 @@ build:
   - script:
     name: dump_logs
     code: |
-      for name in $(find *.Rcheck -type f -name "*out" -o "*log" -o "*fail"); do
-        echo ">>> File: ${name} <<<"
-        cat $name
-      done
+      if [ "$WERCKER_RESULT" != "passed" ]; then
+      for name in $(find *.Rcheck -type f -name "*out" -o -name "*log" -o -name "*fail"); do
+          echo ">>> File: ${name} <<<"
+          cat $name
+        done
+      fi
