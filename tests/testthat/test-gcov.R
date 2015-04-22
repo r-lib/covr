@@ -1,13 +1,4 @@
 context("gcov")
-test_that("gcov parses a simple file properly ", {
-  res <- run_gcov("TestGcov", "simple.c")
-
-  expect_equal(length(res), 11)
-
-  expect_equal(unname(value(res)),
-    c(4, 4, 4, 4, 4, 3, 1, 0, 1, 4, 4))
-})
-
 test_that("parse_gcov parses files properly", {
   with_mock(
     `base::file.exists` = function(...) TRUE,
