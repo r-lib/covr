@@ -1,0 +1,17 @@
+box: rocker/r-devel
+build:
+  - script:
+      steps:
+        name: cran dependencies
+        code: Rscript -e 'install.packages("devtools");devtools::install_deps(dependencies = TRUE)'
+  - script:
+      steps:
+        name: github dependencies
+        code: |
+          Rscript -e 'devtools::install_github("jimhester/lintr")\
+                      devtools::install_github("hadley/testthat")\
+                      devtools::install_github("kevinushey/rex")'
+  - script:
+      steps:
+        name: check
+        code: Rscript -e 'devtools::check(document = FALSE, cleanup = FALSE)'
