@@ -5,6 +5,7 @@ build:
     name: cran dependencies
     code: |
       export R_LIBS=$WERCKER_CACHE_DIR/R/library
+      ls $R_LIBS
       mkdir -p $R_LIBS
       Rscript -e 'install.packages("devtools")'\
               -e 'devtools::install_deps(dependencies = TRUE)'
