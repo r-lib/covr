@@ -6,7 +6,8 @@ build:
     code: |
       export R_LIBS=$WERCKER_CACHE_DIR/R/library
       mkdir -p $R_LIBS
-      Rscript -e 'install.packages("devtools");devtools::install_deps(dependencies = TRUE)'
+      Rscript -e 'install.packages("devtools")'\
+              -e 'devtools::install_deps(dependencies = TRUE)'
   - script:
     name: github dependencies
     code: |
@@ -17,3 +18,11 @@ build:
   - script:
     name: check
     code: Rscript -e 'devtools::check(document = FALSE, cleanup = FALSE)'
+  after-steps:
+  - script:
+    name: dump_logs
+    code: |
+      for name in $(find *.Rcheck -type f -name "*out" -o "*log" -o "*fail"); do
+        echo ">>> File: ${name} <<<"
+        cat $name
+      done
