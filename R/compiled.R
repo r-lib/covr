@@ -58,10 +58,11 @@ clear_gcov <- function(path) {
   unlink(gcov_files)
 }
 
-run_gcov <- function(path, sources, quiet = TRUE) {
+run_gcov <- function(path, sources, quiet = TRUE,
+                     gcov_path = options("covr.gcov")) {
 
   sources <- normalizePath(sources)
-  src_path <- file.path(path, "src")
+  src_path <- normalizePath(file.path(path, "src"))
 
   res <- unlist(recursive = FALSE,
     Filter(Negate(is.null),
@@ -71,7 +72,10 @@ run_gcov <- function(path, sources, quiet = TRUE) {
       gcno <- paste0(remove_extension(src), ".gcno")
       if (file.exists(gcno) && file.exists(gcda)) {
         robustr::in_dir(src_path,
-          robustr::system_check("gcov", args = src, ignore.stdout = TRUE, quiet = quiet)
+          robustr::system_check(gcov_path,
+            args = c(src, "-o", dirname(src)),
+            ignore.stdout = TRUE,
+            quiet = quiet)
         )
         # the gcov files are in the src_path with the basename of the file
         gcov_file <- file.path(src_path, paste0(basename(src), ".gcov"))
@@ -80,6 +84,10 @@ run_gcov <- function(path, sources, quiet = TRUE) {
         }
       }
     })))
+
+  if (is.null(res)) {
+    res <- list()
+  }
 
   class(res) <- "coverage"
   res
@@ -93,7 +101,7 @@ sources <- function(pkg = ".") {
   pkg <- devtools::as.package(pkg)
   srcdir <- file.path(pkg$path, "src")
   dir(srcdir, rex::rex(".",
-                       list("c", except_any_of(".")) %or% list("f", except_any_of(".")), end),
+      list("c", except_any_of(".")) %or% list("f", except_any_of(".")), end),
       recursive = TRUE,
       full.names = TRUE)
 }
