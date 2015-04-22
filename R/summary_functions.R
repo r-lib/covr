@@ -32,6 +32,10 @@ zero_coverage <- function(coverage_result) {
 print.coverage <- function(x, by_line = TRUE, ...) {
   df <- as.data.frame(x)
 
+  if (!NROW(df)) {
+    return(invisible())
+  }
+
   per_file_percents <- vapply(unique(df$filename),
     function(fn) {
       percent_coverage(df[df$filename == fn, ], by_line = by_line)
