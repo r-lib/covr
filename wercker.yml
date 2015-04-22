@@ -3,13 +3,15 @@ build:
   steps:
   - script:
     name: cran dependencies
-    code: Rscript -e 'install.packages("devtools");devtools::install_deps(dependencies = TRUE)'
+    code: |
+      export R_LIBS=$WERCKER_CACHE_DIR/R/library
+      Rscript -e 'install.packages("devtools");devtools::install_deps(dependencies = TRUE)'
   - script:
     name: github dependencies
     code: |
-      Rscript -e 'devtools::install_github("jimhester/lintr")\
-                  devtools::install_github("hadley/testthat")\
-                  devtools::install_github("kevinushey/rex")'
+      Rscript -e 'devtools::install_github("jimhester/lintr")'\
+              -e 'devtools::install_github("hadley/testthat")'\
+              -e 'devtools::install_github("kevinushey/rex")'
   - script:
     name: check
     code: Rscript -e 'devtools::check(document = FALSE, cleanup = FALSE)'
