@@ -107,9 +107,9 @@ package_coverage <- function(path = ".",
                              quiet = TRUE,
                              clean = TRUE,
                              exclusions = NULL,
-                             exclude_pattern = rex::rex("#", any_spaces, "EXCLUDE COVERAGE"),
-                             exclude_start = rex::rex("#", any_spaces, "EXCLUDE COVERAGE START"),
-                             exclude_end = rex::rex("#", any_spaces, "EXCLUDE COVERAGE END")
+                             exclude_pattern = options("covr.exclude_pattern"),
+                             exclude_start = options("covr.exclude_start"),
+                             exclude_end = options("covr.exclude_end")
                              ) {
 
   pkg <- devtools::as.package(path)

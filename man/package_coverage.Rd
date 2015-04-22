@@ -6,10 +6,9 @@
 \usage{
 package_coverage(path = ".", ..., type = c("tests", "vignettes", "examples",
   "none"), relative_path = TRUE, quiet = TRUE, clean = TRUE,
-  exclusions = NULL, exclude_pattern = rex::rex("#", any_spaces,
-  "EXCLUDE COVERAGE"), exclude_start = rex::rex("#", any_spaces,
-  "EXCLUDE COVERAGE START"), exclude_end = rex::rex("#", any_spaces,
-  "EXCLUDE COVERAGE END"))
+  exclusions = NULL, exclude_pattern = options("covr.exclude_pattern"),
+  exclude_start = options("covr.exclude_start"),
+  exclude_end = options("covr.exclude_end"))
 }
 \arguments{
 \item{path}{file path to the package}
