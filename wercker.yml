@@ -21,10 +21,13 @@ build:
   after-steps:
   - script:
     name: dump_logs
+    cwd: $WERCKER_ROOT
     code: |
       if [ "$WERCKER_RESULT" != "passed" ]; then
-      for name in $(find *.Rcheck -type f -name "*out" -o -name "*log" -o -name "*fail"); do
-          echo ">>> File: ${name} <<<"
-          cat $name
-        done
+        pwd
+        ls
+        for name in $(find *.Rcheck -type f -name "*out" -o -name "*log" -o -name "*fail"); do
+            echo ">>> File: ${name} <<<"
+            cat $name
+          done
       fi
