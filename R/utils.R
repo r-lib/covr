@@ -14,14 +14,18 @@ trim <- function(x) {
   rex::re_substitutes(x, rex::rex(list(start,spaces) %or% list(spaces, end)),  "")
 }
 
-local_branch <- function() {
-  suppressWarnings(
-    branch <- system2("git", "rev-parse --abbrev-ref HEAD", stderr = TRUE, stdout = TRUE)
+local_branch <- function(dir = ".") {
+  robustr::in_dir(dir,
+    branch <- robustr::system_output("git", c("rev-parse", "--abbrev-ref", "HEAD"))
   )
-  if (!is.null(attr(branch, "status"))) {
-    stop(branch, call. = FALSE)
-  }
   trim(branch)
+}
+
+current_commit <- function(dir = ".") {
+  robustr::in_dir(dir,
+    commit <- robustr::system_output("git", c("rev-parse", "HEAD"))
+  )
+  trim(commit)
 }
 
 test_directory <- function(path) {

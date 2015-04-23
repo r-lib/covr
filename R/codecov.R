@@ -104,10 +104,9 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
   # Local GIT
   # ---------
   } else {
-    branch <- local_branch()
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
-    codecov_query <- list(branch = ifelse(branch == "HEAD", "master", branch),
-                          commit = trim(system("git rev-parse HEAD", intern = TRUE)))
+    codecov_query <- list(branch = local_branch(),
+                          commit = current_commit())
   }
 
   if (Sys.getenv("CODECOV_TOKEN") != "") {

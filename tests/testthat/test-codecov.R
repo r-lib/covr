@@ -69,20 +69,13 @@ test_that("it generates a properly formatted json file", {
 
 test_that("it works with local repos", {
   robustr::with_envvar(ci_vars, {
-    system3 <- duplicate(base::system)
 
     with_mock(
       `httr:::perform` = function(...) list(...),
       `httr::content` = identity,
       `httr:::body_config` = function(...) list(...),
       `covr:::local_branch` = function() "master",
-      `base::system` = function(x, ...) {
-        if (grepl("^git", x)) {
-          "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 "
-        } else {
-          system3(x, ...)
-        }
-      },
+      `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
       res <- codecov("TestS4"),
 
@@ -92,11 +85,10 @@ test_that("it works with local repos", {
       expect_match(url, "branch=master"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
       )
-})
+    })
   })
 
 test_that("it adds the token to the query if available", {
-  system3 <- duplicate(base::system)
   devtools::with_envvar(c(
       ci_vars,
       "CODECOV_TOKEN" = "codecov_test"
@@ -107,13 +99,7 @@ test_that("it adds the token to the query if available", {
       `httr::content` = identity,
       `httr:::body_config` = function(...) list(...),
       `covr:::local_branch` = function() "master",
-      `base::system` = function(x, ...) {
-        if (grepl("^git", x)) {
-          "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 "
-        } else {
-          system3(x, ...)
-        }
-      },
+      `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
       res <- codecov("TestS4"),
 
