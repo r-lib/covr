@@ -1,50 +1,50 @@
 context("codecov")
 ci_vars <- c(
-  "APPVEYOR" = NULL,
-  "APPVEYOR_BUILD_NUMBER" = NULL,
-  "APPVEYOR_REPO_BRANCH" = NULL,
-  "APPVEYOR_REPO_COMMIT" = NULL,
-  "APPVEYOR_REPO_NAME" = NULL,
-  "BRANCH_NAME" = NULL,
-  "BUILD_NUMBER" = NULL,
-  "BUILD_URL" = NULL,
-  "CI" = NULL,
-  "CIRCLECI" = NULL,
-  "CIRCLE_BRANCH" = NULL,
-  "CIRCLE_BUILD_NUM" = NULL,
-  "CIRCLE_PROJECT_REPONAME" = NULL,
-  "CIRCLE_PROJECT_USERNAME" = NULL,
-  "CIRCLE_SHA1" = NULL,
-  "CI_BRANCH" = NULL,
-  "CI_BUILD_NUMBER" = NULL,
-  "CI_BUILD_URL" = NULL,
-  "CI_COMMIT_ID" = NULL,
-  "CI_NAME" = NULL,
-  "CODECOV_TOKEN" = NULL,
-  "DRONE" = NULL,
-  "DRONE_BRANCH" = NULL,
-  "DRONE_BUILD_NUMBER" = NULL,
-  "DRONE_BUILD_URL" = NULL,
-  "DRONE_COMMIT" = NULL,
-  "GIT_BRANCH" = NULL,
-  "GIT_COMMIT" = NULL,
-  "JENKINS_URL" = NULL,
-  "REVISION" = NULL,
-  "SEMAPHORE" = NULL,
-  "SEMAPHORE_BUILD_NUMBER" = NULL,
-  "SEMAPHORE_REPO_SLUG" = NULL,
-  "TRAVIS" = NULL,
-  "TRAVIS_BRANCH" = NULL,
-  "TRAVIS_COMMIT" = NULL,
-  "TRAVIS_JOB_ID" = NULL,
-  "TRAVIS_JOB_NUMBER" = NULL,
-  "TRAVIS_PULL_REQUEST" = NULL,
-  "TRAVIS_REPO_SLUG" = NULL,
-  "WERCKER_GIT_BRANCH" = NULL,
-  "WERCKER_GIT_COMMIT" = NULL,
-  "WERCKER_GIT_OWNER" = NULL,
-  "WERCKER_GIT_REPOSITORY" = NULL,
-  "WERCKER_MAIN_PIPELINE_STARTED" = NULL)
+  "APPVEYOR" = NA,
+  "APPVEYOR_BUILD_NUMBER" = NA,
+  "APPVEYOR_REPO_BRANCH" = NA,
+  "APPVEYOR_REPO_COMMIT" = NA,
+  "APPVEYOR_REPO_NAME" = NA,
+  "BRANCH_NAME" = NA,
+  "BUILD_NUMBER" = NA,
+  "BUILD_URL" = NA,
+  "CI" = NA,
+  "CIRCLECI" = NA,
+  "CIRCLE_BRANCH" = NA,
+  "CIRCLE_BUILD_NUM" = NA,
+  "CIRCLE_PROJECT_REPONAME" = NA,
+  "CIRCLE_PROJECT_USERNAME" = NA,
+  "CIRCLE_SHA1" = NA,
+  "CI_BRANCH" = NA,
+  "CI_BUILD_NUMBER" = NA,
+  "CI_BUILD_URL" = NA,
+  "CI_COMMIT_ID" = NA,
+  "CI_NAME" = NA,
+  "CODECOV_TOKEN" = NA,
+  "DRONE" = NA,
+  "DRONE_BRANCH" = NA,
+  "DRONE_BUILD_NUMBER" = NA,
+  "DRONE_BUILD_URL" = NA,
+  "DRONE_COMMIT" = NA,
+  "GIT_BRANCH" = NA,
+  "GIT_COMMIT" = NA,
+  "JENKINS_URL" = NA,
+  "REVISION" = NA,
+  "SEMAPHORE" = NA,
+  "SEMAPHORE_BUILD_NUMBER" = NA,
+  "SEMAPHORE_REPO_SLUG" = NA,
+  "TRAVIS" = NA,
+  "TRAVIS_BRANCH" = NA,
+  "TRAVIS_COMMIT" = NA,
+  "TRAVIS_JOB_ID" = NA,
+  "TRAVIS_JOB_NUMBER" = NA,
+  "TRAVIS_PULL_REQUEST" = NA,
+  "TRAVIS_REPO_SLUG" = NA,
+  "WERCKER_GIT_BRANCH" = NA,
+  "WERCKER_GIT_COMMIT" = NA,
+  "WERCKER_GIT_OWNER" = NA,
+  "WERCKER_GIT_REPOSITORY" = NA,
+  "WERCKER_MAIN_PIPELINE_STARTED" = NA)
 
 test_that("it generates a properly formatted json file", {
 
@@ -89,7 +89,7 @@ test_that("it works with local repos", {
   })
 
 test_that("it adds the token to the query if available", {
-  devtools::with_envvar(c(
+  robustr::with_envvar(c(
       ci_vars,
       "CODECOV_TOKEN" = "codecov_test"
       ),
@@ -113,7 +113,7 @@ test_that("it adds the token to the query if available", {
     )
   })
 test_that("it works with jenkins", {
-  devtools::with_envvar(c(
+  robustr::with_envvar(c(
       ci_vars,
       "JENKINS_URL" = "jenkins.com",
       "GIT_BRANCH" = "test",
@@ -141,7 +141,7 @@ test_that("it works with jenkins", {
   })
 
 test_that("it works with travis normal builds", {
-  devtools::with_envvar(c(
+  robustr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "TRAVIS" = "true",
@@ -175,7 +175,7 @@ test_that("it works with travis normal builds", {
   })
 
 test_that("it works with travis pull requests", {
-  devtools::with_envvar(c(
+  robustr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "TRAVIS" = "true",
@@ -209,7 +209,7 @@ test_that("it works with travis pull requests", {
   })
 
 test_that("it works with codeship", {
-  devtools::with_envvar(c(
+  robustr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "CI_NAME" = "codeship",
@@ -237,7 +237,7 @@ test_that("it works with codeship", {
     )
   })
 test_that("it works with circleci", {
-  devtools::with_envvar(c(
+  robustr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "CIRCLECI" = "true",
@@ -267,7 +267,7 @@ test_that("it works with circleci", {
     )
   })
 test_that("it works with semaphore", {
-  devtools::with_envvar(c(
+  robustr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "SEMAPHORE" = "true",
@@ -296,7 +296,7 @@ test_that("it works with semaphore", {
     )
   })
 test_that("it works with drone", {
-  devtools::with_envvar(c(
+  robustr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "DRONE" = "true",
@@ -324,7 +324,7 @@ test_that("it works with drone", {
     )
   })
 test_that("it works with AppVeyor", {
-  devtools::with_envvar(c(
+  robustr::with_envvar(c(
       ci_vars,
       "CI" = "True",
       "APPVEYOR" = "True",
@@ -353,7 +353,7 @@ test_that("it works with AppVeyor", {
     )
   })
 test_that("it works with Wercker", {
-  devtools::with_envvar(c(
+  robustr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "WERCKER_GIT_BRANCH" = "master",
