@@ -34,7 +34,7 @@ test_directory <- function(path) {
   } else if (file.exists(file.path(path, "inst", "tests"))) {
     file.path(path, "inst", "tests")
   } else {
-    stop("No testing directory found", .call = FALSE)
+    stop("No testing directory found", call. = FALSE)
   }
 }
 

@@ -183,6 +183,9 @@ set_display_name <- function(x, path = NULL) {
 }
 
 run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
+  testing_dir <- test_directory(pkg$path)
+
+  devtools::install_deps(pkg, dependencies = TRUE)
   robustr::RCMD("INSTALL",
                  options = c(pkg$path,
                              "--no-docs",
@@ -202,7 +205,6 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
 
   ns_env <- asNamespace(pkg$package)
   env <- new.env(parent = ns_env) # nolint
-  testing_dir <- test_directory(pkg$path)
   vignette_dir <- file.path(pkg$path, "vignettes")
   example_dir <- file.path(pkg$path, "man")
   args <-
