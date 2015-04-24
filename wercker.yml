@@ -4,3 +4,4 @@ build:
     - jimhester/r-dependencies:
       github_packages: jimhester/lintr hadley/testthat kevinushey/rex jimhester/robustr
     - jimhester/r-check
+    - jimhester/r-coverage
