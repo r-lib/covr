@@ -3,19 +3,4 @@ build:
   steps:
     - jimhester/r-dependencies:
       github_packages: jimhester/lintr hadley/testthat kevinushey/rex jimhester/robustr
-    - script:
-      name: check
-      code: Rscript -e 'devtools::check(document = FALSE, check_dir = ".", cleanup = FALSE)'
-  after-steps:
-    - script:
-      name: dump_logs
-      cwd: $WERCKER_ROOT
-      code: |
-        if [ "$WERCKER_RESULT" != "passed" ]; then
-          pwd
-          ls
-          for name in $(find *.Rcheck -type f -name "*out" -o -name "*log" -o -name "*fail"); do
-              echo ">>> File: ${name} <<<"
-              cat $name
-            done
-        fi
+    - jimhester/r-check
