@@ -18,8 +18,8 @@ percent_coverage <- function(coverage_result, by_line = TRUE) {
 #' When examining the test coverage of a package, it is useful to know if there are
 #' any locations where there is \bold{0} test coverage.
 #'
-#' @param coverage_result a coverage object returned from
-#' 	\code{\link{package_coverage}}, or its data frame conversion
+#' @param coverage_result a coverage object returned from #'
+#' \code{\link{package_coverage}}, or its data frame conversion
 #' @export
 zero_coverage <- function(coverage_result) {
   coverage_data <- as.data.frame(coverage_result)
@@ -38,6 +38,10 @@ print.coverage <- function(x, by_line = TRUE, ...) {
   }
 
   df <- as.data.frame(x)
+
+  if (!NROW(df)) {
+    return(invisible())
+  }
 
   per_file_percents <- vapply(unique(df$filename),
     function(fn) {

@@ -10,61 +10,62 @@ test_that("environment_coverage calls environment_coverage_", {
 context("function_coverage")
 test_that("function_coverage", {
 
-  options(keep.source = TRUE)
-  f <- function(x) {
-    x + 1
-  }
-  expect_equal(as.numeric(function_coverage("f", env = environment(f))), 0)
+  devtools::with_options(c(keep.source = TRUE), {
+      f <- function(x) {
+        x + 1
+      }
+      expect_equal(as.numeric(function_coverage("f", env = environment(f))[[1]]$value), 0)
 
-  expect_equal(as.numeric(function_coverage("f", env = environment(f), f(1))), 1)
+      expect_equal(as.numeric(function_coverage("f", env = environment(f), f(1))[[1]]$value), 1)
 
-  expect_equal(as.numeric(function_coverage("f", env = environment(f), f(1), f(1))), 2)
+      expect_equal(as.numeric(function_coverage("f", env = environment(f), f(1), f(1))[[1]]$value), 2)
+    })
 })
 
 test_that("function_coverage identity function", {
-  options(keep.source = TRUE)
 
-  fun <- function(x) {
+  devtools::with_options(c(keep.source = TRUE), {
+    fun <- function(x) {
       x
-  }
+    }
 
-  cov_num <- function(...) {
-    as.numeric(function_coverage("fun", env = environment(fun), ...))
-  }
+    cov_num <- function(...) {
+      as.numeric(function_coverage("fun", env = environment(fun), ...)[[1]]$value)
+    }
 
-  expect_equal(cov_num(), 0)
-  expect_equal(cov_num(fun(1)), 1)
-
+    expect_equal(cov_num(), 0)
+    expect_equal(cov_num(fun(1)), 1)
+  })
 })
 
 test_that("function_coverage return last expr", {
 
-  options(keep.source = TRUE)
-  fun <- function() {
-    x <- 1
-    x
-  }
+  devtools::with_options(c(keep.source = TRUE), {
+    fun <- function(x = 1) {
+      x
+      x <- 1
+    }
 
-  cov_fun <- function(...) {
-    function_coverage("fun", env = environment(fun), ...)
-  }
+    cov_fun <- function(...) {
+      vapply(function_coverage("fun", env = environment(fun), ...), "[[", numeric(1), "value")
+    }
 
-  expect_equal(as.numeric(cov_fun()), c(0L, 0L))
-  expect_equal(as.numeric(cov_fun(fun())), c(1L, 1L))
+    expect_equal(as.numeric(cov_fun()), c(0L, 0L))
+    expect_equal(as.numeric(cov_fun(fun())), c(1L, 1L))
+  })
 })
 
 test_that("duplicated first_line", {
-  old <- getOption("keep.source")
-  options(keep.source = TRUE)
-  on.exit(options(keep.source = old))
+  devtools::with_options(c(keep.source = TRUE), {
 
-  fun <- function() {
+    fun <- function() {
       res <- lapply(1:2, function(x) { x + 1 }) # nolint
-  }
-  cov <- function_coverage("fun", env = environment(fun))
-  first_lines <- as.data.frame(cov)$first_line
-  expect_equal(length(first_lines), 2)
-  expect_equal(first_lines[1], first_lines[2])
+    }
+    cov <- function_coverage("fun", env = environment(fun))
+    first_lines <- as.data.frame(cov)$first_line
+    expect_equal(length(first_lines), 2)
+    expect_equal(first_lines[1], first_lines[2])
+  })
 })
 
 context("trace_calls")

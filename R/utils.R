@@ -14,44 +14,18 @@ trim <- function(x) {
   rex::re_substitutes(x, rex::rex(list(start,spaces) %or% list(spaces, end)),  "")
 }
 
-local_branch <- function() {
-  suppressWarnings(
-    branch <- system2("git", "rev-parse --abbrev-ref HEAD", stderr = TRUE, stdout = TRUE)
+local_branch <- function(dir = ".") {
+  robustr::in_dir(dir,
+    branch <- robustr::system_output("git", c("rev-parse", "--abbrev-ref", "HEAD"))
   )
-  if (!is.null(attr(branch, "status"))) {
-    stop(branch, call. = FALSE)
-  }
   trim(branch)
 }
 
-# this is a unexported function from devtools
-set_envvar <- function (envs, action = "replace") {
-  if (length(envs) == 0) {
-    return()
-  }
-  stopifnot(is.named(envs))
-  stopifnot(is.character(action), length(action) == 1)
-  action <- match.arg(action, c("replace", "prefix", "suffix"))
-  old <- Sys.getenv(names(envs), names = TRUE, unset = NA)
-  set <- !is.na(envs)
-  both_set <- set & !is.na(old)
-  if (any(both_set)) {
-    if (action == "prefix") {
-      envs[both_set] <- paste(envs[both_set], old[both_set])
-    }
-    else if (action == "suffix") {
-      envs[both_set] <- paste(old[both_set], envs[both_set])
-    }
-  }
-  if (any(set))
-    do.call("Sys.setenv", as.list(envs[set]))
-  if (any(!set))
-    Sys.unsetenv(names(envs)[!set])
-  invisible(old)
-}
-
-is.named <- function (x) {
-  !is.null(names(x)) && all(names(x) != "")
+current_commit <- function(dir = ".") {
+  robustr::in_dir(dir,
+    commit <- robustr::system_output("git", c("rev-parse", "HEAD"))
+  )
+  trim(commit)
 }
 
 test_directory <- function(path) {
@@ -60,7 +34,7 @@ test_directory <- function(path) {
   } else if (file.exists(file.path(path, "inst", "tests"))) {
     file.path(path, "inst", "tests")
   } else {
-    stop("No testing directory found", .call = FALSE)
+    stop("No testing directory found", call. = FALSE)
   }
 }
 
@@ -112,4 +86,86 @@ to_title <- function(x) {
                       rex::rex(boundary, capture(any)),
                       "\\U\\1",
                       global = TRUE)
+}
+
+traced_files <- function(x) {
+  res <- list()
+  for (i in seq_along(x)) {
+    src_file <- attr(x[[i]]$srcref, "srcfile")
+    address <- address(src_file)
+    if (is.null(res[[address]])) {
+      lines <- getSrcLines(src_file, 1, Inf)
+      matches <- rex::re_matches(lines,
+        rex::rex(start, any_spaces, "#line", spaces,
+          capture(name = "line_number", digit), spaces,
+          quotes, capture(name = "filename", anything), quotes))
+
+      matches <- na.omit(matches)
+
+      filename_match <- which(matches$filename == src_file$filename)
+
+      if (length(filename_match) == 1) {
+        start <- as.numeric(rownames(matches)[filename_match]) + 1
+        end <- if (!is.na(rownames(matches)[filename_match + 1])) {
+          as.numeric(rownames(matches)[filename_match + 1]) - 1
+        } else {
+          length(lines)
+        }
+      } else {
+        start <- 1
+        end <- length(lines)
+      }
+      src_file$file_lines <- lines[seq(start, end)]
+
+      res[[address]] <- src_file
+    }
+  }
+  res
+}
+
+# TODO: use C code to get the address directly
+address <- function(x) {
+  rex::re_matches(capture.output(str(x)),
+             rex::rex(capture(name = "address", "0x", anything),
+                      boundary))$address
+}
+
+per_line <- function(coverage) {
+
+  files <- traced_files(coverage)
+
+  blank_lines <- lapply(files, function(file) {
+    which(rex::re_matches(file$file_lines, rex::rex(start, any_spaces, maybe("#", anything), end)))
+    })
+
+  file_lengths <- lapply(files, function(file) {
+    length(file$file_lines)
+  })
+
+  res <- lapply(file_lengths,
+    function(x) {
+      rep(NA_real_, length.out = x)
+    })
+
+  for (i in seq_along(coverage)) {
+    x <- coverage[[i]]
+    file_address <- address(attr(x$srcref, "srcfile"))
+    value <- x$value
+    for (line in seq(x$srcref[1], x$srcref[3])) {
+      # if it is not a blank line
+      if (!line %in% blank_lines[[file_address]]) {
+
+      # if current coverage is na or coverage is less than current coverage
+        if (is.na(res[[file_address]][line]) || value < res[[file_address]][line]) {
+          res[[file_address]][line] <- value
+        }
+      }
+    }
+  }
+  structure(
+    Map(function(file, coverage) {
+      structure(list(file=file, coverage=coverage), class = "line_coverage")
+    },
+    files, res),
+    class = "line_coverages")
 }

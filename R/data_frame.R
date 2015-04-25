@@ -1,21 +1,23 @@
 #' @export
 as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, sort = TRUE, ...) {
-  re <-
-    rex::rex(
-      capture(name = "filename", something), ":",
-      capture(name = "first_line", something), ":",
-      capture(name = "first_byte", something), ":",
-      capture(name = "last_line", something), ":",
-      capture(name = "last_byte", something), ":",
-      capture(name = "first_column", something), ":",
-      capture(name = "last_column", something), ":",
-      capture(name = "first_parsed", something), ":",
-      capture(name = "last_parsed", something))
+  column_names <- c("filename", "first_line", "first_byte", "last_line", "last_byte",
+               "first_column", "last_column", "first_parsed",
+               "last_parsed", "value")
 
-  df <- rex::re_matches(names(x), re)
+  res <- setNames(c(list(character(0)), rep(list(numeric(0)), times = length(column_names) - 1)),
+                  column_names)
+  if (length(x)) {
+    res$filename <- display_name(x)
 
-  df[] <- lapply(df, type.convert, as.is = TRUE)
-  df$value <- unlist(x)
+    vals <- t(vapply(x,
+                     function(xx) c(xx$srcref, xx$value),
+                     numeric(9), USE.NAMES = FALSE))
+    for (i in seq_len(NCOL(vals))) {
+      res[[i + 1]] <- vals[, i]
+    }
+  }
+
+  df <- data.frame(res, stringsAsFactors = FALSE)
 
   if (sort) {
     df <- df[order(df$filename, df$first_line, df$first_byte),]

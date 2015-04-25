@@ -1,22 +1,18 @@
 exclude <- function(coverage, exclusions = NULL, ...) {
-  df <- as.data.frame(coverage, sort=FALSE)
+  sources <- traced_files(coverage)
 
-  filenames <- unique(df$filename)
+  source_exclusions <- lapply(sources,
+    function(x) {
+      parse_exclusions(x$file_lines)
+    })
 
-  full_filenames <-
-    if (!is.null(attr(coverage, "path"))) {
-      file.path(attr(coverage, "path"), filenames)
-    } else {
-      filenames
-    }
-
-  source_exclusions <- lapply(full_filenames, parse_exclusions, ...)
-  names(source_exclusions) <- filenames
+  names(source_exclusions) <- lapply(sources, display_name)
 
   excl <- merge_exclusions(source_exclusions, exclusions)
 
   excl <- excl[sapply(excl, FUN=length) > 0L]
 
+  df <- as.data.frame(coverage)
   to_exclude <- vapply(seq_len(NROW(df)),
     function(i) {
       file <- df[i, "filename"]
@@ -33,10 +29,9 @@ exclude <- function(coverage, exclusions = NULL, ...) {
   coverage
 }
 
-parse_exclusions <- function(file, exclude_pattern = rex::rex("#", any_spaces, "EXCLUDE COVERAGE"),
+parse_exclusions <- function(lines, exclude_pattern = rex::rex("#", any_spaces, "EXCLUDE COVERAGE"),
                                    exclude_start = rex::rex("#", any_spaces, "EXCLUDE COVERAGE START"),
                                    exclude_end = rex::rex("#", any_spaces, "EXCLUDE COVERAGE END")) {
-  lines <- readLines(file)
 
   exclusions <- numeric(0)
 
@@ -45,7 +40,7 @@ parse_exclusions <- function(file, exclude_pattern = rex::rex("#", any_spaces, "
 
   if (length(starts) > 0) {
     if (length(starts) != length(ends)) {
-      stop(file, " has ", length(starts), " starts but only ", length(ends), " ends!")
+      stop(length(starts), " starts but only ", length(ends), " ends!")
     }
 
     for(i in seq_along(starts)) {

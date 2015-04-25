@@ -4,10 +4,10 @@
 \alias{new_counter}
 \title{initialize a new counter}
 \usage{
-new_counter(key)
+new_counter(src_ref)
 }
 \arguments{
-\item{key}{generated with \code{\link{key}}}
+\item{src_ref}{a \code{\link[base]{srcref}}}
 }
 \description{
 initialize a new counter

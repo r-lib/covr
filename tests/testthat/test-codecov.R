@@ -1,47 +1,81 @@
 context("codecov")
+ci_vars <- c(
+  "APPVEYOR" = NA,
+  "APPVEYOR_BUILD_NUMBER" = NA,
+  "APPVEYOR_REPO_BRANCH" = NA,
+  "APPVEYOR_REPO_COMMIT" = NA,
+  "APPVEYOR_REPO_NAME" = NA,
+  "BRANCH_NAME" = NA,
+  "BUILD_NUMBER" = NA,
+  "BUILD_URL" = NA,
+  "CI" = NA,
+  "CIRCLECI" = NA,
+  "CIRCLE_BRANCH" = NA,
+  "CIRCLE_BUILD_NUM" = NA,
+  "CIRCLE_PROJECT_REPONAME" = NA,
+  "CIRCLE_PROJECT_USERNAME" = NA,
+  "CIRCLE_SHA1" = NA,
+  "CI_BRANCH" = NA,
+  "CI_BUILD_NUMBER" = NA,
+  "CI_BUILD_URL" = NA,
+  "CI_COMMIT_ID" = NA,
+  "CI_NAME" = NA,
+  "CODECOV_TOKEN" = NA,
+  "DRONE" = NA,
+  "DRONE_BRANCH" = NA,
+  "DRONE_BUILD_NUMBER" = NA,
+  "DRONE_BUILD_URL" = NA,
+  "DRONE_COMMIT" = NA,
+  "GIT_BRANCH" = NA,
+  "GIT_COMMIT" = NA,
+  "JENKINS_URL" = NA,
+  "REVISION" = NA,
+  "SEMAPHORE" = NA,
+  "SEMAPHORE_BUILD_NUMBER" = NA,
+  "SEMAPHORE_REPO_SLUG" = NA,
+  "TRAVIS" = NA,
+  "TRAVIS_BRANCH" = NA,
+  "TRAVIS_COMMIT" = NA,
+  "TRAVIS_JOB_ID" = NA,
+  "TRAVIS_JOB_NUMBER" = NA,
+  "TRAVIS_PULL_REQUEST" = NA,
+  "TRAVIS_REPO_SLUG" = NA,
+  "WERCKER_GIT_BRANCH" = NA,
+  "WERCKER_GIT_COMMIT" = NA,
+  "WERCKER_GIT_OWNER" = NA,
+  "WERCKER_GIT_REPOSITORY" = NA,
+  "WERCKER_MAIN_PIPELINE_STARTED" = NA)
+
 test_that("it generates a properly formatted json file", {
 
-  devtools::with_envvar(c(
-      "APPVEYOR" = "False",
-      "TRAVIS" = "false"
-      ),
+  robustr::with_envvar(ci_vars, {
     with_mock(
       `httr:::perform` = function(...) list(...),
       `httr::content` = identity,
       `httr:::body_config` = function(...) list(...),
 
-      res <- codecov("TestS4"),
-      json <- jsonlite::fromJSON(res[[5]][[1]]),
+      res <<- codecov("TestS4"),
+      json <<- jsonlite::fromJSON(res[[5]][[1]]),
 
-      expect_equal(json$files$name, "TestS4/R/TestS4.R"),
+      expect_equal(json$files$name, "R/TestS4.R"),
       expect_equal(json$files$coverage[[1]],
         c(NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
-          NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1)
+          NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA)
         ),
       expect_equal(json$uploader, "R")
       )
-    )
 })
+  })
 
 test_that("it works with local repos", {
-  system3 <- duplicate(base::system)
+  robustr::with_envvar(ci_vars, {
 
-  devtools::with_envvar(c(
-      "APPVEYOR" = "False",
-      "TRAVIS" = "false"
-    ),
     with_mock(
       `httr:::perform` = function(...) list(...),
       `httr::content` = identity,
       `httr:::body_config` = function(...) list(...),
       `covr:::local_branch` = function() "master",
-      `base::system` = function(x, ...) {
-        if (grepl("^git", x)) {
-          "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 "
-        } else {
-          system3(x, ...)
-        }
-      },
+      `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
       res <- codecov("TestS4"),
 
@@ -51,28 +85,21 @@ test_that("it works with local repos", {
       expect_match(url, "branch=master"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
       )
-    )
-})
+    })
+  })
+
 test_that("it adds the token to the query if available", {
-  system3 <- duplicate(base::system)
-  devtools::with_envvar(c(
-      "APPVEYOR" = "False",
-      "TRAVIS" = "false",
+  robustr::with_envvar(c(
+      ci_vars,
       "CODECOV_TOKEN" = "codecov_test"
-    ),
+      ),
     with_mock(
       .env = environment(),
       `httr:::perform` = function(...) list(...),
       `httr::content` = identity,
       `httr:::body_config` = function(...) list(...),
       `covr:::local_branch` = function() "master",
-      `base::system` = function(x, ...) {
-        if (grepl("^git", x)) {
-          "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 "
-        } else {
-          system3(x, ...)
-        }
-      },
+      `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
       res <- codecov("TestS4"),
 
@@ -84,11 +111,10 @@ test_that("it adds the token to the query if available", {
       expect_match(url, "token=codecov_test")
       )
     )
-})
+  })
 test_that("it works with jenkins", {
-  devtools::with_envvar(c(
-      "APPVEYOR" = "False",
-      "TRAVIS" = "false",
+  robustr::with_envvar(c(
+      ci_vars,
       "JENKINS_URL" = "jenkins.com",
       "GIT_BRANCH" = "test",
       "GIT_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
@@ -110,13 +136,13 @@ test_that("it works with jenkins", {
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
       expect_match(url, "build=1"),
       expect_match(url, "build_url=http%3A%2F%2Ftest.com%2Ftester%2Ftest")
+      )
     )
-  )
-})
+  })
 
 test_that("it works with travis normal builds", {
-  devtools::with_envvar(c(
-      "APPVEYOR" = "False",
+  robustr::with_envvar(c(
+      ci_vars,
       "CI" = "true",
       "TRAVIS" = "true",
       "TRAVIS_PULL_REQUEST" = "false",
@@ -144,13 +170,13 @@ test_that("it works with travis normal builds", {
       expect_match(url, "repo=test"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
       expect_match(url, "build=100")
+      )
     )
-  )
-})
+  })
 
 test_that("it works with travis pull requests", {
-  devtools::with_envvar(c(
-      "APPVEYOR" = "False",
+  robustr::with_envvar(c(
+      ci_vars,
       "CI" = "true",
       "TRAVIS" = "true",
       "TRAVIS_PULL_REQUEST" = "5",
@@ -178,14 +204,13 @@ test_that("it works with travis pull requests", {
       expect_match(url, "repo=test"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
       expect_match(url, "build=100")
+      )
     )
-  )
-})
+  })
 
 test_that("it works with codeship", {
-  devtools::with_envvar(c(
-      "TRAVIS" = "false",
-      "APPVEYOR" = "False",
+  robustr::with_envvar(c(
+      ci_vars,
       "CI" = "true",
       "CI_NAME" = "codeship",
       "CI_BRANCH" = "master",
@@ -208,13 +233,12 @@ test_that("it works with codeship", {
       expect_match(url, "build=5"),
       expect_match(url, "build_url=http%3A%2F%2Ftest.com%2Ftester%2Ftest"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      )
     )
-  )
-})
+  })
 test_that("it works with circleci", {
-  devtools::with_envvar(c(
-      "TRAVIS" = "false",
-      "APPVEYOR" = "False",
+  robustr::with_envvar(c(
+      ci_vars,
       "CI" = "true",
       "CIRCLECI" = "true",
       "CIRCLE_BRANCH" = "master",
@@ -239,13 +263,12 @@ test_that("it works with circleci", {
       expect_match(url, "owner=tester"),
       expect_match(url, "repo=test"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      )
     )
-  )
-})
+  })
 test_that("it works with semaphore", {
-  devtools::with_envvar(c(
-      "TRAVIS" = "false",
-      "APPVEYOR" = "False",
+  robustr::with_envvar(c(
+      ci_vars,
       "CI" = "true",
       "SEMAPHORE" = "true",
       "BRANCH_NAME" = "master",
@@ -269,13 +292,12 @@ test_that("it works with semaphore", {
       expect_match(url, "owner=tester"),
       expect_match(url, "repo=test"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      )
     )
-  )
-})
+  })
 test_that("it works with drone", {
-  devtools::with_envvar(c(
-      "TRAVIS" = "false",
-      "APPVEYOR" = "False",
+  robustr::with_envvar(c(
+      ci_vars,
       "CI" = "true",
       "DRONE" = "true",
       "DRONE_BRANCH" = "master",
@@ -298,12 +320,12 @@ test_that("it works with drone", {
       expect_match(url, "build=5"),
       expect_match(url, "build_url=http%3A%2F%2Ftest.com%2Ftester%2Ftest"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      )
     )
-  )
-})
+  })
 test_that("it works with AppVeyor", {
-  devtools::with_envvar(c(
-      "TRAVIS" = "false",
+  robustr::with_envvar(c(
+      ci_vars,
       "CI" = "True",
       "APPVEYOR" = "True",
       "APPVEYOR_REPO_NAME" = "tester/test",
@@ -327,13 +349,12 @@ test_that("it works with AppVeyor", {
       expect_match(url, "owner=tester"),
       expect_match(url, "repo=test"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      )
     )
-  )
-})
+  })
 test_that("it works with Wercker", {
-  devtools::with_envvar(c(
-      "TRAVIS" = "false",
-      "APPVEYOR" = "False",
+  robustr::with_envvar(c(
+      ci_vars,
       "CI" = "true",
       "WERCKER_GIT_BRANCH" = "master",
       "WERCKER_MAIN_PIPELINE_STARTED" = "5",
@@ -357,6 +378,6 @@ test_that("it works with Wercker", {
       expect_match(url, "owner=tester"),
       expect_match(url, "repo=test"),
       expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      )
     )
-  )
-})
+  })

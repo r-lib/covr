@@ -101,10 +101,9 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
   # Local GIT
   # ---------
   } else {
-    branch <- local_branch()
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
-    codecov_query <- list(branch = ifelse(branch == "HEAD", "master", branch),
-                          commit = trim(system("git rev-parse HEAD", intern = TRUE)))
+    codecov_query <- list(branch = local_branch(),
+                          commit = current_commit())
   }
 
   if (Sys.getenv("CODECOV_TOKEN") != "") {
@@ -117,29 +116,19 @@ codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
 }
 
 to_codecov <- function(x) {
-  coverages <- lapply(per_line(x), function(x) c(NA, x))
+  coverages <- unname(lapply(per_line(x),
+    function(xx) {
+      xx$coverage <- c(NA, xx$coverage)
+      xx
+    }))
 
-  coverage_names <- names(coverages)
-
-  if (!is.null(attr(x, "path"))) {
-    coverage_names <- file.path(attr(x, "path"), coverage_names)
-  }
-
-  sources <- lapply(coverage_names,
-    function(x) {
-      readChar(x, file.info(x)$size, useBytes=TRUE)
+  res <- lapply(coverages,
+    function(coverage) {
+      list(
+        "name" = jsonlite::unbox(display_name(coverage)),
+        "coverage" = coverage$coverage
+      )
     })
-
-  res <- mapply(
-    function(name, source, coverage) {
-      list("name" = jsonlite::unbox(name),
-        "coverage" = coverage)
-    },
-    coverage_names,
-    sources,
-    coverages,
-    SIMPLIFY = FALSE,
-    USE.NAMES = FALSE)
 
   jsonlite::toJSON(na = "null", list("files" = res, "uploader" = jsonlite::unbox("R")))
 }

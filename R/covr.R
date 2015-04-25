@@ -77,6 +77,7 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
   res <- as.list(.counters)
   clear_counters()
 
+  res <- lapply(res, set_display_name, path = NULL)
   class(res) <- "coverage"
 
   res
@@ -92,6 +93,7 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @param relative_path whether to output the paths as relative or absolute
 #' paths.
 #' @param quiet whether to load and compile the package quietly
+#' @param clean whether to clean temporary output files after running.
 #' @param exclusions a named list of files with the lines to exclude from each file.
 #' @param exclude_pattern a search pattern to look for in the source to exclude a particular line.
 #' @param exclude_start a search pattern to look for in the source to start an exclude block.
@@ -102,10 +104,11 @@ package_coverage <- function(path = ".",
                              type = c("test", "vignette", "example", "all", "none"),
                              relative_path = TRUE,
                              quiet = TRUE,
+                             clean = TRUE,
                              exclusions = NULL,
-                             exclude_pattern = rex::rex("#", any_spaces, "EXCLUDE COVERAGE"),
-                             exclude_start = rex::rex("#", any_spaces, "EXCLUDE COVERAGE START"),
-                             exclude_end = rex::rex("#", any_spaces, "EXCLUDE COVERAGE END")
+                             exclude_pattern = options("covr.exclude_pattern"),
+                             exclude_start = options("covr.exclude_start"),
+                             exclude_end = options("covr.exclude_end")
                              ) {
   type <- match.arg(type)
 
@@ -130,18 +133,6 @@ package_coverage <- function(path = ".",
   }
 
 
-  set_makevars(
-    c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-      CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-      FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-      FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-      LDFLAGS = "--coverage")
-    )
-  on.exit(reset_makevars(), add = TRUE)
-
-  old_envs <- set_envvar(c(PKG_LIBS = "--coverage"), "prefix")
-  on.exit(set_envvar(old_envs), add = TRUE)
-
   dots <- dots(...)
 
   sources <- sources(path)
@@ -150,29 +141,37 @@ package_coverage <- function(path = ".",
 
   # if there are compiled components to a package we have to run in a subprocess
   if (length(sources) > 0) {
-    subprocess(
-      clean_output = TRUE,
-      quiet = quiet,
-      coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
-    )
 
-    coverage <- c(coverage, run_gcov(path, sources))
+    robustr::with_makevars(
+      c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        LDFLAGS = "--coverage"), {
+        robustr::subprocess(
+          clean = clean,
+          quiet = quiet,
+          coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
+          )
+      })
 
-    devtools::clean_dll(path)
-    clear_gcov(path)
+    coverage <- c(coverage, run_gcov(path, sources, quiet))
+
+    if (isTRUE(clean)) {
+      devtools::clean_dll(path)
+      clear_gcov(path)
+    }
   } else {
     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
   }
 
-  if (relative_path) {
-    names(coverage) <- rex::re_substitutes(names(coverage),
-                                           rex::rex(normalizePath(path), "/"),
-                                           "")
-    attr(coverage, "path") <- path
-  }
+  coverage <- lapply(coverage, set_display_name, path = if (isTRUE(relative_path)) path else NULL)
 
   attr(coverage, "type") <- type
   class(coverage) <- "coverage"
+
+  # These BasicClasses are functions from the method package
+  coverage <- coverage[display_name(coverage) != "./R/BasicClasses.R"]
 
   exclude(coverage,
     exclusions = exclusions,
@@ -182,9 +181,27 @@ package_coverage <- function(path = ".",
   )
 }
 
+set_display_name <- function(x, path = NULL) {
+  name <- normalizePath(getSrcFilename(x$srcref, full.names = TRUE), mustWork = FALSE)
+  src_file <- attr(x$srcref, "srcfile")
+  if (is.null(display_name(src_file))) {
+    display_name(src_file) <-
+      if (!is.null(path)) {
+        rex::re_substitutes(name, rex::rex(normalizePath(path, mustWork = FALSE), "/"), "")
+      } else {
+        name
+      }
+  }
+  class(x) <- "expression_coverage"
+  x
+}
+
 run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
-  devtools:::RCMD("INSTALL",
-                 options = c(shQuote(pkg$path),
+  testing_dir <- test_directory(pkg$path)
+
+  devtools::install_deps(pkg, dependencies = TRUE)
+  robustr::RCMD("INSTALL",
+                 options = c(pkg$path,
                              "--no-docs",
                              "--no-multiarch",
                              "--no-demo",
@@ -193,16 +210,15 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
                              "--no-byte-compile",
                              "--no-test-load",
                              "-l",
-                             shQuote(tmp_lib)),
+                             tmp_lib),
                   quiet = quiet)
 
-  devtools::with_lib(tmp_lib,
+  robustr::with_lib(tmp_lib,
                      library(pkg$package,
                              character.only = TRUE))
 
   ns_env <- asNamespace(pkg$package)
   env <- new.env(parent = ns_env) # nolint
-  testing_dir <- test_directory(pkg$path)
   vignette_dir <- file.path(pkg$path, "vignettes")
   example_dir <- file.path(pkg$path, "man")
   args <-

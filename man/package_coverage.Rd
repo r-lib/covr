@@ -5,10 +5,10 @@
 \title{Calculate test coverage for a package}
 \usage{
 package_coverage(path = ".", ..., type = c("test", "vignette", "example",
-  "all", "none"), relative_path = TRUE, quiet = TRUE, exclusions = NULL,
-  exclude_pattern = rex::rex("#", any_spaces, "EXCLUDE COVERAGE"),
-  exclude_start = rex::rex("#", any_spaces, "EXCLUDE COVERAGE START"),
-  exclude_end = rex::rex("#", any_spaces, "EXCLUDE COVERAGE END"))
+  "all", "none"), relative_path = TRUE, quiet = TRUE, clean = TRUE,
+  exclusions = NULL, exclude_pattern = options("covr.exclude_pattern"),
+  exclude_start = options("covr.exclude_start"),
+  exclude_end = options("covr.exclude_end"))
 }
 \arguments{
 \item{path}{file path to the package}
@@ -23,6 +23,8 @@ package_coverage(path = ".", ..., type = c("test", "vignette", "example",
 paths.}
 
 \item{quiet}{whether to load and compile the package quietly}
+
+\item{clean}{whether to clean temporary output files after running.}
 
 \item{exclusions}{a named list of files with the lines to exclude from each file.}
 

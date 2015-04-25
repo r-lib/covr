@@ -1,7 +1,6 @@
 # Covr #
-[![Build Status](https://travis-ci.org/jimhester/covr.png?branch=master)](https://travis-ci.org/jimhester/covr)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jimhester/covr?branch=master)](https://ci.appveyor.com/project/jimhester/covr)
-[![Coverage Status](https://img.shields.io/coveralls/jimhester/covr.svg?style=flat)](https://coveralls.io/r/jimhester/covr?branch=master)
+[![wercker status](https://app.wercker.com/status/7b3f03814c6f978cfaad12b4d0378b11/s "wercker status")](https://app.wercker.com/project/bykey/7b3f03814c6f978cfaad12b4d0378b11)
+[![codecov.io](https://codecov.io/github/jimhester/covr/coverage.svg?branch=master)](https://codecov.io/github/jimhester/covr?branch=master)
 
 Track test coverage for your R package and (optionally) upload the results to
 [coveralls](https://coveralls.io/) or [codecov](https://codecov.io/).

@@ -4,12 +4,12 @@
 \alias{trace_calls}
 \title{trace each call with a srcref attribute}
 \usage{
-trace_calls(x, srcref = NULL)
+trace_calls(x, parent_ref = NULL)
 }
 \arguments{
 \item{x}{the call}
 
-\item{srcref}{argument used to set the srcref of the current call when recursing}
+\item{parent_ref}{argument used to set the srcref of the current call when recursing}
 }
 \value{
 a modified expression with count calls inserted before each previous
