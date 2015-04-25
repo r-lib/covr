@@ -1,6 +1,3 @@
-#' @include display_name.R
-NULL
-
 #' Run covr on a package and upload the result to coveralls
 #' @param path file path to the package
 #' @param repo_token The secret repo token for your repository,

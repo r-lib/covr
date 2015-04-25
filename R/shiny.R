@@ -1,6 +1,3 @@
-#' @include display_name.R
-NULL
-
 #' Display covr results using a shiny app
 #'
 #' The shiny app is designed to provide local information to coverage

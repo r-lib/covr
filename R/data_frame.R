@@ -1,6 +1,3 @@
-#' @include display_name.R
-NULL
-
 #' @export
 as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, sort = TRUE, ...) {
   column_names <- c("filename", "first_line", "first_byte", "last_line", "last_byte",

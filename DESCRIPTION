@@ -25,19 +25,3 @@ Suggests:
 License: MIT + file LICENSE
 LazyData: true
 VignetteBuilder: knitr
-Collate:
-    'S4.R'
-    'display_name.R'
-    'codecov.R'
-    'compiled.R'
-    'coveralls.R'
-    'covr.R'
-    'data_frame.R'
-    'exclusions.R'
-    'replace.R'
-    'shiny.R'
-    'summary_functions.R'
-    'trace_calls.R'
-    'utils.R'
-    'value.R'
-    'zzz.R'

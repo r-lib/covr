@@ -1,5 +1,4 @@
 #' @import methods
-#' @include display_name.R
 NULL
 
 rex::register_shortcuts("covr")
