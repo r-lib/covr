@@ -7,6 +7,6 @@ build:
     - script:
       name: shim package
       code: |
-        Rscript -e "install()"
+        Rscript -e "devtools::install()"
         source shim_package.sh
     - jimhester/r-coverage
