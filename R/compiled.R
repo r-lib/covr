@@ -71,10 +71,9 @@ run_gcov <- function(path, sources, quiet = TRUE,
       gcda <- paste0(remove_extension(src), ".gcda")
       gcno <- paste0(remove_extension(src), ".gcno")
       if (file.exists(gcno) && file.exists(gcda)) {
-        robustr::in_dir(src_path,
-          robustr::system_check(gcov_path,
+        in_dir(src_path,
+          system_check(gcov_path,
             args = c(src, "-o", dirname(src)),
-            ignore.stdout = TRUE,
             quiet = quiet)
         )
         # the gcov files are in the src_path with the basename of the file

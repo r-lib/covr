@@ -14,8 +14,7 @@ Imports:
     devtools,
     httr,
     crayon,
-    htmltools,
-    robustr
+    htmltools
 Suggests:
     R6,
     knitr,

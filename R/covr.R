@@ -142,13 +142,13 @@ package_coverage <- function(path = ".",
   # if there are compiled components to a package we have to run in a subprocess
   if (length(sources) > 0) {
 
-    robustr::with_makevars(
+    with_makevars(
       c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         LDFLAGS = "--coverage"), {
-        robustr::subprocess(
+        subprocess(
           clean = clean,
           quiet = quiet,
           coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
@@ -200,7 +200,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
   testing_dir <- test_directory(pkg$path)
 
   devtools::install_deps(pkg, dependencies = TRUE)
-  robustr::RCMD("INSTALL",
+  RCMD("INSTALL",
                  options = c(pkg$path,
                              "--no-docs",
                              "--no-multiarch",
@@ -213,7 +213,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
                              tmp_lib),
                   quiet = quiet)
 
-  robustr::with_lib(tmp_lib,
+  with_lib(tmp_lib,
                      library(pkg$package,
                              character.only = TRUE))
 

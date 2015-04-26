@@ -15,15 +15,15 @@ trim <- function(x) {
 }
 
 local_branch <- function(dir = ".") {
-  robustr::in_dir(dir,
-    branch <- robustr::system_output("git", c("rev-parse", "--abbrev-ref", "HEAD"))
+  in_dir(dir,
+    branch <- system_output("git", c("rev-parse", "--abbrev-ref", "HEAD"))
   )
   trim(branch)
 }
 
 current_commit <- function(dir = ".") {
-  robustr::in_dir(dir,
-    commit <- robustr::system_output("git", c("rev-parse", "HEAD"))
+  in_dir(dir,
+    commit <- system_output("git", c("rev-parse", "HEAD"))
   )
   trim(commit)
 }
