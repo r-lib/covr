@@ -2,6 +2,8 @@
 [![wercker status](https://app.wercker.com/status/7b3f03814c6f978cfaad12b4d0378b11/s "wercker status")](https://app.wercker.com/project/bykey/7b3f03814c6f978cfaad12b4d0378b11)
 [![codecov.io](https://codecov.io/github/jimhester/covr/coverage.svg?branch=master)](https://codecov.io/github/jimhester/covr?branch=master)
 
+Testing a pull request
+
 Track test coverage for your R package and (optionally) upload the results to
 [coveralls](https://coveralls.io/) or [codecov](https://codecov.io/).
 
