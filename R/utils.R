@@ -83,7 +83,7 @@ duplicate <- function(x) {
 
 to_title <- function(x) {
   rex::re_substitutes(x,
-                      rex::rex(boundary, capture(any)),
+                      rex::rex(regex("\\b"), capture(any)),
                       "\\U\\1",
                       global = TRUE)
 }
@@ -127,7 +127,7 @@ traced_files <- function(x) {
 address <- function(x) {
   rex::re_matches(capture.output(str(x)),
              rex::rex(capture(name = "address", "0x", anything),
-                      boundary))$address
+                      regex("\\b")))$address
 }
 
 per_line <- function(coverage) {
