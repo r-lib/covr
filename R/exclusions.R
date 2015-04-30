@@ -125,4 +125,3 @@ remove_line_duplicates <- function(x) {
 remove_empty <- function(x) {
   x[vapply(x, length, numeric(1)) > 0]
 }
-
