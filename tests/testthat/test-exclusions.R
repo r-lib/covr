@@ -1,5 +1,5 @@
-exclude_ops <- list(exclude_pattern = "#TeSt_NoLiNt"
-                    exclude_start = "#TeSt_NoLiNt_StArT"
+exclude_ops <- list(exclude_pattern = "#TeSt_NoLiNt",
+                    exclude_start = "#TeSt_NoLiNt_StArT",
                     exclude_end = "#TeSt_NoLiNt_EnD")
 
 context("parse_exclusions")
