@@ -1,4 +1,4 @@
 library(testthat)
-library("TestSummary")
+library("TestExclusion")
 
-test_check("TestSummary")
+test_check("TestExclusion")
