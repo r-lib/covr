@@ -3,17 +3,17 @@ test_me <- function(x, y){
   x + y
 }
 
-# EXCLUDE COVERAGE START
+# nocov start
 #' @export
 dont_test_me <- function(x, y){
   x * y
 }
-# EXCLUDE COVERAGE END
+# nocov end
 
 #' @export
 test_exclusion <- function(x) {
   if (x > 5) {
-    1 # EXCLUDE COVERAGE
+    1 # nocov
   } else {
     2
   }
