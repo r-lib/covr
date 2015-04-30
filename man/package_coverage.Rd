@@ -8,7 +8,7 @@ package_coverage(path = ".", ..., type = c("test", "vignette", "example",
   "all", "none"), relative_path = TRUE, quiet = TRUE, clean = TRUE,
   exclusions = NULL, exclude_pattern = options("covr.exclude_pattern"),
   exclude_start = options("covr.exclude_start"),
-  exclude_end = options("covr.exclude_end"), install_deps = TRUE)
+  exclude_end = options("covr.exclude_end"))
 }
 \arguments{
 \item{path}{file path to the package}
@@ -33,8 +33,6 @@ paths.}
 \item{exclude_start}{a search pattern to look for in the source to start an exclude block.}
 
 \item{exclude_end}{a search pattern to look for in the source to stop an exclude block.}
-
-\item{install_deps}{if \code{TRUE} automatically install package dependencies if any are missing}
 }
 \description{
 Calculate test coverage for a package
