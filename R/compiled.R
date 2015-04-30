@@ -6,16 +6,21 @@ parse_gcov <- function(file, source_file) {
 
   lines <- readLines(file)
 
-  re <- rex::rex(spaces,
-    capture(name = "coverage", some_of(digit, "-", "#")),
-    ":", spaces,
+  re <- rex::rex(any_spaces,
+    capture(name = "coverage", some_of(digit, "-", "#", "=")),
+    ":", any_spaces,
     capture(name = "line", digits),
     ":"
   )
 
   matches <- rex::re_matches(lines, re)
+  # gcov lines which have no coverage
   matches$coverage[matches$coverage == "#####"] <- 0
-  coverage_lines <- matches$line > 0 & matches$coverage != "-"
+
+  # gcov lines which have parse error, so make untracked
+  matches$coverage[matches$coverage == "====="] <- "-"
+
+  coverage_lines <- matches$line != "0" & matches$coverage != "-"
   matches <- matches[coverage_lines, ]
 
   values <- as.numeric(matches$coverage)

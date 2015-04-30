@@ -138,4 +138,29 @@ test_that("it excludes properly", {
   t1 <- package_coverage("TestExclusion")
 
   expect_equal(length(t1), 3)
+
+  t1 <- package_coverage("TestExclusion", exclusions = "R/TestExclusion.R")
+
+  expect_equal(length(t1), 0)
+})
+
+context("file_exclusions")
+test_that("it returns NULL if empty or no file exclusions", {
+  expect_equal(file_exclusions(NULL, ""), NULL)
+
+  expect_equal(file_exclusions(list("test" = c(1, 2)), ""), NULL)
+
+  expect_equal(file_exclusions(list("test" = c(1, 2), "test2" = c(3, 4)), ""), NULL)
+})
+test_that("it errors if the file cannot be found on the path", {
+  expect_error(file_exclusions(list("test"), ""), "Exclusion file:")
+
+  expect_error(file_exclusions(list("test"), "src"), "Exclusion file:")
+})
+test_that("it returns a normalizedPath if the file can be found", {
+  expect_match(file_exclusions(list("test-exclusions.R"), "."), "test-exclusions.R")
+
+  expect_match(
+    file_exclusions(list("testthat/test-exclusions.R", "testthat.R"), ".."),
+    rex::rex(or("test-exclusions.R", "testthat.R")))
 })

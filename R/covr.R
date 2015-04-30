@@ -98,6 +98,7 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @param exclude_pattern a search pattern to look for in the source to exclude a particular line.
 #' @param exclude_start a search pattern to look for in the source to start an exclude block.
 #' @param exclude_end a search pattern to look for in the source to stop an exclude block.
+#' @param install_deps if \code{TRUE} automatically install package dependencies if any are missing
 #' @export
 package_coverage <- function(path = ".",
                              ...,
@@ -108,8 +109,17 @@ package_coverage <- function(path = ".",
                              exclusions = NULL,
                              exclude_pattern = options("covr.exclude_pattern"),
                              exclude_start = options("covr.exclude_start"),
-                             exclude_end = options("covr.exclude_end")
+                             exclude_end = options("covr.exclude_end"),
+                             install_deps = TRUE
                              ) {
+
+  pkg <- devtools::as.package(path)
+
+  deps <- devtools::dev_package_deps(pkg, dependencies = TRUE)
+  if (any(is.na(deps$available))) {
+    update(pkg, dependencies = TRUE)
+  }
+
   type <- match.arg(type)
 
   if (type == "all") {
@@ -126,7 +136,6 @@ package_coverage <- function(path = ".",
     return(res)
   }
 
-  pkg <- devtools::as.package(path)
 
   if (!file.exists(path)) {
     stop(sQuote(path), " does not exist!", call. = FALSE)
@@ -199,7 +208,6 @@ set_display_name <- function(x, path = NULL) {
 run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
   testing_dir <- test_directory(pkg$path)
 
-  devtools::install_deps(pkg, dependencies = TRUE)
   RCMD("INSTALL",
                  options = c(pkg$path,
                              "--no-docs",

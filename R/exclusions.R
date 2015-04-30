@@ -58,6 +58,21 @@ parse_exclusions <- function(lines,
   sort(unique(exclusions))
 }
 
+file_exclusions <- function(x, path) {
+  excl <- normalize_exclusions(x)
+
+  full_files <- vapply(excl, function(x1) length(x1) == 1 && x1 == Inf, logical(1))
+  if (any(full_files)) {
+    files <- names(excl)[full_files]
+    tryCatch(normalizePath(file.path(path, files), mustWork = TRUE),
+             error = function(e) {
+               stop(sprintf("Exclusion file: %s not found at %s\n", x, path), call. = FALSE)
+             })
+  } else {
+    NULL
+  }
+}
+
 normalize_exclusions <- function(x) {
   if (is.null(x) || length(x) <= 0) {
     return(list())
