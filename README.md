@@ -21,7 +21,7 @@ after_success:
 
 To use a different CI service, you need to specify your secret repo token for
 the repository, found at the bottom of your repository's page on Coveralls.
-Your `after_success` would then look like this:
+Your `after_success` would then look like this: 
 
 ```yml
 after_success:

@@ -2,8 +2,9 @@ box: rocker/hadleyverse
 build:
   steps:
     - jimhester/r-dependencies:
-      github_packages: jimhester/lintr hadley/testthat kevinushey/rex
+      github_packages: hadley/testthat kevinushey/rex
     - jimhester/r-check
+    - jimhester/r-lint
     - script:
       name: shim package
       code: |
