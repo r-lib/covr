@@ -4,7 +4,6 @@
 #' @param path the directory to run the command in.
 #' @param env_vars environment variables to set before running the command.
 #' @param ... additional arguments passed to \code{\link{system_check}}
-#' @export
 #' @examples
 #' R("-e 'str(as.list(Sys.getenv()))' --slave")
 R <- function(options, path = tempdir(), env_vars = NULL, ...) {
@@ -26,7 +25,6 @@ R <- function(options, path = tempdir(), env_vars = NULL, ...) {
 #' @return \code{TRUE} if the command succeeds, throws an error if the command
 #' fails.
 #' @inheritParams R
-#' @export
 RCMD <- function(cmd, options, path = tempdir(), env_vars = NULL, ...) {
   R(c("CMD", cmd, options), path = path, env_vars = env_vars, ...)
 }
@@ -42,7 +40,6 @@ RCMD <- function(cmd, options, path = tempdir(), env_vars = NULL, ...) {
 #'
 #' @keywords internal
 #' @return a named character vector
-#' @export
 r_env_vars <- function() {
   vars <- c("R_LIBS" = paste(.libPaths(), collapse = .Platform$path.sep), # nolint
     "CYGWIN" = "nodosfilewarning",

@@ -8,7 +8,6 @@
 #' @param global_env the global environment to load in the subprocess.
 #' @param clean whether to clean the Rout files generated from the subprocess.
 #' @param quiet whether to echo the R command run.
-#' @export
 subprocess <- function(code, calling_env = parent.frame(),
                             global_env = .GlobalEnv, # nolint
                             quiet = F,
