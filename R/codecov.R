@@ -1,9 +1,9 @@
 #' Run covr on a package and upload the result to codecov.io
 #' @param path file path to the package
-#' @param base_url Codecov url (change for Enterprise)
 #' @param ... additional arguments passed to \code{\link{package_coverage}}
+#' @param base_url Codecov url (change for Enterprise)
 #' @export
-codecov <- function(path = ".", base_url = "https://codecov.io", ...) {
+codecov <- function(path = ".", ..., base_url = "https://codecov.io") {
   # -------
   # Jenkins
   # -------
