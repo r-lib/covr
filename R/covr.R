@@ -189,7 +189,8 @@ set_display_name <- function(x, path = NULL) {
   if (is.null(display_name(src_file))) {
     display_name(src_file) <-
       if (!is.null(path)) {
-        rex::re_substitutes(name, rex::rex(normalizePath(path, mustWork = FALSE), "/"), "")
+        path <- file.path(normalizePath(path, mustWork = FALSE), "")
+        rex::re_substitutes(name, rex::rex(path), "")
       } else {
         name
       }
