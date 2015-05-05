@@ -1,3 +1,5 @@
+#' an example function
+#'
 #' @export
 test_me <- function(x, y){
   x + y
