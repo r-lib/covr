@@ -6,22 +6,13 @@
 #' @family path
 #' @seealso \code{\link{with_path}} to temporarily set the path for a block
 #'   of code
-#' @examples
-#' path <- get_path()
-#' length(path)
-#' old <- add_path(".")
-#' length(get_path())
-#' set_path(old)
-#' length(get_path())
 NULL
 
-#' @export
 #' @rdname path
 get_path <- function() {
   strsplit(Sys.getenv("PATH"), .Platform$path.sep)[[1]]
 }
 
-#' @export
 #' @rdname path
 set_path <- function(path) {
   path <- normalizePath(path, mustWork = FALSE)
@@ -32,7 +23,6 @@ set_path <- function(path) {
   invisible(old)
 }
 
-#' @export
 #' @rdname path
 #' @param after for \code{add_path}, the place on the PATH where the new paths
 #'   should be added
@@ -46,12 +36,6 @@ add_path <- function(path, after = Inf) {
 #' @param ... Strings indicating the executables to check for on the path.
 #' @family path
 #' @keywords internal
-#' @export
-#' @examples
-#' on_path("R")
-#' on_path("gcc")
-#' on_path("foo", "bar")  # FALSE in most cases
-#' with_path(tempdir(), on_path("gcc"))
 on_path <- function(...) {
   commands <- c(...)
   stopifnot(is.character(commands))

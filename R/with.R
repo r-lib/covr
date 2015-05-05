@@ -16,18 +16,6 @@
 #' @param code code to execute in that environment
 #'
 #' @name with_something
-#' @examples
-#' getwd()
-#' in_dir(tempdir(), getwd())
-#' getwd()
-#'
-#' Sys.getenv("HADLEY")
-#' with_envvar(c("HADLEY" = 2), Sys.getenv("HADLEY"))
-#' Sys.getenv("HADLEY")
-#'
-#' with_envvar(c("A" = 1),
-#'   with_envvar(c("A" = 2), action = "suffix", Sys.getenv("A"))
-#' )
 NULL
 
 with_something <- function(set) {
@@ -85,7 +73,6 @@ set_envvar <- function(envs, action = "replace") {
 #' @details if \code{NA} is used as a value with \code{with_envvar} those
 #' environment variables will be unset.  If there are any duplicated variable
 #' names only the last one is used.
-#' @export
 with_envvar <- function(new, code, action = "replace") {
   old <- set_envvar(new, action)
   on.exit(set_envvar(old, "replace"))
@@ -104,20 +91,17 @@ set_locale <- function(cats) {
 }
 
 #' @rdname with_something
-#' @export
 with_locale <- with_something(set_locale)
 
 # collate --------------------------------------------------------------------
 
 set_collate <- function(locale) set_locale(c(LC_COLLATE = locale))[[1]]
 #' @rdname with_something
-#' @export
 with_collate <- with_something(set_collate)
 
 # working directory ----------------------------------------------------------
 
 #' @rdname with_something
-#' @export
 in_dir <- with_something(setwd)
 
 # libpaths -------------------------------------------------------------------
@@ -131,7 +115,6 @@ set_libpaths <- function(paths) {
 }
 
 #' @rdname with_something
-#' @export
 with_libpaths <- with_something(set_libpaths)
 
 # lib ------------------------------------------------------------------------
@@ -145,7 +128,6 @@ set_lib <- function(paths) {
 }
 
 #' @rdname with_something
-#' @export
 with_lib <- with_something(set_lib)
 
 # options --------------------------------------------------------------------
@@ -155,19 +137,16 @@ set_options <- function(new_options) {
 }
 
 #' @rdname with_something
-#' @export
 with_options <- with_something(set_options)
 
 # par ------------------------------------------------------------------------
 
 #' @rdname with_something
-#' @export
 with_par <- with_something(par)
 
 # path -----------------------------------------------------------------------
 
 #' @rdname with_something
-#' @export
 #' @param add Combine with existing values? Currently for
 #'   \code{\link{with_path}} only. If \code{FALSE} all existing
 #'   paths are overwritten, which don't you usually want.
@@ -218,7 +197,6 @@ set_makevars <- function(variables,
 #' the new file.  Existing fields which are not included in \code{new} are
 #' appended unchanged.  Fields which exist in \code{Makevars} and in \code{new}
 #' are modified to use the value in \code{new}.
-#' @export
 with_makevars <- function(new, code, path = file.path("~", ".R", "Makevars")) {
   makevars_file <- tempfile()
   on.exit(unlink(makevars_file))

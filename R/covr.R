@@ -77,7 +77,11 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
   res <- as.list(.counters)
   clear_counters()
 
-  res <- lapply(res, set_display_name, path = NULL)
+  for (i in seq_along(res)) {
+    display_name(res[[i]]$srcref) <- generate_display_name(res[[i]], path = NULL)
+    class(res[[i]]) <- "expression_coverage"
+  }
+
   class(res) <- "coverage"
 
   res
@@ -116,6 +120,8 @@ package_coverage <- function(path = ".",
   type <- match.arg(type)
 
   if (type == "all") {
+
+    # store the args that were called
     called_args <- as.list(match.call())[-1]
 
     # remove the type
@@ -129,11 +135,9 @@ package_coverage <- function(path = ".",
     return(res)
   }
 
-
   if (!file.exists(path)) {
     stop(sQuote(path), " does not exist!", call. = FALSE)
   }
-
 
   dots <- dots(...)
 
@@ -167,14 +171,23 @@ package_coverage <- function(path = ".",
     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
   }
 
-  coverage <- lapply(coverage, set_display_name, path = if (isTRUE(relative_path)) path else NULL)
+  # set the display names for coverage
+  for (i in seq_along(coverage)) {
+    display_path <- if (isTRUE(relative_path)) path else NULL
+
+    display_name(coverage[[i]]$srcref) <-
+      generate_display_name(coverage[[i]], display_path)
+
+    class(coverage[[i]]) <- "expression_coverage"
+  }
 
   attr(coverage, "type") <- type
   class(coverage) <- "coverage"
 
-  # These BasicClasses are functions from the method package
+  # BasicClasses are functions from the method package
   coverage <- coverage[display_name(coverage) != "./R/BasicClasses.R"]
 
+  # perform exclusions
   exclude(coverage,
     exclusions = exclusions,
     exclude_pattern = exclude_pattern,
@@ -183,24 +196,29 @@ package_coverage <- function(path = ".",
   )
 }
 
-set_display_name <- function(x, path = NULL) {
-  name <- normalizePath(getSrcFilename(x$srcref, full.names = TRUE), mustWork = FALSE)
-  src_file <- attr(x$srcref, "srcfile")
-  if (is.null(display_name(src_file))) {
-    display_name(src_file) <-
-      if (!is.null(path)) {
-        rex::re_substitutes(name, rex::rex(normalizePath(path, mustWork = FALSE), "/"), "")
-      } else {
-        name
-      }
+generate_display_name <- function(x, path = NULL) {
+  file_path <- normalizePath(getSrcFilename(x$srcref, full.names = TRUE), mustWork = FALSE)
+  if (!is.null(path)) {
+
+    # we have to check the system explicitly because both file.path and
+    # normalizePath strip the trailing path separator.
+    if (Sys.info()["sysname"] == "Windows") {
+      sep <- "\\"
+    } else {
+      sep <- "/"
+    }
+
+    package_path <- paste0(normalizePath(path), sep)
+
+    file_path <- rex::re_substitutes(file_path, rex::rex(package_path), "")
   }
-  class(x) <- "expression_coverage"
-  x
+  file_path
 }
 
 run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
   testing_dir <- test_directory(pkg$path)
 
+  # install the package in a temporary directory
   RCMD("INSTALL",
                  options = c(pkg$path,
                              "--no-docs",
@@ -214,35 +232,47 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
                              tmp_lib),
                   quiet = quiet)
 
-  with_lib(tmp_lib,
-                     library(pkg$package,
-                             character.only = TRUE))
+  if (isNamespaceLoaded(pkg$package)) {
+    unloadNamespace(pkg$package)
+    on.exit(loadNamespace(pkg$package), add = TRUE)
+  }
+  with_lib(tmp_lib, {
+    ns_env <- loadNamespace(pkg$package)
+    env <- new.env(parent = ns_env) # nolint
 
-  ns_env <- asNamespace(pkg$package)
-  env <- new.env(parent = ns_env) # nolint
-  vignette_dir <- file.path(pkg$path, "vignettes")
-  example_dir <- file.path(pkg$path, "man")
-  args <-
-    c(dots,
-      if (type == "test" && file.exists(testing_dir)) {
-        bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet))))
-      } else if (type == "vignette" && file.exists(vignette_dir)) {
-        lapply(dir(vignette_dir, pattern = rex::rex(".", one_of("R", "r"), or("nw", "md")), full.names = TRUE),
-          function(file) {
-            out_file <- tempfile(fileext = ".R")
-            knitr::knit(input = file, output = out_file, tangle = TRUE)
-            bquote(source_from_dir(.(out_file), .(vignette_dir), .(env), quiet = .(quiet)))
-          })
-      } else if (type == "example" && file.exists(example_dir)) {
-        lapply(dir(example_dir, pattern = rex::rex(".Rd"), full.names = TRUE),
-          function(file) {
-            out_file <- tempfile(fileext = ".R")
-            ex <- example_code(file)
-            cat(ex, file = out_file)
-            bquote(source_from_dir(.(out_file), NULL, .(env), chdir = FALSE, quiet = .(quiet)))
-          })
-      }
-    )
-  enc <- environment()
-  environment_coverage_(ns_env, args, enc)
+    # directories for vignettes and examples
+    vignette_dir <- file.path(pkg$path, "vignettes")
+    example_dir <- file.path(pkg$path, "man")
+
+    # get expressions to run
+    exprs <-
+      c(dots,
+        if (type == "test" && file.exists(testing_dir)) {
+          bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet))))
+        } else if (type == "vignette" && file.exists(vignette_dir)) {
+          lapply(dir(vignette_dir, pattern = rex::rex(".", one_of("R", "r"), or("nw", "md")), full.names = TRUE),
+            function(file) {
+              out_file <- tempfile(fileext = ".R")
+              knitr::knit(input = file, output = out_file, tangle = TRUE)
+              bquote(source_from_dir(.(out_file), .(vignette_dir), .(env), quiet = .(quiet)))
+            })
+        } else if (type == "example" && file.exists(example_dir)) {
+          lapply(dir(example_dir, pattern = rex::rex(".Rd"), full.names = TRUE),
+            function(file) {
+              out_file <- tempfile(fileext = ".R")
+              ex <- example_code(file)
+              cat(ex, file = out_file)
+              bquote(source_from_dir(.(out_file), NULL, .(env), chdir = FALSE, quiet = .(quiet)))
+            })
+        })
+
+    enc <- environment()
+
+    # actually calculate the coverage
+    cov <- environment_coverage_(ns_env, exprs, enc)
+
+    # unload the package being tested
+    unloadNamespace(pkg$package)
+    cov
+  })
 }
