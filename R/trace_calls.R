@@ -19,7 +19,7 @@ trace_calls <- function (x, parent_ref = NULL) {
       if ((!is.symbol(x) && is.na(x)) || as.character(x) == "{") {
         x
       } else {
-        key <- covr:::new_counter(parent_ref) # nolint
+        key <- new_counter(parent_ref) # nolint
         bquote(`{`(covr:::count(.(key)), .(x)))
       }
     }
@@ -29,7 +29,7 @@ trace_calls <- function (x, parent_ref = NULL) {
     if (!is.null(src_ref)) {
       as.call(Map(trace_calls, x, src_ref))
     } else if (!is.null(parent_ref)) {
-      key <- covr:::new_counter(parent_ref)
+      key <- new_counter(parent_ref)
       bquote(`{`(covr:::count(.(key)), .(as.call(recurse(x)))))
     } else {
       as.call(recurse(x))
@@ -41,7 +41,7 @@ trace_calls <- function (x, parent_ref = NULL) {
     if(!is.null(fun_body) && !is.null(attr(x, "srcref")) &&
        (is.symbol(fun_body) || fun_body[[1]] != "{")) {
       src_ref <- attr(x, "srcref")
-      key <- covr:::new_counter(src_ref)
+      key <- new_counter(src_ref)
       fun_body <- bquote(`{`(covr:::count(.(key)), .(trace_calls(fun_body))))
     } else {
       fun_body <- trace_calls(fun_body)

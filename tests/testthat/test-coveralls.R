@@ -1,16 +1,63 @@
 context("coveralls")
-library(devtools)
+
+ci_vars <- c(
+  "APPVEYOR" = NA,
+  "APPVEYOR_BUILD_NUMBER" = NA,
+  "APPVEYOR_REPO_BRANCH" = NA,
+  "APPVEYOR_REPO_COMMIT" = NA,
+  "APPVEYOR_REPO_NAME" = NA,
+  "BRANCH_NAME" = NA,
+  "BUILD_NUMBER" = NA,
+  "BUILD_URL" = NA,
+  "CI" = NA,
+  "CIRCLECI" = NA,
+  "CIRCLE_BRANCH" = NA,
+  "CIRCLE_BUILD_NUM" = NA,
+  "CIRCLE_PROJECT_REPONAME" = NA,
+  "CIRCLE_PROJECT_USERNAME" = NA,
+  "CIRCLE_SHA1" = NA,
+  "CI_BRANCH" = NA,
+  "CI_BUILD_NUMBER" = NA,
+  "CI_BUILD_URL" = NA,
+  "CI_COMMIT_ID" = NA,
+  "CI_NAME" = NA,
+  "CODECOV_TOKEN" = NA,
+  "DRONE" = NA,
+  "DRONE_BRANCH" = NA,
+  "DRONE_BUILD_NUMBER" = NA,
+  "DRONE_BUILD_URL" = NA,
+  "DRONE_COMMIT" = NA,
+  "GIT_BRANCH" = NA,
+  "GIT_COMMIT" = NA,
+  "JENKINS_URL" = NA,
+  "REVISION" = NA,
+  "SEMAPHORE" = NA,
+  "SEMAPHORE_BUILD_NUMBER" = NA,
+  "SEMAPHORE_REPO_SLUG" = NA,
+  "TRAVIS" = NA,
+  "TRAVIS_BRANCH" = NA,
+  "TRAVIS_COMMIT" = NA,
+  "TRAVIS_JOB_ID" = NA,
+  "TRAVIS_JOB_NUMBER" = NA,
+  "TRAVIS_PULL_REQUEST" = NA,
+  "TRAVIS_REPO_SLUG" = NA,
+  "WERCKER_GIT_BRANCH" = NA,
+  "WERCKER_GIT_COMMIT" = NA,
+  "WERCKER_GIT_OWNER" = NA,
+  "WERCKER_GIT_REPOSITORY" = NA,
+  "WERCKER_MAIN_PIPELINE_STARTED" = NA)
+
 read_file <- function(file) paste(collapse = "\n", readLines(file))#readChar(file, file.info(file)$size)
 test_that("coveralls generates a properly formatted json file", {
 
-  with_envvar(c("CI_NAME" = "FAKECI"),
+  with_envvar(c(ci_vars, "CI_NAME" = "FAKECI"),
     with_mock(
       `httr:::perform` = function(...) list(...),
       `httr::content` = identity,
       `httr::upload_file` = function(file) readChar(file, file.info(file)$size),
 
-      res <<- coveralls("TestS4"),
-      json <<- jsonlite::fromJSON(res[[5]]$body$json_file),
+      res <- coveralls("TestS4"),
+      json <- jsonlite::fromJSON(res[[5]]$body$json_file),
 
       expect_equal(nrow(json$source_files), 1),
       expect_equal(json$service_name, "fakeci"),
@@ -25,7 +72,7 @@ test_that("coveralls generates a properly formatted json file", {
 
 test_that("coveralls can spawn a job using repo_token", {
 
-  with_envvar(c("CI_NAME" = "DRONE"),
+  with_envvar(c(ci_vars, "CI_NAME" = "DRONE"),
     with_mock(
       `httr:::perform` = function(...) list(...),
       `httr::content` = identity,
@@ -49,9 +96,9 @@ test_that("coveralls can spawn a job using repo_token", {
 
 test_that("generates correct payload for Drone and Jenkins", {
 
-  with_envvar(c("CI_NAME" = "FAKECI", "CI_BRANCH" = "fakebranch", "CI_REMOTE" = "covr"),
+  with_envvar(c(ci_vars, "CI_NAME" = "FAKECI", "CI_BRANCH" = "fakebranch", "CI_REMOTE" = "covr"),
     with_mock(
-      `system` = function(...) paste0(c("a","b","c","d","e","f"), collapse="\n"),
+      `base::system` = function(...) paste0(c("a","b","c","d","e","f"), collapse="\n"),
       git <- jenkins_git_info(),
 
       expect_equal(git$head$id, jsonlite::unbox("a")),

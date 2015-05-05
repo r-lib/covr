@@ -7,7 +7,12 @@ display_name <- function(x, ...) UseMethod("display_name")
 
 #' @export
 display_name.default <- function(x, ...) {
-  names(x)
+  src_ref <- attr(x, "srcref")
+  if (!is.null(src_ref)) {
+    display_name(src_ref)
+  } else {
+    names(x)
+  }
 }
 
 #' @export
@@ -49,12 +54,25 @@ display_name.line_coverages <- display_name.coverage
 #' @export
 "display_name<-" <- function(x, value) UseMethod("display_name<-")
 
+"display_name<-.default" <- function(x, value) {
+  names(x) <- value
+  x
+}
+
 #' @export
 "display_name<-.srcref" <- function(x, value) {
   attr(x, "srcfile")$display_name <- value
+  x
+}
+
+#' @export
+"display_name<-.expression_coverage" <- function(x, value) {
+  display_name(x$srcref) <- value
+  x
 }
 
 #' @export
 "display_name<-.srcfile" <- function(x, value) {
   x$display_name <- value
+  x
 }

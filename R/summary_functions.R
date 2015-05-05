@@ -33,7 +33,7 @@ print.coverage <- function(x, by_line = TRUE, ...) {
 
   type <- attr(x, "type")
 
-  if (type == "none") {
+  if (is.null(type) || type == "none") {
     type <- NULL
   }
 
