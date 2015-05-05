@@ -18,7 +18,4 @@ R(options, path = tempdir(), env_vars = NULL, ...)
 \description{
 Run R xxx from within R
 }
-\examples{
-R("-e 'str(as.list(Sys.getenv()))' --slave")
-}
 

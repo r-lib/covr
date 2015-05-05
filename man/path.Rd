@@ -25,14 +25,6 @@ should be added}
 \description{
 Get/set the PATH variable.
 }
-\examples{
-path <- get_path()
-length(path)
-old <- add_path(".")
-length(get_path())
-set_path(old)
-length(get_path())
-}
 \seealso{
 \code{\link{with_path}} to temporarily set the path for a block
   of code

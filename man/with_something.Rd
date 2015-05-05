@@ -73,17 +73,4 @@ the new file.  Existing fields which are not included in \code{new} are
 appended unchanged.  Fields which exist in \code{Makevars} and in \code{new}
 are modified to use the value in \code{new}.
 }
-\examples{
-getwd()
-in_dir(tempdir(), getwd())
-getwd()
-
-Sys.getenv("HADLEY")
-with_envvar(c("HADLEY" = 2), Sys.getenv("HADLEY"))
-Sys.getenv("HADLEY")
-
-with_envvar(c("A" = 1),
-  with_envvar(c("A" = 2), action = "suffix", Sys.getenv("A"))
-)
-}
 

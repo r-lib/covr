@@ -6,13 +6,6 @@
 #' @family path
 #' @seealso \code{\link{with_path}} to temporarily set the path for a block
 #'   of code
-#' @examples
-#' path <- get_path()
-#' length(path)
-#' old <- add_path(".")
-#' length(get_path())
-#' set_path(old)
-#' length(get_path())
 NULL
 
 #' @rdname path
@@ -43,11 +36,6 @@ add_path <- function(path, after = Inf) {
 #' @param ... Strings indicating the executables to check for on the path.
 #' @family path
 #' @keywords internal
-#' @examples
-#' on_path("R")
-#' on_path("gcc")
-#' on_path("foo", "bar")  # FALSE in most cases
-#' with_path(tempdir(), on_path("gcc"))
 on_path <- function(...) {
   commands <- c(...)
   stopifnot(is.character(commands))

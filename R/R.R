@@ -4,8 +4,6 @@
 #' @param path the directory to run the command in.
 #' @param env_vars environment variables to set before running the command.
 #' @param ... additional arguments passed to \code{\link{system_check}}
-#' @examples
-#' R("-e 'str(as.list(Sys.getenv()))' --slave")
 R <- function(options, path = tempdir(), env_vars = NULL, ...) {
   options <- c("--vanilla", options)
   r_path <- file.path(R.home("bin"), "R")
