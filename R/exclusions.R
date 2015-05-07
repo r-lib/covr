@@ -17,19 +17,22 @@ exclude <- function(coverage,
 
   df <- as.data.frame(coverage, sort = FALSE)
 
-  df$full_name <- vapply(coverage, 
+  df$full_name <- vapply(coverage,
     function(x) {
-      normalizePath(
-        getSrcFilename(x$srcref, full.names = TRUE)
-      )}, character(1))
+      normalizePath(getSrcFilename(x$srcref, full.names = TRUE), mustWork = FALSE)
+    },
+    character(1))
 
   to_exclude <- vapply(seq_len(NROW(df)),
     function(i) {
       file <- df[i, "full_name"]
       which_exclusion <- match(file, names(excl))
-      !is.na(which_exclusion) && 
-      (excl[[which_exclusion]] == Inf ||
-      all(seq(df[i, "first_line"], df[i, "last_line"]) %in% excl[[file]]))
+
+      !is.na(which_exclusion) &&
+        (
+          excl[[which_exclusion]] == Inf ||
+          all(seq(df[i, "first_line"], df[i, "last_line"]) %in% excl[[file]])
+        )
     },
     logical(1))
 
@@ -109,7 +112,7 @@ normalize_exclusions <- function(x, path = NULL) {
   if (!is.null(path)) {
     names(x) <- file.path(path, names(x))
   }
-  names(x) <- normalizePath(names(x), mustWork = TRUE)
+  names(x) <- normalizePath(names(x), mustWork = FALSE)
 
   remove_line_duplicates(
     remove_file_duplicates(
