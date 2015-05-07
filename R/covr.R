@@ -265,7 +265,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
             function(file) {
               out_file <- tempfile(fileext = ".R")
               ex <- example_code(file)
-              cat(ex, file = out_file)
+              cat(c(sprintf("library(%s)\n", pkg$package), ex), file = out_file)
               bquote(source_from_dir(.(out_file), NULL, .(env), chdir = FALSE, quiet = .(quiet)))
             })
         })
