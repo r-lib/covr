@@ -173,49 +173,49 @@ add_color_box <- function(nums) {
 
 renderSourceTable <- function(expr, env = parent.frame()) {
 
-  installExprFunction(expr, "func", env)
+  shiny::installExprFunction(expr, "func", env)
 
-  shiny::markRenderFunction(shiny::tableOutput, function() {
+  shiny::markRenderFunction(shiny::tableOutput,
+    function() {
+      data <- func() # nolint
 
-    data <- func()
+      if (is.null(data) || identical(data, data.frame())) {
+        return("")
+      }
 
-    if (is.null(data) || identical(data, data.frame())) {
-      return("")
-    }
+      table <- as.character(shiny::tags$table(class = "table-condensed",
+          shiny::tags$tbody(
+            lapply(seq_len(NROW(data)),
+              function(row_num) {
+                coverage <- data[row_num, "coverage"]
 
-    table <- as.character(shiny::tags$table(class = "table-condensed",
-        shiny::tags$tbody(
-          lapply(seq_len(NROW(data)),
-            function(row_num) {
-              coverage <- data[row_num, "coverage"]
-
-              cov_type <- NULL
-              if(coverage == 0) {
-                cov_value <- "!"
-                cov_type <- "missed"
-              } else if(coverage > 0) {
-                cov_value <- shiny::HTML(paste0(data[row_num, "coverage"], "<em>x</em>", collapse = ""))
-                cov_type <- "covered"
-              } else {
-                cov_type <- "never"
-                cov_value <- ""
-              }
-              shiny::tags$tr(class=cov_type,
-                shiny::tags$td(class="num", data[row_num, "line"]),
-                shiny::tags$td(class="col-sm-12", shiny::pre(class="language-r", data[row_num, "source"])),
-                shiny::tags$td(class="coverage", cov_value)
-                )
-            })
+                cov_type <- NULL
+                if(coverage == 0) {
+                  cov_value <- "!"
+                  cov_type <- "missed"
+                } else if(coverage > 0) {
+                  cov_value <- shiny::HTML(paste0(data[row_num, "coverage"], "<em>x</em>", collapse = ""))
+                  cov_type <- "covered"
+                } else {
+                  cov_type <- "never"
+                  cov_value <- ""
+                }
+                shiny::tags$tr(class=cov_type,
+                  shiny::tags$td(class="num", data[row_num, "line"]),
+                  shiny::tags$td(class="col-sm-12", shiny::pre(class="language-r", data[row_num, "source"])),
+                  shiny::tags$td(class="coverage", cov_value)
+                  )
+              })
+            )
           )
         )
-      )
 
-    paste(sep = "\n", table, "<script>
-      $('#source_table pre').each(function(i, block) {
-        hljs.highlightBlock(block);
-        });
-      </script>")
-  })
+      paste(sep = "\n", table, "<script>
+        $('#source_table pre').each(function(i, block) {
+          hljs.highlightBlock(block);
+          });
+        </script>")
+    })
 }
 
 addHighlight <- function(x = list()) {
