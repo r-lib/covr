@@ -18,7 +18,7 @@ if your job is running on a service Coveralls doesn't support out-of-the-box.
 If set to NULL, it is assumed that the job is running on travis-ci}
 
 \item{service_name}{the CI service to use, if environment variable
-\sQuote{CI_NAME} is set that is used, otherwise "travis-ci" is used.}
+\sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.}
 }
 \description{
 Run covr on a package and upload the result to coveralls

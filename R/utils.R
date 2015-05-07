@@ -78,7 +78,7 @@ example_code <- function(file) {
 }
 
 duplicate <- function(x) {
-  .Call(duplicate_, x)
+  .Call(covr_duplicate_, x)
 }
 
 to_title <- function(x) {

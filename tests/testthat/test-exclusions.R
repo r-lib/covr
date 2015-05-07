@@ -66,7 +66,7 @@ test_that("it throws an error if start and end are unpaired", {
 
 context("normalize_exclusions")
 expect_equal_vals <- function(x, y) {
-  expect_equal(unname(x), unname(y))
+  testthat::expect_equal(unname(x), unname(y))
 }
 test_that("it merges two NULL or empty objects as an empty list", {
   expect_equal(normalize_exclusions(c(NULL, NULL)), list())

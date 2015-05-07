@@ -10,48 +10,35 @@
 #' shine(x)
 #' }
 #' @export
-shine <- function(x) {
+shine <- function(x, ...) UseMethod("shine")
+
+shine.default <- function(x, ...) {
+  stop("shine must be called on a coverage object!", call. = FALSE)
+}
+
+shine.coverages <- function(x, ...) {
 
   loadNamespace("shiny")
 
-  if (!inherits(x, "coverage")) {
-    stop("shine must be called on a coverage object!", call. = FALSE)
-  }
-  coverages <- per_line(x)
+  data <- lapply(x, to_shiny_data)
 
-  full <- lapply(coverages,
-    function(coverage) {
-      lines <- coverage$file$file_lines
-      values <- coverage$coverage
-      values[is.na(values)] <- ""
-      data.frame(
-        line = seq_along(lines),
-        source = lines,
-        coverage = values,
-        stringsAsFactors = FALSE)
-    })
-  names(full) <- display_name(coverages)
-
-  file_stats <- compute_file_stats(full)
-
-  file_stats$File <- add_link(names(full))
-
-  file_stats <- sort_file_stats(file_stats)
-
-  file_stats$Coverage <- add_color_box(file_stats$Coverage)
-
-  ui <- shiny::fluidPage(shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
-        shiny::column(8, offset = 2,
-          shiny::tabsetPanel(
-            shiny::tabPanel("Files", shiny::dataTableOutput(outputId="file_table")),
-            shiny::tabPanel("Source", addHighlight(shiny::tableOutput("source_table")))
-            )
-          )
+  ui <- shiny::fluidPage(
+    shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
+    shiny::column(2,
+      shiny::radioButtons("type", label = shiny::h3("Coverage Type"),
+        choices = setNames(names(data), to_title(names(data))))
+    ),
+    shiny::column(8,
+      shiny::tabsetPanel(
+        shiny::tabPanel("Files", shiny::dataTableOutput(outputId="file_table")),
+        shiny::tabPanel("Source", addHighlight(shiny::tableOutput("source_table")))
         )
+      )
+    )
 
   server <- function(input, output, session) {
     output$file_table <- shiny::renderDataTable(
-      file_stats,
+      data[[input$type]]$file_stats,
       escape = FALSE,
       options = list(searching = FALSE, dom = "t", paging = FALSE),
       callback = "function(table) {
@@ -62,15 +49,83 @@ shine <- function(x) {
     }")
     shiny::observe({
       if (!is.null(input$filename)) {
-        output$source_table <- renderSourceTable(full[[input$filename]])
+        output$source_table <- renderSourceTable(data[[input$type]]$full[[input$filename]])
       }
     })
   }
 
   shiny::runApp(list(ui = ui, server = server),
-                launch.browser = getOption("viewer", utils::browseURL),
-                quiet = TRUE
-               )
+    launch.browser = getOption("viewer", utils::browseURL),
+    quiet = TRUE
+  )
+}
+
+shine.coverage <- function(x, ...) {
+
+  loadNamespace("shiny")
+
+  data <- to_shiny_data(x)
+
+  ui <- shiny::fluidPage(
+    shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
+    shiny::column(8, offset = 2,
+      shiny::tabsetPanel(
+        shiny::tabPanel("Files", shiny::dataTableOutput(outputId="file_table")),
+        shiny::tabPanel("Source", addHighlight(shiny::tableOutput("source_table")))
+        )
+      )
+    )
+
+  server <- function(input, output, session) {
+    output$file_table <- shiny::renderDataTable(
+      data$file_stats,
+      escape = FALSE,
+      options = list(searching = FALSE, dom = "t", paging = FALSE),
+      callback = "function(table) {
+      table.on('click.dt', 'a', function() {
+        Shiny.onInputChange('filename', $(this).text());
+        $('ul.nav a[data-value=Source]').tab('show');
+      });
+    }")
+    shiny::observe({
+      if (!is.null(input$filename)) {
+        output$source_table <- renderSourceTable(data$full[[input$filename]])
+      }
+    })
+  }
+
+  shiny::runApp(list(ui = ui, server = server),
+    launch.browser = getOption("viewer", utils::browseURL),
+    quiet = TRUE
+  )
+}
+
+to_shiny_data <- function(x) {
+  coverages <- per_line(x)
+
+  res <- list()
+  res$full <- lapply(coverages,
+    function(coverage) {
+      lines <- coverage$file$file_lines
+      values <- coverage$coverage
+      values[is.na(values)] <- ""
+      data.frame(
+        line = seq_along(lines),
+        source = lines,
+        coverage = values,
+        stringsAsFactors = FALSE)
+    })
+  names(res$full) <- display_name(coverages)
+
+  res$file_stats <- compute_file_stats(res$full)
+
+  res$file_stats$File <- add_link(names(res$full))
+
+  res$file_stats <- sort_file_stats(res$file_stats)
+
+  res$file_stats$Coverage <- add_color_box(res$file_stats$Coverage)
+
+  res
 }
 
 compute_file_stats <- function(files) {
@@ -116,28 +171,38 @@ add_color_box <- function(nums) {
   })
 }
 
-renderSourceTable <- function(x) {
+renderSourceTable <- function(expr, env = parent.frame()) {
+
+  installExprFunction(expr, "func", env)
+
   shiny::markRenderFunction(shiny::tableOutput, function() {
+
+    data <- func()
+
+    if (is.null(data) || identical(data, data.frame())) {
+      return("")
+    }
+
     table <- as.character(shiny::tags$table(class = "table-condensed",
         shiny::tags$tbody(
-          lapply(seq_len(NROW(x)),
+          lapply(seq_len(NROW(data)),
             function(row_num) {
-              coverage <- x[row_num, "coverage"]
+              coverage <- data[row_num, "coverage"]
 
               cov_type <- NULL
               if(coverage == 0) {
                 cov_value <- "!"
                 cov_type <- "missed"
               } else if(coverage > 0) {
-                cov_value <- shiny::HTML(paste0(x[row_num, "coverage"], "<em>x</em>", collapse = ""))
+                cov_value <- shiny::HTML(paste0(data[row_num, "coverage"], "<em>x</em>", collapse = ""))
                 cov_type <- "covered"
               } else {
                 cov_type <- "never"
                 cov_value <- ""
               }
               shiny::tags$tr(class=cov_type,
-                shiny::tags$td(class="num", x[row_num, "line"]),
-                shiny::tags$td(class="col-sm-12", shiny::pre(class="language-r", x[row_num, "source"])),
+                shiny::tags$td(class="num", data[row_num, "line"]),
+                shiny::tags$td(class="col-sm-12", shiny::pre(class="language-r", data[row_num, "source"])),
                 shiny::tags$td(class="coverage", cov_value)
                 )
             })

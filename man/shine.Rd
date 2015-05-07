@@ -4,7 +4,7 @@
 \alias{shine}
 \title{Display covr results using a shiny app}
 \usage{
-shine(x)
+shine(x, ...)
 }
 \arguments{
 \item{x}{a coverage dataset}

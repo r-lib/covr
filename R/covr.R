@@ -116,7 +116,7 @@ package_coverage <- function(path = ".",
                              ) {
 
   path <- normalizePath(path)
-  
+
   pkg <- devtools::as.package(path)
 
   type <- match.arg(type)
@@ -129,9 +129,9 @@ package_coverage <- function(path = ".",
     # remove the type
     called_args$type <- NULL
     res <- list(
-                do.call(Recall, c(called_args, type = "test")),
-                do.call(Recall, c(called_args, type = "vignette")),
-                do.call(Recall, c(called_args, type = "example"))
+                test = do.call(Recall, c(called_args, type = "test")),
+                vignette = do.call(Recall, c(called_args, type = "vignette")),
+                example = do.call(Recall, c(called_args, type = "example"))
                 )
     class(res) <- "coverages"
     return(res)
