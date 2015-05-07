@@ -155,11 +155,6 @@ test_that("it returns NULL if empty or no file exclusions", {
 
   expect_equal(file_exclusions(list("a" = c(1, 2), "b" = c(3, 4))), NULL)
 })
-test_that("it errors if the file cannot be found on the path", {
-  expect_error(file_exclusions(list("testã"), "."))
-
-  expect_error(file_exclusions(list("test"), "src"))
-})
 test_that("it returns a normalizedPath if the file can be found", {
   expect_match(file_exclusions(list("test-exclusions.R"), "."), "test-exclusions.R")
 
