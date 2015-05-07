@@ -18,7 +18,6 @@ Imports:
 Suggests:
     R6,
     knitr,
-    lintr (>= 0.3.0.9000),
     shiny,
     testthat
 License: MIT + file LICENSE
