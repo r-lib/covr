@@ -4,17 +4,21 @@
 \alias{coveralls}
 \title{Run covr on a package and upload the result to coveralls}
 \usage{
-coveralls(path = ".", repo_token = NULL, ...)
+coveralls(path = ".", ..., repo_token = NULL,
+  service_name = Sys.getenv("CI_NAME", "travis-ci"))
 }
 \arguments{
 \item{path}{file path to the package}
+
+\item{...}{additional arguments passed to \code{\link{package_coverage}}}
 
 \item{repo_token}{The secret repo token for your repository,
 found at the bottom of your repository's page on Coveralls. This is useful
 if your job is running on a service Coveralls doesn't support out-of-the-box.
 If set to NULL, it is assumed that the job is running on travis-ci}
 
-\item{...}{additional arguments passed to \code{\link{package_coverage}}}
+\item{service_name}{the CI service to use, if environment variable
+\sQuote{CI_NAME} is set that is used, otherwise "travis-ci" is used.}
 }
 \description{
 Run covr on a package and upload the result to coveralls

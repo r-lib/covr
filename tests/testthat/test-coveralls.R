@@ -61,7 +61,7 @@ test_that("coveralls generates a properly formatted json file", {
 
       expect_equal(nrow(json$source_files), 1),
       expect_equal(json$service_name, "fakeci"),
-      expect_equal(json$source_files$name, "R/TestS4.R"),
+      expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
       expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R")),
       expect_equal(json$source_files$coverage[[1]],
         c(NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
@@ -77,6 +77,7 @@ test_that("coveralls can spawn a job using repo_token", {
       `httr:::perform` = function(...) list(...),
       `httr::content` = identity,
       `httr::upload_file` = function(file) readChar(file, file.info(file)$size),
+      `covr::system_output` = function(...) paste0(c("a","b","c","d","e","f"), collapse="\n"),
 
       res <- coveralls("TestS4", repo_token="mytoken"),
       json <- jsonlite::fromJSON(res[[5]]$body$json_file),
@@ -85,7 +86,7 @@ test_that("coveralls can spawn a job using repo_token", {
       expect_equal(nrow(json$source_files), 1),
       expect_equal(json$service_name, NULL),
       expect_equal(json$repo_token, "mytoken"),
-      expect_equal(json$source_files$name, "R/TestS4.R"),
+      expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
       expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R")),
       expect_equal(json$source_files$coverage[[1]],
         c(NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
@@ -98,7 +99,7 @@ test_that("generates correct payload for Drone and Jenkins", {
 
   with_envvar(c(ci_vars, "CI_NAME" = "FAKECI", "CI_BRANCH" = "fakebranch", "CI_REMOTE" = "covr"),
     with_mock(
-      `base::system` = function(...) paste0(c("a","b","c","d","e","f"), collapse="\n"),
+      `covr::system_output` = function(...) paste0(c("a","b","c","d","e","f"), collapse="\n"),
       git <- jenkins_git_info(),
 
       expect_equal(git$head$id, jsonlite::unbox("a")),

@@ -65,6 +65,9 @@ test_that("it throws an error if start and end are unpaired", {
 })
 
 context("normalize_exclusions")
+expect_equal_vals <- function(x, y) {
+  expect_equal(unname(x), unname(y))
+}
 test_that("it merges two NULL or empty objects as an empty list", {
   expect_equal(normalize_exclusions(c(NULL, NULL)), list())
   expect_equal(normalize_exclusions(c(NULL, list())), list())
@@ -75,48 +78,48 @@ test_that("it merges two NULL or empty objects as an empty list", {
 test_that("it returns the object if the other is NULL", {
   t1 <- list(a = 1:10)
 
-  expect_equal(normalize_exclusions(c(t1, NULL)), t1)
-  expect_equal(normalize_exclusions(c(NULL, t1)), t1)
+  expect_equal_vals(normalize_exclusions(c(t1, NULL)), t1)
+  expect_equal_vals(normalize_exclusions(c(NULL, t1)), t1)
 })
 
 test_that("it returns the union of two non-overlapping lists", {
   t1 <- list(a = 1:10)
   t2 <- list(a = 20:30)
 
-  expect_equal(normalize_exclusions(c(t1, t2)), list(a = c(1:10, 20:30)))
+  expect_equal_vals(normalize_exclusions(c(t1, t2)), list(a = c(1:10, 20:30)))
 })
 
 test_that("it returns the union of two overlapping lists", {
   t1 <- list(a = 1:10)
   t2 <- list(a = 5:15)
 
-  expect_equal(normalize_exclusions(c(t1, t2)), list(a = 1:15))
+  expect_equal_vals(normalize_exclusions(c(t1, t2)), list(a = 1:15))
 })
 
 test_that("it adds names if needed", {
   t1 <- list(a = 1:10)
   t2 <- list(b = 5:15)
 
-  expect_equal(normalize_exclusions(c(t1, t2)), list(a = 1:10, b = 5:15))
+  expect_equal_vals(normalize_exclusions(c(t1, t2)), list(a = 1:10, b = 5:15))
 })
 
 test_that("it handles full file exclusions", {
 
-  expect_equal(normalize_exclusions(list("a")), list(a = Inf))
+  expect_equal_vals(normalize_exclusions(list("a")), list(a = Inf))
 
-  expect_equal(normalize_exclusions(list("a", b = 1)), list(a = Inf, b = 1))
+  expect_equal_vals(normalize_exclusions(list("a", b = 1)), list(a = Inf, b = 1))
 })
 
 test_that("it handles redundant lines", {
 
-  expect_equal(normalize_exclusions(list(a=c(1, 1, 1:10))), list(a = 1:10))
+  expect_equal_vals(normalize_exclusions(list(a=c(1, 1, 1:10))), list(a = 1:10))
 
-  expect_equal(normalize_exclusions(list(a=c(1, 1, 1:10), b = 1:10)), list(a = 1:10, b = 1:10))
+  expect_equal_vals(normalize_exclusions(list(a=c(1, 1, 1:10), b = 1:10)), list(a = 1:10, b = 1:10))
 })
 
 test_that("it handles redundant files", {
 
-  expect_equal(normalize_exclusions(list(a=c(1:10), a=c(10:20))), list(a = 1:20))
+  expect_equal_vals(normalize_exclusions(list(a=c(1:10), a=c(10:20))), list(a = 1:20))
 })
 
 context("exclude")
@@ -124,14 +127,14 @@ test_that("it excludes lines", {
   t1 <- package_coverage("TestSummary")
 
   expect_equal(length(t1), 2)
-  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 5))), 1)
-  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 10))), 1)
+  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 5), path = "TestSummary")), 1)
+  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 10), path = "TestSummary")), 1)
 })
 test_that("it preserves the class", {
   t1 <- package_coverage("TestSummary")
 
-  expect_equal(class(exclude(t1, NULL)), class(t1))
-  expect_equal(class(exclude(t1, list("R/TestSummary.R" = 3))), class(t1))
+  expect_equal(class(exclude(t1, NULL, path = "TestSummary")), class(t1))
+  expect_equal(class(exclude(t1, list("R/TestSummary.R" = 3), path = "TestSummary")), class(t1))
 })
 
 test_that("it excludes properly", {
@@ -148,14 +151,14 @@ context("file_exclusions")
 test_that("it returns NULL if empty or no file exclusions", {
   expect_equal(file_exclusions(NULL, ""), NULL)
 
-  expect_equal(file_exclusions(list("test" = c(1, 2)), ""), NULL)
+  expect_equal(file_exclusions(list("a" = c(1, 2))), NULL)
 
-  expect_equal(file_exclusions(list("test" = c(1, 2), "test2" = c(3, 4)), ""), NULL)
+  expect_equal(file_exclusions(list("a" = c(1, 2), "b" = c(3, 4))), NULL)
 })
 test_that("it errors if the file cannot be found on the path", {
-  expect_error(file_exclusions(list("test"), ""), "Exclusion file:")
+  expect_error(file_exclusions(list("testã"), "."))
 
-  expect_error(file_exclusions(list("test"), "src"), "Exclusion file:")
+  expect_error(file_exclusions(list("test"), "src"))
 })
 test_that("it returns a normalizedPath if the file can be found", {
   expect_match(file_exclusions(list("test-exclusions.R"), "."), "test-exclusions.R")

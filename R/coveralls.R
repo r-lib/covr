@@ -1,20 +1,20 @@
 #' Run covr on a package and upload the result to coveralls
 #' @param path file path to the package
+#' @param ... additional arguments passed to \code{\link{package_coverage}}
 #' @param repo_token The secret repo token for your repository,
 #' found at the bottom of your repository's page on Coveralls. This is useful
 #' if your job is running on a service Coveralls doesn't support out-of-the-box.
 #' If set to NULL, it is assumed that the job is running on travis-ci
-#' @param ... additional arguments passed to \code{\link{package_coverage}}
+#' @param service_name the CI service to use, if environment variable
+#' \sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.
 #' @export
-coveralls <- function(path = ".", repo_token = NULL, ...) {
+coveralls <- function(path = ".", ..., repo_token = NULL, service_name = Sys.getenv("CI_NAME", "travis-ci")) {
 
-  find_ci_name <- function() {
-    service <- tolower(Sys.getenv("CI_NAME"))
-    ifelse(service == "", "travis-ci", service)
-  }
+  service <- tolower(service_name)
+
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
   json_file <- to_coveralls(package_coverage(path, relative_path = TRUE, ...),
-    repo_token = repo_token, service_name = find_ci_name())
+    repo_token = repo_token, service_name = service)
 
   result <- httr::POST(url = coveralls_url,
     body = list(json_file = httr::upload_file(to_file(json_file))))
@@ -50,7 +50,7 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
   git_info <- switch(service_name,
     drone = jenkins_git_info(), # drone has the same env vars as jenkins
     jenkins = jenkins_git_info(),
-    NULL
+    list(NULL)
   )
 
   payload <- if (is.null(repo_token)) {
@@ -84,15 +84,14 @@ jenkins_git_info <- function() {
     scan(
       sep="\n",
       what = "character",
-      text=system(intern=TRUE,
-        paste0("git log -n 1 --pretty=format:",
-          paste(collapse="%n", formats)
-        )
-      ),
+      text=system_output("git", c("log", "-n", "1",
+          paste0("--pretty=format:", paste(collapse="%n", formats)))
+        ),
       quiet = TRUE
     ),
     names = names(formats)
   ), jsonlite::unbox)
+
   remotes <- list(list(
     name = jsonlite::unbox("origin"),
     url = jsonlite::unbox(Sys.getenv("CI_REMOTE"))

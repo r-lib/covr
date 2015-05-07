@@ -1,6 +1,9 @@
-exclude <- function(coverage, exclusions = NULL, exclude_pattern = options("covr.exclude_pattern"),
-                             exclude_start = options("covr.exclude_start"),
-                             exclude_end = options("covr.exclude_end")) {
+exclude <- function(coverage,
+  exclusions = NULL, exclude_pattern = options("covr.exclude_pattern"),
+  exclude_start = options("covr.exclude_start"),
+  exclude_end = options("covr.exclude_end"),
+  path = NULL) {
+
   sources <- traced_files(coverage)
 
   source_exclusions <- lapply(sources,
@@ -10,21 +13,25 @@ exclude <- function(coverage, exclusions = NULL, exclude_pattern = options("covr
 
   names(source_exclusions) <- lapply(sources, display_name)
 
-  excl <- normalize_exclusions(c(source_exclusions, exclusions))
-
-  excl <- excl[sapply(excl, FUN=length) > 0L]
+  excl <- normalize_exclusions(c(source_exclusions, exclusions), path)
 
   df <- as.data.frame(coverage, sort = FALSE)
 
- to_exclude <- vapply(seq_len(NROW(df)),
+  df$full_name <- vapply(coverage, 
+    function(x) {
+      normalizePath(
+        getSrcFilename(x$srcref, full.names = TRUE)
+      )}, character(1))
+
+  to_exclude <- vapply(seq_len(NROW(df)),
     function(i) {
-      file <- df[i, "filename"]
-      file %in% names(excl) &&
-        excl[[file]] == Inf ||
-        all(seq(df[i, "first_line"], df[i, "last_line"]) %in% excl[[file]])
+      file <- df[i, "full_name"]
+      which_exclusion <- match(file, names(excl))
+      !is.na(which_exclusion) && 
+      (excl[[which_exclusion]] == Inf ||
+      all(seq(df[i, "first_line"], df[i, "last_line"]) %in% excl[[file]]))
     },
-    logical(1)
-  )
+    logical(1))
 
   if (any(to_exclude)) {
     coverage <- coverage[!to_exclude]
@@ -58,22 +65,18 @@ parse_exclusions <- function(lines,
   sort(unique(exclusions))
 }
 
-file_exclusions <- function(x, path) {
-  excl <- normalize_exclusions(x)
+file_exclusions <- function(x, path = NULL) {
+  excl <- normalize_exclusions(x, path)
 
   full_files <- vapply(excl, function(x1) length(x1) == 1 && x1 == Inf, logical(1))
   if (any(full_files)) {
-    files <- names(excl)[full_files]
-    tryCatch(normalizePath(file.path(path, files), mustWork = TRUE),
-             error = function(e) {
-               stop(sprintf("Exclusion file: %s not found at %s\n", x, path), call. = FALSE)
-             })
+    names(excl)[full_files]
   } else {
     NULL
   }
 }
 
-normalize_exclusions <- function(x) {
+normalize_exclusions <- function(x, path = NULL) {
   if (is.null(x) || length(x) <= 0) {
     return(list())
   }
@@ -102,6 +105,11 @@ normalize_exclusions <- function(x) {
       x[unnamed] <- Inf
     }
   }
+
+  if (!is.null(path)) {
+    names(x) <- file.path(path, names(x))
+  }
+  names(x) <- normalizePath(names(x), mustWork = TRUE)
 
   remove_line_duplicates(
     remove_file_duplicates(

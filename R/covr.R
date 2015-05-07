@@ -115,6 +115,8 @@ package_coverage <- function(path = ".",
                              exclude_end = options("covr.exclude_end")
                              ) {
 
+  path <- normalizePath(path)
+  
   pkg <- devtools::as.package(path)
 
   type <- match.arg(type)
@@ -153,7 +155,7 @@ package_coverage <- function(path = ".",
         CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-        LDFLAGS = "--coverage"), {
+        PKG_LIBS = "--coverage"), {
         subprocess(
           clean = clean,
           quiet = quiet,
@@ -192,7 +194,8 @@ package_coverage <- function(path = ".",
     exclusions = exclusions,
     exclude_pattern = exclude_pattern,
     exclude_start = exclude_start,
-    exclude_end = exclude_end
+    exclude_end = exclude_end,
+    path = if (isTRUE(relative_path)) path else NULL
   )
 }
 
@@ -228,6 +231,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
                              "--with-keep.source",
                              "--no-byte-compile",
                              "--no-test-load",
+                             "--no-multiarch",
                              "-l",
                              tmp_lib),
                   quiet = quiet)

@@ -11,3 +11,5 @@ _dev\.R$
 ^\.lintr$
 ^appveyor\.yml$
 ^wercker\.yml$
+^\.Rproj\.user$
+^tests/testthat/.*/.*(o|sl|so|dylib|a|dll|def)$

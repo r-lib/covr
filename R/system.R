@@ -37,10 +37,10 @@ system_check <- function(cmd, args = character(), env = character(),
 #' @return command output if the command succeeds, an error will be thrown if
 #' the command fails.
 system_output <- function(cmd, args = character(), env = character(),
-                          quiet = FALSE, ...) {
+                          quiet = FALSE, echo = FALSE, ...) {
   full <- paste(c(shQuote(cmd), lapply(args, shQuote)), collapse = " ")
 
-  if (!quiet) {
+  if (echo) {
     message(wrap_command(full), "\n")
   }
   result <- withCallingHandlers(with_envvar(env,
