@@ -169,3 +169,7 @@ per_line <- function(coverage) {
     files, res),
     class = "line_coverages")
 }
+
+if (getRversion() < "3.2.0") {
+  isNamespaceLoaded <- function(x) x %in% loadedNamespaces()
+}
