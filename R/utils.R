@@ -50,11 +50,11 @@ test_directory <- function(path) {
 source_dir <- function(path, pattern = rex::rex(".", one_of("R", "r"), end), env,
                        chdir = TRUE, quiet = FALSE) {
   files <- normalizePath(list.files(path, pattern, full.names = TRUE))
-  lapply(files, source_from_dir, path = path, env = env, chdir = chdir, quiet = quiet)
+  lapply(files, source2, path = path, env = env, quiet = quiet)
 }
 
-source_from_dir <- function(file, path, env, chdir = TRUE, quiet = FALSE) {
-  if (chdir) {
+source2 <- function(file, env, path = NULL, quiet = FALSE) {
+  if (!is.null(path)) {
     old <- setwd(path)
     on.exit(setwd(old))
   }
@@ -65,6 +65,8 @@ source_from_dir <- function(file, path, env, chdir = TRUE, quiet = FALSE) {
     sys.source(file, env)
   }
 }
+
+ex_dot_r <- get(".createExdotR", envir = asNamespace("tools"))
 
 example_code <- function(file) {
   parsed_rd <- tools::parse_Rd(file)

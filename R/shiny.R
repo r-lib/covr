@@ -16,6 +16,7 @@ shine.default <- function(x, ...) {
   stop("shine must be called on a coverage object!", call. = FALSE)
 }
 
+#' @export
 shine.coverages <- function(x, ...) {
 
   loadNamespace("shiny")
@@ -60,6 +61,7 @@ shine.coverages <- function(x, ...) {
   )
 }
 
+#' @export
 shine.coverage <- function(x, ...) {
 
   loadNamespace("shiny")

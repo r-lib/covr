@@ -148,7 +148,7 @@ package_coverage <- function(path = ".",
   tmp_lib <- tempdir()
 
   # if there are compiled components to a package we have to run in a subprocess
-  if (length(sources) > 0) {
+  if (length(sources)) {
 
     with_makevars(
       c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
@@ -170,7 +170,11 @@ package_coverage <- function(path = ".",
       clear_gcov(path)
     }
   } else {
-    coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
+    subprocess(
+               clean = clean,
+               quiet = quiet,
+               coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
+               )
   }
 
   # set the display names for coverage
@@ -258,16 +262,11 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
             function(file) {
               out_file <- tempfile(fileext = ".R")
               knitr::knit(input = file, output = out_file, tangle = TRUE)
-              bquote(source_from_dir(.(out_file), .(vignette_dir), .(env), quiet = .(quiet)))
+              bquote(source2(.(out_file), .(env), path = .(vignette_dir), quiet = .(quiet)))
             })
         } else if (type == "example" && file.exists(example_dir)) {
-          lapply(dir(example_dir, pattern = rex::rex(".Rd"), full.names = TRUE),
-            function(file) {
-              out_file <- tempfile(fileext = ".R")
-              ex <- example_code(file)
-              cat(c(sprintf("library(%s)\n", pkg$package), ex), file = out_file)
-              bquote(source_from_dir(.(out_file), NULL, .(env), chdir = FALSE, quiet = .(quiet)))
-            })
+          ex_file <- process_examples(pkg, tmp_lib, quiet) # nolint
+          bquote(source(.(ex_file)))
         })
 
     enc <- environment()
@@ -279,4 +278,35 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
     unloadNamespace(pkg$package)
     cov
   })
+}
+
+process_examples <- function(pkg, lib = getwd(), quiet = TRUE) {
+
+  ex_file <- ex_dot_r(pkg$package, file.path(lib, pkg$package), silent = quiet)
+
+  # we need to move the file from the working directory into the tmp
+  # dir, remove the last line (which quits) and remove the originaal
+  # and *-cnt file
+  tmp_ex_file <- file.path(lib, ex_file)
+  lines <- readLines(ex_file)
+  header_lines <- readLines(file.path(R.home("share"), "R", "examples-header.R"))
+
+  # pdf output at lib
+  header_lines <- rex::re_substitutes(header_lines,
+    rex::rex("grDevices::pdf(paste(pkgname, \"-Ex.pdf\", sep=\"\")"),
+    paste0("grDevices::pdf(\"", file.path(lib, pkg$package), "-Ex.pdf\""))
+
+  # remove header source line
+  lines <- lines[-2]
+
+  # append header_lines after the first line
+  lines <- append(lines, header_lines, after = 1)
+
+  # remove last line "quit("no")"
+  lines <- lines[-length(lines)]
+  writeLines(lines, con = tmp_ex_file)
+  file.remove(ex_file)
+  file.remove(paste0(ex_file, "-cnt"))
+
+  tmp_ex_file
 }
