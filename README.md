@@ -6,60 +6,57 @@ Track test coverage for your R package and (optionally) upload the results to
 [coveralls](https://coveralls.io/) or [codecov](https://codecov.io/).
 
 # Installation #
-## Coveralls ##
-If you are already using [Travis-CI](https://travis-ci.org) add the
+## Codecov ##
+If you are already using [Travis-CI](https://travis-ci.org) or [Appveyor CI](http://www.appveyor.com/) add the
 following to your project's `.travis.yml` to track your coverage results
-over time with [Coveralls](https://coveralls.io/).
+over time with [Codecov](https://codecov/).
 
 ```yml
 r_github_packages:
   - jimhester/covr
 
 after_success:
-  - Rscript -e 'library(covr);coveralls()'
+  - Rscript -e 'library(covr);codecov()'
 ```
 
-To use a different CI service, you need to specify your secret repo token for
-the repository, found at the bottom of your repository's page on Coveralls.
-Your `after_success` would then look like this: 
+To use a different CI service or call `codecov()` locally you can set the
+environment variable `CODECOV_TOKEN` to the token generated on codecov.io.
+
+Codecov currently has support for the following CI systems (\* denotes support
+without needing `CODECOV_TOKEN`).
+
+- [Jenkins](https://jenkins-ci.org)
+- [Travis CI\*](https://travis-ci.com)
+- [Codeship](https://www.codeship.io/)
+- [Circleci\*](https://circleci.com)
+- [Semaphore](https://semaphoreapp.com)
+- [drone.io](https://drone.io)
+- [AppVeyor\*](http://www.appveyor.com)
+- [Wercker](http://wercker.com)
+
+You will also need to enable the repository on [Codecov](https://codecov/).
+
+## Coveralls ##
+
+Alternatively you can upload your results to [Coveralls](https://coveralls.io/)
+using `coveralls()`.
 
 ```yml
 after_success:
-  - Rscript -e 'library(covr);coveralls(repo_token = "your_secret_token")'
+  - Rscript -e 'library(covr);coveralls()'
 ```
 
-If you are using the secret repo token it is wise to use a [Secure
-Variable](http://docs.travis-ci.com/user/environment-variables/#Secure-Variables)
-so that it cannot be used maliciously.
+For CI systems not supported by coveralls you need to set the `COVERALLS_TOKEN`
+environment variable. It is wise to use a [Secure Variable](http://docs.travis-ci.com/user/environment-variables/#Secure-Variables)
+so that it is not revealed publicly.
 
 Also you will need to turn on coveralls for your project at <https://coveralls.io/repos/new>.
+[Coveralls](https://coveralls.io/)
 
-## Codecov ##
-Alternatively you can track your coverage results using Codecov, which supports
-a large number of CI systems out of the box
+# Interactive Usage #
 
-- [Jenkins](https://jenkins-ci.org)
-- [Travis CI](https://travis-ci.com)
-- [Codeship](https://www.codeship.io/)
-- [Circleci](https://circleci.com)
-- [Semaphore](https://semaphoreapp.com)
-- [drone.io](https://drone.io)
-- [AppVeyor](http://www.appveyor.com)
-- [Wercker](http://wercker.com)
-
-It also supports uploading coverage results directly from your computer.
-
-For all of the cases include the following in your build script.
-
-```r
-library(covr);codecov()
-```
-
-# Usage #
-Iterative usage of `covr`.
-
-## Shiny App ##
-A [shiny](http://shiny.rstudio.com/) application can also be used to
+## Shiny Application ##
+A [shiny](http://shiny.rstudio.com/) Application can be used to
 view coverage per line.
 ```r
 cov <- package_coverage()
@@ -67,16 +64,28 @@ cov <- package_coverage()
 shine(cov)
 ```
 
-## REPL ##
+If used with `type = "all"` the Shiny Application will allow you to
+interactively toggle between Test, Vignette and Example coverage.
+
+```r
+cov <- package_coverage(type = "all")
+
+shine(cov)
+```
+
+## R Command Line ##
 ```r
 # if your working directory is in the packages base directory
 package_coverage()
 
 # or a package in another directory
-package_coverage("lintr")
+cov <- package_coverage("lintr")
 
-# zero_coverage() can be used to see only uncovered lines.
-zero_coverage(package_coverage())
+# view results as a data.frame
+as.data.frame(cov)
+
+# zero_coverage() can be used to filter only uncovered lines.
+zero_coverage(cov)
 ```
 
 # Implementation #
