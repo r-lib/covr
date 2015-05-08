@@ -9,7 +9,7 @@
 #' \sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.
 #' @export
 coveralls <- function(path = ".", ...,
-                      repo_token = Sys.getenv("COVERALLS_TOKEN", NULL),
+                      repo_token = Sys.getenv("COVERALLS_TOKEN"),
                       service_name = Sys.getenv("CI_NAME", "travis-ci")) {
 
   service <- tolower(service_name)
@@ -37,7 +37,7 @@ to_file <- function(x) {
 }
 
 to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
-                         service_name, repo_token = NULL) {
+                         service_name, repo_token = "") {
 
   coverages <- per_line(x)
 
@@ -55,7 +55,7 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
     list(NULL)
   )
 
-  payload <- if (is.null(repo_token)) {
+  payload <- if (!nzchar(repo_token)) {
     list(
       "service_job_id" = jsonlite::unbox(service_job_id),
       "service_name" = jsonlite::unbox(service_name),
