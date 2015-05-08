@@ -137,10 +137,6 @@ package_coverage <- function(path = ".",
     return(res)
   }
 
-  if (!file.exists(path)) {
-    stop(sQuote(path), " does not exist!", call. = FALSE)
-  }
-
   dots <- dots(...)
 
   sources <- sources(path)
