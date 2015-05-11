@@ -4,13 +4,15 @@
 \alias{coveralls}
 \title{Run covr on a package and upload the result to coveralls}
 \usage{
-coveralls(path = ".", ..., repo_token = Sys.getenv("COVERALLS_TOKEN"),
-  service_name = Sys.getenv("CI_NAME", "travis-ci"))
+coveralls(..., coverage = NULL, repo_token = Sys.getenv("COVERALLS_TOKEN"),
+  service_name = Sys.getenv("CI_NAME", "travis-ci"), quiet = TRUE)
 }
 \arguments{
-\item{path}{file path to the package}
+\item{...}{arguments passed to \code{\link{package_coverage}}}
 
-\item{...}{additional arguments passed to \code{\link{package_coverage}}}
+\item{coverage}{an existing coverage object to submit, if \code{NULL},
+\code{\link{package_coverage}} will be called with the arguments from
+\code{...}}
 
 \item{repo_token}{The secret repo token for your repository,
 found at the bottom of your repository's page on Coveralls. This is useful
@@ -19,6 +21,8 @@ If set to NULL, it is assumed that the job is running on travis-ci}
 
 \item{service_name}{the CI service to use, if environment variable
 \sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.}
+
+\item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }
 \description{
 Run covr on a package and upload the result to coveralls

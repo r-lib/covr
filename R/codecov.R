@@ -1,9 +1,28 @@
 #' Run covr on a package and upload the result to codecov.io
-#' @param path file path to the package
-#' @param ... additional arguments passed to \code{\link{package_coverage}}
+#' @param coverage an existing coverage object to submit, if \code{NULL},
+#' \code{\link{package_coverage}} will be called with the arguments from
+#' \code{...}
+#' @param ... arguments passed to \code{\link{package_coverage}}
 #' @param base_url Codecov url (change for Enterprise)
+#' @param quiet if \code{FALSE}, print the coverage before submission.
 #' @export
-codecov <- function(path = ".", ..., base_url = "https://codecov.io") {
+#' @examples
+#' \dontrun{
+#' codecov(path = "test")
+#' }
+codecov <- function(...,
+                    coverage = NULL,
+                    base_url = "https://codecov.io",
+                    quiet = TRUE) {
+
+  if (is.null(coverage)) {
+    coverage <- package_coverage(...)
+  }
+
+  if (!quiet) {
+    print(coverage)
+  }
+
   # -------
   # Jenkins
   # -------
@@ -110,9 +129,9 @@ codecov <- function(path = ".", ..., base_url = "https://codecov.io") {
     codecov_query$token <- Sys.getenv("CODECOV_TOKEN")
   }
 
-  coverage <- to_codecov(package_coverage(path, relative_path = TRUE, ...))
+  coverage_json <- to_codecov(coverage)
 
-  httr::content(httr::POST(url = codecov_url, query = codecov_query, body = coverage, encode = "json"))
+  httr::content(httr::POST(url = codecov_url, query = codecov_query, body = coverage_json, encode = "json"))
 }
 
 to_codecov <- function(x) {
