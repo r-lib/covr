@@ -301,8 +301,15 @@ process_examples <- function(pkg, lib = getwd(), quiet = TRUE) {
   # remove last line "quit("no")"
   lines <- lines[-length(lines)]
   writeLines(lines, con = tmp_ex_file)
-  file.remove(ex_file)
-  file.remove(paste0(ex_file, "-cnt"))
+
+  if (file.exists(ex_file)) {
+    file.remove(ex_file)
+  }
+
+  cnt_file <- paste0(ex_file, "-cnt")
+  if (file.exists(cnt_file)) {
+    file.remove(paste0(ex_file, "-cnt"))
+  }
 
   tmp_ex_file
 }
