@@ -1,25 +1,37 @@
 #' Run covr on a package and upload the result to coveralls
-#' @param path file path to the package
-#' @param ... additional arguments passed to \code{\link{package_coverage}}
+#' @param coverage an existing coverage object to submit, if \code{NULL},
+#' \code{\link{package_coverage}} will be called with the arguments from
+#' \code{...}
+#' @param ... arguments passed to \code{\link{package_coverage}}
 #' @param repo_token The secret repo token for your repository,
 #' found at the bottom of your repository's page on Coveralls. This is useful
 #' if your job is running on a service Coveralls doesn't support out-of-the-box.
 #' If set to NULL, it is assumed that the job is running on travis-ci
 #' @param service_name the CI service to use, if environment variable
 #' \sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.
+#' @param quiet if \code{FALSE}, print the coverage before submission.
 #' @export
-coveralls <- function(cov = package_coverage(...),
+coveralls <- function(..., coverage = NULL,
                       repo_token = Sys.getenv("COVERALLS_TOKEN"),
-                      service_name = Sys.getenv("CI_NAME", "travis-ci")) {
+                      service_name = Sys.getenv("CI_NAME", "travis-ci"),
+                      quiet = TRUE) {
+
+  if (is.null(coverage)) {
+    coverage <- package_coverage(...)
+  }
+
+  if (!quiet) {
+    print(coverage)
+  }
 
   service <- tolower(service_name)
 
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
-  json_file <- to_coveralls(package_coverage(path, relative_path = TRUE, ...),
+  coverage_json <- to_coveralls(coverage,
     repo_token = repo_token, service_name = service)
 
   result <- httr::POST(url = coveralls_url,
-    body = list(json_file = httr::upload_file(to_file(json_file))))
+    body = list(json_file = httr::upload_file(to_file(coverage_json))))
 
   content <- httr::content(result)
   if (isTRUE(content$error)) {
