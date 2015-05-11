@@ -8,7 +8,7 @@
 #' @param service_name the CI service to use, if environment variable
 #' \sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.
 #' @export
-coveralls <- function(path = ".", ...,
+coveralls <- function(cov = package_coverage(...),
                       repo_token = Sys.getenv("COVERALLS_TOKEN"),
                       service_name = Sys.getenv("CI_NAME", "travis-ci")) {
 
