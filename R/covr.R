@@ -237,7 +237,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
                   quiet = quiet)
 
   if (isNamespaceLoaded(pkg$package)) {
-    unloadNamespace(pkg$package)
+    try_unload(pkg$package)
     on.exit(loadNamespace(pkg$package), add = TRUE)
   }
   with_lib(tmp_lib, {
@@ -271,9 +271,13 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
     cov <- environment_coverage_(ns_env, exprs, enc)
 
     # unload the package being tested
-    unloadNamespace(pkg$package)
+    try_unload(pkg$package)
     cov
   })
+}
+
+try_unload <- function(pkg) {
+  tryCatch(unloadNamespace(pkg), error = function(e) warning(e))
 }
 
 process_examples <- function(pkg, lib = getwd(), quiet = TRUE) {
