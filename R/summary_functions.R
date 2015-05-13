@@ -54,23 +54,32 @@ tally_coverage <- function(x, by = c("line", "expression")) {
 #' @param x a coverage object returned \code{\link{package_coverage}}
 #' @param ... additional arguments passed to
 #' \code{\link{tally_coverage}}
+#' @details if used within Rstudio this function outputs the results using the
+#' Marker API.
 #' @export
 zero_coverage <- function(x, ...) {
-  coverage_data <- tally_coverage(x, ...)
+  if (getOption("covr.rstudio_source_markers", TRUE) &&
+      rstudioapi::hasFun("sourceMarkers")) {
+    markers(x)
+    invisible(x)
+  } else {
 
-  coverage_data[coverage_data$value == 0,
+    coverage_data <- tally_coverage(x, ...)
 
-    # need to use %in% rather than explicit indexing because
-    # tally_coverage returns a df without the columns if
-    # by = "line"
-    colnames(coverage_data) %in%
-      c("filename",
-        "functions",
-        "first_line",
-        "last_line",
-        "first_column",
-        "last_column",
-        "value")]
+    coverage_data[coverage_data$value == 0,
+
+                  # need to use %in% rather than explicit indexing because
+                  # tally_coverage returns a df without the columns if
+                  # by = "line"
+                  colnames(coverage_data) %in%
+                    c("filename",
+                      "functions",
+                      "first_line",
+                      "last_line",
+                      "first_column",
+                      "last_column",
+                      "value")]
+  }
 }
 
 #' Print a coverage object
@@ -131,4 +140,40 @@ format_percentage <- function(x) {
     else crayon::red
 
   color(sprintf("%02.2f%%", x * 100))
+}
+
+markers <- function(x, ...) UseMethod("markers")
+
+markers.coverages <- function(x, ...) {
+  mrks <- unlist(lapply(unname(x), markers), recursive = FALSE)
+
+  mrks <- mrks[order(
+    vapply(mrks, `[[`, character(1), "file"),
+    vapply(mrks, `[[`, integer(1), "line"),
+    vapply(mrks, `[[`, character(1), "message")
+    )]
+
+  # request source markers
+  rstudioapi::callFun("sourceMarkers",
+                      name = "covr",
+                      markers = mrks,
+                      basePath = NULL,
+                      autoSelect = "first")
+  invisible()
+}
+markers.coverage <- function(x, ...) {
+
+  # generate the markers
+  markers <- lapply(unname(x), function(xx) {
+    filename <- getSrcFilename(xx$srcref, full.names = TRUE)
+
+    list(
+      type = "warning",
+      file = filename,
+      line = xx$srcref[1],
+      column = xx$srcref[2],
+      message = sprintf("No %s Coverage!", to_title(attr(x, "type")))
+    )
+  })
+
 }

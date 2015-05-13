@@ -16,4 +16,8 @@ zero_coverage(x, ...)
 When examining the test coverage of a package, it is useful to know if there are
 any locations where there is \bold{0} test coverage.
 }
+\details{
+if used within Rstudio this function outputs the results using the
+Marker API.
+}
 
