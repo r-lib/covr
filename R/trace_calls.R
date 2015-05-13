@@ -2,13 +2,17 @@
 #'
 #' This function calls itself recursively so it can properly traverse the AST.
 #' @param x the call
+#' @param parent_functions the functions which this call is a child of.
 #' @param parent_ref argument used to set the srcref of the current call when recursing
 #' @seealso \url{http://adv-r.had.co.nz/Expressions.html}
 #' @return a modified expression with count calls inserted before each previous
 #' call.
-trace_calls <- function (x, parent_ref = NULL) {
+trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
+  if (is.null(parent_functions)) {
+    parent_functions <- deparse(substitute(x))
+  }
   recurse <- function(y) {
-    lapply(y, trace_calls)
+    lapply(y, trace_calls, parent_functions = parent_functions)
   }
 
   if (is.atomic(x) || is.name(x)) {
@@ -19,17 +23,21 @@ trace_calls <- function (x, parent_ref = NULL) {
       if ((!is.symbol(x) && is.na(x)) || as.character(x) == "{") {
         x
       } else {
-        key <- new_counter(parent_ref) # nolint
+        key <- new_counter(parent_ref, parent_functions) # nolint
         bquote(`{`(covr:::count(.(key)), .(x)))
       }
     }
   }
   else if (is.call(x)) {
+    if ((identical(x[[1]], as.name("<-")) || identical(x[[1]], as.name("="))) &&
+        (is.call(x[[3]]) && identical(x[[3]][[1]], as.name("function")))) {
+      parent_functions <- c(parent_functions, as.character(x[[2]]))
+    }
     src_ref <- attr(x, "srcref")
     if (!is.null(src_ref)) {
-      as.call(Map(trace_calls, x, src_ref))
+      as.call(Map(trace_calls, x, src_ref, MoreArgs = list(parent_functions = parent_functions)))
     } else if (!is.null(parent_ref)) {
-      key <- new_counter(parent_ref)
+      key <- new_counter(parent_ref, parent_functions)
       bquote(`{`(covr:::count(.(key)), .(as.call(recurse(x)))))
     } else {
       as.call(recurse(x))
@@ -41,13 +49,13 @@ trace_calls <- function (x, parent_ref = NULL) {
     if(!is.null(fun_body) && !is.null(attr(x, "srcref")) &&
        (is.symbol(fun_body) || !identical(fun_body[[1]], as.name("{")))) {
       src_ref <- attr(x, "srcref")
-      key <- new_counter(src_ref)
-      fun_body <- bquote(`{`(covr:::count(.(key)), .(trace_calls(fun_body))))
+      key <- new_counter(src_ref, parent_functions)
+      fun_body <- bquote(`{`(covr:::count(.(key)), .(trace_calls(fun_body, parent_functions))))
     } else {
-      fun_body <- trace_calls(fun_body)
+      fun_body <- trace_calls(fun_body, parent_functions)
     }
 
-    new_formals <- trace_calls(formals(x))
+    new_formals <- trace_calls(formals(x), parent_functions)
     if (is.null(new_formals)) new_formals <- list()
     formals(x) <- new_formals
     body(x) <- fun_body
@@ -73,10 +81,12 @@ trace_calls <- function (x, parent_ref = NULL) {
 #' initialize a new counter
 #'
 #' @param src_ref a \code{\link[base]{srcref}}
-new_counter <- function(src_ref) {
+#' @param enclosing_funs the functions that this srcref is contained in.
+new_counter <- function(src_ref, enclosing_funs) {
   key <- key(src_ref)
   .counters[[key]]$value <- 0
   .counters[[key]]$srcref <- src_ref
+  .counters[[key]]$functions <- enclosing_funs
   key
 }
 
@@ -99,4 +109,11 @@ clear_counters <- function() {
 key <- function(x) {
   src_file <- attr(x, "srcfile")
   paste(collapse = ":", c(address(src_file), x))
+}
+
+f1 <- function() {
+  f2 <- function() {
+    2
+  }
+  f2()
 }

@@ -17,16 +17,16 @@ test_that("format_percentage works as expected", {
   expect_equal(format_percentage(0.965), "\u001b[32m96.50%\u001b[39m")
 })
 
-test_that("print.coverage prints by_line by default", {
+test_that("print.coverage prints by = \"line\" by default", {
   cov <- package_coverage("TestPrint")
 
-  expect_message(print(cov, by_line = FALSE),
+  expect_message(print(cov, by = "expression"),
     rex::rex("R", one_of("/", "\\"), "TestPrint.R: ", anything, "66.67%"))
 
-  expect_message(print(cov, by_line = TRUE),
+  expect_message(print(cov, by = "line"),
     rex::rex("Test Coverage: ", anything, "100.00%"))
 
-  expect_message(print(cov, by_line = TRUE),
+  expect_message(print(cov, by = "line"),
     rex::rex("R", one_of("/", "\\"), "TestPrint.R: ", anything, "100.00%"))
 
   # test default
@@ -35,4 +35,13 @@ test_that("print.coverage prints by_line by default", {
 
   expect_message(print(cov),
     rex::rex("R", one_of("/", "\\"), "TestPrint.R: ", anything, "100.00%"))
+})
+test_that("print.coverage prints by = \"line\" by default", {
+  cov <- package_coverage("TestPrint")
+
+  expect_message(print(cov, group = "functions"),
+    rex::rex("test_me", anything, "100.00%"))
+
+  expect_message(print(cov, group = "functions", by = "expression"),
+    rex::rex("test_me", anything, "66.67%"))
 })

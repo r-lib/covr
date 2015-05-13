@@ -4,10 +4,12 @@
 \alias{trace_calls}
 \title{trace each call with a srcref attribute}
 \usage{
-trace_calls(x, parent_ref = NULL)
+trace_calls(x, parent_functions = NULL, parent_ref = NULL)
 }
 \arguments{
 \item{x}{the call}
+
+\item{parent_functions}{the functions which this call is a child of.}
 
 \item{parent_ref}{argument used to set the srcref of the current call when recursing}
 }

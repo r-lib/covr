@@ -8,6 +8,8 @@ shine(x, ...)
 }
 \arguments{
 \item{x}{a coverage dataset}
+
+\item{...}{additional arguments passed to methods}
 }
 \description{
 The shiny app is designed to provide local information to coverage

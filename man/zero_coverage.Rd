@@ -4,11 +4,13 @@
 \alias{zero_coverage}
 \title{Provide locations of zero coverage}
 \usage{
-zero_coverage(coverage_result)
+zero_coverage(x, ...)
 }
 \arguments{
-\item{coverage_result}{a coverage object returned from #'
-\code{\link{package_coverage}}, or its data frame conversion}
+\item{x}{a coverage object returned \code{\link{package_coverage}}}
+
+\item{...}{additional arguments passed to
+\code{\link{tally_coverage}}}
 }
 \description{
 When examining the test coverage of a package, it is useful to know if there are

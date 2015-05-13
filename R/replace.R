@@ -2,7 +2,7 @@
 replacement <- function(name, env = as.environment(-1)) {
   target_value <- get(name, envir = env)
   if (is.function(target_value) && !is.primitive(target_value)) {
-    new_value <- trace_calls(target_value)
+    new_value <- trace_calls(target_value, name)
     attributes(new_value) <- attributes(target_value)
 
     if (isS4(target_value)) {

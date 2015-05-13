@@ -4,6 +4,7 @@
 #' information similar to the coveralls.io website.  However it does not and
 #' will not track coverage over time.
 #' @param x a coverage dataset
+#' @param ... additional arguments passed to methods
 #' @examples
 #' \dontrun{
 #' x <- package_coverage()
@@ -172,6 +173,8 @@ add_color_box <- function(nums) {
     }
   })
 }
+
+utils::globalVariables("func", "covr")
 
 renderSourceTable <- function(expr, env = parent.frame()) {
 

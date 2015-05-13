@@ -4,14 +4,14 @@
 \alias{percent_coverage}
 \title{Provide percent coverage of package}
 \usage{
-percent_coverage(coverage_result, by_line = TRUE)
+percent_coverage(x, ...)
 }
 \arguments{
-\item{coverage_result}{the coverage object returned from \code{\link{package_coverage}}}
+\item{x}{the coverage object returned from \code{\link{package_coverage}}}
 
-\item{by_line}{whether to compute the percentage by covered lines or be covered expressions}
+\item{...}{additional arguments passed to \code{\link{tally_coverage}}}
 }
 \description{
-Provide percent coverage of package
+Print the total percent coverage
 }
 

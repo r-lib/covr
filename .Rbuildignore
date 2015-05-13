@@ -13,3 +13,4 @@ _dev\.R$
 ^wercker\.yml$
 ^\.Rproj\.user$
 ^tests/testthat/.*/.*(o|sl|so|dylib|a|dll|def)$
+^covr.*$

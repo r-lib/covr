@@ -36,7 +36,7 @@ parse_gcov <- function(file, source_file) {
 
   res <- Map(function(line, length, value) {
     src_ref <- srcref(src_file, c(line, 1, line, length))
-    res <- list(srcref = src_ref, value = value)
+    res <- list(srcref = src_ref, value = value, functions = NA_character_)
     class(res) <- "line_coverage"
     res
   },
