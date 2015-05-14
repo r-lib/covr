@@ -115,8 +115,6 @@ package_coverage <- function(path = ".",
                              exclude_end = options("covr.exclude_end")
                              ) {
 
-  path <- normalizePath(path)
-
   pkg <- devtools::as.package(path)
 
   type <- match.arg(type)
@@ -139,19 +137,29 @@ package_coverage <- function(path = ".",
 
   dots <- dots(...)
 
-  sources <- sources(path)
+  sources <- sources(pkg$path)
 
   tmp_lib <- tempdir()
 
   # if there are compiled components to a package we have to run in a subprocess
   if (length(sources)) {
 
-    with_makevars(
-      c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+    flags <- c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-        PKG_LIBS = "--coverage"), {
+        LDFLAGS = "--coverage")
+
+    if (is_windows()) {
+
+      # workaround for https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16384
+      # LDFLAGS is ignored on Windows and we don't want to override PKG_LIBS if
+      # it is set, so use SHLIB_LIBADD
+      flags[["SHLIB_LIBADD"]] <- "--coverage"
+    }
+
+    with_makevars(
+      flags, {
         subprocess(
           clean = clean,
           quiet = quiet,
@@ -159,11 +167,11 @@ package_coverage <- function(path = ".",
           )
       })
 
-    coverage <- c(coverage, run_gcov(path, sources, quiet))
+    coverage <- c(coverage, run_gcov(pkg$path, sources, quiet))
 
     if (isTRUE(clean)) {
-      devtools::clean_dll(path)
-      clear_gcov(path)
+      devtools::clean_dll(pkg$path)
+      clear_gcov(pkg$path)
     }
   } else {
     subprocess(
@@ -175,7 +183,7 @@ package_coverage <- function(path = ".",
 
   # set the display names for coverage
   for (i in seq_along(coverage)) {
-    display_path <- if (isTRUE(relative_path)) path else NULL
+    display_path <- if (isTRUE(relative_path)) pkg$path else NULL
 
     display_name(coverage[[i]]$srcref) <-
       generate_display_name(coverage[[i]], display_path)
@@ -187,7 +195,8 @@ package_coverage <- function(path = ".",
   class(coverage) <- "coverage"
 
   # BasicClasses are functions from the method package
-  coverage <- coverage[display_name(coverage) != "./R/BasicClasses.R"]
+  coverage <- coverage[!rex::re_matches(display_name(coverage),
+    rex::rex("R", one_of("/", "\\"), "BasicClasses.R"))]
 
   # perform exclusions
   exclude(coverage,
@@ -195,7 +204,7 @@ package_coverage <- function(path = ".",
     exclude_pattern = exclude_pattern,
     exclude_start = exclude_start,
     exclude_end = exclude_end,
-    path = if (isTRUE(relative_path)) path else NULL
+    path = if (isTRUE(relative_path)) pkg$path else NULL
   )
 }
 
@@ -205,13 +214,13 @@ generate_display_name <- function(x, path = NULL) {
 
     # we have to check the system explicitly because both file.path and
     # normalizePath strip the trailing path separator.
-    if (Sys.info()["sysname"] == "Windows") {
+    if (is_windows()) {
       sep <- "\\"
     } else {
       sep <- "/"
     }
 
-    package_path <- paste0(normalizePath(path), sep)
+    package_path <- paste0(path, sep)
 
     file_path <- rex::re_substitutes(file_path, rex::rex(package_path), "")
   }

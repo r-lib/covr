@@ -175,3 +175,7 @@ per_line <- function(coverage) {
 if (getRversion() < "3.2.0") {
   isNamespaceLoaded <- function(x) x %in% loadedNamespaces()
 }
+
+is_windows <- function() {
+  .Platform$OS.type == "windows"
+}
