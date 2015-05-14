@@ -1,5 +1,6 @@
 context("evaluated functions")
 test_that("function_coverage generates output", {
+  env <- new.env()
   eval(parse(text =
 "fun <- function(x) {
   if (isTRUE(x)) {
@@ -7,9 +8,9 @@ test_that("function_coverage generates output", {
   } else {
     2
   }
-}"))
+}"), envir = env)
 
-  t1 <- function_coverage("fun", env = environment())
+  t1 <- function_coverage("fun", env = env)
   expect_equal(length(t1), 3)
 
   expect_equal(length(exclude(t1)), 3)
