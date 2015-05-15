@@ -53,6 +53,8 @@ test_that("it generates a properly formatted json file", {
       `httr:::perform` = function(...) list(...),
       `httr::content` = identity,
       `httr:::body_config` = function(...) list(...),
+      `covr:::local_branch` = function() "master",
+      `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
       res <- codecov("TestS4"),
       json <- jsonlite::fromJSON(res[[5]][[1]]),
