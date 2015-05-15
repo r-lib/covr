@@ -1,10 +1,10 @@
 Package: covr
-Title: Test Coverage for R packages
-Version: 0.5.0.9001
+Title: Test Coverage For Packages
+Version: 1.0.0
 Authors@R: "Jim Hester <james.f.hester@gmail.com> [aut, cre]"
 Description: Track test coverage for your package and (optionally)
-    upload the results to coveralls.  Compatible with any testing
-    methodology or framework.
+    upload the results to a coverage service like codecov or coveralls.
+    Compatible with any testing methodology or framework.
 Depends:
     R (>= 3.1.0),
     methods
