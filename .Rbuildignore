@@ -14,3 +14,4 @@ _dev\.R$
 ^\.Rproj\.user$
 ^tests/testthat/.*/.*(o|sl|so|dylib|a|dll|def)$
 ^covr.*$
+^cran_comments\.md$

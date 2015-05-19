@@ -4,12 +4,12 @@
 \alias{new_counter}
 \title{initialize a new counter}
 \usage{
-new_counter(src_ref, enclosing_funs)
+new_counter(src_ref, parent_functions)
 }
 \arguments{
 \item{src_ref}{a \code{\link[base]{srcref}}}
 
-\item{enclosing_funs}{the functions that this srcref is contained in.}
+\item{parent_functions}{the functions that this srcref is contained in.}
 }
 \description{
 initialize a new counter

@@ -1,20 +1,16 @@
-op <- options()
-on.exit(options(op))
-options(crayon.enabled = TRUE)
-
 context("print function")
 test_that("format_percentage works as expected", {
-  expect_equal(format_percentage(0), "\u001b[31m0.00%\u001b[39m")
+  expect_equal(format_percentage(0), crayon::red("0.00%"))
 
-  expect_equal(format_percentage(0.25), "\u001b[31m25.00%\u001b[39m")
+  expect_equal(format_percentage(0.25), crayon::red("25.00%"))
 
-  expect_equal(format_percentage(0.51), "\u001b[31m51.00%\u001b[39m")
+  expect_equal(format_percentage(0.51), crayon::red("51.00%"))
 
-  expect_equal(format_percentage(0.765), "\u001b[33m76.50%\u001b[39m")
+  expect_equal(format_percentage(0.765), crayon::yellow("76.50%"))
 
-  expect_equal(format_percentage(0.865), "\u001b[33m86.50%\u001b[39m")
+  expect_equal(format_percentage(0.865), crayon::yellow("86.50%"))
 
-  expect_equal(format_percentage(0.965), "\u001b[32m96.50%\u001b[39m")
+  expect_equal(format_percentage(0.965), crayon::green("96.50%"))
 })
 
 test_that("print.coverage prints by = \"line\" by default", {

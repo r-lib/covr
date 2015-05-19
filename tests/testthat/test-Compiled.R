@@ -1,5 +1,6 @@
 context("Compiled")
 test_that("Compiled code coverage is reported", {
+  skip_on_cran()
   cov <- as.data.frame(package_coverage("TestCompiled", relative_path = TRUE))
 
   expect_equal(cov[cov$first_line == "9", "value"], 4)
@@ -14,6 +15,7 @@ test_that("Compiled code coverage is reported", {
 })
 
 test_that("Source code subdirectories are found", {
+  skip_on_cran()
   cov <- as.data.frame(package_coverage("TestCompiledSubdir", relative_path = TRUE))
 
   expect_equal(cov[cov$first_line == "9", "value"], 4)

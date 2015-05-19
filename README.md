@@ -7,9 +7,9 @@ Track test coverage for your R package and (optionally) upload the results to
 
 # Installation #
 ## Codecov ##
-If you are already using [Travis-CI](https://travis-ci.org) or [Appveyor CI](http://www.appveyor.com/) add the
+If you are already using [Travis-CI](https://travis-ci.org) or [Appveyor CI](http://www.appveyor.com) add the
 following to your project's `.travis.yml` to track your coverage results
-over time with [Codecov](https://codecov/).
+over time with [Codecov](https://codecov.io).
 
 ```yml
 r_github_packages:
@@ -34,7 +34,7 @@ without needing `CODECOV_TOKEN`).
 - [AppVeyor\*](http://www.appveyor.com)
 - [Wercker](http://wercker.com)
 
-You will also need to enable the repository on [Codecov](https://codecov/).
+You will also need to enable the repository on [Codecov](https://codecov.io/).
 
 ## Coveralls ##
 

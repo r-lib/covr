@@ -81,12 +81,12 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
 #' initialize a new counter
 #'
 #' @param src_ref a \code{\link[base]{srcref}}
-#' @param enclosing_funs the functions that this srcref is contained in.
-new_counter <- function(src_ref, enclosing_funs) {
+#' @param parent_functions the functions that this srcref is contained in.
+new_counter <- function(src_ref, parent_functions) {
   key <- key(src_ref)
   .counters[[key]]$value <- 0
   .counters[[key]]$srcref <- src_ref
-  .counters[[key]]$functions <- enclosing_funs
+  .counters[[key]]$functions <- parent_functions
   key
 }
 
