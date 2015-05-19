@@ -6,8 +6,8 @@ Description: Track and report code coverage for your package and (optionally)
     upload the results to a coverage service like Codecov (http://codecov.io)
     or Coveralls (http://coveralls.io).  Code coverage is a measure of the
     amount of code being exercised by the tests.  It is an indirect measure of
-    test quality. Covr is compatible with any testing methodology or framework
-    and supports R code and compiled C/C++/Fortran code.
+    test quality. This package is compatible with any testing methodology or
+    framework and tracks coverage of both R code and compiled C/C++/Fortran code.
 Depends:
     R (>= 3.1.0),
     methods
