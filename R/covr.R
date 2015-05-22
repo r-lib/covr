@@ -110,9 +110,9 @@ package_coverage <- function(path = ".",
                              quiet = TRUE,
                              clean = TRUE,
                              exclusions = NULL,
-                             exclude_pattern = options("covr.exclude_pattern"),
-                             exclude_start = options("covr.exclude_start"),
-                             exclude_end = options("covr.exclude_end")
+                             exclude_pattern = getOption("covr.exclude_pattern"),
+                             exclude_start = getOption("covr.exclude_start"),
+                             exclude_end = getOption("covr.exclude_end")
                              ) {
 
   pkg <- devtools::as.package(path)
