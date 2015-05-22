@@ -102,6 +102,7 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @param exclude_pattern a search pattern to look for in the source to exclude a particular line.
 #' @param exclude_start a search pattern to look for in the source to start an exclude block.
 #' @param exclude_end a search pattern to look for in the source to stop an exclude block.
+#' @seealso exclusions
 #' @export
 package_coverage <- function(path = ".",
                              ...,

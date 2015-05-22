@@ -102,6 +102,50 @@ You can view the vignette from within `R` using
 ```r
 vignette("how_it_works", package = "covr")
 ```
+
+# Exclusions #
+
+`covr` supports a couple of different ways of excluding some or all of a file.
+
+## Exclusions Argument ##
+The exclusions argument to `package_coverage()` can be used to exclude some or
+all of a file.  This argument takes a list of filenames or named ranges to
+exclude.
+
+```r
+# exclude whole file of R/test.R
+package_coverage(exclusions = "R/test.R")
+
+# exclude lines 1 to 10 and 15 from R/test.R
+package_coverage(exclusions = list("R/test.R" = c(1:10, 15)))
+
+# exclude lines 1 to 10 from R/test.R, all of R/test2.R
+package_coverage(exclusions = list("R/test.R" = c(1, 10), "R/test2.R"))
+```
+
+## Exclusion Comments ##
+
+In addition you can exclude lines from the coverage by putting special comments
+in your source code.
+
+This can be done per line.
+```r
+f1 <- function(x) {
+  x + 1 # nocov
+}
+```
+
+Or by specifying a range with a start and end.
+```r
+f2 <- function(x) { # nocov start
+  x + 2
+} # nocov end
+```
+
+The patterns used can be specified by the `exclude_pattern`, `exclude_start`,
+`exclude_end` arguments to `package_coverage()` or by setting the global
+options `covr.exclude_pattern`, `covr.exclude_start`, `covr.exclude_end`.
+
 # Compatibility #
 ## Test ##
 Covr is compatible with any testing package, it simply executes the code in
