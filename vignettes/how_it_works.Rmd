@@ -252,4 +252,4 @@ coverage over time.
 
 # Conclusion #
 Covr aims to be a simple easy to understand implementation, hopefully this
-vignette helps to explain the rational of the package and explain how and why it works.
+vignette helps to explain the rationale of the package and explain how and why it works.
