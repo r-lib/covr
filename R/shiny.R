@@ -32,23 +32,21 @@ shine.coverages <- function(x, ...) {
     ),
     shiny::column(8,
       shiny::tabsetPanel(
-        shiny::tabPanel("Files", shiny::dataTableOutput(outputId="file_table")),
+        shiny::tabPanel("Files", DT::dataTableOutput(outputId="file_table")),
         shiny::tabPanel("Source", addHighlight(shiny::tableOutput("source_table")))
         )
       )
     )
 
   server <- function(input, output, session) {
-    output$file_table <- shiny::renderDataTable(
+    output$file_table <- DT::renderDataTable(
       data[[input$type]]$file_stats,
       escape = FALSE,
       options = list(searching = FALSE, dom = "t", paging = FALSE),
-      callback = "function(table) {
-      table.on('click.dt', 'a', function() {
+      callback = DT::JS("table.on('click.dt', 'a', function() {
         Shiny.onInputChange('filename', $(this).text());
         $('ul.nav a[data-value=Source]').tab('show');
-      });
-    }")
+      });"))
     shiny::observe({
       if (!is.null(input$filename)) {
         output$source_table <- renderSourceTable(data[[input$type]]$full[[input$filename]])
@@ -73,23 +71,21 @@ shine.coverage <- function(x, ...) {
     shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
     shiny::column(8, offset = 2,
       shiny::tabsetPanel(
-        shiny::tabPanel("Files", shiny::dataTableOutput(outputId="file_table")),
+        shiny::tabPanel("Files", DT::dataTableOutput(outputId="file_table")),
         shiny::tabPanel("Source", addHighlight(shiny::tableOutput("source_table")))
         )
       )
     )
 
   server <- function(input, output, session) {
-    output$file_table <- shiny::renderDataTable(
+    output$file_table <- DT::renderDataTable(
       data$file_stats,
       escape = FALSE,
       options = list(searching = FALSE, dom = "t", paging = FALSE),
-      callback = "function(table) {
-      table.on('click.dt', 'a', function() {
+      callback = DT::JS("table.on('click.dt', 'a', function() {
         Shiny.onInputChange('filename', $(this).text());
         $('ul.nav a[data-value=Source]').tab('show');
-      });
-    }")
+      });"))
     shiny::observe({
       if (!is.null(input$filename)) {
         output$source_table <- renderSourceTable(data$full[[input$filename]])
