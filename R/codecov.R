@@ -5,6 +5,12 @@
 #' @param ... arguments passed to \code{\link{package_coverage}}
 #' @param base_url Codecov url (change for Enterprise)
 #' @param quiet if \code{FALSE}, print the coverage before submission.
+#' @param token a codecov upload token, if \code{NULL} and the environment
+#' variable \sQuote{CODECOV_TOKEN} is used.
+#' @param commit explicitly set the commit this corresponds to, this is looked
+#' up from the service or locally if it is \code{NULL}.
+#' @param branch explicitly set the branch this corresponds to, this is looked
+#' up from the service or locally if it is \code{NULL}.
 #' @export
 #' @examples
 #' \dontrun{
@@ -13,6 +19,9 @@
 codecov <- function(...,
                     coverage = NULL,
                     base_url = "https://codecov.io",
+                    token = NULL,
+                    commit = NULL,
+                    branch = NULL,
                     quiet = TRUE) {
 
   if (is.null(coverage)) {
@@ -30,8 +39,8 @@ codecov <- function(...,
     # https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project
     # path <- Sys.getenv("WORKSPACE")
     codecov_url <- paste0(base_url, "/upload/v2?service=jenkins") # nolint
-    codecov_query <- list(branch = Sys.getenv("GIT_BRANCH"),
-                          commit = Sys.getenv("GIT_COMMIT"),
+    codecov_query <- list(branch = branch %||% Sys.getenv("GIT_BRANCH"),
+                          commit = commit %||% Sys.getenv("GIT_COMMIT"),
                           build = Sys.getenv("BUILD_NUMBER"),
                           build_url = Sys.getenv("BUILD_URL"))
   # ---------
@@ -43,34 +52,34 @@ codecov <- function(...,
     pr <- ifelse(Sys.getenv("TRAVIS_PULL_REQUEST") != "false", Sys.getenv("TRAVIS_PULL_REQUEST"), "")
     codecov_url <- paste0(base_url, "/upload/v2?service=travis-org") # nolint
     slug_info <- strsplit(Sys.getenv("TRAVIS_REPO_SLUG"), "/")[[1]]
-    codecov_query <- list(branch = Sys.getenv("TRAVIS_BRANCH"),
+    codecov_query <- list(branch = branch %||% Sys.getenv("TRAVIS_BRANCH"),
                           build = Sys.getenv("TRAVIS_JOB_NUMBER"),
                           pull_request = pr,
                           travis_job_id = Sys.getenv("TRAVIS_JOB_ID"),
                           owner = slug_info[1],
                           repo = slug_info[2],
-                          commit = Sys.getenv("TRAVIS_COMMIT"))
+                          commit = commit %||% Sys.getenv("TRAVIS_COMMIT"))
   # --------
   # Codeship
   # --------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("CI_NAME") == "codeship") {
     # https://www.codeship.io/documentation/continuous-integration/set-environment-variables/
     codecov_url <- paste0(base_url, "/upload/v2?service=codeship") # nolint
-    codecov_query <- list(branch = Sys.getenv("CI_BRANCH"),
+    codecov_query <- list(branch = branch %||% Sys.getenv("CI_BRANCH"),
                           build = Sys.getenv("CI_BUILD_NUMBER"),
                           build_url = Sys.getenv("CI_BUILD_URL"),
-                          commit = Sys.getenv("CI_COMMIT_ID"))
+                          commit = commit %||% Sys.getenv("CI_COMMIT_ID"))
   # ---------
   # Circle CI
   # ---------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("CIRCLECI") == "true") {
     # https://circleci.com/docs/environment-variables
     codecov_url <- paste0(base_url, "/upload/v2?service=circleci") # nolint
-    codecov_query <- list(branch = Sys.getenv("CIRCLE_BRANCH"),
+    codecov_query <- list(branch = branch %||% Sys.getenv("CIRCLE_BRANCH"),
                           build = Sys.getenv("CIRCLE_BUILD_NUM"),
                           owner = Sys.getenv("CIRCLE_PROJECT_USERNAME"),
                           repo = Sys.getenv("CIRCLE_PROJECT_REPONAME"),
-                          commit = Sys.getenv("CIRCLE_SHA1"))
+                          commit = commit %||% Sys.getenv("CIRCLE_SHA1"))
   # ---------
   # Semaphore
   # ---------
@@ -78,21 +87,21 @@ codecov <- function(...,
     # https://semaphoreapp.com/docs/available-environment-variables.html
     codecov_url <- paste0(base_url, "/upload/v2?service=semaphore") # nolint
     slug_info <- strsplit(Sys.getenv("SEMAPHORE_REPO_SLUG"), "/")[[1]]
-    codecov_query <- list(branch = Sys.getenv("BRANCH_NAME"),
+    codecov_query <- list(branch = branch %||% Sys.getenv("BRANCH_NAME"),
                           build = Sys.getenv("SEMAPHORE_BUILD_NUMBER"),
                           owner = slug_info[1],
                           repo = slug_info[2],
-                          commit = Sys.getenv("REVISION"))
+                          commit = commit %||% Sys.getenv("REVISION"))
   # --------
   # drone.io
   # --------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("DRONE") == "true") {
     # http://docs.drone.io/env.html
     codecov_url <- paste0(base_url, "/upload/v2?service=drone.io") # nolint
-    codecov_query <- list(branch = Sys.getenv("DRONE_BRANCH"),
+    codecov_query <- list(branch = branch %||% Sys.getenv("DRONE_BRANCH"),
                           build = Sys.getenv("DRONE_BUILD_NUMBER"),
                           build_url = Sys.getenv("DRONE_BUILD_URL"),
-                          commit = Sys.getenv("DRONE_COMMIT"))
+                          commit = commit %||% Sys.getenv("DRONE_COMMIT"))
   # --------
   # AppVeyor
   # --------
@@ -100,33 +109,34 @@ codecov <- function(...,
     # http://www.appveyor.com/docs/environment-variables
     codecov_url <- paste0(base_url, "/upload/v2?service=AppVeyor") # nolint
     name_info <- strsplit(Sys.getenv("APPVEYOR_REPO_NAME"), "/")[[1]]
-    codecov_query <- list(branch = Sys.getenv("APPVEYOR_REPO_BRANCH"),
+    codecov_query <- list(branch = branch %||% Sys.getenv("APPVEYOR_REPO_BRANCH"),
                           build = Sys.getenv("APPVEYOR_BUILD_NUMBER"),
                           owner = name_info[1],
                           repo = name_info[2],
-                          commit = Sys.getenv("APPVEYOR_REPO_COMMIT"))
+                          commit = commit %||% Sys.getenv("APPVEYOR_REPO_COMMIT"))
   # -------
   # Wercker
   # -------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("WERCKER_GIT_BRANCH") != "") {
     # http://devcenter.wercker.com/articles/steps/variables.html
     codecov_url <- paste0(base_url, "/upload/v2?service=wercker") # nolint
-    codecov_query <- list(branch = Sys.getenv("WERCKER_GIT_BRANCH"),
+    codecov_query <- list(branch = branch %||% Sys.getenv("WERCKER_GIT_BRANCH"),
                           build = Sys.getenv("WERCKER_MAIN_PIPELINE_STARTED"),
                           owner = Sys.getenv("WERCKER_GIT_OWNER"),
                           repo = Sys.getenv("WERCKER_GIT_REPOSITORY"),
-                          commit = Sys.getenv("WERCKER_GIT_COMMIT"))
+                          commit = commit %||% Sys.getenv("WERCKER_GIT_COMMIT"))
   # ---------
   # Local GIT
   # ---------
   } else {
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
-    codecov_query <- list(branch = local_branch(),
-                          commit = current_commit())
+    codecov_query <- list(branch = branch %||% local_branch(),
+                          commit = commit %||% current_commit())
   }
 
-  if (Sys.getenv("CODECOV_TOKEN") != "") {
-    codecov_query$token <- Sys.getenv("CODECOV_TOKEN")
+  token <- token %||% Sys.getenv("CODECOV_TOKEN")
+  if (nzchar(token)) {
+    codecov_query$token <- token
   }
 
   coverage_json <- to_codecov(coverage)

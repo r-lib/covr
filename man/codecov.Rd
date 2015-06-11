@@ -5,7 +5,7 @@
 \title{Run covr on a package and upload the result to codecov.io}
 \usage{
 codecov(..., coverage = NULL, base_url = "https://codecov.io",
-  quiet = TRUE)
+  token = NULL, commit = NULL, branch = NULL, quiet = TRUE)
 }
 \arguments{
 \item{...}{arguments passed to \code{\link{package_coverage}}}
@@ -15,6 +15,15 @@ codecov(..., coverage = NULL, base_url = "https://codecov.io",
 \code{...}}
 
 \item{base_url}{Codecov url (change for Enterprise)}
+
+\item{token}{a codecov upload token, if \code{NULL} and the environment
+variable \sQuote{CODECOV_TOKEN} is used.}
+
+\item{commit}{explicitly set the commit this corresponds to, this is looked
+up from the service or locally if it is \code{NULL}.}
+
+\item{branch}{explicitly set the branch this corresponds to, this is looked
+up from the service or locally if it is \code{NULL}.}
 
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }
