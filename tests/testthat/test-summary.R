@@ -1,7 +1,7 @@
 context("summary_functions")
 
 test_that("Summary gives 50% coverage", {
-  expect_equal(percent_coverage(package_coverage("TestSummary")), 0.5)
+  expect_equal(percent_coverage(package_coverage("TestSummary")), 50)
 })
 
 zero_Summary <- zero_coverage(package_coverage("TestSummary"))
@@ -27,5 +27,5 @@ test_that("percent_coverage", {
   cov <- function_coverage("fun", env = environment(fun), fun())
 
   res <- percent_coverage(cov)
-  expect_equal(res, 0.8)
+  expect_equal(res, 80)
 })

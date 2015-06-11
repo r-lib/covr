@@ -7,7 +7,7 @@
 percent_coverage <- function(x, ...) {
   res <- tally_coverage(x, ...)
 
-  sum(res$value > 0) / length(res$value)
+  (sum(res$value > 0) / length(res$value)) * 100
 }
 
 #' Tally coverage by line or expression
@@ -105,7 +105,7 @@ print.coverage <- function(x, group = c("filename", "functions"), by = "line", .
     return(invisible())
   }
 
-  percents <- tapply(df$value, df[[group]], FUN = function(x) sum(x > 0) / length(x))
+  percents <- tapply(df$value, df[[group]], FUN = function(x) (sum(x > 0) / length(x)) * 100)
 
   overall_percentage <- percent_coverage(df, by = by)
 
@@ -135,11 +135,11 @@ print.coverages <- function(x, ...) {
 }
 
 format_percentage <- function(x) {
-  color <- if (x >= .9) crayon::green
-    else if (x >= .75) crayon::yellow
+  color <- if (x >= 90) crayon::green
+    else if (x >= 75) crayon::yellow
     else crayon::red
 
-  color(sprintf("%02.2f%%", x * 100))
+  color(sprintf("%02.2f%%", x))
 }
 
 markers <- function(x, ...) UseMethod("markers")
