@@ -55,6 +55,12 @@ environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
 #' @param enc the enclosing environment which to run the expressions.
 #' @export
 function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
+  if (is.function(fun)) {
+    env <- environment(fun)
+
+    # get name of function, stripping preceding blah:: if needed
+    fun <- rex::re_substitutes(deparse(substitute(fun)), rex::regex(".*:::?"), "")
+  }
 
   exprs <- dots(...)
 
@@ -261,6 +267,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
     # get expressions to run
     exprs <-
       c(dots,
+        quote("library(methods)"),
         if (type == "test" && file.exists(testing_dir)) {
           bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet))))
         } else if (type == "vignette" && file.exists(vignette_dir)) {
