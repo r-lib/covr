@@ -242,7 +242,6 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
                  options = c(pkg$path,
                              "--no-docs",
                              "--no-multiarch",
-                             "--no-demo",
                              "--preclean",
                              "--with-keep.source",
                              "--no-byte-compile",
