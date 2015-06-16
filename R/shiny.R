@@ -35,8 +35,8 @@ shine.coverages <- function(x, ...) {
         shiny::tabPanel("Files", DT::dataTableOutput(outputId="file_table")),
         shiny::tabPanel("Source", addHighlight(shiny::tableOutput("source_table")))
         )
-      )
-    )
+      ),
+    title = paste(attr(x, "package")$package, "Coverage"))
 
   server <- function(input, output, session) {
     output$file_table <- DT::renderDataTable(
@@ -74,8 +74,8 @@ shine.coverage <- function(x, ...) {
         shiny::tabPanel("Files", DT::dataTableOutput(outputId="file_table")),
         shiny::tabPanel("Source", addHighlight(shiny::tableOutput("source_table")))
         )
-      )
-    )
+      ),
+    title = paste(attr(x, "package")$package, "Coverage"))
 
   server <- function(input, output, session) {
     output$file_table <- DT::renderDataTable(

@@ -109,7 +109,9 @@ print.coverage <- function(x, group = c("filename", "functions"), by = "line", .
 
   overall_percentage <- percent_coverage(df, by = by)
 
-  message(crayon::bold(paste(collapse = " ", c(to_title(type), "Coverage: "))),
+  message(crayon::bold(
+      paste(collapse = " ",
+        c(attr(x, "package")$package, to_title(type), "Coverage: "))),
     format_percentage(overall_percentage))
 
   by_coverage <- percents[order(percents,

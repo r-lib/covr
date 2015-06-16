@@ -138,6 +138,8 @@ package_coverage <- function(path = ".",
                 vignette = do.call(Recall, c(called_args, type = "vignette")),
                 example = do.call(Recall, c(called_args, type = "example"))
                 )
+
+    attr(res, "package") <- pkg
     class(res) <- "coverages"
     return(res)
   }
@@ -199,6 +201,7 @@ package_coverage <- function(path = ".",
   }
 
   attr(coverage, "type") <- type
+  attr(coverage, "package") <- pkg
   class(coverage) <- "coverage"
 
   # BasicClasses are functions from the method package
