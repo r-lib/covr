@@ -30,7 +30,7 @@ subprocess <- function(code, calling_env = parent.frame(),
 
   command <- sprintf(
     paste(sep = "\n",
-      "options(error = quote({dump.frames(to.file = TRUE); q(status = 1)}))",
+      "options(error = function() traceback(2))",
       "options(warn = 1)",
       "load('%s')",
       ".code <- readRDS('%s')",
