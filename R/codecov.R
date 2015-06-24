@@ -38,8 +38,9 @@ codecov <- function(...,
   if (Sys.getenv("JENKINS_URL") != "") {
     # https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project
     # path <- Sys.getenv("WORKSPACE")
-    codecov_url <- paste0(base_url, "/upload/v2?service=jenkins") # nolint
-    codecov_query <- list(branch = branch %||% Sys.getenv("GIT_BRANCH"),
+    codecov_url <- paste0(base_url, "/upload/v2") # nolint
+    codecov_query <- list(service = "jenkins",
+                          branch = branch %||% Sys.getenv("GIT_BRANCH"),
                           commit = commit %||% Sys.getenv("GIT_COMMIT"),
                           build = Sys.getenv("BUILD_NUMBER"),
                           build_url = Sys.getenv("BUILD_URL"))
@@ -50,9 +51,10 @@ codecov <- function(...,
     # http://docs.travis-ci.com/user/ci-environment/#Environment-variables
     # path <- Sys.getenv("TRAVIS_BUILD_DIR")
     pr <- ifelse(Sys.getenv("TRAVIS_PULL_REQUEST") != "false", Sys.getenv("TRAVIS_PULL_REQUEST"), "")
-    codecov_url <- paste0(base_url, "/upload/v2?service=travis-org") # nolint
+    codecov_url <- paste0(base_url, "/upload/v2") # nolint
     slug_info <- strsplit(Sys.getenv("TRAVIS_REPO_SLUG"), "/")[[1]]
-    codecov_query <- list(branch = branch %||% Sys.getenv("TRAVIS_BRANCH"),
+    codecov_query <- list(service = "travis-org",
+                          branch = branch %||% Sys.getenv("TRAVIS_BRANCH"),
                           build = Sys.getenv("TRAVIS_JOB_NUMBER"),
                           pull_request = pr,
                           travis_job_id = Sys.getenv("TRAVIS_JOB_ID"),
@@ -64,8 +66,9 @@ codecov <- function(...,
   # --------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("CI_NAME") == "codeship") {
     # https://www.codeship.io/documentation/continuous-integration/set-environment-variables/
-    codecov_url <- paste0(base_url, "/upload/v2?service=codeship") # nolint
-    codecov_query <- list(branch = branch %||% Sys.getenv("CI_BRANCH"),
+    codecov_url <- paste0(base_url, "/upload/v2") # nolint
+    codecov_query <- list(service = "codeship",
+                          branch = branch %||% Sys.getenv("CI_BRANCH"),
                           build = Sys.getenv("CI_BUILD_NUMBER"),
                           build_url = Sys.getenv("CI_BUILD_URL"),
                           commit = commit %||% Sys.getenv("CI_COMMIT_ID"))
@@ -74,8 +77,9 @@ codecov <- function(...,
   # ---------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("CIRCLECI") == "true") {
     # https://circleci.com/docs/environment-variables
-    codecov_url <- paste0(base_url, "/upload/v2?service=circleci") # nolint
-    codecov_query <- list(branch = branch %||% Sys.getenv("CIRCLE_BRANCH"),
+    codecov_url <- paste0(base_url, "/upload/v2") # nolint
+    codecov_query <- list(service = "circleci",
+                          branch = branch %||% Sys.getenv("CIRCLE_BRANCH"),
                           build = Sys.getenv("CIRCLE_BUILD_NUM"),
                           owner = Sys.getenv("CIRCLE_PROJECT_USERNAME"),
                           repo = Sys.getenv("CIRCLE_PROJECT_REPONAME"),
@@ -85,9 +89,10 @@ codecov <- function(...,
   # ---------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("SEMAPHORE") == "true") {
     # https://semaphoreapp.com/docs/available-environment-variables.html
-    codecov_url <- paste0(base_url, "/upload/v2?service=semaphore") # nolint
+    codecov_url <- paste0(base_url, "/upload/v2") # nolint
     slug_info <- strsplit(Sys.getenv("SEMAPHORE_REPO_SLUG"), "/")[[1]]
-    codecov_query <- list(branch = branch %||% Sys.getenv("BRANCH_NAME"),
+    codecov_query <- list(service = "semaphore",
+                          branch = branch %||% Sys.getenv("BRANCH_NAME"),
                           build = Sys.getenv("SEMAPHORE_BUILD_NUMBER"),
                           owner = slug_info[1],
                           repo = slug_info[2],
@@ -97,8 +102,9 @@ codecov <- function(...,
   # --------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("DRONE") == "true") {
     # http://docs.drone.io/env.html
-    codecov_url <- paste0(base_url, "/upload/v2?service=drone.io") # nolint
-    codecov_query <- list(branch = branch %||% Sys.getenv("DRONE_BRANCH"),
+    codecov_url <- paste0(base_url, "/upload/v2") # nolint
+    codecov_query <- list(service = "drone.io",
+                          branch = branch %||% Sys.getenv("DRONE_BRANCH"),
                           build = Sys.getenv("DRONE_BUILD_NUMBER"),
                           build_url = Sys.getenv("DRONE_BUILD_URL"),
                           commit = commit %||% Sys.getenv("DRONE_COMMIT"))
@@ -107,9 +113,10 @@ codecov <- function(...,
   # --------
   } else if (Sys.getenv("CI") == "True" && Sys.getenv("APPVEYOR") == "True") {
     # http://www.appveyor.com/docs/environment-variables
-    codecov_url <- paste0(base_url, "/upload/v2?service=AppVeyor") # nolint
+    codecov_url <- paste0(base_url, "/upload/v2") # nolint
     name_info <- strsplit(Sys.getenv("APPVEYOR_REPO_NAME"), "/")[[1]]
-    codecov_query <- list(branch = branch %||% Sys.getenv("APPVEYOR_REPO_BRANCH"),
+    codecov_query <- list(service = "AppVeyor",
+                          branch = branch %||% Sys.getenv("APPVEYOR_REPO_BRANCH"),
                           build = Sys.getenv("APPVEYOR_BUILD_NUMBER"),
                           owner = name_info[1],
                           repo = name_info[2],
@@ -119,8 +126,9 @@ codecov <- function(...,
   # -------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("WERCKER_GIT_BRANCH") != "") {
     # http://devcenter.wercker.com/articles/steps/variables.html
-    codecov_url <- paste0(base_url, "/upload/v2?service=wercker") # nolint
-    codecov_query <- list(branch = branch %||% Sys.getenv("WERCKER_GIT_BRANCH"),
+    codecov_url <- paste0(base_url, "/upload/v2") # nolint
+    codecov_query <- list(service = "wercker",
+                          branch = branch %||% Sys.getenv("WERCKER_GIT_BRANCH"),
                           build = Sys.getenv("WERCKER_MAIN_PIPELINE_STARTED"),
                           owner = Sys.getenv("WERCKER_GIT_OWNER"),
                           repo = Sys.getenv("WERCKER_GIT_REPOSITORY"),
