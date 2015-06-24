@@ -48,16 +48,15 @@ ci_vars <- c(
 
 test_that("it generates a properly formatted json file", {
 
-  with_envvar(ci_vars, {
+  with_envvar(ci_vars,
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
       `covr:::local_branch` = function() "master",
       `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
       res <- codecov("TestS4"),
-      json <- jsonlite::fromJSON(res[[5]][[1]]),
+      json <- jsonlite::fromJSON(res$body),
 
       expect_match(json$files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
       expect_equal(json$files$coverage[[1]],
@@ -65,27 +64,23 @@ test_that("it generates a properly formatted json file", {
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA)
         ),
       expect_equal(json$uploader, "R")
-      )
-})
+      ))
   })
 
 test_that("it works with local repos", {
   with_envvar(ci_vars, {
 
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
       `covr:::local_branch` = function() "master",
       `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
       res <- codecov("TestS4"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "/upload/v2"), # nolint
-      expect_match(url, "branch=master"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      expect_match(res$url, "2"), # nolint
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
       )
     })
   })
@@ -93,17 +88,14 @@ test_that("it works with local repos and explicit branch and commit", {
   with_envvar(ci_vars, {
 
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
 
       res <- codecov("TestS4", branch = "master", commit = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "/upload/v2"), # nolint
-      expect_match(url, "branch=master"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      expect_match(res$url, "/upload/v2"), # nolint
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
       )
     })
   })
@@ -113,21 +105,17 @@ test_that("it adds the token to the query if available", {
       "CODECOV_TOKEN" = "codecov_test"
       ),
     with_mock(
-      .env = environment(),
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
       `covr:::local_branch` = function() "master",
       `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
       res <- codecov("TestS4"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "/upload/v2"), # nolint
-      expect_match(url, "branch=master"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
-      expect_match(url, "token=codecov_test")
+      expect_match(res$url, "/upload/v2"), # nolint
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
+      expect_match(res$query$token, "codecov_test")
       )
     )
   })
@@ -142,19 +130,16 @@ test_that("it works with jenkins", {
       ),
 
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
 
       res <- codecov("TestS4"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "service=jenkins"),
-      expect_match(url, "branch=test"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
-      expect_match(url, "build=1"),
-      expect_match(url, "build_url=http%3A%2F%2Ftest.com%2Ftester%2Ftest")
+      expect_match(res$query$service, "jenkins"),
+      expect_match(res$query$branch, "test"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
+      expect_match(res$query$build, "1"),
+      expect_match(res$query$build_url, "http://test.com/tester/test")
       )
     )
   })
@@ -173,22 +158,19 @@ test_that("it works with travis normal builds", {
       ),
 
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
 
       res <- codecov("TestS4"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "service=travis-org"),
-      expect_match(url, "branch=master"),
-      expect_match(url, "travis_job_id=10"),
-      expect_match(url, "pull_request=&"),
-      expect_match(url, "owner=tester"),
-      expect_match(url, "repo=test"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
-      expect_match(url, "build=100")
+      expect_match(res$query$service, "travis-org"),
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$travis_job_id, "10"),
+      expect_match(res$query$pull_request, ""),
+      expect_match(res$query$owner, "tester"),
+      expect_match(res$query$repo, "test"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
+      expect_match(res$query$build, "100")
       )
     )
   })
@@ -207,22 +189,19 @@ test_that("it works with travis pull requests", {
       ),
 
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
 
       res <- codecov("TestS4"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "service=travis-org"),
-      expect_match(url, "branch=master"),
-      expect_match(url, "travis_job_id=10"),
-      expect_match(url, "pull_request=5"),
-      expect_match(url, "owner=tester"),
-      expect_match(url, "repo=test"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
-      expect_match(url, "build=100")
+      expect_match(res$query$service, "travis-org"),
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$travis_job_id, "10"),
+      expect_match(res$query$pull_request, "5"),
+      expect_match(res$query$owner, "tester"),
+      expect_match(res$query$repo, "test"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
+      expect_match(res$query$build, "100")
       )
     )
   })
@@ -239,19 +218,16 @@ test_that("it works with codeship", {
       ),
 
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
 
       res <- codecov("TestS4"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "service=codeship"),
-      expect_match(url, "branch=master"),
-      expect_match(url, "build=5"),
-      expect_match(url, "build_url=http%3A%2F%2Ftest.com%2Ftester%2Ftest"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      expect_match(res$query$service, "codeship"),
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$build, "5"),
+      expect_match(res$query$build_url, "http://test.com/tester/test"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
       )
     )
   })
@@ -268,20 +244,17 @@ test_that("it works with circleci", {
       ),
 
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
 
       res <- codecov("TestS4"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "service=circleci"),
-      expect_match(url, "branch=master"),
-      expect_match(url, "build=5"),
-      expect_match(url, "owner=tester"),
-      expect_match(url, "repo=test"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      expect_match(res$query$service, "circleci"),
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$build, "5"),
+      expect_match(res$query$owner, "tester"),
+      expect_match(res$query$repo, "test"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
       )
     )
   })
@@ -297,20 +270,17 @@ test_that("it works with semaphore", {
       ),
 
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
 
       res <- codecov("TestS4"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "service=semaphore"),
-      expect_match(url, "branch=master"),
-      expect_match(url, "build=5"),
-      expect_match(url, "owner=tester"),
-      expect_match(url, "repo=test"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      expect_match(res$query$service, "semaphore"),
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$build, "5"),
+      expect_match(res$query$owner, "tester"),
+      expect_match(res$query$repo, "test"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
       )
     )
   })
@@ -326,19 +296,16 @@ test_that("it works with drone", {
       ),
 
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
 
       res <- codecov("TestS4"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "service=drone.io"),
-      expect_match(url, "branch=master"),
-      expect_match(url, "build=5"),
-      expect_match(url, "build_url=http%3A%2F%2Ftest.com%2Ftester%2Ftest"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      expect_match(res$query$service, "drone.io"),
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$build, "5"),
+      expect_match(res$query$build_url, "http://test.com/tester/test"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
       )
     )
   })
@@ -354,20 +321,17 @@ test_that("it works with AppVeyor", {
       ),
 
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
 
       res <- codecov("TestS4"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "service=AppVeyor"),
-      expect_match(url, "branch=master"),
-      expect_match(url, "build=5"),
-      expect_match(url, "owner=tester"),
-      expect_match(url, "repo=test"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      expect_match(res$query$service, "AppVeyor"),
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$build, "5"),
+      expect_match(res$query$owner, "tester"),
+      expect_match(res$query$repo, "test"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
       )
     )
   })
@@ -383,20 +347,17 @@ test_that("it works with Wercker", {
       ),
 
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr::POST` = function(...) list(...),
       `httr::content` = identity,
-      `httr:::body_config` = function(...) list(...),
 
       res <- codecov("TestS4"),
 
-      url <- res[[4]]$url,
-
-      expect_match(url, "service=wercker"),
-      expect_match(url, "branch=master"),
-      expect_match(url, "build=5"),
-      expect_match(url, "owner=tester"),
-      expect_match(url, "repo=test"),
-      expect_match(url, "commit=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      expect_match(res$query$service, "wercker"),
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$build, "5"),
+      expect_match(res$query$owner, "tester"),
+      expect_match(res$query$repo, "test"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
       )
     )
   })
