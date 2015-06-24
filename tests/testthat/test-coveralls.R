@@ -52,12 +52,12 @@ test_that("coveralls generates a properly formatted json file", {
 
   with_envvar(c(ci_vars, "CI_NAME" = "FAKECI"),
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr:::POST` = function(...) list(...),
       `httr::content` = identity,
       `httr::upload_file` = function(file) readChar(file, file.info(file)$size),
 
       res <- coveralls("TestS4"),
-      json <- jsonlite::fromJSON(res[[5]]$body$json_file),
+      json <- jsonlite::fromJSON(res$body$json_file),
 
       expect_equal(nrow(json$source_files), 1),
       expect_equal(json$service_name, "fakeci"),
@@ -74,13 +74,13 @@ test_that("coveralls can spawn a job using repo_token", {
 
   with_envvar(c(ci_vars, "CI_NAME" = "DRONE"),
     with_mock(
-      `httr:::perform` = function(...) list(...),
+      `httr:::POST` = function(...) list(...),
       `httr::content` = identity,
       `httr::upload_file` = function(file) readChar(file, file.info(file)$size),
       `covr::system_output` = function(...) paste0(c("a","b","c","d","e","f"), collapse="\n"),
 
       res <- coveralls("TestS4", repo_token="mytoken"),
-      json <- jsonlite::fromJSON(res[[5]]$body$json_file),
+      json <- jsonlite::fromJSON(res$body$json_file),
 
       expect_equal(is.null(json$git), FALSE),
       expect_equal(nrow(json$source_files), 1),
