@@ -43,6 +43,7 @@ shine.coverages <- function(x, ...) {
       data[[input$type]]$file_stats,
       escape = FALSE,
       options = list(searching = FALSE, dom = "t", paging = FALSE),
+      rownames = FALSE,
       callback = DT::JS("table.on('click.dt', 'a', function() {
         Shiny.onInputChange('filename', $(this).text());
         $('ul.nav a[data-value=Source]').tab('show');
@@ -82,6 +83,7 @@ shine.coverage <- function(x, ...) {
       data$file_stats,
       escape = FALSE,
       options = list(searching = FALSE, dom = "t", paging = FALSE),
+      rownames = FALSE,
       callback = DT::JS("table.on('click.dt', 'a', function() {
         Shiny.onInputChange('filename', $(this).text());
         $('ul.nav a[data-value=Source]').tab('show');
