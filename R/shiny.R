@@ -116,7 +116,12 @@ to_shiny_data <- function(x) {
         coverage = values,
         stringsAsFactors = FALSE)
     })
-  names(res$full) <- display_name(coverages)
+  nms <- display_name(coverages)
+
+  # set a temp name if it doesn't exist
+  nms[nms == ""] <- "<text>"
+
+  names(res$full) <- nms
 
   res$file_stats <- compute_file_stats(res$full)
 
