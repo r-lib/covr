@@ -17,7 +17,7 @@ r_github_packages:
   - jimhester/covr
 
 after_success:
-  - Rscript -e 'library(covr);codecov()'
+  - Rscript -e 'covr::codecov()'
 ```
 
 To use a different CI service or call `codecov()` locally you can set the
@@ -44,7 +44,7 @@ using `coveralls()`.
 
 ```yml
 after_success:
-  - Rscript -e 'library(covr);coveralls()'
+  - Rscript -e 'covr::coveralls()'
 ```
 
 For CI systems not supported by coveralls you need to set the `COVERALLS_TOKEN`
