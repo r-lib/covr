@@ -108,6 +108,8 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @param exclude_pattern a search pattern to look for in the source to exclude a particular line.
 #' @param exclude_start a search pattern to look for in the source to start an exclude block.
 #' @param exclude_end a search pattern to look for in the source to stop an exclude block.
+#' @param use_subprocess whether to run the code in a separate subprocess.
+#' Needed for compiled code and many packages using S4 classes.
 #' @seealso exclusions
 #' @export
 package_coverage <- function(path = ".",
@@ -119,7 +121,8 @@ package_coverage <- function(path = ".",
                              exclusions = NULL,
                              exclude_pattern = getOption("covr.exclude_pattern"),
                              exclude_start = getOption("covr.exclude_start"),
-                             exclude_end = getOption("covr.exclude_end")
+                             exclude_end = getOption("covr.exclude_end"),
+                             use_subprocess = TRUE
                              ) {
 
   pkg <- devtools::as.package(path)
@@ -169,11 +172,15 @@ package_coverage <- function(path = ".",
 
     with_makevars(
       flags, {
-        subprocess(
-          clean = clean,
-          quiet = quiet,
+        if (use_subprocess) {
+          subprocess(
+                     clean = clean,
+                     quiet = quiet,
+                     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
+                     )
+        } else {
           coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
-          )
+        }
       })
 
     coverage <- c(coverage, run_gcov(pkg$path, sources, quiet))
@@ -183,11 +190,15 @@ package_coverage <- function(path = ".",
       clear_gcov(pkg$path)
     }
   } else {
-    subprocess(
-               clean = clean,
-               quiet = quiet,
-               coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
-               )
+    if (use_subprocess) {
+      subprocess(
+                 clean = clean,
+                 quiet = quiet,
+                 coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
+                 )
+    } else {
+      coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
+    }
   }
 
   # set the display names for coverage
