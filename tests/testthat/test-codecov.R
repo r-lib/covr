@@ -163,12 +163,11 @@ test_that("it works with travis normal builds", {
 
       res <- codecov("TestS4"),
 
-      expect_match(res$query$service, "travis-org"),
+      expect_match(res$query$service, "travis"),
       expect_match(res$query$branch, "master"),
-      expect_match(res$query$travis_job_id, "10"),
-      expect_match(res$query$pull_request, ""),
-      expect_match(res$query$owner, "tester"),
-      expect_match(res$query$repo, "test"),
+      expect_match(res$query$job, "10"),
+      expect_match(res$query$pr, ""),
+      expect_match(res$query$slug, "tester/test"),
       expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
       expect_match(res$query$build, "100")
       )
@@ -194,12 +193,11 @@ test_that("it works with travis pull requests", {
 
       res <- codecov("TestS4"),
 
-      expect_match(res$query$service, "travis-org"),
+      expect_match(res$query$service, "travis"),
       expect_match(res$query$branch, "master"),
-      expect_match(res$query$travis_job_id, "10"),
-      expect_match(res$query$pull_request, "5"),
-      expect_match(res$query$owner, "tester"),
-      expect_match(res$query$repo, "test"),
+      expect_match(res$query$job, "10"),
+      expect_match(res$query$pr, "5"),
+      expect_match(res$query$slug, "tester/test"),
       expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
       expect_match(res$query$build, "100")
       )

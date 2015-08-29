@@ -1,6 +1,6 @@
 Package: covr
 Title: Test Coverage for Packages
-Version: 1.2.2
+Version: 1.2.3
 Authors@R: person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre"))
 Description: Track and report code coverage for your package and (optionally)
     upload the results to a coverage service like Codecov (http://codecov.io)

@@ -49,17 +49,14 @@ codecov <- function(...,
   # ---------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("TRAVIS") == "true") {
     # http://docs.travis-ci.com/user/ci-environment/#Environment-variables
-    # path <- Sys.getenv("TRAVIS_BUILD_DIR")
-    pr <- ifelse(Sys.getenv("TRAVIS_PULL_REQUEST") != "false", Sys.getenv("TRAVIS_PULL_REQUEST"), "")
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
-    slug_info <- strsplit(Sys.getenv("TRAVIS_REPO_SLUG"), "/")[[1]]
-    codecov_query <- list(service = "travis-org",
-                          branch = branch %||% Sys.getenv("TRAVIS_BRANCH"),
+    codecov_query <- list(branch = branch %||% Sys.getenv("TRAVIS_BRANCH"),
+                          service = "travis",
                           build = Sys.getenv("TRAVIS_JOB_NUMBER"),
-                          pull_request = pr,
-                          travis_job_id = Sys.getenv("TRAVIS_JOB_ID"),
-                          owner = slug_info[1],
-                          repo = slug_info[2],
+                          pr = Sys.getenv("TRAVIS_PULL_REQUEST"),
+                          job = Sys.getenv("TRAVIS_JOB_ID"),
+                          slug = Sys.getenv("TRAVIS_REPO_SLUG"),
+                          root = Sys.getenv("TRAVIS_BUILD_DIR"),
                           commit = commit %||% Sys.getenv("TRAVIS_COMMIT"))
   # --------
   # Codeship
