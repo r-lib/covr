@@ -16,10 +16,10 @@ Depends:
 Imports:
     jsonlite,
     rex,
-    devtools,
     httr,
     crayon,
-    htmltools
+    htmltools,
+    withr
 Suggests:
     R6,
     knitr,

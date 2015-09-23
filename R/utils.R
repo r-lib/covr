@@ -15,14 +15,14 @@ trim <- function(x) {
 }
 
 local_branch <- function(dir = ".") {
-  in_dir(dir,
+  withr::with_dir(dir,
     branch <- system_output("git", c("rev-parse", "--abbrev-ref", "HEAD"))
   )
   trim(branch)
 }
 
 current_commit <- function(dir = ".") {
-  in_dir(dir,
+  withr::with_dir(dir,
     commit <- system_output("git", c("rev-parse", "HEAD"))
   )
   trim(commit)
@@ -178,4 +178,54 @@ if (getRversion() < "3.2.0") {
 
 is_windows <- function() {
   .Platform$OS.type == "windows"
+}
+
+as_package <- function(path) {
+  path <- package_root(path)
+
+  res <- read_description(file.path(path, "DESCRIPTION"))
+  res$path <- path
+
+  res
+}
+package_root <- function(path) {
+  stopifnot(is.character(path))
+
+  has_description <- function(path) {
+    file.exists(file.path(path, "DESCRIPTION"))
+  }
+  is_root <- function(path) {
+    identical(path, dirname(path))
+  }
+
+  path <- normalizePath(path, mustWork = FALSE)
+  while (!is_root(path) && !has_description(path)) {
+    path <- dirname(path)
+  }
+
+  if (is_root(path)) {
+    NULL
+  } else {
+    path
+  }
+}
+
+read_description <- function(path) {
+  if (!file.exists(path)) {
+    stop("DESCRIPTION file not found!", call. = FALSE)
+  }
+  res <- as.list(read.dcf(path)[1, ])
+  names(res) <- tolower(names(res))
+  res
+}
+
+clean_objects <- function(path) {
+  files <- list.files(file.path(path, "src"),
+                      pattern = rex::rex(".",
+                        or("o", "sl", "so", "dylib",
+                          "a", "dll", "def"), end),
+                      full.names = TRUE)
+  unlink(files)
+
+  invisible(files)
 }

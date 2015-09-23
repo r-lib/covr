@@ -125,7 +125,7 @@ package_coverage <- function(path = ".",
                              use_subprocess = TRUE
                              ) {
 
-  pkg <- devtools::as.package(path)
+  pkg <- as_package(path)
 
   type <- match.arg(type)
 
@@ -186,7 +186,7 @@ package_coverage <- function(path = ".",
     coverage <- c(coverage, run_gcov(pkg$path, sources, quiet))
 
     if (isTRUE(clean)) {
-      devtools::clean_dll(pkg$path)
+      clean_objects(pkg$path)
       clear_gcov(pkg$path)
     }
   } else {
@@ -269,7 +269,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
     try_unload(pkg$package)
     on.exit(loadNamespace(pkg$package), add = TRUE)
   }
-  with_lib(tmp_lib, {
+  withr::with_libpaths(tmp_lib, {
     ns_env <- loadNamespace(pkg$package)
     env <- new.env(parent = ns_env) # nolint
 

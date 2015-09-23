@@ -10,7 +10,7 @@ test_that("environment_coverage calls environment_coverage_", {
 context("function_coverage")
 test_that("function_coverage", {
 
-  devtools::with_options(c(keep.source = TRUE), {
+  withr::with_options(c(keep.source = TRUE), {
       f <- function(x) {
         x + 1
       }
@@ -24,7 +24,7 @@ test_that("function_coverage", {
 
 test_that("function_coverage identity function", {
 
-  devtools::with_options(c(keep.source = TRUE), {
+  withr::with_options(c(keep.source = TRUE), {
     fun <- function(x) {
       x
     }
@@ -40,7 +40,7 @@ test_that("function_coverage identity function", {
 
 test_that("function_coverage return last expr", {
 
-  devtools::with_options(c(keep.source = TRUE), {
+  withr::with_options(c(keep.source = TRUE), {
     fun <- function(x = 1) {
       x
       x <- 1
@@ -56,7 +56,7 @@ test_that("function_coverage return last expr", {
 })
 
 test_that("duplicated first_line", {
-  devtools::with_options(c(keep.source = TRUE), {
+  withr::with_options(c(keep.source = TRUE), {
 
     fun <- function() {
       res <- lapply(1:2, function(x) { x + 1 }) # nolint

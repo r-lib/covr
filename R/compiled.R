@@ -76,7 +76,7 @@ run_gcov <- function(path, sources, quiet = TRUE,
       gcda <- paste0(remove_extension(src), ".gcda")
       gcno <- paste0(remove_extension(src), ".gcno")
       if (file.exists(gcno) && file.exists(gcda)) {
-        in_dir(src_path,
+        withr::with_dir(src_path,
           system_check(gcov_path,
             args = c(src, "-o", dirname(src)),
             quiet = quiet)
@@ -102,8 +102,8 @@ remove_extension <- function(x) {
 }
 
 sources <- function(pkg = ".") {
-  pkg <- devtools::as.package(pkg)
-  srcdir <- file.path(pkg$path, "src")
+  path <- package_root(pkg)
+  srcdir <- file.path(path, "src")
   dir(srcdir, rex::rex(".", one_of("cfh"), except_any_of("."), end),
       recursive = TRUE,
       full.names = TRUE)

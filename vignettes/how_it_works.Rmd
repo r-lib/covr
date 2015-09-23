@@ -216,11 +216,6 @@ back to the calling environment.  In this way we can have a fully transparent
 subprocess that acts like running the same code in the current
 process.
 
-## Compilation ##
-The package's code is compiled by calling `devtools::load_all()` with
-`recompile=TRUE` so while it does take some time to recompile all the code with
-tracing enabled, you do not have to do a full `R CMD build` cycle.
-
 # Running Tests #
 R code defined in `tests` or `inst/tests` is run using
 `testthat::source_dir()`, which simply sources each of the R files in those

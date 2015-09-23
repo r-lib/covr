@@ -50,7 +50,7 @@ ci_vars <- c(
 read_file <- function(file) paste(collapse = "\n", readLines(file))#readChar(file, file.info(file)$size)
 test_that("coveralls generates a properly formatted json file", {
 
-  with_envvar(c(ci_vars, "CI_NAME" = "FAKECI"),
+  withr::with_envvar(c(ci_vars, "CI_NAME" = "FAKECI"),
     with_mock(
       `httr:::POST` = function(...) list(...),
       `httr::content` = identity,
@@ -72,7 +72,7 @@ test_that("coveralls generates a properly formatted json file", {
 
 test_that("coveralls can spawn a job using repo_token", {
 
-  with_envvar(c(ci_vars, "CI_NAME" = "DRONE"),
+  withr::with_envvar(c(ci_vars, "CI_NAME" = "DRONE"),
     with_mock(
       `httr:::POST` = function(...) list(...),
       `httr::content` = identity,
@@ -97,7 +97,7 @@ test_that("coveralls can spawn a job using repo_token", {
 
 test_that("generates correct payload for Drone and Jenkins", {
 
-  with_envvar(c(ci_vars, "CI_NAME" = "FAKECI", "CI_BRANCH" = "fakebranch", "CI_REMOTE" = "covr"),
+  withr::with_envvar(c(ci_vars, "CI_NAME" = "FAKECI", "CI_BRANCH" = "fakebranch", "CI_REMOTE" = "covr"),
     with_mock(
       `covr::system_output` = function(...) paste0(c("a","b","c","d","e","f"), collapse="\n"),
       git <- jenkins_git_info(),

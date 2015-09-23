@@ -18,7 +18,7 @@ system_check <- function(cmd, args = character(), env = character(),
     message(wrap_command(full), "\n")
   }
 
-  status <- with_envvar(env,
+  status <- withr::with_envvar(env,
     system(full, intern = FALSE, ignore.stderr = quiet, ignore.stdout = quiet, ...)
     )
 
@@ -43,7 +43,7 @@ system_output <- function(cmd, args = character(), env = character(),
   if (echo) {
     message(wrap_command(full), "\n")
   }
-  result <- withCallingHandlers(with_envvar(env,
+  result <- withCallingHandlers(withr::with_envvar(env,
     system(full, intern = TRUE, ignore.stderr = quiet, ...)
     ), warning = function(w) stop(w))
 

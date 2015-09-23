@@ -14,7 +14,7 @@ R <- function(options, path = tempdir(), env_vars = NULL, ...) {
     on.exit(set_path(old))
   }
 
-  in_dir(path, system_check(r_path, options, c(r_env_vars(), env_vars), ...))
+  withr::with_dir(path, system_check(r_path, options, c(r_env_vars(), env_vars), ...))
 }
 
 #' Run R CMD xxx from within R
