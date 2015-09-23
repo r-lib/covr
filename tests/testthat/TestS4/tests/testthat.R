@@ -1,3 +1,3 @@
 library(testthat)
 
-test_check("TestS4")
+suppressPackageStartupMessages(test_check("TestS4"))
