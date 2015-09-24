@@ -170,7 +170,7 @@ package_coverage <- function(path = ".",
       flags[["SHLIB_LIBADD"]] <- "--coverage"
     }
 
-    with_makevars(
+    withr::with_makevars(
       flags, {
         if (use_subprocess) {
           subprocess(
