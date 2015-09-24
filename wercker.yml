@@ -2,7 +2,7 @@ box: rocker/hadleyverse
 build:
   steps:
     - jimhester/r-dependencies:
-      github_packages: hadley/testthat kevinushey/rex
+      github_packages: kevinushey/rex
     - jimhester/r-check
     - jimhester/r-lint
     - script:
