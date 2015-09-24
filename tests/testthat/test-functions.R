@@ -1,7 +1,7 @@
 context("evaluated functions")
 test_that("function_coverage generates output", {
   env <- new.env()
-  with_options(c("keep.source" = TRUE), {
+  withr::with_options(c("keep.source" = TRUE), {
     eval(parse(text =
 "fun <- function(x) {
   if (isTRUE(x)) {
