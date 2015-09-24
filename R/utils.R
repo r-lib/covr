@@ -181,13 +181,18 @@ is_windows <- function() {
 }
 
 as_package <- function(path) {
-  path <- package_root(path)
+  root <- package_root(path)
 
-  res <- read_description(file.path(path, "DESCRIPTION"))
-  res$path <- path
+  if (is.null(root)) {
+    stop(sQuote(path), " does not contain a package!", call. = FALSE)
+  }
+
+  res <- read_description(file.path(root, "DESCRIPTION"))
+  res$path <- root
 
   res
 }
+
 package_root <- function(path) {
   stopifnot(is.character(path))
 
@@ -211,9 +216,10 @@ package_root <- function(path) {
 }
 
 read_description <- function(path) {
-  if (!file.exists(path)) {
-    stop("DESCRIPTION file not found!", call. = FALSE)
+  if (!length(path) || !file.exists(path)) {
+    stop("DESCRIPTION file not found at ", sQuote(path), call. = FALSE)
   }
+
   res <- as.list(read.dcf(path)[1, ])
   names(res) <- tolower(names(res))
   res
