@@ -70,7 +70,7 @@ zero_coverage <- function(x, ...) {
 
                   # need to use %in% rather than explicit indexing because
                   # tally_coverage returns a df without the columns if
-                  # by = "line"
+                  # by is equal to "line"
                   colnames(coverage_data) %in%
                     c("filename",
                       "functions",

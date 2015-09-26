@@ -15,7 +15,7 @@ parse_gcov <- function(file, source_file) {
 
   matches <- rex::re_matches(lines, re)
   # gcov lines which have no coverage
-  matches$coverage[matches$coverage == "#####"] <- 0
+  matches$coverage[matches$coverage == "#####"] <- 0 # nolint
 
   # gcov lines which have parse error, so make untracked
   matches$coverage[matches$coverage == "====="] <- "-"
