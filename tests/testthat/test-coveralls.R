@@ -47,7 +47,8 @@ ci_vars <- c(
   "WERCKER_GIT_REPOSITORY" = NA,
   "WERCKER_MAIN_PIPELINE_STARTED" = NA)
 
-read_file <- function(file) paste(collapse = "\n", readLines(file))#readChar(file, file.info(file)$size)
+read_file <- function(file) paste(collapse = "\n", readLines(file))
+
 test_that("coveralls generates a properly formatted json file", {
 
   with_envvar(c(ci_vars, "CI_NAME" = "FAKECI"),
