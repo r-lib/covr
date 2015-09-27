@@ -2,7 +2,7 @@
 
 fun <- function() {
   withCallingHandlers(
-    signalCondition(simpleError("This Will Exit if `no_try==FALSE`")),
+    signalCondition(simpleError("This Will Exit if `!isTRUE(use_try)`")),
     error=function(e) TRUE
   )
   1 + 1

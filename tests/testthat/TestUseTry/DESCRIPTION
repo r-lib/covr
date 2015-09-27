@@ -1,5 +1,5 @@
-Package: TestNoTry
-Title: Test That `no_try` Parameter works
+Package: TestUseTry
+Title: Test That `use_try` Parameter works
 Version: 0.0.0.9000
 Authors@R: "First Last <first.last@example.com> [aut, cre]"
 Description: What the package does (one paragraph)

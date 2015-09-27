@@ -1,1 +1,0 @@
-TestNoTry::fun()
