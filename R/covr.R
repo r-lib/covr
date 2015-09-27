@@ -110,6 +110,8 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @param exclude_end a search pattern to look for in the source to stop an exclude block.
 #' @param use_subprocess whether to run the code in a separate subprocess.
 #' Needed for compiled code and many packages using S4 classes.
+#' @param use_try whether to omit wrapping test evaluation in a \code{try} call;
+#' by default tests will be run within a \code{try} call
 #' @seealso exclusions
 #' @export
 package_coverage <- function(path = ".",
@@ -122,7 +124,8 @@ package_coverage <- function(path = ".",
                              exclude_pattern = getOption("covr.exclude_pattern"),
                              exclude_start = getOption("covr.exclude_start"),
                              exclude_end = getOption("covr.exclude_end"),
-                             use_subprocess = TRUE
+                             use_subprocess = TRUE,
+                             use_try = TRUE
                              ) {
 
   pkg <- devtools::as.package(path)
@@ -176,10 +179,10 @@ package_coverage <- function(path = ".",
           subprocess(
                      clean = clean,
                      quiet = quiet,
-                     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
+                     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try=use_try)
                      )
         } else {
-          coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
+          coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try=use_try)
         }
       })
 
@@ -194,10 +197,10 @@ package_coverage <- function(path = ".",
       subprocess(
                  clean = clean,
                  quiet = quiet,
-                 coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
+                 coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try=use_try)
                  )
     } else {
-      coverage <- run_tests(pkg, tmp_lib, dots, type, quiet)
+      coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try=use_try)
     }
   }
 
@@ -248,7 +251,7 @@ generate_display_name <- function(x, path = NULL) {
   file_path
 }
 
-run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
+run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try=TRUE) {
   testing_dir <- test_directory(pkg$path)
 
   # install the package in a temporary directory
@@ -282,7 +285,11 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet) {
       c(dots,
         quote("library(methods)"),
         if (type == "test" && file.exists(testing_dir)) {
-          bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet))))
+          if(isTRUE(use_try)) {
+            bquote(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)))
+          } else {
+            bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet))))
+          }
         } else if (type == "vignette" && file.exists(vignette_dir)) {
           lapply(dir(vignette_dir, pattern = rex::rex(".", one_of("R", "r"), or("nw", "md")), full.names = TRUE),
             function(file) {
