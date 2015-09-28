@@ -156,6 +156,8 @@ package_coverage <- function(path = ".",
 
   tmp_lib <- tempdir()
 
+  coverage <- list()
+
   # if there are compiled components to a package we have to run in a subprocess
   if (length(sources)) {
 
