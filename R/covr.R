@@ -110,8 +110,7 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @param exclude_end a search pattern to look for in the source to stop an exclude block.
 #' @param use_subprocess whether to run the code in a separate subprocess.
 #' Needed for compiled code and many packages using S4 classes.
-#' @param use_try whether to omit wrapping test evaluation in a \code{try} call;
-#' by default tests will be run within a \code{try} call
+#' @param use_try whether to wrap test evaluation in a \code{try} call; enabled by default
 #' @seealso exclusions
 #' @export
 package_coverage <- function(path = ".",
@@ -288,9 +287,9 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try=TRUE) {
         quote("library(methods)"),
         if (type == "test" && file.exists(testing_dir)) {
           if(isTRUE(use_try)) {
-            bquote(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)))
-          } else {
             bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet))))
+          } else {
+            bquote(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)))
           }
         } else if (type == "vignette" && file.exists(vignette_dir)) {
           lapply(dir(vignette_dir, pattern = rex::rex(".", one_of("R", "r"), or("nw", "md")), full.names = TRUE),
