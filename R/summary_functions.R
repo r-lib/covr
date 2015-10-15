@@ -60,7 +60,12 @@ tally_coverage <- function(x, by = c("line", "expression")) {
 zero_coverage <- function(x, ...) {
   if (getOption("covr.rstudio_source_markers", TRUE) &&
       rstudioapi::hasFun("sourceMarkers")) {
-    markers(x)
+    markers <- markers(x)
+    rstudioapi::callFun("sourceMarkers",
+                        name = "covr",
+                        markers = markers,
+                        basePath = attr(x, "package")$path,
+                        autoSelect = "first")
     invisible(x)
   } else {
 
