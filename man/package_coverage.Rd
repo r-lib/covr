@@ -38,8 +38,7 @@ paths.}
 \item{use_subprocess}{whether to run the code in a separate subprocess.
 Needed for compiled code and many packages using S4 classes.}
 
-\item{use_try}{whether to omit wrapping test evaluation in a \code{try} call;
-by default tests will be run within a \code{try} call}
+\item{use_try}{whether to wrap test evaluation in a \code{try} call; enabled by default}
 }
 \description{
 Calculate test coverage for a package
