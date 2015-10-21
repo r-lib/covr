@@ -315,7 +315,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try=TRUE) {
 }
 
 try_unload <- function(pkg) {
-  tryCatch(unloadNamespace(pkg), error = function(e) warning(e))
+  tryCatch(unloadNamespace(pkg), error = function(e) warning(e$message))
 }
 
 process_examples <- function(pkg, lib = getwd(), quiet = TRUE) {
