@@ -175,17 +175,12 @@ package_coverage <- function(path = ".",
     }
 
     with_makevars(
-      flags, {
-        if (use_subprocess) {
-          subprocess(
-                     clean = clean,
-                     quiet = quiet,
-                     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try=use_try)
-                     )
-        } else {
-          coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try=use_try)
-        }
-      })
+        flags, {
+            coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try=use_try)
+            if (use_subprocess) {
+                subprocess(clean = clean, quiet = quiet, coverage)
+            }
+        })
 
     coverage <- c(coverage, run_gcov(pkg$path, sources, quiet))
 
@@ -292,12 +287,13 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try=TRUE) {
             bquote(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)))
           }
         } else if (type == "vignette" && file.exists(vignette_dir)) {
-          lapply(dir(vignette_dir, pattern = rex::rex(".", one_of("R", "r"), or("nw", "md")), full.names = TRUE),
-            function(file) {
-              out_file <- tempfile(fileext = ".R")
-              knitr::knit(input = file, output = out_file, tangle = TRUE)
-              bquote(source2(.(out_file), .(env), path = .(vignette_dir), quiet = .(quiet)))
-            })
+            lapply(dir(vignette_dir, pattern = rex::rex(".", one_of("R", "r"), or("nw", "md")),
+                       full.names = TRUE),
+                   function(file) {
+                       out_file <- tempfile(fileext = ".R")
+                       knitr::knit(input = file, output = out_file, tangle = TRUE)
+                       bquote(source2(.(out_file), .(env), path = .(vignette_dir), quiet = .(quiet)))
+                   })
         } else if (type == "example" && file.exists(example_dir)) {
           ex_file <- process_examples(pkg, tmp_lib, quiet) # nolint
           bquote(source(.(ex_file)))
