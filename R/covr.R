@@ -287,7 +287,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try=TRUE) {
         quote("library(methods)"),
         if (type == "test" && file.exists(testing_dir)) {
           if(isTRUE(use_try)) {
-            bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet))))
+            bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)), silent = .(quiet)))
           } else {
             bquote(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)))
           }
