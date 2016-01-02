@@ -43,6 +43,9 @@ Alternatively you can upload your results to [Coveralls](https://coveralls.io/)
 using `coveralls()`.
 
 ```yml
+r_github_packages:
+  - jimhester/covr
+
 after_success:
   - Rscript -e 'covr::coveralls()'
 ```
