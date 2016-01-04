@@ -254,7 +254,7 @@ generate_display_name <- function(x, path = NULL) {
   file_path
 }
 
-run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try=TRUE) {
+run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try = TRUE) {
   testing_dir <- test_directory(pkg$path)
 
   # install the package in a temporary directory
