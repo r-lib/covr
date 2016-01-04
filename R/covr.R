@@ -162,6 +162,12 @@ package_coverage <- function(path = ".",
   # if there are compiled components to a package we have to run in a subprocess
   if (length(sources)) {
 
+    if (isTRUE(clean)) {
+      on.exit({
+        clean_objects(pkg$path)
+        clear_gcov(pkg$path)
+      })
+    }
     flags <- c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
@@ -191,10 +197,6 @@ package_coverage <- function(path = ".",
 
     coverage <- c(coverage, run_gcov(pkg$path, sources, quiet))
 
-    if (isTRUE(clean)) {
-      clean_objects(pkg$path)
-      clear_gcov(pkg$path)
-    }
   } else {
     if (use_subprocess) {
       subprocess(
