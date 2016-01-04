@@ -54,7 +54,7 @@ subprocess <- function(code, calling_env = parent.frame(),
   writeChar(con = tmp_source, command, eos = NULL)
 
   withr::with_options(c(show.error.messages = FALSE), {
-    output <- R(options=c("-f", tmp_source, "--slave"),
+    output <- R(options = c("-f", tmp_source, "--slave"),
       path = ".")
   })
 
