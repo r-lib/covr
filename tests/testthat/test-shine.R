@@ -1,0 +1,81 @@
+context("shine")
+cov <- package_coverage("TestS4", type = "all")
+
+test_that("it works with coverage objects", {
+  with_mock(`shiny::runApp` = function(...) list(...),
+    res <- shine(cov$test),
+    data <- environment(res[[1]]$server)$data,
+    testS4 <- data$full$`R/TestS4.R`,
+
+    expect_equal(testS4$line, 1:38),
+
+    expect_equal(testS4$coverage,
+      c("", "", "", "", "", "", "5", "2", "5", "3", "5", "", "", "", "", "",
+      "", "", "", "", "", "", "", "", "1", "", "", "", "",
+      "", "1", "", "", "", "", "", "1", "")),
+
+    expect_equal(data$file_stats,
+      x <- data.frame(
+        Coverage = "<div class=\"coverage-box coverage-high\">100.00</div>",
+        File = "<a href=\"#\">R/TestS4.R</a>",
+        Lines = 38L,
+        Relevant = 8L,
+        Covered = 8L,
+        Missed = 0L,
+        `Hits / Line` = "3",
+        row.names = "R/TestS4.R",
+        stringsAsFactors = FALSE,
+        check.names = FALSE))
+    )
+})
+
+test_that("it works with coverages objects", {
+  with_mock(`shiny::runApp` = function(...) list(...),
+    res <- shine(cov),
+    data <- environment(res[[1]]$server)$data,
+
+    # Test coverage
+    testS4_test <- data$test$full$`R/TestS4.R`,
+    expect_equal(testS4_test$line, 1:38),
+
+    expect_equal(testS4_test$coverage,
+      c("", "", "", "", "", "", "5", "2", "5", "3", "5", "", "", "", "", "",
+      "", "", "", "", "", "", "", "", "1", "", "", "", "",
+      "", "1", "", "", "", "", "", "1", "")),
+
+    expect_equal(data$test$file_stats,
+      x <- data.frame(
+        Coverage = "<div class=\"coverage-box coverage-high\">100.00</div>",
+        File = "<a href=\"#\">R/TestS4.R</a>",
+        Lines = 38L,
+        Relevant = 8L,
+        Covered = 8L,
+        Missed = 0L,
+        `Hits / Line` = "3",
+        row.names = "R/TestS4.R",
+        stringsAsFactors = FALSE,
+        check.names = FALSE)),
+
+    # Vignette coverage
+    testS4_vignette <- data$vignette$full$`R/TestS4.R`,
+    expect_equal(testS4_vignette$line, 1:38),
+
+    expect_equal(testS4_vignette$coverage,
+      c("", "", "", "", "", "", "0", "0", "0", "0", "0", "", "", "", "", "",
+        "", "", "", "", "", "", "", "", "0", "", "", "", "", "", "0", "", "",
+        "", "", "", "0", "")),
+
+    expect_equal(data$vignette$file_stats,
+      x <- data.frame(
+        Coverage = "<div class=\"coverage-box coverage-low\">0.00</div>",
+        File = "<a href=\"#\">R/TestS4.R</a>",
+        Lines = 38L,
+        Relevant = 8L,
+        Covered = 0L,
+        Missed = 8L,
+        `Hits / Line` = "0",
+        row.names = "R/TestS4.R",
+        stringsAsFactors = FALSE,
+        check.names = FALSE))
+    )
+})

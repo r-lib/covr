@@ -62,7 +62,7 @@ test_that("it generates a properly formatted json file", {
 
       expect_match(json$files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
       expect_equal(json$files$coverage[[1]],
-        c(NA, NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+        c(NA, NA, NA, NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA)
         ),
       expect_equal(json$uploader, "R")
@@ -93,7 +93,7 @@ test_that("it works with local repos and explicit branch and commit", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4", branch = "master", commit = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
+      res <- codecov(coverage = cov, branch = "master", commit = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
 
       expect_match(res$url, "/upload/v2"), # nolint
       expect_match(res$query$branch, "master"),

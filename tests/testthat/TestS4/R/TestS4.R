@@ -1,6 +1,8 @@
 #' an example function
 #'
 #' @export
+#' @examples
+#' a(1)
 a <- function(x) {
   if (x <= 1) {
     1

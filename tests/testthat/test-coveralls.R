@@ -49,6 +49,8 @@ ci_vars <- c(
 
 read_file <- function(file) paste(collapse = "\n", readLines(file))
 
+cov <- package_coverage("TestS4")
+
 test_that("coveralls generates a properly formatted json file", {
 
   withr::with_envvar(c(ci_vars, "CI_NAME" = "FAKECI"),
@@ -57,7 +59,7 @@ test_that("coveralls generates a properly formatted json file", {
       `httr::content` = identity,
       `httr::upload_file` = function(file) readChar(file, file.info(file)$size),
 
-      res <- coveralls("TestS4"),
+      res <- coveralls(coverage = cov),
       json <- jsonlite::fromJSON(res$body$json_file),
 
       expect_equal(nrow(json$source_files), 1),
@@ -65,7 +67,7 @@ test_that("coveralls generates a properly formatted json file", {
       expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
       expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R")),
       expect_equal(json$source_files$coverage[[1]],
-        c(NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+        c(NA, NA, NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA))
     )
   )
@@ -80,7 +82,7 @@ test_that("coveralls can spawn a job using repo_token", {
       `httr::upload_file` = function(file) readChar(file, file.info(file)$size),
       `covr::system_output` = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n"),
 
-      res <- coveralls("TestS4", repo_token = "mytoken"),
+      res <- coveralls(coverage = cov, repo_token = "mytoken"),
       json <- jsonlite::fromJSON(res$body$json_file),
 
       expect_equal(is.null(json$git), FALSE),
@@ -90,7 +92,7 @@ test_that("coveralls can spawn a job using repo_token", {
       expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
       expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R")),
       expect_equal(json$source_files$coverage[[1]],
-        c(NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+        c(NA, NA, NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA))
     )
   )

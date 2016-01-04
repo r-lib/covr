@@ -7,3 +7,4 @@ Depends:
     R (>= 3.1.2)
 License: What license is it under?
 LazyData: true
+RoxygenNote: 5.0.1
