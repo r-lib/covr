@@ -20,12 +20,12 @@ Imports:
     rex,
     httr,
     crayon,
-    htmltools,
     withr
 Suggests:
     R6,
     knitr,
     shiny (>= 0.11.1),
+    htmltools,
     DT,
     testthat,
     rstudioapi (>= 0.2)
