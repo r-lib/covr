@@ -5,11 +5,11 @@ test_that("it works with coverage objects", {
   with_mock(`shiny::runApp` = function(...) list(...),
     res <- shine(cov$test),
     data <- environment(res[[1]]$server)$data,
-    testS4 <- data$full$`R/TestS4.R`,
+    test_S4 <- data$full[["R/TestS4.R"]],
 
-    expect_equal(testS4$line, 1:38),
+    expect_equal(test_S4$line, 1:38),
 
-    expect_equal(testS4$coverage,
+    expect_equal(test_S4$coverage,
       c("", "", "", "", "", "", "5", "2", "5", "3", "5", "", "", "", "", "",
       "", "", "", "", "", "", "", "", "1", "", "", "", "",
       "", "1", "", "", "", "", "", "1", "")),
@@ -35,10 +35,10 @@ test_that("it works with coverages objects", {
     data <- environment(res[[1]]$server)$data,
 
     # Test coverage
-    testS4_test <- data$test$full$`R/TestS4.R`,
-    expect_equal(testS4_test$line, 1:38),
+    test_S4_test <- data$test$full[["R/TestS4.R"]],
+    expect_equal(test_S4_test$line, 1:38),
 
-    expect_equal(testS4_test$coverage,
+    expect_equal(test_S4_test$coverage,
       c("", "", "", "", "", "", "5", "2", "5", "3", "5", "", "", "", "", "",
       "", "", "", "", "", "", "", "", "1", "", "", "", "",
       "", "1", "", "", "", "", "", "1", "")),
@@ -57,10 +57,10 @@ test_that("it works with coverages objects", {
         check.names = FALSE)),
 
     # Vignette coverage
-    testS4_vignette <- data$vignette$full$`R/TestS4.R`,
-    expect_equal(testS4_vignette$line, 1:38),
+    test_S4_vignette <- data$vignette$full[["R/TestS4.R"]],
+    expect_equal(test_S4_vignette$line, 1:38),
 
-    expect_equal(testS4_vignette$coverage,
+    expect_equal(test_S4_vignette$coverage,
       c("", "", "", "", "", "", "0", "0", "0", "0", "0", "", "", "", "", "",
         "", "", "", "", "", "", "", "", "0", "", "", "", "", "", "0", "", "",
         "", "", "", "0", "")),
