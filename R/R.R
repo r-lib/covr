@@ -9,9 +9,14 @@ R <- function(options, path = tempdir(), env_vars = NULL, ...) {
   r_path <- file.path(R.home("bin"), "R")
 
   # If rtools has been detected, add it to the path only when running R...
-  if (!is.null(get_rtools_path())) {
-    old <- add_path(get_rtools_path(), 0)
-    on.exit(set_path(old))
+  # This only needts to be done on windows
+
+  if (.Platform$OS.type == "windows") {
+    path <- (get("get_rtools_path", envir = asNamespace("devtools")))()
+    if (!is.null(path)) {
+      withr::with_path(path,
+        withr::with_dir(path, system_check(r_path, options, c(r_env_vars(), env_vars), ...)))
+    }
   }
 
   withr::with_dir(path, system_check(r_path, options, c(r_env_vars(), env_vars), ...))
