@@ -160,7 +160,12 @@ If your package has compiled code `covr` requires a compiler that generates
 output.  It is known to work with clang versions `3.5` and gcc versions `4.2`.
 It should also work with later versions of both those compilers.
 
-It does _not_ work with `icc`, Intel's compiler.
+If the appropriate gcov version is not on your path you can set the appropriate location.
+```r
+options(covr.gcov = "path/to/gcov")
+```
+
+Covr has _not_ been tested with `icc`, Intel's compiler.
 
 # Alternative Coverage Tools #
 - <https://github.com/MangoTheCat/testCoverage>
