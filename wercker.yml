@@ -4,7 +4,6 @@ build:
     - jimhester/r-dependencies:
       github_packages:
         - kevinushey/rex
-        - hadley/testthat
     - jimhester/r-check
     - jimhester/r-lint
     - script:
