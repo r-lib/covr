@@ -46,6 +46,8 @@ ci_vars <- c(
   "WERCKER_GIT_REPOSITORY" = NA,
   "WERCKER_MAIN_PIPELINE_STARTED" = NA)
 
+cov <- package_coverage("TestS4")
+
 test_that("it generates a properly formatted json file", {
 
   withr::with_envvar(ci_vars,
@@ -55,7 +57,7 @@ test_that("it generates a properly formatted json file", {
       `covr:::local_branch` = function() "master",
       `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
       json <- jsonlite::fromJSON(res$body),
 
       expect_match(json$files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
@@ -76,7 +78,7 @@ test_that("it works with local repos", {
       `covr:::local_branch` = function() "master",
       `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$url, "2"), # nolint
       expect_match(res$query$branch, "master"),
@@ -110,7 +112,7 @@ test_that("it adds the token to the query if available", {
       `covr:::local_branch` = function() "master",
       `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$url, "/upload/v2"), # nolint
       expect_match(res$query$branch, "master"),
@@ -133,7 +135,7 @@ test_that("it works with jenkins", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "jenkins"),
       expect_match(res$query$branch, "test"),
@@ -161,7 +163,7 @@ test_that("it works with travis normal builds", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "travis"),
       expect_match(res$query$branch, "master"),
@@ -191,7 +193,7 @@ test_that("it works with travis pull requests", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "travis"),
       expect_match(res$query$branch, "master"),
@@ -219,7 +221,7 @@ test_that("it works with codeship", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "codeship"),
       expect_match(res$query$branch, "master"),
@@ -245,7 +247,7 @@ test_that("it works with circleci", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "circleci"),
       expect_match(res$query$branch, "master"),
@@ -271,7 +273,7 @@ test_that("it works with semaphore", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "semaphore"),
       expect_match(res$query$branch, "master"),
@@ -297,7 +299,7 @@ test_that("it works with drone", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "drone.io"),
       expect_match(res$query$branch, "master"),
@@ -322,7 +324,7 @@ test_that("it works with AppVeyor", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "AppVeyor"),
       expect_match(res$query$branch, "master"),
@@ -348,7 +350,7 @@ test_that("it works with Wercker", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "wercker"),
       expect_match(res$query$branch, "master"),
