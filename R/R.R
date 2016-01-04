@@ -52,7 +52,7 @@ r_env_vars <- function() {
     # the R subprocesses. Un-setting it here avoids those problems.
     "R_TESTS" = "")
 
-  if(is.na(Sys.getenv("NOT_CRAN", unset = NA))) {
+  if (is.na(Sys.getenv("NOT_CRAN", unset = NA))) {
     c(vars, "NOT_CRAN" = "true")
   } else {
     vars

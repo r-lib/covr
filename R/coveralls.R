@@ -96,10 +96,10 @@ jenkins_git_info <- function() {
   )
   head <- lapply(structure(
     scan(
-      sep="\n",
+      sep = "\n",
       what = "character",
-      text=system_output("git", c("log", "-n", "1",
-          paste0("--pretty=format:", paste(collapse="%n", formats)))
+      text = system_output("git", c("log", "-n", "1",
+          paste0("--pretty=format:", paste(collapse = "%n", formats)))
         ),
       quiet = TRUE
     ),

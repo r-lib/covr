@@ -49,7 +49,7 @@ test_that("parse_gcov parses files properly", {
 "        -:    5:",
 "        4:    6:SEXP simple_(SEXP x) {",
 "        -:    7:  }",
-"    #####:    8:    pout[0] = 0;"
+"    #####:    8:    pout[0] = 0;" # nolint
     ),
     expect_equal( value(unname(parse_gcov("hi.c.gcov", "hi.c.gcov"))), c(4, 0))
   )

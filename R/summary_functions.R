@@ -58,19 +58,24 @@ tally_coverage <- function(x, by = c("line", "expression")) {
 #' Marker API.
 #' @export
 zero_coverage <- function(x, ...) {
+  coverage_data <- tally_coverage(x, ...)
+  coverage_data <- coverage_data[coverage_data$value == 0, ]
+
   if (getOption("covr.rstudio_source_markers", TRUE) &&
       rstudioapi::hasFun("sourceMarkers")) {
-    markers(x)
+    markers <- markers(coverage_data)
+    rstudioapi::callFun("sourceMarkers",
+                        name = "covr",
+                        markers = markers,
+                        basePath = attr(x, "package")$path,
+                        autoSelect = "first")
     invisible(x)
   } else {
 
-    coverage_data <- tally_coverage(x, ...)
-
-    coverage_data[coverage_data$value == 0,
-
+    coverage_data[
                   # need to use %in% rather than explicit indexing because
                   # tally_coverage returns a df without the columns if
-                  # by = "line"
+                  # by is equal to "line"
                   colnames(coverage_data) %in%
                     c("filename",
                       "functions",
@@ -126,7 +131,7 @@ print.coverage <- function(x, group = c("filename", "functions"), by = "line", .
 
 #' @export
 print.coverages <- function(x, ...) {
-  for(i in seq_along(x)) {
+  for (i in seq_along(x)) {
     # Add a blank line between consecutive coverage items
     if (i != 1) {
       message()
@@ -178,4 +183,20 @@ markers.coverage <- function(x, ...) {
     )
   })
 
+}
+
+markers.data.frame <- function(x, type = "test") { # nolint
+  # generate the markers
+  markers <- Map(function(filename, line, column) {
+    list(
+      type = "warning",
+      file = filename,
+      line = line,
+      column = column %||% 1,
+      message = sprintf("No %s Coverage!", to_title(type))
+    )},
+    x$filename,
+    x$first_line,
+    x$first_column %||% rep(list(NULL), NROW(x)),
+    USE.NAMES = FALSE)
 }

@@ -21,7 +21,7 @@ as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, sort =
   df <- data.frame(res, stringsAsFactors = FALSE, check.names = FALSE)
 
   if (sort) {
-    df <- df[order(df$filename, df$first_line, df$first_byte),]
+    df <- df[order(df$filename, df$first_line, df$first_byte), ]
   }
 
   rownames(df) <- NULL

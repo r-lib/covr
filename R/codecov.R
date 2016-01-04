@@ -25,7 +25,7 @@ codecov <- function(...,
                     quiet = TRUE) {
 
   if (is.null(coverage)) {
-    coverage <- package_coverage(...)
+    coverage <- package_coverage(quiet = quiet, ...)
   }
 
   if (!quiet) {
@@ -37,7 +37,6 @@ codecov <- function(...,
   # -------
   if (Sys.getenv("JENKINS_URL") != "") {
     # https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project
-    # path <- Sys.getenv("WORKSPACE")
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
     codecov_query <- list(service = "jenkins",
                           branch = branch %||% Sys.getenv("GIT_BRANCH"),

@@ -8,7 +8,8 @@ package_coverage(path = ".", ..., type = c("test", "vignette", "example",
   "all", "none"), relative_path = TRUE, quiet = TRUE, clean = TRUE,
   exclusions = NULL, exclude_pattern = getOption("covr.exclude_pattern"),
   exclude_start = getOption("covr.exclude_start"),
-  exclude_end = getOption("covr.exclude_end"), use_subprocess = TRUE)
+  exclude_end = getOption("covr.exclude_end"), use_subprocess = TRUE,
+  use_try = TRUE)
 }
 \arguments{
 \item{path}{file path to the package}
@@ -36,6 +37,8 @@ paths.}
 
 \item{use_subprocess}{whether to run the code in a separate subprocess.
 Needed for compiled code and many packages using S4 classes.}
+
+\item{use_try}{whether to wrap test evaluation in a \code{try} call; enabled by default}
 }
 \description{
 Calculate test coverage for a package

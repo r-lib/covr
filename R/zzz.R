@@ -7,7 +7,7 @@
     covr.exclude_end = rex::rex("#", any_spaces, "nocov", any_spaces, "end")
   )
   toset <- !(names(op_covr) %in% names(op))
-  if(any(toset)) options(op_covr[toset])
+  if (any(toset)) options(op_covr[toset])
 
   invisible()
 }

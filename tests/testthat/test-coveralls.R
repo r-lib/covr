@@ -47,7 +47,8 @@ ci_vars <- c(
   "WERCKER_GIT_REPOSITORY" = NA,
   "WERCKER_MAIN_PIPELINE_STARTED" = NA)
 
-read_file <- function(file) paste(collapse = "\n", readLines(file))#readChar(file, file.info(file)$size)
+read_file <- function(file) paste(collapse = "\n", readLines(file))
+
 test_that("coveralls generates a properly formatted json file", {
 
   withr::with_envvar(c(ci_vars, "CI_NAME" = "FAKECI"),
@@ -77,9 +78,9 @@ test_that("coveralls can spawn a job using repo_token", {
       `httr:::POST` = function(...) list(...),
       `httr::content` = identity,
       `httr::upload_file` = function(file) readChar(file, file.info(file)$size),
-      `covr::system_output` = function(...) paste0(c("a","b","c","d","e","f"), collapse="\n"),
+      `covr::system_output` = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n"),
 
-      res <- coveralls("TestS4", repo_token="mytoken"),
+      res <- coveralls("TestS4", repo_token = "mytoken"),
       json <- jsonlite::fromJSON(res$body$json_file),
 
       expect_equal(is.null(json$git), FALSE),
@@ -99,7 +100,7 @@ test_that("generates correct payload for Drone and Jenkins", {
 
   withr::with_envvar(c(ci_vars, "CI_NAME" = "FAKECI", "CI_BRANCH" = "fakebranch", "CI_REMOTE" = "covr"),
     with_mock(
-      `covr::system_output` = function(...) paste0(c("a","b","c","d","e","f"), collapse="\n"),
+      `covr::system_output` = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n"),
       git <- jenkins_git_info(),
 
       expect_equal(git$head$id, jsonlite::unbox("a")),

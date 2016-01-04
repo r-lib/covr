@@ -100,7 +100,7 @@ parse_exclusions <- function(lines,
       stop(length(starts), " starts but only ", length(ends), " ends!")
     }
 
-    for(i in seq_along(starts)) {
+    for (i in seq_along(starts)) {
       exclusions <- c(exclusions, seq(starts[i], ends[i]))
     }
   }
