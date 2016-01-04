@@ -180,10 +180,10 @@ package_coverage <- function(path = ".",
           subprocess(
                      clean = clean,
                      quiet = quiet,
-                     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try=use_try)
+                     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try = use_try)
                      )
         } else {
-          coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try=use_try)
+          coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try = use_try)
         }
       })
 
@@ -198,10 +198,10 @@ package_coverage <- function(path = ".",
       subprocess(
                  clean = clean,
                  quiet = quiet,
-                 coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try=use_try)
+                 coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try = use_try)
                  )
     } else {
-      coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try=use_try)
+      coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try = use_try)
     }
   }
 
@@ -286,7 +286,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try=TRUE) {
       c(dots,
         quote("library(methods)"),
         if (type == "test" && file.exists(testing_dir)) {
-          if(isTRUE(use_try)) {
+          if (isTRUE(use_try)) {
             bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet))))
           } else {
             bquote(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)))

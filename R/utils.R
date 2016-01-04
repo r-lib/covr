@@ -11,7 +11,7 @@ dots <- function(...) {
 }
 
 trim <- function(x) {
-  rex::re_substitutes(x, rex::rex(list(start,spaces) %or% list(spaces, end)),  "")
+  rex::re_substitutes(x, rex::rex(list(start, spaces) %or% list(spaces, end)),  "")
 }
 
 local_branch <- function(dir = ".") {
@@ -29,7 +29,7 @@ current_commit <- function(dir = ".") {
 }
 
 test_directory <- function(path) {
-  if(file.exists(file.path(path, "tests"))) {
+  if (file.exists(file.path(path, "tests"))) {
     file.path(path, "tests")
   } else if (file.exists(file.path(path, "inst", "tests"))) {
     file.path(path, "inst", "tests")
@@ -166,7 +166,7 @@ per_line <- function(coverage) {
   }
   structure(
     Map(function(file, coverage) {
-      structure(list(file=file, coverage=coverage), class = "line_coverage")
+      structure(list(file = file, coverage = coverage), class = "line_coverage")
     },
     files, res),
     class = "line_coverages")

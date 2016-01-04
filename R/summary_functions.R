@@ -131,7 +131,7 @@ print.coverage <- function(x, group = c("filename", "functions"), by = "line", .
 
 #' @export
 print.coverages <- function(x, ...) {
-  for(i in seq_along(x)) {
+  for (i in seq_along(x)) {
     # Add a blank line between consecutive coverage items
     if (i != 1) {
       message()
@@ -185,7 +185,7 @@ markers.coverage <- function(x, ...) {
 
 }
 
-markers.data.frame <- function(x, type = "test") {
+markers.data.frame <- function(x, type = "test") { # nolint
   # generate the markers
   markers <- Map(function(filename, line, column) {
     list(

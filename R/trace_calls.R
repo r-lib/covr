@@ -20,7 +20,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
       x
     }
     else {
-      if ((!is.symbol(x) && is.na(x)) || as.character(x) == "{") {
+      if ((!is.symbol(x) && is.na(x)) || as.character(x) == "{") { # nolint
         x
       } else {
         key <- new_counter(parent_ref, parent_functions) # nolint
@@ -29,7 +29,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
     }
   }
   else if (is.call(x)) {
-    if ((identical(x[[1]], as.name("<-")) || identical(x[[1]], as.name("="))) &&
+    if ((identical(x[[1]], as.name("<-")) || identical(x[[1]], as.name("="))) && # nolint
         (is.call(x[[3]]) && identical(x[[3]][[1]], as.name("function")))) {
       parent_functions <- c(parent_functions, as.character(x[[2]]))
     }
@@ -46,7 +46,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
   else if (is.function(x)) {
     fun_body <- body(x)
 
-    if(!is.null(fun_body) && !is.null(attr(x, "srcref")) &&
+    if (!is.null(fun_body) && !is.null(attr(x, "srcref")) &&
        (is.symbol(fun_body) || !identical(fun_body[[1]], as.name("{")))) {
       src_ref <- attr(x, "srcref")
       key <- new_counter(src_ref, parent_functions)
@@ -101,7 +101,7 @@ count <- function(key) {
 #' clear all previous counters
 #'
 clear_counters <- function() {
-  rm(envir = .counters, list=ls(envir = .counters))
+  rm(envir = .counters, list = ls(envir = .counters))
 }
 
 #' Generate a key for a  call

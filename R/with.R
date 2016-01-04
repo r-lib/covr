@@ -173,7 +173,7 @@ set_makevars <- function(variables,
       loc <- grep(paste(c("^[[:space:]]*", var, "[[:space:]]*", "="), collapse = ""), lines)
       if (length(loc) == 0) {
         lines <- append(lines, paste(sep = "=", var, variables[var]))
-      } else if(length(loc) == 1) {
+      } else if (length(loc) == 1) {
         lines[loc] <- paste(sep = "=", var, variables[var])
       } else {
         stop("Multiple results for ", var, " found, something is wrong.", .call = FALSE)

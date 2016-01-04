@@ -32,7 +32,7 @@ shine.coverages <- function(x, ...) {
     ),
     shiny::column(8,
       shiny::tabsetPanel(
-        shiny::tabPanel("Files", DT::dataTableOutput(outputId="file_table")),
+        shiny::tabPanel("Files", DT::dataTableOutput(outputId = "file_table")),
         shiny::tabPanel("Source", addHighlight(shiny::tableOutput("source_table")))
         )
       ),
@@ -72,7 +72,7 @@ shine.coverage <- function(x, ...) {
     shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
     shiny::column(8, offset = 2,
       shiny::tabsetPanel(
-        shiny::tabPanel("Files", DT::dataTableOutput(outputId="file_table")),
+        shiny::tabPanel("Files", DT::dataTableOutput(outputId = "file_table")),
         shiny::tabPanel("Source", addHighlight(shiny::tableOutput("source_table")))
         )
       ),
@@ -198,20 +198,20 @@ renderSourceTable <- function(expr, env = parent.frame()) {
                 coverage <- data[row_num, "coverage"]
 
                 cov_type <- NULL
-                if(coverage == 0) {
+                if (coverage == 0) {
                   cov_value <- "!"
                   cov_type <- "missed"
-                } else if(coverage > 0) {
+                } else if (coverage > 0) {
                   cov_value <- shiny::HTML(paste0(data[row_num, "coverage"], "<em>x</em>", collapse = ""))
                   cov_type <- "covered"
                 } else {
                   cov_type <- "never"
                   cov_value <- ""
                 }
-                shiny::tags$tr(class=cov_type,
-                  shiny::tags$td(class="num", data[row_num, "line"]),
-                  shiny::tags$td(class="col-sm-12", shiny::pre(class="language-r", data[row_num, "source"])),
-                  shiny::tags$td(class="coverage", cov_value)
+                shiny::tags$tr(class = cov_type,
+                  shiny::tags$td(class = "num", data[row_num, "line"]),
+                  shiny::tags$td(class = "col-sm-12", shiny::pre(class = "language-r", data[row_num, "source"])),
+                  shiny::tags$td(class = "coverage", cov_value)
                   )
               })
             )
