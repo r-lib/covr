@@ -275,7 +275,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try=TRUE) {
     try_unload(pkg$package)
     on.exit(loadNamespace(pkg$package), add = TRUE)
   }
-  withr::with_libpaths(tmp_lib, {
+  withr::with_libpaths(tmp_lib, action = "prepend", {
     ns_env <- loadNamespace(pkg$package)
     env <- new.env(parent = ns_env) # nolint
 
