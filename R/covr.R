@@ -196,7 +196,7 @@ package_coverage <- function(path = ".",
         }
       })
 
-    coverage <- c(coverage, run_gcov(pkg$path, sources, quiet))
+    coverage <- c(coverage, run_gcov(pkg$path, quiet = quiet))
 
   } else {
     if (use_subprocess) {

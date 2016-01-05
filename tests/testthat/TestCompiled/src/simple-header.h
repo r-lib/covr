@@ -2,9 +2,8 @@
 #include <R.h>
 #include <Rdefines.h>
 #include <R_ext/Error.h>
-#include "simple-header.h"
 
-SEXP simple_(SEXP x) {
+SEXP simple2_(SEXP x) {
   double *px, *pout;
 
   SEXP out = PROTECT(allocVector(REALSXP, 1));
