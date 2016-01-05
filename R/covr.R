@@ -170,6 +170,7 @@ package_coverage <- function(path = ".",
     }
     flags <- c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
+        CXX1XFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
         LDFLAGS = "--coverage")
