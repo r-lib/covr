@@ -27,5 +27,5 @@ test_that("percent_coverage", {
   cov <- function_coverage("fun", env = environment(fun), fun())
 
   res <- percent_coverage(cov)
-  expect_equal(res, 80)
+  expect_equal(res, 85.71429, tolerance = .01)
 })

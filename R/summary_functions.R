@@ -23,23 +23,43 @@ tally_coverage <- function(x, by = c("line", "expression")) {
   switch(by,
          "line" = {
 
-           # aggregate drops all NA's in grouping variables using
-           # complete.cases, so we have to temporary convert the NA's to
-           # regular characters and then back
-           na2char <- function(x) {
-             x[is.na(x)] <- "NA_character_"
-             x
-           }
-           char2na <- function(x) {
-             x[x == "NA_character_"] <- NA_character_
-             x
+           # if it already has a line column it has already been tallied.
+           if (!is.null(df$line)) {
+             return(df)
            }
 
-           df$functions <- na2char(df$functions)
-           res <- aggregate(value ~ filename + functions + first_line,
-                                    data = df, FUN = sum, na.action = na.pass)
-           res$functions <- char2na(res$functions)
-           res
+           # results with NA functions (such as from compiled code) are dropped
+           # unless NA is a level.
+           df$functions <- addNA(df$functions)
+           res <- expand_lines(df)
+
+           res <- aggregate(value ~ filename + functions + line,
+                                    data = res, FUN = min, na.action = na.pass)
+           res$functions <- as.character(res$functions)
+
+           # exclude blank lines from results
+           if (inherits(x, "coverage")) {
+             srcfiles <- unique(lapply(cov, function(x) attr(x$srcref, "srcfile")))
+
+             srcfile_names <- vapply(srcfiles, `[[`, character(1), "filename")
+
+             blank_lines <- Filter(Negate(is.null),
+               setNames(lapply(srcfiles, function(srcfile) attr(srcfile_lines(srcfile), "blanks")),
+               srcfile_names))
+             if (length(blank_lines)) {
+               blank_lines <- stack(blank_lines)
+
+               non_blanks <- setdiff.data.frame(
+                 res,
+                 blank_lines,
+                 by.x = c("filename", "line"),
+                 by.y = c("ind", "values"))
+
+               res <- res[non_blanks, ]
+             }
+             res
+           }
+           res[order(res$filename, res$line), ]
          },
 
          "expression" = df
@@ -104,7 +124,7 @@ print.coverage <- function(x, group = c("filename", "functions"), by = "line", .
     type <- NULL
   }
 
-  df <- tally_coverage(as.data.frame(x), by = by)
+  df <- tally_coverage(x, by = by)
 
   if (!NROW(df)) {
     return(invisible())
@@ -199,4 +219,16 @@ markers.data.frame <- function(x, type = "test") { # nolint
     x$first_line,
     x$first_column %||% rep(list(NULL), NROW(x)),
     USE.NAMES = FALSE)
+}
+
+# Expand lines given as start and end ranges to enumerate each line
+expand_lines <- function(x) {
+  repeats <- (x$last_line - x$first_line) + 1L
+
+  lines <- unlist(Map(seq, x$first_line, x$last_line))
+
+  res <- x[rep(seq_len(NROW(x)), repeats), c("filename", "functions", "value")]
+  res$line <- lines
+  rownames(res) <- NULL
+  res
 }

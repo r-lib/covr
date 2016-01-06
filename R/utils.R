@@ -90,6 +90,45 @@ to_title <- function(x) {
                       global = TRUE)
 }
 
+srcfile_lines <- memoise::memoise(function(srcfile) {
+  lines <- getSrcLines(srcfile, 1, Inf)
+  matches <- rex::re_matches(lines,
+    rex::rex(start, any_spaces, "#line", spaces,
+      capture(name = "line_number", digit), spaces,
+      quotes, capture(name = "filename", anything), quotes))
+
+  matches <- na.omit(matches)
+
+  filename_match <- which(matches$filename == srcfile$filename)
+
+  if (length(filename_match) == 1) {
+
+     # rownames(matches) is the line number of lines
+    start <- as.numeric(rownames(matches)[filename_match]) + 1
+
+    # If there is another directive we want to stop at that, otherwise stop at
+    # the end
+    end <- if (!is.na(rownames(matches)[filename_match + 1])) {
+      as.numeric(rownames(matches)[filename_match + 1]) - 1
+    } else {
+      length(lines)
+    }
+
+    # If there are no line directives for the file just use the entire file
+  } else {
+    start <- 1
+    end <- length(lines)
+  }
+
+  res <- lines[seq(start, end)]
+
+  # Track blank or comment lines so they can be excluded from the result calculations, but only for R files
+  if (rex::re_matches(srcfile$filename, rex::rex(".", one_of("r", "R"), end))) {
+    attr(res, "blanks") <- which(rex::re_matches(res, rex::rex(start, any_spaces, maybe("#", anything), end)))
+  }
+  res
+})
+
 traced_files <- function(x) {
   res <- list()
   for (i in seq_along(x)) {
@@ -234,4 +273,17 @@ clean_objects <- function(path) {
   unlink(files)
 
   invisible(files)
+}
+
+# This is not actually an S3 method
+# From http://stackoverflow.com/a/34639237/2055486
+setdiff.data.frame <- function(x, y,
+    by = intersect(names(x), names(y)),
+    by.x = by, by.y = by) {
+  stopifnot(
+    is.data.frame(x),
+    is.data.frame(y),
+    length(by.x) == length(by.y))
+
+  !do.call(paste, c(x[by.x], sep = "\30")) %in% do.call(paste, c(y[by.y], sep = "\30"))
 }

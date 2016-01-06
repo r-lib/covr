@@ -20,23 +20,23 @@ test_that("print.coverage prints by = \"line\" by default", {
     rex::rex("R", one_of("/", "\\"), "TestPrint.R: ", anything, "66.67%"))
 
   expect_message(print(cov, by = "line"),
-    rex::rex("Test Coverage: ", anything, "100.00%"))
+    rex::rex("Test Coverage: ", anything, "0.00%"))
 
   expect_message(print(cov, by = "line"),
-    rex::rex("R", one_of("/", "\\"), "TestPrint.R: ", anything, "100.00%"))
+    rex::rex("R", one_of("/", "\\"), "TestPrint.R: ", anything, "0.00%"))
 
   # test default
   expect_message(print(cov),
-    rex::rex("Test Coverage: ", anything, "100.00%"))
+    rex::rex("Test Coverage: ", anything, "0.00%"))
 
   expect_message(print(cov),
-    rex::rex("R", one_of("/", "\\"), "TestPrint.R: ", anything, "100.00%"))
+    rex::rex("R", one_of("/", "\\"), "TestPrint.R: ", anything, "0.00%"))
 })
 test_that("print.coverage prints by = \"line\" by default", {
   cov <- package_coverage("TestPrint")
 
   expect_message(print(cov, group = "functions"),
-    rex::rex("test_me", anything, "100.00%"))
+    rex::rex("test_me", anything, "0.00%"))
 
   expect_message(print(cov, group = "functions", by = "expression"),
     rex::rex("test_me", anything, "66.67%"))
