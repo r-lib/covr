@@ -39,7 +39,7 @@ tally_coverage <- function(x, by = c("line", "expression")) {
 
            # exclude blank lines from results
            if (inherits(x, "coverage")) {
-             srcfiles <- unique(lapply(cov, function(x) attr(x$srcref, "srcfile")))
+             srcfiles <- unique(lapply(x, function(x) attr(x$srcref, "srcfile")))
 
              srcfile_names <- vapply(srcfiles, `[[`, character(1), "filename")
 
