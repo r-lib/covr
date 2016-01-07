@@ -131,20 +131,35 @@ package_coverage <- function(path = ".",
 
   pkg <- as_package(path)
 
-  type <- match.arg(type)
+  if (missing(type)) {
+    type <- "test"
+  }
 
-  if (type == "all") {
+  type <- match_arg(type, several.ok = TRUE)
+
+  if (type %==% "all") {
+    type <- c("test", "vignette", "example")
+  }
+
+  if (length(type) > 1L) {
+
+    if ("all" %in% type) {
+      stop(sQuote("all"), " must be the only type specified", call. = FALSE)
+    }
+
+    if ("none" %in% type) {
+      stop(sQuote("none"), " must be the only type specified", call. = FALSE)
+    }
 
     # store the args that were called
     called_args <- as.list(match.call())[-1]
 
     # remove the type
     called_args$type <- NULL
-    res <- list(
-                test = do.call(Recall, c(called_args, type = "test")),
-                vignette = do.call(Recall, c(called_args, type = "vignette")),
-                example = do.call(Recall, c(called_args, type = "example"))
-                )
+    res <- list()
+    for (t in type) {
+      res[[t]] <- do.call(Recall, c(called_args, type = t))
+    }
 
     attr(res, "package") <- pkg
     class(res) <- "coverages"
@@ -305,7 +320,9 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try = TRUE) {
             })
         } else if (type == "example" && file.exists(example_dir)) {
           ex_file <- process_examples(pkg, tmp_lib, quiet) # nolint
-          bquote(source(.(ex_file)))
+          if (!is.null(ex_file)) {
+            bquote(source2(.(ex_file), env = .(env), quiet = .(quiet)))
+          }
         })
 
     enc <- environment()
@@ -326,6 +343,10 @@ try_unload <- function(pkg) {
 process_examples <- function(pkg, lib = getwd(), quiet = TRUE) {
 
   ex_file <- ex_dot_r(pkg$package, file.path(lib, pkg$package), silent = quiet)
+
+  if (is.null(ex_file)) {
+     return(NULL)
+  }
 
   # we need to move the file from the working directory into the tmp
   # dir, remove the last line (which quits) and remove the originaal

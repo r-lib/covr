@@ -287,3 +287,18 @@ setdiff.data.frame <- function(x, y,
 
   !do.call(paste, c(x[by.x], sep = "\30")) %in% do.call(paste, c(y[by.y], sep = "\30"))
 }
+
+`%==%` <- identical
+
+modify_name <- function(expr, old, new) {
+  replace <- function(e)
+    if (is.name(e) && identical(e, as.name(old))) e <- as.name(new)
+     else if (length(e) <= 1L) e
+     else as.call(lapply(e, replace))
+  replace(expr)
+}
+
+
+# This is the fix for https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16659
+match_arg <- base::match.arg
+body(match_arg) <- modify_name(body(match_arg), "all", "any")
