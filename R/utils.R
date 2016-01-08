@@ -6,6 +6,10 @@
   }
 }
 
+compact <- function(x) {
+  x[vapply(x, length, integer(1)) != 0]
+}
+
 dots <- function(...) {
   eval(substitute(alist(...)))
 }

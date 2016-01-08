@@ -30,7 +30,7 @@ environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
 
   replacements <-
     c(replacements_S4(env),
-      Filter(Negate(is.null), lapply(ls(env, all.names = TRUE), replacement, env = env))
+      compact(lapply(ls(env, all.names = TRUE), replacement, env = env))
     )
 
   on.exit(lapply(replacements, reset), add = TRUE)

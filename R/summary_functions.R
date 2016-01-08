@@ -43,7 +43,7 @@ tally_coverage <- function(x, by = c("line", "expression")) {
 
              srcfile_names <- vapply(srcfiles, `[[`, character(1), "filename")
 
-             blank_lines <- Filter(Negate(is.null),
+             blank_lines <- compact(
                setNames(lapply(srcfiles, function(srcfile) attr(srcfile_lines(srcfile), "blanks")),
                srcfile_names))
              if (length(blank_lines)) {
