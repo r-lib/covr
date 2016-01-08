@@ -312,11 +312,10 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try = TRUE) {
             bquote(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)))
           }
         } else if (type == "vignette" && file.exists(vignette_dir)) {
-          lapply(dir(vignette_dir, pattern = rex::rex(".", one_of("R", "r"), or("nw", "md")), full.names = TRUE),
+          sources <- compact(tangle_vignettes(pkg))
+          lapply(sources,
             function(file) {
-              out_file <- tempfile(fileext = ".R")
-              knitr::knit(input = file, output = out_file, tangle = TRUE)
-              bquote(source2(.(out_file), .(env), path = .(vignette_dir), quiet = .(quiet)))
+              bquote(source2(.(file), .(env), path = .(vignette_dir), quiet = .(quiet)))
             })
         } else if (type == "example" && file.exists(example_dir)) {
           ex_file <- process_examples(pkg, tmp_lib, quiet) # nolint
@@ -380,4 +379,25 @@ process_examples <- function(pkg, lib = getwd(), quiet = TRUE) {
   }
 
   tmp_ex_file
+}
+
+tangle_vignettes <- function(pkg, quiet = TRUE) {
+
+  vigns <- tools::pkgVignettes(dir = pkg$path, check = TRUE)
+  if (is.null(vigns)) {
+    return(NULL)
+  }
+
+  withr::with_dir(file.path(pkg$path, "vignettes"), {
+    Map(function(file, engine, enc, name) {
+      engine <- tools::vignetteEngine(engine)
+
+      engine$tangle(file, quiet = quiet, encoding = enc)
+      tools:::find_vignette_product(name, by = "tangle", main = FALSE, engine = engine)
+        },
+      file = vigns$docs,
+      engine = vigns$engines,
+      enc = vigns$encodings,
+      name = vigns$names)
+    })
 }
