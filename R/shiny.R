@@ -101,6 +101,7 @@ shine.coverage <- function(x, ...) {
   )
 }
 
+#' @export
 to_shiny_data <- function(x) {
   coverages <- per_line(x)
 
