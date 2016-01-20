@@ -224,6 +224,9 @@ package_coverage <- function(path = ".",
       coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try = use_try)
     }
   }
+  
+  test_results <- coverage[[1]] # Very dirty but you guys got the idea
+  coverage <- coverage[[2]]
 
   # set the display names for coverage
   for (i in seq_along(coverage)) {
@@ -251,6 +254,8 @@ package_coverage <- function(path = ".",
     exclude_end = exclude_end,
     path = if (isTRUE(relative_path)) pkg$path else NULL
   )
+  
+  list(coverage, test_results) # Return both
 }
 
 generate_display_name <- function(x, path = NULL) {
@@ -307,9 +312,9 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try = TRUE) {
         quote("library(methods)"),
         if (type == "test" && file.exists(testing_dir)) {
           if (isTRUE(use_try)) {
-            bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)), silent = .(quiet)))
+            bquote(try(test_results <- testthat::source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)), silent = .(quiet)))
           } else {
-            bquote(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)))
+            bquote(test_results <- testthat::source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)))
           }
         } else if (type == "vignette" && file.exists(vignette_dir)) {
           sources <- compact(tangle_vignettes(pkg))
@@ -331,7 +336,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try = TRUE) {
 
     # unload the package being tested
     try_unload(pkg$package)
-    cov
+    list(cov, test_results)
   })
 }
 
