@@ -284,7 +284,6 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try = TRUE) {
                              "--with-keep.source",
                              "--no-byte-compile",
                              "--no-test-load",
-                             "--no-multiarch",
                              "-l",
                              tmp_lib),
                   quiet = quiet)
