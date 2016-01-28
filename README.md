@@ -55,7 +55,6 @@ environment variable. It is wise to use a [Secure Variable](http://docs.travis-c
 so that it is not revealed publicly.
 
 Also you will need to turn on coveralls for your project at <https://coveralls.io/repos/new>.
-[Coveralls](https://coveralls.io/)
 
 # Interactive Usage #
 
