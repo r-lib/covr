@@ -6,10 +6,12 @@
 #' @param code expression to call in the subprocess
 #' @param calling_env the environment of the calling function.
 #' @param global_env the global environment to load in the subprocess.
+#' @param lib_paths the library path to use with the subprocess.
 #' @param clean whether to clean the Rout files generated from the subprocess.
 #' @param quiet whether to echo the R command run.
 subprocess <- function(code, calling_env = parent.frame(),
                             global_env = .GlobalEnv, # nolint
+                            lib_paths = .libPaths(),
                             quiet = F,
                             clean = TRUE) {
   tmp_calling_env <- tempfile()
@@ -17,7 +19,9 @@ subprocess <- function(code, calling_env = parent.frame(),
 
   tmp_code <- tempfile()
   tmp_objs <- tempfile()
+  tmp_libpaths <- tempfile()
 
+  saveRDS(lib_paths, file = tmp_libpaths)
   saveRDS(substitute(code), file = tmp_code)
 
   saveRDS(calling_env, file = tmp_calling_env)
@@ -32,6 +36,7 @@ subprocess <- function(code, calling_env = parent.frame(),
     paste(sep = "\n",
       "options(error = function() traceback(2))",
       "options(warn = 1)",
+      ".libPaths(readRDS('%s'))",
       "load('%s')",
       ".code <- readRDS('%s')",
       "fun <- function() {",
@@ -45,6 +50,7 @@ subprocess <- function(code, calling_env = parent.frame(),
       ".env <- readRDS('%s')",
       "environment(fun) <- .env",
       "fun()"),
+    normalizePath(tmp_libpaths, winslash = "/", mustWork = FALSE),
     normalizePath(tmp_global_env, winslash = "/", mustWork = FALSE),
     normalizePath(tmp_code, winslash = "/", mustWork = FALSE),
     normalizePath(tmp_objs, winslash = "/", mustWork = FALSE),
