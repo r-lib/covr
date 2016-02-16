@@ -113,6 +113,7 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @param use_subprocess whether to run the code in a separate subprocess.
 #' Needed for compiled code and many packages using S4 classes.
 #' @param use_try whether to wrap test evaluation in a \code{try} call; enabled by default
+#' @param flags Compilation flags used in compiling and liking compiled code.
 #' @seealso exclusions
 #' @export
 package_coverage <- function(path = ".",
@@ -126,8 +127,11 @@ package_coverage <- function(path = ".",
                              exclude_start = getOption("covr.exclude_start"),
                              exclude_end = getOption("covr.exclude_end"),
                              use_subprocess = TRUE,
-                             use_try = TRUE
-                             ) {
+                             use_try = TRUE,
+                             flags = c(CPPFLAGS = "-O0 -fprofile-arcs -ftest-coverage",
+                               FFLAGS = "-O0 -fprofile-arcs -ftest-coverage",
+                               FCFLAGS = "-O0 -fprofile-arcs -ftest-coverage",
+                               LDFLAGS = "--coverage")) {
 
   pkg <- as_package(path)
 
@@ -183,13 +187,6 @@ package_coverage <- function(path = ".",
         clear_gcov(pkg$path)
       })
     }
-    flags <- c(CFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-        CXXFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-        CXX1XFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-        FFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-        FCFLAGS = "-g -O0 -fprofile-arcs -ftest-coverage",
-        LDFLAGS = "--coverage")
-
     if (is_windows()) {
 
       # workaround for https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16384

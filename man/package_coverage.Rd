@@ -9,7 +9,9 @@ package_coverage(path = ".", ..., type = c("test", "vignette", "example",
   exclusions = NULL, exclude_pattern = getOption("covr.exclude_pattern"),
   exclude_start = getOption("covr.exclude_start"),
   exclude_end = getOption("covr.exclude_end"), use_subprocess = TRUE,
-  use_try = TRUE)
+  use_try = TRUE, flags = c(CPPFLAGS = "-O0 -fprofile-arcs -ftest-coverage",
+  FFLAGS = "-O0 -fprofile-arcs -ftest-coverage", FCFLAGS =
+  "-O0 -fprofile-arcs -ftest-coverage", LDFLAGS = "--coverage"))
 }
 \arguments{
 \item{path}{file path to the package}
@@ -39,6 +41,8 @@ paths.}
 Needed for compiled code and many packages using S4 classes.}
 
 \item{use_try}{whether to wrap test evaluation in a \code{try} call; enabled by default}
+
+\item{flags}{Compilation flags used in compiling and liking compiled code.}
 }
 \description{
 Calculate test coverage for a package
