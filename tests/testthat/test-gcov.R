@@ -61,7 +61,7 @@ test_that("parse_gcov parses files properly", {
 
 test_that("clear_gcov correctly clears files", {
   with_mock(
-    `base::dir` = function(...) c("simple.c.gcov", "simple.gcda", "simple.gcno"),
+    `base::list.files` = function(...) c("simple.c.gcov", "simple.gcda", "simple.gcno"),
     `base::unlink` = function(...) list(...),
     files <- clear_gcov("TestGcov")[[1]],
     expect_match(files[1], "simple.c.gcov"),
