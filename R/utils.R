@@ -273,7 +273,7 @@ clean_objects <- function(path) {
                       pattern = rex::rex(".",
                         or("o", "sl", "so", "dylib",
                           "a", "dll", "def"), end),
-                      full.names = TRUE)
+                      full.names = TRUE, recursive = TRUE)
   unlink(files)
 
   invisible(files)
