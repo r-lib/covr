@@ -121,7 +121,7 @@ f1 <- function() {
 
 impute_srcref <- function(x, parent_ref) {
   if (is.null(parent_ref)) return(NULL)
-  pd <- getParseData(parent_ref, includeText = TRUE)
+  pd <- getParseData(parent_ref)
   pd_expr <-
     pd$line1 == parent_ref[[1L]] &
     pd$col1 == parent_ref[[2L]] &
