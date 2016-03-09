@@ -136,7 +136,8 @@ impute_srcref <- function(x, parent_ref) {
   pd_child <- pd[pd$parent == expr_id,]
 
   make_srcref <- function(from, to = from) {
-    structure(
+    srcref(
+      attr(parent_ref, "srcfile"),
       c(pd_child$line1[from],
         pd_child$col1[from],
         pd_child$line2[to],
@@ -145,9 +146,7 @@ impute_srcref <- function(x, parent_ref) {
         pd_child$col2[to],
         pd_child$line1[from],
         pd_child$line2[to]
-      ),
-      srcfile = attr(parent_ref, "srcfile"),
-      class = "srcref")
+      ))
   }
 
   switch(
