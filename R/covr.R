@@ -290,7 +290,7 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try = TRUE) {
     on.exit(loadNamespace(pkg$package), add = TRUE)
   }
   withr::with_libpaths(tmp_lib, action = "prefix", {
-    ns_env <- loadNamespace(pkg$package)
+    ns_env <- devtools::load_all(pkg$path, quiet = TRUE)$env
     env <- new.env(parent = ns_env) # nolint
 
     # directories for vignettes and examples
