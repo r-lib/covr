@@ -105,13 +105,6 @@ impute_srcref <- function(x, parent_ref) {
       )
     },
 
-    "repeat" = {
-      list(
-        NULL,
-        make_srcref(2)
-      )
-    },
-
     NULL
   )
 }
