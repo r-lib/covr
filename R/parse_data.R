@@ -30,7 +30,7 @@ get_parse_data <- function(x) {
     get_parse_data(x$original)
   else if (exists("covr_parse_data", x))
     x$covr_parse_data
-  else if (!is.null(data <- x$parseData)) {
+  else if (!is.null(data <- x[["parseData"]])) {
     tokens <- attr(data, "tokens")
     data <- t(unclass(data))
     colnames(data) <- c("line1", "col1", "line2", "col2",
