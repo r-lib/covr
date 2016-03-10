@@ -24,13 +24,13 @@ repair_parse_data <- function(env) {
 }
 
 get_parse_data <- function(x) {
-  if (inherits(x, "srcref"))
+  if (inherits(x, "srcref")) {
     get_parse_data(attr(x, "srcfile"))
-  else if (exists("original", x))
+  } else if (exists("original", x)) {
     get_parse_data(x$original)
-  else if (exists("covr_parse_data", x))
+  } else if (exists("covr_parse_data", x)) {
     x$covr_parse_data
-  else if (!is.null(data <- x[["parseData"]])) {
+  } else if (!is.null(data <- x[["parseData"]])) {
     tokens <- attr(data, "tokens")
     data <- t(unclass(data))
     colnames(data) <- c("line1", "col1", "line2", "col2",
