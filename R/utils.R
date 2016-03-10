@@ -10,6 +10,10 @@ compact <- function(x) {
   x[vapply(x, length, integer(1)) != 0]
 }
 
+all_identical <- function(x) {
+  all(vapply(x, identical, logical(1L), x[[1L]]))
+}
+
 dots <- function(...) {
   eval(substitute(alist(...)))
 }
