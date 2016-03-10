@@ -121,11 +121,11 @@ f1 <- function() {
 
 impute_srcref <- function(x, parent_ref) {
   if (is.null(parent_ref)) return(NULL)
-  pd <- getParseData(parent_ref)
+  pd <- get_parse_data(parent_ref)
   pd_expr <-
-    pd$line1 == parent_ref[[1L]] &
+    pd$line1 == parent_ref[[7L]] &
     pd$col1 == parent_ref[[2L]] &
-    pd$line2 == parent_ref[[3L]] &
+    pd$line2 == parent_ref[[8L]] &
     pd$col2 == parent_ref[[4L]] &
     pd$token == "expr"
   pd_expr_idx <- which(pd_expr)
@@ -135,12 +135,14 @@ impute_srcref <- function(x, parent_ref) {
   expr_id <- pd$id[pd_expr_idx]
   pd_child <- pd[pd$parent == expr_id, ]
 
+  line_offset <- parent_ref[[7L]] - parent_ref[[1L]]
+
   make_srcref <- function(from, to = from) {
     srcref(
       attr(parent_ref, "srcfile"),
-      c(pd_child$line1[from],
+      c(pd_child$line1[from] - line_offset,
         pd_child$col1[from],
-        pd_child$line2[to],
+        pd_child$line2[to] - line_offset,
         pd_child$col2[to],
         pd_child$col1[from],
         pd_child$col2[to],
