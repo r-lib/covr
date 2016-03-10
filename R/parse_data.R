@@ -3,7 +3,8 @@ repair_parse_data <- function(env) {
   srcfile <- lapply(srcref, attr, "srcfile")
   parse_data <- compact(lapply(srcfile, "[[", "parseData"))
   if (length(parse_data) == 0L) {
-    warning("Parse data not found, coverage may be inaccurate. Try declaring a function in the last file of your R package.",
+    warning(paste("Parse data not found, coverage may be inaccurate. Try",
+                  "declaring a function in the last file of your R package."),
             call. = FALSE)
     return()
   }
@@ -19,7 +20,7 @@ repair_parse_data <- function(env) {
             call. = FALSE)
   }
 
-  original[[1]]$parseData <- parse_data[[1L]]
+  original[[1]][["parseData"]] <- parse_data[[1L]]
 }
 
 get_parse_data <- function(x) {
