@@ -2,7 +2,10 @@
 #'
 #' @export
 test_me <- function(x, y){
-  x + y
+  if (TRUE)
+    x + y
+  else
+    x - y
 }
 
 #' @export
