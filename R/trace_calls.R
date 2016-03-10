@@ -33,7 +33,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
         (is.call(x[[3]]) && identical(x[[3]][[1]], as.name("function")))) {
       parent_functions <- c(parent_functions, as.character(x[[2]]))
     }
-    src_ref <- attr(x, "srcref")
+    src_ref <- attr(x, "srcref") %||% impute_srcref(x, parent_ref)
     if (!is.null(src_ref)) {
       as.call(Map(trace_calls, x, src_ref, MoreArgs = list(parent_functions = parent_functions)))
     } else if (!is.null(parent_ref)) {
@@ -117,4 +117,74 @@ f1 <- function() {
     2
   }
   f2()
+}
+
+impute_srcref <- function(x, parent_ref) {
+  if (is.null(parent_ref)) return(NULL)
+  pd <- getParseData(parent_ref)
+  pd_expr <-
+    pd$line1 == parent_ref[[1L]] &
+    pd$col1 == parent_ref[[2L]] &
+    pd$line2 == parent_ref[[3L]] &
+    pd$col2 == parent_ref[[4L]] &
+    pd$token == "expr"
+  pd_expr_idx <- which(pd_expr)
+  if (length(pd_expr_idx) == 0L) return(NULL) # srcref not found in parse data
+
+  stopifnot(length(pd_expr_idx) == 1L)
+  expr_id <- pd$id[pd_expr_idx]
+  pd_child <- pd[pd$parent == expr_id, ]
+
+  make_srcref <- function(from, to = from) {
+    srcref(
+      attr(parent_ref, "srcfile"),
+      c(pd_child$line1[from],
+        pd_child$col1[from],
+        pd_child$line2[to],
+        pd_child$col2[to],
+        pd_child$col1[from],
+        pd_child$col2[to],
+        pd_child$line1[from],
+        pd_child$line2[to]
+      ))
+  }
+
+  switch(
+    as.character(x[[1L]]),
+    "if" = {
+      src_ref <- list(
+        NULL,
+        make_srcref(2, 4),
+        make_srcref(5),
+        make_srcref(6, 7)
+      )
+      src_ref[seq_along(x)]
+    },
+
+    "for" = {
+      list(
+        NULL,
+        NULL,
+        make_srcref(2),
+        make_srcref(3)
+      )
+    },
+
+    "while" = {
+      list(
+        NULL,
+        make_srcref(3),
+        make_srcref(5)
+      )
+    },
+
+    "repeat" = {
+      list(
+        NULL,
+        make_srcref(2)
+      )
+    },
+
+    NULL
+  )
 }
