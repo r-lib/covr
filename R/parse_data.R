@@ -87,6 +87,7 @@ impute_srcref <- function(x, parent_ref) {
         make_srcref(5),
         make_srcref(6, 7)
       )
+      # the fourth component isn't used for an "if" without "else"
       src_ref[seq_along(x)]
     },
 
