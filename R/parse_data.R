@@ -45,6 +45,8 @@ get_parse_data <- function(x) {
 
 
 impute_srcref <- function(x, parent_ref) {
+  if (length(as.character(x[[1L]])) != 1L) return()
+
   if (is.null(parent_ref)) return(NULL)
   pd <- get_parse_data(parent_ref)
   pd_expr <-
