@@ -95,5 +95,5 @@ test_that("functions with NULL bodies are traced correctly", {
 
   fun <- function() NULL
 
-  expect_equal(trace_calls(fun), fun)
+  expect_null(trace_calls(fun)())
 })

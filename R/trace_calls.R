@@ -46,7 +46,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
   else if (is.function(x)) {
     fun_body <- body(x)
 
-    if (!is.null(fun_body) && !is.null(attr(x, "srcref")) &&
+    if (!is.null(attr(x, "srcref")) &&
        (is.symbol(fun_body) || !identical(fun_body[[1]], as.name("{")))) {
       src_ref <- attr(x, "srcref")
       key <- new_counter(src_ref, parent_functions)
