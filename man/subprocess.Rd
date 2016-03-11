@@ -5,7 +5,7 @@
 \title{Run R commands in a R subprocess}
 \usage{
 subprocess(code, calling_env = parent.frame(), global_env = .GlobalEnv,
-  lib_paths = .libPaths(), quiet = F, clean = TRUE)
+  quiet = F, clean = TRUE)
 }
 \arguments{
 \item{code}{expression to call in the subprocess}
@@ -14,11 +14,11 @@ subprocess(code, calling_env = parent.frame(), global_env = .GlobalEnv,
 
 \item{global_env}{the global environment to load in the subprocess.}
 
-\item{lib_paths}{the library path to use with the subprocess.}
-
 \item{quiet}{whether to echo the R command run.}
 
 \item{clean}{whether to clean the Rout files generated from the subprocess.}
+
+\item{lib_paths}{the library path to use with the subprocess.}
 }
 \description{
 this function runs a R subprocess then given \code{code}, trying to

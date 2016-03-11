@@ -4,49 +4,25 @@
 NULL
 
 rex::register_shortcuts("covr")
-#' calculate the coverage on an environment after evaluating some expressions.
-#'
-#' This function uses non_standard evaluation so is best used in interactive
-#' sessions.
-#' @param env the environment to take function definitions from
-#' @param ... one or more expressions to be evaluated.
-#' @param enc The enclosing environment from which the expressions should be
-#' evaluated
-#' @export
-environment_coverage <- function(env, ..., enc = parent.frame()) {
-  exprs <- dots(...)
-  environment_coverage_(env, exprs, enc = enc)
+
+the <- new.env(parent = emptyenv())
+
+the$replacements <- list()
+
+trace_environment <- function(env) {
+  clear_counters()
+
+  the$replacements <- c(replacements_S4(env), compact(lapply(ls(env, all.names = TRUE), replacement, env = env)))
+  lapply(the$replacements, replace)
 }
 
-#' calculate the coverage on an environment after evaluating some expressions.
-#'
-#' This function does not use non_standard evaluation so is more appropriate
-#' for use in other functions.
-#' @inheritParams environment_coverage
-#' @param exprs a list of parsed expressions to be evaluated.
-#' @export
-environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
-  clear_counters()
+reset_traces <- function() {
+  lapply(the$replacements, reset)
+}
 
-  replacements <-
-    c(replacements_S4(env),
-      compact(lapply(ls(env, all.names = TRUE), replacement, env = env))
-    )
-
-  on.exit(lapply(replacements, reset), add = TRUE)
-
-  lapply(replacements, replace)
-
-  for (expr in exprs) {
-    eval(expr, enc)
-  }
-
-  res <- as.list(.counters)
-  clear_counters()
-
-  class(res) <- "coverage"
-
-  res
+save_trace <- function(directory) {
+  tmp_file <- tempfile("covr_trace_", tmpdir = directory)
+  saveRDS(.counters, file = tmp_file)
 }
 
 #' Calculate test coverage for specific function.
@@ -56,15 +32,13 @@ environment_coverage_ <- function(env, exprs, enc = parent.frame()) {
 #' @param ... expressions to run.
 #' @param enc the enclosing environment which to run the expressions.
 #' @export
-function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
+function_coverage <- function(fun, code, env = NULL, enc = parent.frame()) {
   if (is.function(fun)) {
     env <- environment(fun)
 
     # get name of function, stripping preceding blah:: if needed
     fun <- rex::re_substitutes(deparse(substitute(fun)), rex::regex(".*:::?"), "")
   }
-
-  exprs <- dots(...)
 
   clear_counters()
 
@@ -78,15 +52,13 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 
   replace(replacement)
 
-  for (expr in exprs) {
-    eval(expr, enc)
-  }
+  eval(code, enc)
 
   res <- as.list(.counters)
   clear_counters()
 
   for (i in seq_along(res)) {
-    display_name(res[[i]]$srcref) <- generate_display_name(res[[i]], path = NULL)
+    display_name(res[[i]]$srcref) <- generate_display_name(res[[i]], NULL)
     class(res[[i]]) <- "expression_coverage"
   }
 
@@ -117,8 +89,8 @@ function_coverage <- function(fun, ..., env = NULL, enc = parent.frame()) {
 #' @seealso exclusions
 #' @export
 package_coverage <- function(path = ".",
-                             ...,
-                             type = c("test", "vignette", "example", "all", "none"),
+                             code,
+                             type = c("tests", "vignettes", "examples"),
                              relative_path = TRUE,
                              quiet = TRUE,
                              clean = TRUE,
@@ -141,261 +113,37 @@ package_coverage <- function(path = ".",
 
   type <- match_arg(type, several.ok = TRUE)
 
-  if (type %==% "all") {
-    type <- c("test", "vignette", "example")
-  }
-
-  if (length(type) > 1L) {
-
-    if ("all" %in% type) {
-      stop(sQuote("all"), " must be the only type specified", call. = FALSE)
-    }
-
-    if ("none" %in% type) {
-      stop(sQuote("none"), " must be the only type specified", call. = FALSE)
-    }
-
-    # store the args that were called
-    called_args <- as.list(match.call())[-1]
-
-    # remove the type
-    called_args$type <- NULL
-    res <- list()
-    for (t in type) {
-      res[[t]] <- do.call(Recall, c(called_args, type = t))
-    }
-
-    attr(res, "package") <- pkg
-    class(res) <- "coverages"
-    return(res)
-  }
-
-  dots <- dots(...)
-
-  sources <- sources(pkg$path)
-
-  tmp_lib <- tempdir()
+  tmp_lib <- tempfile("R_LIBS")
+  dir.create(tmp_lib)
 
   coverage <- list()
 
-  # if there are compiled components to a package we have to run in a subprocess
-  if (length(sources)) {
+  if (is_windows()) {
 
-    if (isTRUE(clean)) {
-      on.exit({
-        clean_objects(pkg$path)
-        clear_gcov(pkg$path)
-      })
-    }
-    if (is_windows()) {
-
-      # workaround for https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16384
-      # LDFLAGS is ignored on Windows and we don't want to override PKG_LIBS if
-      # it is set, so use SHLIB_LIBADD
-      flags[["SHLIB_LIBADD"]] <- "--coverage"
-    }
-
-    withr::with_makevars(
-      flags, {
-        if (use_subprocess) {
-          subprocess(
-                     clean = clean,
-                     quiet = quiet,
-                     coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try = use_try)
-                     )
-        } else {
-          coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try = use_try)
-        }
-      })
-
-    coverage <- c(coverage, run_gcov(pkg$path, quiet = quiet))
-
-  } else {
-    if (use_subprocess) {
-      subprocess(
-                 clean = clean,
-                 quiet = quiet,
-                 coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try = use_try)
-                 )
-    } else {
-      coverage <- run_tests(pkg, tmp_lib, dots, type, quiet, use_try = use_try)
-    }
+    # workaround for https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16384
+    # LDFLAGS is ignored on Windows and we don't want to override PKG_LIBS if
+    # it is set, so use SHLIB_LIBADD
+    flags[["SHLIB_LIBADD"]] <- "--coverage"
   }
 
-  # set the display names for coverage
-  for (i in seq_along(coverage)) {
-    display_path <- if (isTRUE(relative_path)) pkg$path else NULL
+  withr::with_makevars(flags,
+    # install the package in a temporary directory
+    install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = quiet)
+    )
+  # add hooks to the package startup
+  add_hooks(pkg$package, tmp_lib)
 
-    display_name(coverage[[i]]$srcref) <-
-      generate_display_name(coverage[[i]], display_path)
-
-    class(coverage[[i]]) <- "expression_coverage"
-  }
-
-  attr(coverage, "type") <- type
-  attr(coverage, "package") <- pkg
-  class(coverage) <- "coverage"
-
-  # BasicClasses are functions from the method package
-  coverage <- coverage[!rex::re_matches(display_name(coverage),
-    rex::rex("R", one_of("/", "\\"), "BasicClasses.R"))]
-
-  # perform exclusions
-  exclude(coverage,
-    exclusions = exclusions,
-    exclude_pattern = exclude_pattern,
-    exclude_start = exclude_start,
-    exclude_end = exclude_end,
-    path = if (isTRUE(relative_path)) pkg$path else NULL
-  )
+  withr::with_envvar(c(R_LIBS_USER = env_path(tmp_lib, Sys.getenv("R_LIBS_USER"))), {
+    withr::with_libpaths(tmp_lib, action = "prefix", {
+                           tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = type, lib.loc = tmp_lib)
+    })})
 }
 
-generate_display_name <- function(x, path = NULL) {
-  file_path <- normalizePath(getSrcFilename(x$srcref, full.names = TRUE), mustWork = FALSE)
-  if (!is.null(path)) {
-
-    # we have to check the system explicitly because both file.path and
-    # normalizePath strip the trailing path separator.
-    if (is_windows()) {
-      sep <- "\\"
-    } else {
-      sep <- "/"
-    }
-
-    package_path <- paste0(path, sep)
-
-    file_path <- rex::re_substitutes(file_path, rex::rex(package_path), "")
-  }
-  file_path
-}
-
-run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try = TRUE) {
-  testing_dir <- test_directory(pkg$path)
-
-  # install the package in a temporary directory
-  RCMD("INSTALL",
-                 options = c(pkg$path,
-                             "--no-docs",
-                             "--no-multiarch",
-                             "--preclean",
-                             "--with-keep.source",
-                             "--no-byte-compile",
-                             "--no-test-load",
-                             "-l",
-                             tmp_lib),
-                  quiet = quiet)
-
-  if (isNamespaceLoaded(pkg$package)) {
-    try_unload(pkg$package)
-    on.exit(loadNamespace(pkg$package), add = TRUE)
-  }
-  withr::with_libpaths(tmp_lib, action = "prefix", {
-    ns_env <- loadNamespace(pkg$package)
-    repair_parse_data(ns_env)
-
-    env <- new.env(parent = ns_env) # nolint
-
-    # directories for vignettes and examples
-    vignette_dir <- file.path(pkg$path, "vignettes")
-    example_dir <- file.path(pkg$path, "man")
-
-    # get expressions to run
-    exprs <-
-      c(dots,
-        quote("library(methods)"),
-        if (type == "test" && file.exists(testing_dir)) {
-          if (isTRUE(use_try)) {
-            bquote(try(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)), silent = .(quiet)))
-          } else {
-            bquote(source_dir(path = .(testing_dir), env = .(env), quiet = .(quiet)))
-          }
-        } else if (type == "vignette" && file.exists(vignette_dir)) {
-          sources <- compact(tangle_vignettes(pkg))
-          lapply(sources,
-            function(file) {
-              bquote(source2(.(file), .(env), path = .(vignette_dir), quiet = .(quiet)))
-            })
-        } else if (type == "example" && file.exists(example_dir)) {
-          ex_file <- process_examples(pkg, tmp_lib, quiet) # nolint
-          if (!is.null(ex_file)) {
-            bquote(source2(.(ex_file), env = .(env), quiet = .(quiet)))
-          }
-        })
-
-    enc <- environment()
-
-    # actually calculate the coverage
-    cov <- environment_coverage_(ns_env, exprs, enc)
-
-    # unload the package being tested
-    try_unload(pkg$package)
-    cov
-  })
-}
-
-try_unload <- function(pkg) {
-  tryCatch(unloadNamespace(pkg), error = function(e) warning(e$message))
-}
-
-process_examples <- function(pkg, lib = getwd(), quiet = TRUE) {
-
-  ex_file <- ex_dot_r(pkg$package, file.path(lib, pkg$package), silent = quiet)
-
-  if (is.null(ex_file)) {
-     return(NULL)
-  }
-
-  # we need to move the file from the working directory into the tmp
-  # dir, remove the last line (which quits) and remove the originaal
-  # and *-cnt file
-  tmp_ex_file <- file.path(lib, ex_file)
-  lines <- readLines(ex_file)
-  header_lines <- readLines(file.path(R.home("share"), "R", "examples-header.R"))
-
-  # pdf output at lib
-  header_lines <- rex::re_substitutes(header_lines,
-    rex::rex("grDevices::pdf(paste(pkgname, \"-Ex.pdf\", sep=\"\")"),
-    paste0("grDevices::pdf(\"", file.path(lib, pkg$package), "-Ex.pdf\""))
-
-  # remove header source line
-  lines <- lines[-2]
-
-  # append header_lines after the first line
-  lines <- append(lines, header_lines, after = 1)
-
-  # remove last line "quit("no")"
-  lines <- lines[-length(lines)]
-  writeLines(lines, con = tmp_ex_file)
-
-  if (file.exists(ex_file)) {
-    file.remove(ex_file)
-  }
-
-  cnt_file <- paste0(ex_file, "-cnt")
-  if (file.exists(cnt_file)) {
-    file.remove(paste0(ex_file, "-cnt"))
-  }
-
-  tmp_ex_file
-}
-
-tangle_vignettes <- function(pkg, quiet = TRUE) {
-
-  vigns <- tools::pkgVignettes(dir = pkg$path, check = TRUE)
-  if (is.null(vigns)) {
-    return(NULL)
-  }
-
-  withr::with_dir(file.path(pkg$path, "vignettes"), {
-    Map(function(file, engine, enc, name) {
-      engine <- tools::vignetteEngine(engine)
-
-      engine$tangle(file, quiet = quiet, encoding = enc)
-      tools:::find_vignette_product(name, by = "tangle", main = FALSE, engine = engine)
-        },
-      file = vigns$docs,
-      engine = vigns$engines,
-      enc = vigns$encodings,
-      name = vigns$names)
-    })
+add_hooks <- function(pkg_name, lib) {
+  load_script <- file.path(lib, pkg_name, "R", pkg_name)
+  lines <- readLines(file.path(lib, pkg_name, "R", pkg_name))
+  lines <- append(lines, c("setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
+                           paste0("reg.finalizer(ns, function(...) { str(\"HI!\");covr:::save_trace(\"", lib, "\") }, onexit = TRUE)")),
+                  length(lines) - 1L)
+  writeLines(text = lines, con = load_script)
 }

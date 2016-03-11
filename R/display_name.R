@@ -3,7 +3,7 @@
 #' @param x object from which to retrieve the display name
 #' @param ... additional arguments passed to methods
 #' @export
-display_name <- function(x, ...) UseMethod("display_name")
+display_name <- function(x, ...) vapply(x, function(xx) getSrcFilename(xx$srcref), character(1))
 
 #' @export
 display_name.default <- function(x, ...) {

@@ -310,3 +310,9 @@ modify_name <- function(expr, old, new) {
 # This is the fix for https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16659
 match_arg <- base::match.arg
 body(match_arg) <- modify_name(body(match_arg), "all", "any")
+
+# from https://github.com/wch/r-source/blob/2065bd3c09813949e9fa7236d167f1b7ed5c8ba3/src/library/tools/R/check.R#L4134-L4137
+env_path <- function(...) {
+  paths <- c(...)
+  paste(paths[nzchar(paths)], collapse = .Platform$path.sep)
+}
