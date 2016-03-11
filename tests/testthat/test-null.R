@@ -16,11 +16,13 @@ test_that("coverage of functions with NULL constructs", {
   }
 
   cv1 <- function_coverage(f1, f1())
-  expect_error(expect_equal(percent_coverage(cv1), 100), NA)
+  expect_equal(percent_coverage(cv1), 100)
   cv2 <- function_coverage(f2, f2())
-  expect_error(expect_equal(percent_coverage(cv2), 100), NA)
+  expect_equal(percent_coverage(cv2), 100)
   cv3 <- function_coverage(f3, f3())
-  expect_error(expect_equal(percent_coverage(cv3), 66.666666), NA)
+  # Will change with #154
+  expect_equal(percent_coverage(cv3), 200 / 3)
   cv4 <- function_coverage(f4, f4())
-  expect_error(expect_equal(percent_coverage(cv4), 50), NA)
+  # Will change with #154
+  expect_equal(percent_coverage(cv4), 100)
 })
