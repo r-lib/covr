@@ -20,7 +20,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
       x
     }
     else {
-      if (!is.null(x) && ((!is.symbol(x) && is.na(x)) || as.character(x) == "{")) { # nolint
+      if (is_na(x) || is_brace(x)) {
         x
       } else {
         key <- new_counter(parent_ref, parent_functions) # nolint
