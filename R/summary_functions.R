@@ -28,6 +28,11 @@ tally_coverage <- function(x, by = c("line", "expression")) {
              return(df)
            }
 
+           # aggregate() can't cope with zero-length data frames anyway.
+           if (nrow(df) == 0L) {
+             return(NULL)
+           }
+
            # results with NA functions (such as from compiled code) are dropped
            # unless NA is a level.
            df$functions <- addNA(df$functions)
@@ -225,7 +230,7 @@ markers.data.frame <- function(x, type = "test") { # nolint
 expand_lines <- function(x) {
   repeats <- (x$last_line - x$first_line) + 1L
 
-  lines <- unlist(Map(seq, x$first_line, x$last_line))
+  lines <- unlist(Map(seq, x$first_line, x$last_line)) %||% integer()
 
   res <- x[rep(seq_len(NROW(x)), repeats), c("filename", "functions", "value")]
   res$line <- lines
