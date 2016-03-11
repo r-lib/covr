@@ -16,11 +16,11 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
   }
 
   if (is.atomic(x) || is.name(x)) {
-    if (length(x) == 0 || is.null(parent_ref)) {
+    if (is.null(parent_ref)) {
       x
     }
     else {
-      if ((!is.symbol(x) && is.na(x)) || as.character(x) == "{") { # nolint
+      if (!is.null(x) && ((!is.symbol(x) && is.na(x)) || as.character(x) == "{")) { # nolint
         x
       } else {
         key <- new_counter(parent_ref, parent_functions) # nolint
