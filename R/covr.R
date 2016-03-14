@@ -100,10 +100,8 @@ package_coverage <- function(path = ".",
                              exclude_end = getOption("covr.exclude_end"),
                              use_subprocess = TRUE,
                              use_try = TRUE,
-                             flags = c(CPPFLAGS = "-O0 -fprofile-arcs -ftest-coverage",
-                               FFLAGS = "-O0 -fprofile-arcs -ftest-coverage",
-                               FCFLAGS = "-O0 -fprofile-arcs -ftest-coverage",
-                               LDFLAGS = "--coverage")) {
+                             flags = getOption("covr.flags"),
+                             ...) {
 
   pkg <- as_package(path)
 
@@ -124,28 +122,38 @@ package_coverage <- function(path = ".",
     flags[["SHLIB_LIBADD"]] <- "--coverage"
   }
 
+  if (isTRUE(clean)) {
+    on.exit({
+      clean_objects(pkg$path)
+      clean_gcov(pkg$path)
+    })
+  }
+
   withr::with_makevars(flags,
     # install the package in a temporary directory
-    install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests", "--html"), quiet = quiet)
+    install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = quiet, ...)
     )
   # add hooks to the package startup
   add_hooks(pkg$package, tmp_lib)
 
   withr::with_envvar(c(R_LIBS_USER = env_path(tmp_lib, Sys.getenv("R_LIBS_USER"))), {
-                       withr::with_libpaths(tmp_lib, action = "prefix", {
-                                              if ("vignettes" %in% type) {
-                                                type <- type[type != "vignettes"]
-                                                run_vignettes(pkg, tmp_lib)
-                                              }
-                                              if (length(type)) {
-                                                tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = type, lib.loc = tmp_lib)
-    }
+    withr::with_libpaths(tmp_lib, action = "prefix", {
+      if ("vignettes" %in% type) {
+        type <- type[type != "vignettes"]
+        run_vignettes(pkg, tmp_lib)
+      }
+      if (length(type)) {
+        tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = type, lib.loc = tmp_lib)
+      }
     })})
 
   trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_", full.names = TRUE)
   structure(class = "coverage", merge_coverage(lapply(trace_files, function(x) as.list(readRDS(x)))))
 }
 
+# merge multiple coverage outputs together Assumes the order of coverage lines
+# is the same in each object, this should always be the case if the objects are
+# from the same initial library.
 merge_coverage <- function(...) {
   objs <- as.list(...)
   x <- objs[[1]]

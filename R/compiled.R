@@ -61,7 +61,7 @@ parse_gcov <- function(file, package_path = "") {
   res
 }
 
-clear_gcov <- function(path) {
+clean_gcov <- function(path) {
   src_dir <- file.path(path, "src")
 
   gcov_files <- list.files(src_dir,
