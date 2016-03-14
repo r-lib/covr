@@ -9,7 +9,7 @@
     covr.flags = c(CPPFLAGS = "-O0 -fprofile-arcs -ftest-coverage",
                    FFLAGS = "-O0 -fprofile-arcs -ftest-coverage",
                    FCFLAGS = "-O0 -fprofile-arcs -ftest-coverage",
-                   LDFLAGS = "--coverage")
+                   LDFLAGS = "-lgcov")
   )
   toset <- !(names(op_covr) %in% names(op))
   if (any(toset)) options(op_covr[toset])
