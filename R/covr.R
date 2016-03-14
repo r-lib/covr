@@ -108,15 +108,13 @@ package_coverage <- function(path = ".",
   pkg <- as_package(path)
 
   if (missing(type)) {
-    type <- "test"
+    type <- "tests"
   }
 
   type <- match_arg(type, several.ok = TRUE)
 
   tmp_lib <- tempfile("R_LIBS")
   dir.create(tmp_lib)
-
-  coverage <- list()
 
   if (is_windows()) {
 
@@ -128,22 +126,59 @@ package_coverage <- function(path = ".",
 
   withr::with_makevars(flags,
     # install the package in a temporary directory
-    install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = quiet)
+    install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests", "--html"), quiet = quiet)
     )
   # add hooks to the package startup
   add_hooks(pkg$package, tmp_lib)
 
   withr::with_envvar(c(R_LIBS_USER = env_path(tmp_lib, Sys.getenv("R_LIBS_USER"))), {
-    withr::with_libpaths(tmp_lib, action = "prefix", {
-                           tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = type, lib.loc = tmp_lib)
+                       withr::with_libpaths(tmp_lib, action = "prefix", {
+                                              if ("vignettes" %in% type) {
+                                                type <- type[type != "vignettes"]
+                                                run_vignettes(pkg, tmp_lib)
+                                              }
+                                              if (length(type)) {
+                                                tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = type, lib.loc = tmp_lib)
+    }
     })})
+
+  trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_", full.names = TRUE)
+  structure(class = "coverage", merge_coverage(lapply(trace_files, function(x) as.list(readRDS(x)))))
+}
+
+merge_coverage <- function(...) {
+  objs <- as.list(...)
+  x <- objs[[1]]
+  others <- objs[-1]
+  stopifnot(all(lengths(others) == length(x)))
+
+  for (y in others) {
+    for (i in seq_along(x)) {
+      x[[i]]$value <- x[[i]]$value + y[[i]]$value
+    }
+  }
+  x
+}
+
+run_vignettes <- function(pkg, lib) {
+  outfile <- file.path(lib, paste0(pkg$package, "-Vignette.Rout"))
+  failfile <- paste(outfile, "fail", sep = "." )
+  cat("message(gettextf(\"Running vignettes for package %s\", sQuote('", pkg$package, "')),
+      domain = NA)
+  tools::buildVignettes(dir = '", pkg$path, "')", file = outfile, sep = "")
+  cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
+               "CMD BATCH --vanilla --no-timing",
+               shQuote(outfile), shQuote(failfile))
+  if (.Platform$OS.type == "windows") Sys.setenv(R_LIBS="")
+  else cmd <- paste("R_LIBS=", cmd)
+  system(cmd)
 }
 
 add_hooks <- function(pkg_name, lib) {
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
   lines <- readLines(file.path(lib, pkg_name, "R", pkg_name))
   lines <- append(lines, c("setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
-                           paste0("reg.finalizer(ns, function(...) { str(\"HI!\");covr:::save_trace(\"", lib, "\") }, onexit = TRUE)")),
+                           paste0("reg.finalizer(ns, function(...) { covr:::save_trace(\"", lib, "\") }, onexit = TRUE)")),
                   length(lines) - 1L)
   writeLines(text = lines, con = load_script)
 }
