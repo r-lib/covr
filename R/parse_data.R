@@ -23,32 +23,11 @@ repair_parse_data <- function(env) {
   original[[1]][["parseData"]] <- parse_data[[1L]]
 }
 
-get_parse_data <- function(x) {
-  if (inherits(x, "srcref")) {
-    get_parse_data(attr(x, "srcfile"))
-  } else if (exists("original", x)) {
-    get_parse_data(x$original)
-  } else if (exists("covr_parse_data", x)) {
-    x$covr_parse_data
-  } else if (!is.null(data <- x[["parseData"]])) {
-    tokens <- attr(data, "tokens")
-    data <- t(unclass(data))
-    colnames(data) <- c("line1", "col1", "line2", "col2",
-                        "terminal", "token.num", "id", "parent")
-    x$covr_parse_data <-
-      data.frame(data[, -c(5, 6), drop = FALSE], token = tokens,
-                 terminal = as.logical(data[, "terminal"]),
-                 stringsAsFactors = FALSE)
-    x$covr_parse_data
-  }
-}
-
-
 impute_srcref <- function(x, parent_ref) {
-  if (length(as.character(x[[1L]])) != 1L) return()
-
+  if (!is_conditional_or_loop(x)) return(NULL)
   if (is.null(parent_ref)) return(NULL)
-  pd <- get_parse_data(parent_ref)
+
+  pd <- getParseData(parent_ref, includeText = FALSE)
   pd_expr <-
     pd$line1 == parent_ref[[7L]] &
     pd$col1 == parent_ref[[2L]] &
@@ -111,3 +90,5 @@ impute_srcref <- function(x, parent_ref) {
     NULL
   )
 }
+
+is_conditional_or_loop <- function(x) is.symbol(x[[1L]]) && as.character(x[[1L]]) %in% c("if", "for", "else")
