@@ -14,10 +14,6 @@ all_identical <- function(x) {
   all(vapply(x, identical, logical(1L), x[[1L]]))
 }
 
-dots <- function(...) {
-  eval(substitute(alist(...)))
-}
-
 trim <- function(x) {
   rex::re_substitutes(x, rex::rex(list(start, spaces) %or% list(spaces, end)),  "")
 }
@@ -36,16 +32,6 @@ current_commit <- function(dir = ".") {
   trim(commit)
 }
 
-test_directory <- function(path) {
-  if (file.exists(file.path(path, "tests"))) {
-    file.path(path, "tests")
-  } else if (file.exists(file.path(path, "inst", "tests"))) {
-    file.path(path, "inst", "tests")
-  } else {
-    stop("No testing directory found", call. = FALSE)
-  }
-}
-
 `[.coverage` <- function(x, i, ...) {
   attrs <- attributes(x)
   attrs$names <- attrs$names[i]
@@ -53,38 +39,6 @@ test_directory <- function(path) {
   res <- res[i]
   attributes(res) <- attrs
   res
-}
-
-source_dir <- function(path, pattern = rex::rex(".", one_of("R", "r"), end), env,
-                       chdir = TRUE, quiet = FALSE) {
-  files <- normalizePath(list.files(path, pattern, full.names = TRUE))
-  lapply(files, source2, path = path, env = env, quiet = quiet)
-}
-
-source2 <- function(file, env, path = NULL, quiet = FALSE) {
-  if (!is.null(path)) {
-    old <- setwd(path)
-    on.exit(setwd(old))
-  }
-  if (isTRUE(quiet)) {
-    capture.output(sys.source(file, env))
-    invisible()
-  } else {
-    sys.source(file, env)
-  }
-}
-
-ex_dot_r <- get(".createExdotR", envir = asNamespace("tools"))
-
-example_code <- function(file) {
-  parsed_rd <- tools::parse_Rd(file)
-
-  example_locs <- vapply(parsed_rd,
-    function(x) attr(x, "Rd_tag") == "\\examples",
-    logical(1)
-  )
-
-  unlist(parsed_rd[example_locs])
 }
 
 duplicate <- function(x) {
