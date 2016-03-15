@@ -292,7 +292,7 @@ setdiff.data.frame <- function(x, y,
   !do.call(paste, c(x[by.x], sep = "\30")) %in% do.call(paste, c(y[by.y], sep = "\30"))
 }
 
-`%==%` <- identical
+`%==%` <- function(x, y) identical(x, y)
 
 modify_name <- function(expr, old, new) {
   replace <- function(e)
