@@ -48,23 +48,14 @@ function_coverage <- function(fun, code, env = NULL, enc = parent.frame()) {
     replacement(fun)
   }
 
-  on.exit(reset(replacement), add = TRUE)
+  on.exit({
+    reset(replacement)
+    clear_counters()
+  })
 
   replace(replacement)
-
   eval(code, enc)
-
-  res <- as.list(.counters)
-  clear_counters()
-
-  for (i in seq_along(res)) {
-    display_name(res[[i]]$srcref) <- generate_display_name(res[[i]], NULL)
-    class(res[[i]]) <- "expression_coverage"
-  }
-
-  class(res) <- "coverage"
-
-  res
+  structure(as.list(.counters), class = "coverage")
 }
 
 #' Calculate test coverage for a package
@@ -131,8 +122,10 @@ package_coverage <- function(path = ".",
 
   withr::with_makevars(flags,
     # install the package in a temporary directory
-    install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = quiet, ...)
-    )
+    tryCatch({
+      install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = quiet, ...)
+    }, warning = function(e) stop(e)))
+
   # add hooks to the package startup
   add_hooks(pkg$package, tmp_lib)
 
@@ -156,6 +149,10 @@ package_coverage <- function(path = ".",
 # from the same initial library.
 merge_coverage <- function(...) {
   objs <- as.list(...)
+  if (length(objs) == 0) {
+    return(objs)
+  }
+
   x <- objs[[1]]
   others <- objs[-1]
   stopifnot(all(lengths(others) == length(x)))
@@ -168,6 +165,10 @@ merge_coverage <- function(...) {
   x
 }
 
+# Run vignettes for a package. This is done in a new process as otherwise the
+# finalizer is not run to dump the results.
+# @param pkg Package object (from as_package) to run
+# @param lib the library path to look in
 run_vignettes <- function(pkg, lib) {
   outfile <- file.path(lib, paste0(pkg$package, "-Vignette.Rout"))
   failfile <- paste(outfile, "fail", sep = "." )
@@ -182,11 +183,23 @@ run_vignettes <- function(pkg, lib) {
   system(cmd)
 }
 
+# Add hooks to the installed package
+# Installed packages have lazy loading code to setup the lazy load database at
+# pkg_name/R/pkg_name. This function adds a user level onLoad Hook to the
+# package which calls `covr::trace_environment`, so the package environment is
+# traced when the package is loaded.
+# It also adds a finalizer that saves the tracing information to the package
+# namespace environment which is run when the ns is garbage collected or the
+# process ends. This ensures the tracing count information will be written
+# regardless of how the process terminates.
+# @param pkg_name name of the package to add hooks to
+# @param lib the library path to look in
 add_hooks <- function(pkg_name, lib) {
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
   lines <- readLines(file.path(lib, pkg_name, "R", pkg_name))
-  lines <- append(lines, c("setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
-                           paste0("reg.finalizer(ns, function(...) { covr:::save_trace(\"", lib, "\") }, onexit = TRUE)")),
-                  length(lines) - 1L)
+  lines <- append(lines,
+    c("setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
+      paste0("reg.finalizer(ns, function(...) { covr:::save_trace(\"", lib, "\") }, onexit = TRUE)")),
+    length(lines) - 1L)
   writeLines(text = lines, con = load_script)
 }
