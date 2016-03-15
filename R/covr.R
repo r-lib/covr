@@ -291,6 +291,8 @@ run_tests <- function(pkg, tmp_lib, dots, type, quiet, use_try = TRUE) {
   }
   withr::with_libpaths(tmp_lib, action = "prefix", {
     ns_env <- loadNamespace(pkg$package)
+    repair_parse_data(ns_env)
+
     env <- new.env(parent = ns_env) # nolint
 
     # directories for vignettes and examples

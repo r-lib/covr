@@ -126,9 +126,9 @@ context("exclude")
 test_that("it excludes lines", {
   t1 <- package_coverage("TestSummary")
 
-  expect_equal(length(t1), 2)
-  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 5), path = "TestSummary")), 1)
-  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 10), path = "TestSummary")), 1)
+  expect_equal(length(t1), 4)
+  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 5), path = "TestSummary")), 3)
+  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 13), path = "TestSummary")), 3)
 })
 test_that("it preserves the class", {
   t1 <- package_coverage("TestSummary")

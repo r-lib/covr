@@ -117,6 +117,20 @@ The actual source for `trace_calls` is slightly more complicated because we
 want to initialize the counter for each call while we are walking the AST and
 there are a few non-calls we also want to count.
 
+
+## Refining Source References ##
+Each statement comes with a source reference. Unfortunately, the following is
+counted as one statement:
+
+```r
+if (x)
+  y()
+```
+
+To work around this, detailed parse data (obtained from a refined version of
+`getParseData()`)  is analyzed to impute source references at sub-statement
+level for `if`, `for` and `while` constructs.
+
 # Replacing #
 After we have our modified function definition how do we re-define the function
 to use the updated definition, and ensure that all other functions which call
