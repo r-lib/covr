@@ -6,8 +6,7 @@ warnings_are_errors: false
 r_github_packages:
   - jimhester/covr
 
-script:
-  - true
-
 after_success:
+  - Rscript -e "devtools::install()"
+  - source shim_package.sh
   - Rscript -e 'covr::codecov()'
