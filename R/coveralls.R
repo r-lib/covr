@@ -53,13 +53,12 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
 
   coverages <- per_line(x)
 
-  res <- unname(lapply(coverages,
-    function(coverage) {
+  res <- Map(function(coverage, name) {
       list(
-        "name" = jsonlite::unbox(display_name(coverage)),
+        "name" = jsonlite::unbox(name),
         "source" = jsonlite::unbox(paste(collapse = "\n", coverage$file$file_lines)),
         "coverage" = coverage$coverage)
-    }))
+    }, coverages, names(coverages), USE.NAMES = FALSE)
 
   git_info <- switch(service_name,
     drone = jenkins_git_info(), # drone has the same env vars as jenkins
