@@ -24,6 +24,7 @@ Imports:
 Suggests:
     R6,
     knitr,
+    rmarkdown,
     shiny (>= 0.11.1),
     htmltools,
     DT,
