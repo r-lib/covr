@@ -1,12 +1,3 @@
-context("environment_coverage")
-test_that("environment_coverage calls environment_coverage_", {
-
-  # this is pretty silly, make more useful later
-  with_mock(environment_coverage_ = function(...) TRUE,
-    expect_true(environment_coverage(NULL))
-    )
-})
-
 context("function_coverage")
 test_that("function_coverage", {
 

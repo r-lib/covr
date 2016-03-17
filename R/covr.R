@@ -32,7 +32,7 @@ save_trace <- function(directory) {
 #' @param ... expressions to run.
 #' @param enc the enclosing environment which to run the expressions.
 #' @export
-function_coverage <- function(fun, code, env = NULL, enc = parent.frame()) {
+function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()) {
   if (is.function(fun)) {
     env <- environment(fun)
 
@@ -61,7 +61,6 @@ function_coverage <- function(fun, code, env = NULL, enc = parent.frame()) {
 #' Calculate test coverage for a package
 #'
 #' @param path file path to the package
-#' @param ... extra expressions to run
 #' @param type run the package \sQuote{test}, \sQuote{vignette},
 #' \sQuote{example}, \sQuote{all}, or \sQuote{none}. The default is
 #' \sQuote{test}.
@@ -77,11 +76,12 @@ function_coverage <- function(fun, code, env = NULL, enc = parent.frame()) {
 #' Needed for compiled code and many packages using S4 classes.
 #' @param use_try whether to wrap test evaluation in a \code{try} call; enabled by default
 #' @param flags Compilation flags used in compiling and liking compiled code.
+#' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}
 #' @seealso exclusions
 #' @export
 package_coverage <- function(path = ".",
-                             code,
-                             type = c("tests", "vignettes", "examples"),
+                             type = c("tests", "vignettes", "examples", "all", "none"),
+                             combine_types = TRUE,
                              relative_path = TRUE,
                              quiet = TRUE,
                              clean = TRUE,
@@ -92,6 +92,7 @@ package_coverage <- function(path = ".",
                              use_subprocess = TRUE,
                              use_try = TRUE,
                              flags = getOption("covr.flags"),
+                             code = character(),
                              ...) {
 
   pkg <- as_package(path)
@@ -100,7 +101,24 @@ package_coverage <- function(path = ".",
     type <- "tests"
   }
 
-  type <- match_arg(type, several.ok = TRUE)
+  type <- parse_type(type)
+
+  run_separately <- !isTRUE(combine_types) && length(type) > 1
+  if (run_separately) {
+    # store the args that were called
+    called_args <- as.list(match.call())[-1]
+
+    # remove the type
+    called_args$type <- NULL
+    res <- list()
+    for (t in type) {
+      res[[t]] <- do.call(Recall, c(called_args, type = t))
+    }
+
+    attr(res, "package") <- pkg
+    class(res) <- "coverages"
+    return(res)
+  }
 
   tmp_lib <- tempfile("R_LIBS")
   dir.create(tmp_lib)
@@ -123,7 +141,7 @@ package_coverage <- function(path = ".",
   withr::with_makevars(flags,
     # install the package in a temporary directory
     tryCatch({
-      install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = quiet, ...)
+      install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = quiet)
     }, warning = function(e) stop(e)))
 
   # add hooks to the package startup
@@ -131,22 +149,32 @@ package_coverage <- function(path = ".",
 
   withr::with_envvar(c(R_LIBS_USER = env_path(tmp_lib, Sys.getenv("R_LIBS_USER"))), {
     withr::with_libpaths(tmp_lib, action = "prefix", {
+
       if ("vignettes" %in% type) {
         type <- type[type != "vignettes"]
         run_vignettes(pkg, tmp_lib)
       }
-      if (length(type)) {
-        tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = type, lib.loc = tmp_lib)
+
+      if (length(type) && !type %==% "none") {
+        withCallingHandlers(
+          tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = type, lib.loc = tmp_lib, ...),
+          message = function(e) if (quiet) invokeRestart("muffleMessage") else e)
       }
+
+      run_commands(pkg, tmp_lib, code)
     })})
 
   # read tracing files
   trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
-  res <- structure(class = "coverage", merge_coverage(lapply(trace_files, function(x) as.list(readRDS(x)))))
+  coverage <- merge_coverage(lapply(trace_files, function(x) as.list(readRDS(x))))
+  coverage <- structure(c(coverage, run_gcov(pkg$path, quiet = quiet)),
+    class = "coverage",
+    package = pkg,
+    relative = relative_path)
 
-  attr(res, "package") <- pkg
-  attr(res, "relative") <- relative_path
-  res
+  exclude(coverage,
+    exclusions = exclusions,
+    path = if (isTRUE(relative_path)) pkg$path else NULL)
 }
 
 # merge multiple coverage outputs together Assumes the order of coverage lines
@@ -170,16 +198,53 @@ merge_coverage <- function(...) {
   x
 }
 
+parse_type <- function(type) {
+  type <- match_arg(type, choices = c("tests", "vignettes", "examples", "all", "none"), several.ok = TRUE)
+  if (type %==% "all") {
+    type <- c("tests", "vignettes", "examples")
+  }
+
+  if (type %==% "none") {
+    type <- NULL
+  }
+
+  if (length(type) > 1L) {
+
+    if ("all" %in% type) {
+      stop(sQuote("all"), " must be the only type specified", call. = FALSE)
+    }
+
+    if ("none" %in% type) {
+      stop(sQuote("none"), " must be the only type specified", call. = FALSE)
+    }
+  }
+  type
+}
+
 # Run vignettes for a package. This is done in a new process as otherwise the
-# finalizer is not run to dump the results.
+# finalizer is not called to dump the results. The namespace is first
+# explicitly loaded to ensure output even if no vignettes exist.
 # @param pkg Package object (from as_package) to run
 # @param lib the library path to look in
 run_vignettes <- function(pkg, lib) {
   outfile <- file.path(lib, paste0(pkg$package, "-Vignette.Rout"))
   failfile <- paste(outfile, "fail", sep = "." )
-  cat("message(gettextf(\"Running vignettes for package %s\", sQuote('", pkg$package, "')),
-      domain = NA)
-  tools::buildVignettes(dir = '", pkg$path, "')", file = outfile, sep = "")
+  cat(
+    "tools::buildVignettes(dir = '", pkg$path, "')", file = outfile, sep = "")
+  cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
+               "CMD BATCH --vanilla --no-timing",
+               shQuote(outfile), shQuote(failfile))
+  if (.Platform$OS.type == "windows") Sys.setenv(R_LIBS="")
+  else cmd <- paste("R_LIBS=", cmd)
+  system(cmd)
+}
+
+run_commands <- function(pkg, lib, commands) {
+  outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
+  failfile <- paste(outfile, "fail", sep = "." )
+  cat(
+    "library('", pkg$package, "')",
+    commands, file = outfile, sep = "")
   cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                "CMD BATCH --vanilla --no-timing",
                shQuote(outfile), shQuote(failfile))

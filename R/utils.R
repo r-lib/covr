@@ -93,10 +93,11 @@ srcfile_lines <- memoise::memoise(function(srcfile) {
 
 traced_files <- function(x) {
   res <- list()
+  filenames <- display_name(x)
   for (i in seq_along(x)) {
     src_file <- attr(x[[i]]$srcref, "srcfile")
-    address <- address(src_file)
-    if (is.null(res[[address]])) {
+    filename <- filenames[[i]]
+    if (is.null(res[[filename]])) {
       lines <- getSrcLines(src_file, 1, Inf)
       matches <- rex::re_matches(lines,
         rex::rex(start, any_spaces, "#line", spaces,
@@ -120,7 +121,7 @@ traced_files <- function(x) {
       }
       src_file$file_lines <- lines[seq(start, end)]
 
-      res[[address]] <- src_file
+      res[[filename]] <- src_file
     }
   }
   res
@@ -150,17 +151,18 @@ per_line <- function(coverage) {
       rep(NA_real_, length.out = x)
     })
 
+  filenames <- display_name(coverage)
   for (i in seq_along(coverage)) {
     x <- coverage[[i]]
-    file_address <- address(attr(x$srcref, "srcfile"))
+    filename <- filenames[[i]]
     value <- x$value
     for (line in seq(x$srcref[1], x$srcref[3])) {
       # if it is not a blank line
-      if (!line %in% blank_lines[[file_address]]) {
+      if (!line %in% blank_lines[[filename]]) {
 
       # if current coverage is na or coverage is less than current coverage
-        if (is.na(res[[file_address]][line]) || value < res[[file_address]][line]) {
-          res[[file_address]][line] <- value
+        if (is.na(res[[filename]][line]) || value < res[[filename]][line]) {
+          res[[filename]][line] <- value
         }
       }
     }

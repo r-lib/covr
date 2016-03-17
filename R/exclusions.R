@@ -41,7 +41,8 @@
 NULL
 
 exclude <- function(coverage,
-  exclusions = NULL, exclude_pattern = getOption("covr.exclude_pattern"),
+  exclusions = NULL,
+  exclude_pattern = getOption("covr.exclude_pattern"),
   exclude_start = getOption("covr.exclude_start"),
   exclude_end = getOption("covr.exclude_end"),
   path = NULL) {
@@ -52,8 +53,6 @@ exclude <- function(coverage,
     function(x) {
       parse_exclusions(x$file_lines, exclude_pattern, exclude_start, exclude_end)
     })
-
-  names(source_exclusions) <- lapply(sources, display_name)
 
   excl <- normalize_exclusions(c(source_exclusions, exclusions), path)
 

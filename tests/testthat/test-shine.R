@@ -1,5 +1,5 @@
 context("shine")
-cov <- package_coverage("TestS4", type = "all")
+cov <- package_coverage("TestS4", type = "test")
 
 test_that("it works with coverage objects", {
   with_mock(`shiny::runApp` = function(...) list(...),

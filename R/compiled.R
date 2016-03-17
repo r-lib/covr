@@ -73,13 +73,17 @@ clean_gcov <- function(path) {
 }
 
 run_gcov <- function(path, quiet = TRUE,
-                      gcov_path = options("covr.gcov"),
-                      gcov_args = options("covr.gcov_args")) {
+                      gcov_path = getOption("covr.gcov", ""),
+                      gcov_args = getOption("covr.gcov_args", NULL)) {
   if (!nzchar(gcov_path)) {
     return()
   }
 
   src_path <- normalize_path(file.path(path, "src"))
+  if (!file.exists(src_path)) {
+     return()
+  }
+
   gcov_inputs <- list.files(path, pattern = rex::rex(".gcno", end), recursive = TRUE, full.names = TRUE)
   withr::with_dir(src_path, {
     run_gcov <- function(src) {

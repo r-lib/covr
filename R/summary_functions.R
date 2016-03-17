@@ -17,6 +17,9 @@ percent_coverage <- function(x, ...) {
 #' @export
 tally_coverage <- function(x, by = c("line", "expression")) {
   df <- as.data.frame(x)
+  if (NROW(df) == 0) {
+    return(df)
+  }
 
   by <- match.arg(by)
 
@@ -116,6 +119,9 @@ zero_coverage <- function(x, ...) {
 #' @export
 print.coverage <- function(x, group = c("filename", "functions"), by = "line", ...) {
 
+  if (length(x) == 0) {
+    return()
+  }
   group <- match.arg(group)
 
   type <- attr(x, "type")
