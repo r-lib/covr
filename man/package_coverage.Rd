@@ -20,6 +20,10 @@ package_coverage(path = ".", type = c("tests", "vignettes", "examples",
 \sQuote{example}, \sQuote{all}, or \sQuote{none}. The default is
 \sQuote{test}.}
 
+\item{combine_types}{If \code{TRUE} (the default) the coverage for all types
+is simply summed into one coverage object. If \code{FALSE} separate objects
+are used for each type of coverage.}
+
 \item{relative_path}{whether to output the paths as relative or absolute
 paths.}
 

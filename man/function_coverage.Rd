@@ -9,11 +9,11 @@ function_coverage(fun, code = NULL, env = NULL, enc = parent.frame())
 \arguments{
 \item{fun}{name of the function.}
 
+\item{code}{expressions to run.}
+
 \item{env}{environment the function is defined in.}
 
 \item{enc}{the enclosing environment which to run the expressions.}
-
-\item{...}{expressions to run.}
 }
 \description{
 Calculate test coverage for specific function.

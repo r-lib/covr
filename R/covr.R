@@ -29,7 +29,7 @@ save_trace <- function(directory) {
 #'
 #' @param fun name of the function.
 #' @param env environment the function is defined in.
-#' @param ... expressions to run.
+#' @param code expressions to run.
 #' @param enc the enclosing environment which to run the expressions.
 #' @export
 function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()) {
@@ -64,6 +64,9 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
 #' @param type run the package \sQuote{test}, \sQuote{vignette},
 #' \sQuote{example}, \sQuote{all}, or \sQuote{none}. The default is
 #' \sQuote{test}.
+#' @param combine_types If \code{TRUE} (the default) the coverage for all types
+#' is simply summed into one coverage object. If \code{FALSE} separate objects
+#' are used for each type of coverage.
 #' @param relative_path whether to output the paths as relative or absolute
 #' paths.
 #' @param quiet whether to load and compile the package quietly
@@ -142,7 +145,7 @@ package_coverage <- function(path = ".",
   withr::with_makevars(flags,
     # install the package in a temporary directory
     tryCatch({
-      install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = quiet)
+      install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = FALSE)
     }, warning = function(e) stop(e)))
 
   # add hooks to the package startup
