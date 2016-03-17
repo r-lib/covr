@@ -58,7 +58,7 @@ test_that("it generates a properly formatted json file", {
       `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
       res <- codecov(coverage = cov),
-      json <<- jsonlite::fromJSON(res$body),
+      json <- jsonlite::fromJSON(res$body),
 
       expect_match(json$files$name, "R/TestS4.R"),
       expect_equal(json$files$coverage[[1]],

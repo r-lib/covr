@@ -1,56 +1,8 @@
-repair_parse_data <- function(env) {
-  srcref <- lapply(as.list(env), attr, "srcref")
-  srcfile <- lapply(srcref, attr, "srcfile")
-  parse_data <- compact(lapply(srcfile, "[[", "parseData"))
-  if (length(parse_data) == 0L) {
-    warning(paste("Parse data not found, coverage may be inaccurate. Try",
-                  "declaring a function in the last file of your R package."),
-            call. = FALSE)
-    return()
-  }
-
-  if (!all_identical(parse_data)) {
-    warning("Ambiguous parse data, coverage may be inaccurate.",
-            call. = FALSE)
-  }
-
-  original <- compact(lapply(srcfile, "[[", "original"))
-  if (!all_identical(parse_data)) {
-    warning("Ambiguous original file, coverage may be inaccurate.",
-            call. = FALSE)
-  }
-
-  original[[1]][["parseData"]] <- parse_data[[1L]]
-}
-
-get_parse_data <- function(x) {
-  if (inherits(x, "srcref")) {
-    get_parse_data(attr(x, "srcfile"))
-
-  } else if (exists("original", x)) {
-    get_parse_data(x$original)
-
-  } else if (exists("covr_parse_data", x)) {
-    x$covr_parse_data
-
-  } else if (!is.null(data <- x[["parseData"]])) {
-    tokens <- attr(data, "tokens")
-    data <- t(unclass(data))
-    colnames(data) <- c("line1", "col1", "line2", "col2",
-      "terminal", "token.num", "id", "parent")
-    x$covr_parse_data <-
-      data.frame(data[, -c(5, 6), drop = FALSE], token = tokens,
-        terminal = as.logical(data[, "terminal"]),
-        stringsAsFactors = FALSE)
-    x$covr_parse_data
-  }
-}
-
 impute_srcref <- function(x, parent_ref) {
   if (!is_conditional_or_loop(x)) return(NULL)
   if (is.null(parent_ref)) return(NULL)
 
-  pd <- get_parse_data(parent_ref)
+  pd <- getParseData(parent_ref, includeText = FALSE)
   pd_expr <-
     pd$line1 == parent_ref[[7L]] &
     pd$col1 == parent_ref[[2L]] &
