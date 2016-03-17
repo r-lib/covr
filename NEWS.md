@@ -1,3 +1,5 @@
+* `NULL` statements are analyzed for coverage (#156, @krlmlr).
+
 * Finer coverage analysis for braceless `if`, `while` and `for` statements (#154, @krlmlr).
 
 ## 1.3.0 ##
