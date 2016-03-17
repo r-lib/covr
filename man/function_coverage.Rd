@@ -4,16 +4,16 @@
 \alias{function_coverage}
 \title{Calculate test coverage for specific function.}
 \usage{
-function_coverage(fun, ..., env = NULL, enc = parent.frame())
+function_coverage(fun, code, env = NULL, enc = parent.frame())
 }
 \arguments{
 \item{fun}{name of the function.}
 
-\item{...}{expressions to run.}
-
 \item{env}{environment the function is defined in.}
 
 \item{enc}{the enclosing environment which to run the expressions.}
+
+\item{...}{expressions to run.}
 }
 \description{
 Calculate test coverage for specific function.

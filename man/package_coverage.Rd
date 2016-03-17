@@ -4,19 +4,15 @@
 \alias{package_coverage}
 \title{Calculate test coverage for a package}
 \usage{
-package_coverage(path = ".", ..., type = c("test", "vignette", "example",
-  "all", "none"), relative_path = TRUE, quiet = TRUE, clean = TRUE,
+package_coverage(path = ".", code, type = c("tests", "vignettes",
+  "examples"), relative_path = TRUE, quiet = TRUE, clean = TRUE,
   exclusions = NULL, exclude_pattern = getOption("covr.exclude_pattern"),
   exclude_start = getOption("covr.exclude_start"),
   exclude_end = getOption("covr.exclude_end"), use_subprocess = TRUE,
-  use_try = TRUE, flags = c(CPPFLAGS = "-O0 -fprofile-arcs -ftest-coverage",
-  FFLAGS = "-O0 -fprofile-arcs -ftest-coverage", FCFLAGS =
-  "-O0 -fprofile-arcs -ftest-coverage", LDFLAGS = "--coverage"))
+  use_try = TRUE, flags = getOption("covr.flags"), ...)
 }
 \arguments{
 \item{path}{file path to the package}
-
-\item{...}{extra expressions to run}
 
 \item{type}{run the package \sQuote{test}, \sQuote{vignette},
 \sQuote{example}, \sQuote{all}, or \sQuote{none}. The default is
@@ -43,6 +39,8 @@ Needed for compiled code and many packages using S4 classes.}
 \item{use_try}{whether to wrap test evaluation in a \code{try} call; enabled by default}
 
 \item{flags}{Compilation flags used in compiling and liking compiled code.}
+
+\item{...}{extra expressions to run}
 }
 \description{
 Calculate test coverage for a package

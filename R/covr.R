@@ -140,8 +140,13 @@ package_coverage <- function(path = ".",
       }
     })})
 
-  trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_", full.names = TRUE)
-  structure(class = "coverage", merge_coverage(lapply(trace_files, function(x) as.list(readRDS(x)))))
+  # read tracing files
+  trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
+  res <- structure(class = "coverage", merge_coverage(lapply(trace_files, function(x) as.list(readRDS(x)))))
+
+  attr(res, "package") <- pkg
+  attr(res, "relative") <- relative_path
+  res
 }
 
 # merge multiple coverage outputs together Assumes the order of coverage lines
@@ -150,7 +155,7 @@ package_coverage <- function(path = ".",
 merge_coverage <- function(...) {
   objs <- as.list(...)
   if (length(objs) == 0) {
-    return(objs)
+    return()
   }
 
   x <- objs[[1]]

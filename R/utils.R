@@ -204,7 +204,7 @@ package_root <- function(path) {
     identical(path, dirname(path))
   }
 
-  path <- normalizePath(path, mustWork = FALSE)
+  path <- normalize_path(path)
   while (!is_root(path) && !has_description(path)) {
     path <- dirname(path)
   }
@@ -270,6 +270,7 @@ env_path <- function(...) {
   paths <- c(...)
   paste(paths[nzchar(paths)], collapse = .Platform$path.sep)
 }
+
 normalize_path <- function(x) {
   normalizePath(x, winslash = "/", mustWork = FALSE)
 }
