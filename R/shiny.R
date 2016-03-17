@@ -116,7 +116,7 @@ to_shiny_data <- function(x) {
         coverage = values,
         stringsAsFactors = FALSE)
     })
-  nms <- display_name(coverages)
+  nms <- names(coverages)
 
   # set a temp name if it doesn't exist
   nms[nms == ""] <- "<text>"
