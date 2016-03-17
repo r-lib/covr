@@ -76,6 +76,7 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
 #' Needed for compiled code and many packages using S4 classes.
 #' @param use_try whether to wrap test evaluation in a \code{try} call; enabled by default
 #' @param flags Compilation flags used in compiling and liking compiled code.
+#' @param code Additional test code to run.
 #' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}
 #' @seealso exclusions
 #' @export

@@ -4,12 +4,14 @@
 \alias{package_coverage}
 \title{Calculate test coverage for a package}
 \usage{
-package_coverage(path = ".", code, type = c("tests", "vignettes",
-  "examples"), relative_path = TRUE, quiet = TRUE, clean = TRUE,
-  exclusions = NULL, exclude_pattern = getOption("covr.exclude_pattern"),
+package_coverage(path = ".", type = c("tests", "vignettes", "examples",
+  "all", "none"), combine_types = TRUE, relative_path = TRUE,
+  quiet = TRUE, clean = TRUE, exclusions = NULL,
+  exclude_pattern = getOption("covr.exclude_pattern"),
   exclude_start = getOption("covr.exclude_start"),
   exclude_end = getOption("covr.exclude_end"), use_subprocess = TRUE,
-  use_try = TRUE, flags = getOption("covr.flags"), ...)
+  use_try = TRUE, flags = getOption("covr.flags"), code = character(),
+  ...)
 }
 \arguments{
 \item{path}{file path to the package}
@@ -40,7 +42,9 @@ Needed for compiled code and many packages using S4 classes.}
 
 \item{flags}{Compilation flags used in compiling and liking compiled code.}
 
-\item{...}{extra expressions to run}
+\item{code}{Additional test code to run.}
+
+\item{...}{Additional arguments passed to \code{\link[tools]{testInstalledPackage}}}
 }
 \description{
 Calculate test coverage for a package

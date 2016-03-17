@@ -4,7 +4,7 @@
 \alias{function_coverage}
 \title{Calculate test coverage for specific function.}
 \usage{
-function_coverage(fun, code, env = NULL, enc = parent.frame())
+function_coverage(fun, code = NULL, env = NULL, enc = parent.frame())
 }
 \arguments{
 \item{fun}{name of the function.}
