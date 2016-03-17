@@ -20,9 +20,7 @@ test_that("coverage of functions with NULL constructs", {
   cv2 <- function_coverage(f2, f2())
   expect_equal(percent_coverage(cv2), 100)
   cv3 <- function_coverage(f3, f3())
-  # Will change with #154
-  expect_equal(percent_coverage(cv3), 200 / 3)
+  expect_equal(percent_coverage(cv3), 50)
   cv4 <- function_coverage(f4, f4())
-  # Will change with #154
-  expect_equal(percent_coverage(cv4), 100)
+  expect_equal(percent_coverage(cv4), 50)
 })
