@@ -10,6 +10,10 @@ compact <- function(x) {
   x[vapply(x, length, integer(1)) != 0]
 }
 
+all_identical <- function(x) {
+  all(vapply(x, identical, logical(1L), x[[1L]]))
+}
+
 dots <- function(...) {
   eval(substitute(alist(...)))
 }
@@ -273,7 +277,7 @@ clean_objects <- function(path) {
                       pattern = rex::rex(".",
                         or("o", "sl", "so", "dylib",
                           "a", "dll", "def"), end),
-                      full.names = TRUE)
+                      full.names = TRUE, recursive = TRUE)
   unlink(files)
 
   invisible(files)
@@ -292,7 +296,7 @@ setdiff.data.frame <- function(x, y,
   !do.call(paste, c(x[by.x], sep = "\30")) %in% do.call(paste, c(y[by.y], sep = "\30"))
 }
 
-`%==%` <- identical
+`%==%` <- function(x, y) identical(x, y)
 
 is_na <- function(x) {
   !is.null(x) && !is.symbol(x) && is.na(x)

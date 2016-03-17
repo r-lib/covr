@@ -10,7 +10,7 @@ test_that("it works with coverage objects", {
     expect_equal(test_S4$line, 1:38),
 
     expect_equal(test_S4$coverage,
-      c("", "", "", "", "", "", "5", "2", "5", "3", "5", "", "", "", "", "",
+      c("", "", "", "", "", "", "5", "2", "", "3", "", "", "", "", "", "",
       "", "", "", "", "", "", "", "", "1", "", "", "", "",
       "", "1", "", "", "", "", "", "1", "")),
 
@@ -19,10 +19,10 @@ test_that("it works with coverage objects", {
         Coverage = "<div class=\"coverage-box coverage-high\">100.00</div>",
         File = "<a href=\"#\">R/TestS4.R</a>",
         Lines = 38L,
-        Relevant = 8L,
-        Covered = 8L,
+        Relevant = 6L,
+        Covered = 6L,
         Missed = 0L,
-        `Hits / Line` = "3",
+        `Hits / Line` = "2",
         row.names = "R/TestS4.R",
         stringsAsFactors = FALSE,
         check.names = FALSE))
@@ -39,7 +39,7 @@ test_that("it works with coverages objects", {
     expect_equal(test_S4_test$line, 1:38),
 
     expect_equal(test_S4_test$coverage,
-      c("", "", "", "", "", "", "5", "2", "5", "3", "5", "", "", "", "", "",
+      c("", "", "", "", "", "", "5", "2", "", "3", "", "", "", "", "", "",
       "", "", "", "", "", "", "", "", "1", "", "", "", "",
       "", "1", "", "", "", "", "", "1", "")),
 
@@ -48,10 +48,10 @@ test_that("it works with coverages objects", {
         Coverage = "<div class=\"coverage-box coverage-high\">100.00</div>",
         File = "<a href=\"#\">R/TestS4.R</a>",
         Lines = 38L,
-        Relevant = 8L,
-        Covered = 8L,
+        Relevant = 6L,
+        Covered = 6L,
         Missed = 0L,
-        `Hits / Line` = "3",
+        `Hits / Line` = "2",
         row.names = "R/TestS4.R",
         stringsAsFactors = FALSE,
         check.names = FALSE)),
@@ -61,7 +61,7 @@ test_that("it works with coverages objects", {
     expect_equal(test_S4_vignette$line, 1:38),
 
     expect_equal(test_S4_vignette$coverage,
-      c("", "", "", "", "", "", "0", "0", "0", "0", "0", "", "", "", "", "",
+      c("", "", "", "", "", "", "0", "0", "", "0", "", "", "", "", "", "",
         "", "", "", "", "", "", "", "", "0", "", "", "", "", "", "0", "", "",
         "", "", "", "0", "")),
 
@@ -70,9 +70,9 @@ test_that("it works with coverages objects", {
         Coverage = "<div class=\"coverage-box coverage-low\">0.00</div>",
         File = "<a href=\"#\">R/TestS4.R</a>",
         Lines = 38L,
-        Relevant = 8L,
+        Relevant = 6L,
         Covered = 0L,
-        Missed = 8L,
+        Missed = 6L,
         `Hits / Line` = "0",
         row.names = "R/TestS4.R",
         stringsAsFactors = FALSE,

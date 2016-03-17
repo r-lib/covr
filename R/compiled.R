@@ -64,7 +64,7 @@ parse_gcov <- function(file, package_path = "") {
 clear_gcov <- function(path) {
   src_dir <- file.path(path, "src")
 
-  gcov_files <- dir(src_dir,
+  gcov_files <- list.files(src_dir,
                     pattern = rex::rex(or(".gcda", ".gcno", ".gcov"), end),
                     full.names = TRUE,
                     recursive = TRUE)
@@ -75,6 +75,10 @@ clear_gcov <- function(path) {
 run_gcov <- function(path, quiet = TRUE,
                       gcov_path = options("covr.gcov"),
                       gcov_args = options("covr.gcov_args")) {
+  if (!nzchar(gcov_path)) {
+    return()
+  }
+
   src_path <- normalizePath(file.path(path, "src"))
   gcov_inputs <- list.files(path, pattern = rex::rex(".gcno", end), recursive = TRUE, full.names = TRUE)
   withr::with_dir(src_path, {

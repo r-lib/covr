@@ -67,7 +67,7 @@ test_that("coveralls generates a properly formatted json file", {
       expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
       expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R")),
       expect_equal(json$source_files$coverage[[1]],
-        c(NA, NA, NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+        c(NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA))
     )
   )
@@ -92,7 +92,7 @@ test_that("coveralls can spawn a job using repo_token", {
       expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
       expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R")),
       expect_equal(json$source_files$coverage[[1]],
-        c(NA, NA, NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+        c(NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA))
     )
   )

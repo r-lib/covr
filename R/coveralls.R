@@ -17,7 +17,7 @@ coveralls <- function(..., coverage = NULL,
                       quiet = TRUE) {
 
   if (is.null(coverage)) {
-    coverage <- package_coverage(...)
+    coverage <- package_coverage(..., quiet = quiet)
   }
 
   if (!quiet) {

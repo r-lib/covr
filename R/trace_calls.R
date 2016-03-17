@@ -33,7 +33,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
         (is.call(x[[3]]) && identical(x[[3]][[1]], as.name("function")))) {
       parent_functions <- c(parent_functions, as.character(x[[2]]))
     }
-    src_ref <- attr(x, "srcref")
+    src_ref <- attr(x, "srcref") %||% impute_srcref(x, parent_ref)
     if (!is.null(src_ref)) {
       as.call(Map(trace_calls, x, src_ref, MoreArgs = list(parent_functions = parent_functions)))
     } else if (!is.null(parent_ref)) {

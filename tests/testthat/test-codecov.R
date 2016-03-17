@@ -62,7 +62,7 @@ test_that("it generates a properly formatted json file", {
 
       expect_match(json$files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
       expect_equal(json$files$coverage[[1]],
-        c(NA, NA, NA, NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+        c(NA, NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA)
         ),
       expect_equal(json$uploader, "R")
