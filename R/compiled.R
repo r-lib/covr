@@ -8,7 +8,7 @@ parse_gcov <- function(file, package_path = "") {
   source_file <- rex::re_matches(lines[1], rex::rex("Source:", capture(name = "source", anything)))$source
 
   # retrieve full path to the source files
-  source_file <- normalizePath(source_file)
+  source_file <- normalize_path(source_file)
 
   # If the source file does not start with the package path ignore it.
   if (!grepl(rex::rex(start, package_path), source_file)) {
@@ -79,7 +79,7 @@ run_gcov <- function(path, quiet = TRUE,
     return()
   }
 
-  src_path <- normalizePath(file.path(path, "src"))
+  src_path <- normalize_path(file.path(path, "src"))
   gcov_inputs <- list.files(path, pattern = rex::rex(".gcno", end), recursive = TRUE, full.names = TRUE)
   withr::with_dir(src_path, {
     run_gcov <- function(src) {

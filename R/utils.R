@@ -270,3 +270,6 @@ env_path <- function(...) {
   paths <- c(...)
   paste(paths[nzchar(paths)], collapse = .Platform$path.sep)
 }
+normalize_path <- function(x) {
+  normalizePath(x, winslash = "/", mustWork = FALSE)
+}
