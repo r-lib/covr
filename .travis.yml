@@ -4,6 +4,6 @@ cache: packages
 warnings_are_errors: true
 
 after_success:
-  - Rscript -e "devtools::install()"
+  - R CMD INSTALL $PKG_TARBALL
   - source shim_package.sh
   - Rscript -e 'covr::codecov()'
