@@ -16,11 +16,11 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
   }
 
   if (is.atomic(x) || is.name(x)) {
-    if (length(x) == 0 || is.null(parent_ref)) {
+    if (is.null(parent_ref)) {
       x
     }
     else {
-      if ((!is.symbol(x) && is.na(x)) || as.character(x) == "{") { # nolint
+      if (is_na(x) || is_brace(x)) {
         x
       } else {
         key <- new_counter(parent_ref, parent_functions) # nolint
@@ -46,7 +46,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
   else if (is.function(x)) {
     fun_body <- body(x)
 
-    if (!is.null(fun_body) && !is.null(attr(x, "srcref")) &&
+    if (!is.null(attr(x, "srcref")) &&
        (is.symbol(fun_body) || !identical(fun_body[[1]], as.name("{")))) {
       src_ref <- attr(x, "srcref")
       key <- new_counter(src_ref, parent_functions)
