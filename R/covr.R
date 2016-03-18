@@ -228,7 +228,6 @@ run_vignettes <- function(pkg, lib) {
                "CMD BATCH --vanilla --no-timing",
                shQuote(outfile), shQuote(failfile))
   res <- system(cmd)
-  print(readLines(failfile))
   if (res != 0) {
     stop("Error running Vignettes:\n", readLines(failfile))
   }
@@ -244,7 +243,6 @@ run_commands <- function(pkg, lib, commands) {
                "CMD BATCH --vanilla --no-timing",
                shQuote(outfile), shQuote(failfile))
   res <- system(cmd)
-  print(readLines(failfile))
   if (res != 0) {
     stop("Error running commands:\n", readLines(failfile))
   }
