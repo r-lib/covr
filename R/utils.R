@@ -241,6 +241,14 @@ setdiff.data.frame <- function(x, y,
 
 `%!=%` <- function(x, y) !identical(x, y)
 
+is_na <- function(x) {
+  !is.null(x) && !is.symbol(x) && is.na(x)
+}
+
+is_brace <- function(x) {
+  is.symbol(x) && as.character(x) == "{"
+}
+
 modify_name <- function(expr, old, new) {
   replace <- function(e)
     if (is.name(e) && identical(e, as.name(old))) e <- as.name(new)
