@@ -10,12 +10,8 @@ compact <- function(x) {
   x[vapply(x, length, integer(1)) != 0]
 }
 
-all_identical <- function(x) {
-  all(vapply(x, identical, logical(1L), x[[1L]]))
-}
-
 trim <- function(x) {
-  rex::re_substitutes(x, rex::rex(list(start, spaces) %or% list(spaces, end)),  "")
+  rex::re_substitutes(x, rex::rex(list(start, spaces) %or% list(spaces, end)),  "", global = TRUE)
 }
 
 local_branch <- function(dir = ".") {
@@ -39,10 +35,6 @@ current_commit <- function(dir = ".") {
   res <- res[i]
   attributes(res) <- attrs
   res
-}
-
-duplicate <- function(x) {
-  .Call(covr_duplicate_, x)
 }
 
 to_title <- function(x) {
@@ -125,13 +117,6 @@ traced_files <- function(x) {
     }
   }
   res
-}
-
-# TODO: use C code to get the address directly
-address <- function(x) {
-  rex::re_matches(capture.output(str(x)),
-             rex::rex(capture(name = "address", "0x", anything),
-                      rex::regex("\\b")))$address
 }
 
 per_line <- function(coverage) {
