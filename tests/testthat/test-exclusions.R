@@ -142,7 +142,7 @@ test_that("it excludes properly", {
 
   expect_equal(length(t1), 3)
 
-  t1 <- package_coverage("TestExclusion", exclusions = "R/TestExclusion.R")
+  t1 <- package_coverage("TestExclusion", exclude_lines = "R/TestExclusion.R")
 
   expect_equal(length(t1), 0)
 })
