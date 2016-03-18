@@ -254,6 +254,8 @@ setdiff.data.frame <- function(x, y,
 
 `%==%` <- function(x, y) identical(x, y)
 
+`%!=%` <- function(x, y) !identical(x, y)
+
 modify_name <- function(expr, old, new) {
   replace <- function(e)
     if (is.name(e) && identical(e, as.name(old))) e <- as.name(new)

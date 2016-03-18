@@ -142,16 +142,17 @@ package_coverage <- function(path = ".",
     })
   }
 
-  withr::with_makevars(flags,
-    # install the package in a temporary directory
-    tryCatch({
-      install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = FALSE)
-    }, warning = function(e) stop(e)))
+    withr::with_makevars(flags,
+      # install the package in a temporary directory
+      tryCatch({
+        install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = FALSE)
+      }, warning = function(e) stop(e)))
 
   # add hooks to the package startup
   add_hooks(pkg$package, tmp_lib)
 
-  withr::with_envvar(c(R_LIBS_USER = env_path(tmp_lib, Sys.getenv("R_LIBS_USER"))), {
+  withr::with_envvar(c(
+      R_LIBS_USER = env_path(tmp_lib, Sys.getenv("R_LIBS_USER"))), {
     withr::with_libpaths(tmp_lib, action = "prefix", {
 
       if ("vignettes" %in% type) {
@@ -159,7 +160,7 @@ package_coverage <- function(path = ".",
         run_vignettes(pkg, tmp_lib)
       }
 
-      if (length(type) && !type %==% "none") {
+      if (length(type) && type %!=% "none") {
         withCallingHandlers(
           tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = type, lib.loc = tmp_lib, ...),
           message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
@@ -210,10 +211,6 @@ parse_type <- function(type) {
     type <- c("tests", "vignettes", "examples")
   }
 
-  if (type %==% "none") {
-    type <- NULL
-  }
-
   if (length(type) > 1L) {
 
     if ("all" %in% type) {
@@ -240,9 +237,10 @@ run_vignettes <- function(pkg, lib) {
   cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                "CMD BATCH --vanilla --no-timing",
                shQuote(outfile), shQuote(failfile))
-  if (.Platform$OS.type == "windows") Sys.setenv(R_LIBS="")
-  else cmd <- paste("R_LIBS=", cmd)
-  system(cmd)
+  res <- system(cmd)
+  if (res != 0) {
+    stop("Error running Vignettes:\n", readLines(failfile))
+  }
 }
 
 run_commands <- function(pkg, lib, commands) {
@@ -254,9 +252,10 @@ run_commands <- function(pkg, lib, commands) {
   cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                "CMD BATCH --vanilla --no-timing",
                shQuote(outfile), shQuote(failfile))
-  if (.Platform$OS.type == "windows") Sys.setenv(R_LIBS="")
-  else cmd <- paste("R_LIBS=", cmd)
-  system(cmd)
+  res <- system(cmd)
+  if (res != 0) {
+    stop("Error running commands:\n", readLines(failfile))
+  }
 }
 
 # Add hooks to the installed package
