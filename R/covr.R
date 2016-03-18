@@ -71,8 +71,10 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
 #' paths.
 #' @param quiet whether to load and compile the package quietly
 #' @param clean whether to clean temporary output files after running.
-#' @param exclude_lines a named list of files with the lines to exclude from each file.
-#' Needed for compiled code and many packages using S4 classes.
+#' @param line_exclusions a named list of files with the lines to exclude from
+#' each file.
+#' @param function_exclusions a vector of regular expressions matching function
+#' names to exclude. Example \code{print\\.} to match print methods.
 #' @param code Additional test code to run.
 #' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}
 #' @seealso exclusions
@@ -83,7 +85,8 @@ package_coverage <- function(path = ".",
                              relative_path = TRUE,
                              quiet = TRUE,
                              clean = TRUE,
-                             exclude_lines = NULL,
+                             line_exclusions = NULL,
+                             function_exclusions = NULL,
                              code = character(),
                              ...) {
 
@@ -170,7 +173,8 @@ package_coverage <- function(path = ".",
     relative = relative_path)
 
   exclude(coverage,
-    exclusions = exclude_lines,
+    line_exclusions = line_exclusions,
+    function_exclusions = function_exclusions,
     path = if (isTRUE(relative_path)) pkg$path else NULL)
 }
 

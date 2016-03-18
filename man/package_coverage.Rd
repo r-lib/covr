@@ -6,8 +6,8 @@
 \usage{
 package_coverage(path = ".", type = c("tests", "vignettes", "examples",
   "all", "none"), combine_types = TRUE, relative_path = TRUE,
-  quiet = TRUE, clean = TRUE, exclude_lines = NULL, code = character(),
-  ...)
+  quiet = TRUE, clean = TRUE, line_exclusions = NULL,
+  function_exclusions = NULL, code = character(), ...)
 }
 \arguments{
 \item{path}{file path to the package}
@@ -27,8 +27,11 @@ paths.}
 
 \item{clean}{whether to clean temporary output files after running.}
 
-\item{exclude_lines}{a named list of files with the lines to exclude from each file.
-Needed for compiled code and many packages using S4 classes.}
+\item{line_exclusions}{a named list of files with the lines to exclude from
+each file.}
+
+\item{function_exclusions}{a vector of regular expressions matching function
+names to exclude. Example \code{print\\.} to match print methods.}
 
 \item{code}{Additional test code to run.}
 

@@ -122,19 +122,21 @@ test_that("it handles redundant files", {
   expect_equal_vals(normalize_exclusions(list(a = c(1:10), a = c(10:20))), list(a = 1:20))
 })
 
+cov <- package_coverage("TestSummary")
+
 context("exclude")
 test_that("it excludes lines", {
-  t1 <- package_coverage("TestSummary")
-
-  expect_equal(length(t1), 4)
-  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 5), path = "TestSummary")), 3)
-  expect_equal(length(exclude(t1, list("R/TestSummary.R" = 13), path = "TestSummary")), 3)
+  expect_equal(length(cov), 4)
+  expect_equal(length(exclude(cov, list("R/TestSummary.R" = 5), path = "TestSummary")), 3)
+  expect_equal(length(exclude(cov, list("R/TestSummary.R" = 13), path = "TestSummary")), 3)
 })
 test_that("it preserves the class", {
-  t1 <- package_coverage("TestSummary")
-
-  expect_equal(class(exclude(t1, NULL, path = "TestSummary")), class(t1))
-  expect_equal(class(exclude(t1, list("R/TestSummary.R" = 3), path = "TestSummary")), class(t1))
+  expect_equal(class(exclude(cov, NULL, path = "TestSummary")), class(cov))
+  expect_equal(class(exclude(cov, list("R/TestSummary.R" = 3), path = "TestSummary")), class(cov))
+})
+test_that("function exclusions work", {
+  expect_equal(length(exclude(cov, NULL, "^test")), 1)
+  expect_equal(length(exclude(cov, NULL, c("^test", "dont"))), 0)
 })
 
 test_that("it excludes properly", {
@@ -142,7 +144,7 @@ test_that("it excludes properly", {
 
   expect_equal(length(t1), 3)
 
-  t1 <- package_coverage("TestExclusion", exclude_lines = "R/TestExclusion.R")
+  t1 <- package_coverage("TestExclusion", line_exclusions = "R/TestExclusion.R")
 
   expect_equal(length(t1), 0)
 })

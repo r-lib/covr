@@ -41,7 +41,8 @@
 NULL
 
 exclude <- function(coverage,
-  exclusions = NULL,
+  line_exclusions = NULL,
+  function_exclusions = NULL,
   exclude_pattern = getOption("covr.exclude_pattern"),
   exclude_start = getOption("covr.exclude_start"),
   exclude_end = getOption("covr.exclude_end"),
@@ -54,9 +55,16 @@ exclude <- function(coverage,
       parse_exclusions(x$file_lines, exclude_pattern, exclude_start, exclude_end)
     })
 
-  excl <- normalize_exclusions(c(source_exclusions, exclusions), path)
+  excl <- normalize_exclusions(c(source_exclusions, line_exclusions), path)
 
   df <- as.data.frame(coverage, sort = FALSE)
+
+  to_exclude <- rep(FALSE, length(coverage))
+
+  if (!is.null(function_exclusions)) {
+    to_exclude <- Reduce(`|`, init = to_exclude,
+      Map(rex::re_matches, function_exclusions, MoreArgs = list(data = df$functions)))
+  }
 
   df$full_name <- vapply(coverage,
     function(x) {
@@ -64,7 +72,7 @@ exclude <- function(coverage,
     },
     character(1))
 
-  to_exclude <- vapply(seq_len(NROW(df)),
+  to_exclude <- to_exclude | vapply(seq_len(NROW(df)),
     function(i) {
       file <- df[i, "full_name"]
       which_exclusion <- match(file, names(excl))
