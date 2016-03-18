@@ -145,7 +145,7 @@ package_coverage <- function(path = ".",
     withr::with_makevars(flags,
       # install the package in a temporary directory
       tryCatch({
-        install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests"), quiet = FALSE)
+        install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests", "--with-keep.source"), quiet = FALSE)
       }, warning = function(e) stop(e)))
 
   # add hooks to the package startup
