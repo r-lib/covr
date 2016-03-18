@@ -3,6 +3,9 @@ sudo: false
 cache: packages
 warnings_are_errors: false
 
+before_install:
+  Rscript -e 'remove.packages("covr")'
+
 after_success:
   - Rscript -e "devtools::install()"
   - source shim_package.sh
