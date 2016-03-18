@@ -115,6 +115,8 @@ package_coverage <- function(path = ".",
   tmp_lib <- tempfile("R_LIBS")
   dir.create(tmp_lib)
 
+  flags <- getOption("covr.flags")
+
   if (is_windows()) {
 
     # workaround for https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16384
