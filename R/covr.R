@@ -71,14 +71,8 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
 #' paths.
 #' @param quiet whether to load and compile the package quietly
 #' @param clean whether to clean temporary output files after running.
-#' @param exclusions a named list of files with the lines to exclude from each file.
-#' @param exclude_pattern a search pattern to look for in the source to exclude a particular line.
-#' @param exclude_start a search pattern to look for in the source to start an exclude block.
-#' @param exclude_end a search pattern to look for in the source to stop an exclude block.
-#' @param use_subprocess whether to run the code in a separate subprocess.
+#' @param exclude_lines a named list of files with the lines to exclude from each file.
 #' Needed for compiled code and many packages using S4 classes.
-#' @param use_try whether to wrap test evaluation in a \code{try} call; enabled by default
-#' @param flags Compilation flags used in compiling and liking compiled code.
 #' @param code Additional test code to run.
 #' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}
 #' @seealso exclusions
@@ -89,13 +83,7 @@ package_coverage <- function(path = ".",
                              relative_path = TRUE,
                              quiet = TRUE,
                              clean = TRUE,
-                             exclusions = NULL,
-                             exclude_pattern = getOption("covr.exclude_pattern"),
-                             exclude_start = getOption("covr.exclude_start"),
-                             exclude_end = getOption("covr.exclude_end"),
-                             use_subprocess = TRUE,
-                             use_try = TRUE,
-                             flags = getOption("covr.flags"),
+                             exclude_lines = NULL,
                              code = character(),
                              ...) {
 
@@ -145,7 +133,7 @@ package_coverage <- function(path = ".",
     withr::with_makevars(flags,
       # install the package in a temporary directory
       tryCatch({
-        install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests", "--with-keep.source"), quiet = FALSE)
+        install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests", "--with-keep.source"), quiet = quiet)
       }, warning = function(e) stop(e)))
 
   # add hooks to the package startup
@@ -180,7 +168,7 @@ package_coverage <- function(path = ".",
     relative = relative_path)
 
   exclude(coverage,
-    exclusions = exclusions,
+    exclusions = exclude_lines,
     path = if (isTRUE(relative_path)) pkg$path else NULL)
 }
 
