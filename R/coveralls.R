@@ -41,7 +41,7 @@ coveralls <- function(..., coverage = NULL,
 }
 
 to_file <- function(x) {
-  name <- tempfile()
+  name <- temp_file()
   con <- file(name)
   writeChar(con = con, x, eos = NULL)
   close(con)

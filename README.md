@@ -1,5 +1,6 @@
 # Covr #
 [![Build Status](https://travis-ci.org/jimhester/covr.svg?branch=master)](https://travis-ci.org/jimhester/covr)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jimhester/covr?branch=master&svg=true)](https://ci.appveyor.com/project/jimhester/covr)
 [![codecov.io](https://codecov.io/github/jimhester/covr/coverage.svg?branch=master)](https://codecov.io/github/jimhester/covr?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/covr)](http://cran.rstudio.com/web/packages/covr/index.html)
 

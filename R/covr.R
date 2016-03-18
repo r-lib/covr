@@ -21,7 +21,7 @@ reset_traces <- function() {
 }
 
 save_trace <- function(directory) {
-  tmp_file <- tempfile("covr_trace_", tmpdir = directory)
+  tmp_file <- temp_file("covr_trace_", tmpdir = directory)
   saveRDS(.counters, file = tmp_file)
 }
 
@@ -115,7 +115,7 @@ package_coverage <- function(path = ".",
     return(res)
   }
 
-  tmp_lib <- tempfile("R_LIBS")
+  tmp_lib <- temp_file("R_LIBS")
   dir.create(tmp_lib)
 
   flags <- getOption("covr.flags")
@@ -123,9 +123,8 @@ package_coverage <- function(path = ".",
   if (is_windows()) {
 
     # workaround for https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16384
-    # LDFLAGS is ignored on Windows and we don't want to override PKG_LIBS if
-    # it is set, so use SHLIB_LIBADD
-    flags[["SHLIB_LIBADD"]] <- "--coverage"
+    # LDFLAGS is ignored on Windows so we need to also override PKG_LIBS
+    flags[["PKG_LIBS"]] <- "--coverage"
   }
 
   if (isTRUE(clean)) {
@@ -135,16 +134,18 @@ package_coverage <- function(path = ".",
     })
   }
 
-    withr::with_makevars(flags,
-      # install the package in a temporary directory
-      tryCatch({
-        install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests", "--with-keep.source"), quiet = quiet)
-      }, warning = function(e) stop(e)))
+  # clean any dlls prior to trying to install
+  clean_objects(pkg$path)
+
+  # install the package in a temporary directory
+  withr::with_makevars(flags,
+    utils::install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests", "--with-keep.source", "--no-multiarch"), quiet = quiet))
 
   # add hooks to the package startup
   add_hooks(pkg$package, tmp_lib)
 
   withr::with_envvar(c(
+    SHLIB_LIBADD = "--coverage",
       R_LIBS_USER = env_path(tmp_lib, Sys.getenv("R_LIBS_USER"))), {
     withr::with_libpaths(tmp_lib, action = "prefix", {
 

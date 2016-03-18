@@ -169,6 +169,10 @@ is_windows <- function() {
 }
 
 as_package <- function(path) {
+  path <- normalize_path(path)
+  if (!file.exists(path)) {
+    stop("`path` is invalid: ", path, call. = FALSE)
+  }
   root <- package_root(path)
 
   if (is.null(root)) {
@@ -269,5 +273,14 @@ env_path <- function(...) {
 }
 
 normalize_path <- function(x) {
-  normalizePath(x, winslash = "/", mustWork = FALSE)
+  path <- normalizePath(x, winslash = "/", mustWork = FALSE)
+  # Strip any trailing slashes as they are invalid on windows
+  sub("/*$", "", path)
+}
+
+temp_dir <- function() {
+  normalize_path(tempdir())
+}
+temp_file <- function(pattern = "file", tmpdir = temp_dir(), fileext = "") {
+  normalize_path(tempfile(pattern, tmpdir, fileext))
 }
