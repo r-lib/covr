@@ -162,7 +162,9 @@ package_coverage <- function(path = ".",
       if (length(type) && !type %==% "none") {
         withCallingHandlers(
           tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = type, lib.loc = tmp_lib, ...),
-          message = function(e) if (quiet) invokeRestart("muffleMessage") else e)
+          message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
+          warning = function(e) if (quiet) invokeRestart("muffleWarning") else e
+          )
       }
 
       run_commands(pkg, tmp_lib, code)
