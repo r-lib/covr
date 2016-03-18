@@ -99,15 +99,3 @@ run_gcov <- function(path, quiet = TRUE,
       class = "coverage")
   })
 }
-
-remove_extension <- function(x) {
-  rex::re_substitutes(x, rex::rex(".", except_any_of("."), end), "")
-}
-
-sources <- function(pkg = ".") {
-  path <- package_root(pkg)
-  srcdir <- file.path(path, "src")
-  dir(srcdir, rex::rex(".", one_of("cfhCFH"), except_any_of("."), end),
-      recursive = TRUE,
-      full.names = TRUE)
-}
