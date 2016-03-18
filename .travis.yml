@@ -1,10 +1,7 @@
 language: r
 sudo: false
 cache: packages
-warnings_are_errors: false
-
-before_install:
-  Rscript -e 'remove.packages("covr")'
+warnings_are_errors: true
 
 after_success:
   - Rscript -e "devtools::install()"
