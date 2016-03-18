@@ -139,7 +139,7 @@ package_coverage <- function(path = ".",
 
   # install the package in a temporary directory
   withr::with_makevars(flags,
-    utils::install.packages(repos = NULL, lib = tmp_lib, pkg$path, INSTALL_opts = c("--example", "--install-tests", "--with-keep.source", "--no-multiarch"), quiet = quiet))
+    utils::install.packages(repos = NULL, lib = tmp_lib, pkg$path, type = "source", INSTALL_opts = c("--example", "--install-tests", "--with-keep.source", "--no-multiarch"), quiet = quiet))
 
   # add hooks to the package startup
   add_hooks(pkg$package, tmp_lib)
