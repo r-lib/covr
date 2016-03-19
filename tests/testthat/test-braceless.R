@@ -13,7 +13,7 @@ test_that("if", {
   expect_equal(percent_coverage(function_coverage(f, f(TRUE), f(FALSE))), 100)
 })
 
-test_that("if", {
+test_that("if complex", {
   f <- function(x) {
     if (x)
       x <- TRUE
