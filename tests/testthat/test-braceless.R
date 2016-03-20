@@ -2,26 +2,34 @@ context("braceless")
 
 test_that("if", {
   f <- function(x) {
+    if (FALSE)
+      FALSE # never covered, used as anchor
     if (x)
       TRUE
     else
       FALSE
   }
 
-  expect_equal(percent_coverage(function_coverage(f, f(TRUE))), 50)
-  expect_equal(percent_coverage(function_coverage(f, f(FALSE))), 75)
-  expect_equal(percent_coverage(function_coverage(f, f(TRUE), f(FALSE))), 100)
+  expect_equal(diff(zero_coverage(function_coverage(f, f(TRUE)))$line),
+               c(3, 1))
+  expect_equal(diff(zero_coverage(function_coverage(f, f(FALSE)))$line), 2)
+  expect_equal(length(zero_coverage(function_coverage(f, f(TRUE), f(FALSE)))$line),
+               1)
 })
 
 test_that("if complex", {
   f <- function(x) {
+    if (FALSE)
+      FALSE # never covered, used as anchor
     if (x)
       x <- TRUE
     else
       x <- FALSE
   }
 
-  expect_equal(percent_coverage(function_coverage(f, f(TRUE))), 50)
-  expect_equal(percent_coverage(function_coverage(f, f(FALSE))), 75)
-  expect_equal(percent_coverage(function_coverage(f, f(TRUE), f(FALSE))), 100)
+  expect_equal(diff(zero_coverage(function_coverage(f, f(TRUE)))$line),
+               c(3, 1))
+  expect_equal(diff(zero_coverage(function_coverage(f, f(FALSE)))$line), 2)
+  expect_equal(length(zero_coverage(function_coverage(f, f(TRUE), f(FALSE)))$line),
+               1)
 })
