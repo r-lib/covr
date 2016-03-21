@@ -55,7 +55,7 @@ tally_coverage <- function(x, by = c("line", "expression")) {
                setNames(lapply(srcfiles, function(srcfile) attr(srcfile_lines(srcfile), "blanks")),
                srcfile_names))
              if (length(blank_lines)) {
-               blank_lines <- stack(blank_lines)
+               blank_lines <- utils::stack(blank_lines)
 
                non_blanks <- setdiff.data.frame(
                  res,

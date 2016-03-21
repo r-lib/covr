@@ -2,7 +2,7 @@ impute_srcref <- function(x, parent_ref) {
   if (!is_conditional_or_loop(x)) return(NULL)
   if (is.null(parent_ref)) return(NULL)
 
-  pd <- getParseData(parent_ref, includeText = FALSE)
+  pd <- utils::getParseData(parent_ref, includeText = FALSE)
   pd_expr <-
     pd$line1 == parent_ref[[7L]] &
     pd$col1 == parent_ref[[2L]] &
