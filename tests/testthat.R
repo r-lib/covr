@@ -1,4 +1,4 @@
-ops <- options("crayon.enabled" = FALSE)
+ops <- options("crayon.enabled" = FALSE, warn = 1)
 library(testthat)
 library("covr")
 
