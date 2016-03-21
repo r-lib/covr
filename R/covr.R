@@ -247,8 +247,8 @@ run_commands <- function(pkg, lib, commands) {
   cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                "CMD BATCH --vanilla --no-timing",
                shQuote(outfile), shQuote(failfile))
-  if (file.exists(failfile))
-    print(paste(readLines(failfile), collapse = "\n"))
+  if (file.exists(outfile))
+    print(paste(readLines(outfile), collapse = "\n"))
   res <- system(cmd)
   if (res != 0) {
     stop("Error running commands:\n", paste(readLines(failfile), collapse = "\n"))
