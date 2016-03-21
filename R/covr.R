@@ -115,6 +115,8 @@ package_coverage <- function(path = ".",
     return(res)
   }
 
+  on.exit(clear_counters())
+
   tmp_lib <- temp_file("R_LIBS")
   dir.create(tmp_lib)
 
@@ -131,7 +133,7 @@ package_coverage <- function(path = ".",
     on.exit({
       clean_objects(pkg$path)
       clean_gcov(pkg$path)
-    })
+    }, add = TRUE)
   }
 
   # clean any dlls prior to trying to install
@@ -148,21 +150,28 @@ package_coverage <- function(path = ".",
     SHLIB_LIBADD = "--coverage",
       R_LIBS_USER = env_path(tmp_lib, Sys.getenv("R_LIBS_USER"))), {
     withr::with_libpaths(tmp_lib, action = "prefix", {
-
+      withCallingHandlers({
       if ("vignettes" %in% type) {
         type <- type[type != "vignettes"]
         run_vignettes(pkg, tmp_lib)
       }
 
-      if (length(type) && type %!=% "none") {
-        withCallingHandlers(
-          tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = type, lib.loc = tmp_lib, ...),
-          message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
-          warning = function(e) if (quiet) invokeRestart("muffleWarning") else e
-          )
+      if ("examples" %in% type) {
+        type <- type[type != "examples"]
+        # testInstalledPackage explicitly sets R_LIBS="" on windows, and does
+        # not restore it after, so we need to reset it ourselves.
+        withr::with_envvar(c(R_LIBS = Sys.getenv("R_LIBS")), {
+          tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = "examples", lib.loc = tmp_lib, ...)
+        })
+      }
+      if ("tests" %in% type) {
+          tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = "tests", lib.loc = tmp_lib, ...)
       }
 
       run_commands(pkg, tmp_lib, code)
+      },
+      message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
+      warning = function(e) if (quiet) invokeRestart("muffleWarning") else e)
     })})
 
   # read tracing files
