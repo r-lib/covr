@@ -1,8 +1,7 @@
 context("summary_functions")
 
 test_that("Summary gives 40% coverage and three lines with zero coverage", {
-  cv <- package_coverage("TestSummary")
-  str(cv)
+  cv <- package_coverage("TestSummary", quiet = FALSE, clean = FALSE)
   expect_equal(percent_coverage(cv), 40)
   expect_equal(nrow(zero_coverage(cv)), 3)
 })
