@@ -2,6 +2,10 @@
 cache:
   - C:\RLibrary
 
+environment:
+  global:
+    R_VERSION: release
+
 # Download script file from GitHub
 init:
   ps: |
