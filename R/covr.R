@@ -227,8 +227,7 @@ parse_type <- function(type) {
 run_vignettes <- function(pkg, lib) {
   outfile <- file.path(lib, paste0(pkg$package, "-Vignette.Rout"))
   failfile <- paste(outfile, "fail", sep = "." )
-  cat(
-    "tools::buildVignettes(dir = '", pkg$path, "')", file = outfile, sep = "")
+  cat("tools::buildVignettes(dir = '", pkg$path, "')\n", file = outfile, sep = "")
   cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                "CMD BATCH --vanilla --no-timing",
                shQuote(outfile), shQuote(failfile))
@@ -243,7 +242,7 @@ run_commands <- function(pkg, lib, commands) {
   failfile <- paste(outfile, "fail", sep = "." )
   cat(
     "library('", pkg$package, "')",
-    commands, file = outfile, sep = "")
+    commands, "\n", file = outfile, sep = "")
   cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                "CMD BATCH --vanilla --no-timing",
                shQuote(outfile), shQuote(failfile))
