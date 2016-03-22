@@ -3,3 +3,4 @@
 *.so
 inst/doc
 .Rproj.user
+covr.Rproj
