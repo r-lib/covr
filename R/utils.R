@@ -243,14 +243,21 @@ setdiff.data.frame <- function(x, y,
 
 `%==%` <- function(x, y) identical(x, y)
 
+<<<<<<< HEAD
 `%!=%` <- function(x, y) !identical(x, y)
 
+=======
+>>>>>>> krlmlr-feature/161-sort-child-parse-data
 is_na <- function(x) {
   !is.null(x) && !is.symbol(x) && is.na(x)
 }
 
 is_brace <- function(x) {
+<<<<<<< HEAD
   is.symbol(x) && as.character(x) == "{"
+=======
+  !is.null(x) && as.character(x) == "{"
+>>>>>>> krlmlr-feature/161-sort-child-parse-data
 }
 
 modify_name <- function(expr, old, new) {
