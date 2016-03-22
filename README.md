@@ -110,20 +110,33 @@ vignette("how_it_works", package = "covr")
 
 `covr` supports a couple of different ways of excluding some or all of a file.
 
-## Exclusions Argument ##
-The exclusions argument to `package_coverage()` can be used to exclude some or
+## Function Exclusions ##
+The `function_exclusions` argument to `package_coverage()` can be used to
+exclude functions by name. This argument takes a vector of regular expressions
+matching functions to exclude.
+
+```r
+# exclude print functions
+package_coverage(function_exclusions = "print\\.")
+
+# exclude `.onLoad` function
+package_coverage(function_exclusions = "\\.onLoad")
+```
+
+## Line Exclusions ##
+The `line_exclusions` argument to `package_coverage()` can be used to exclude some or
 all of a file.  This argument takes a list of filenames or named ranges to
 exclude.
 
 ```r
 # exclude whole file of R/test.R
-package_coverage(exclusions = "R/test.R")
+package_coverage(line_exclusions = "R/test.R")
 
 # exclude lines 1 to 10 and 15 from R/test.R
-package_coverage(exclusions = list("R/test.R" = c(1:10, 15)))
+package_coverage(line_exclusions = list("R/test.R" = c(1:10, 15)))
 
 # exclude lines 1 to 10 from R/test.R, all of R/test2.R
-package_coverage(exclusions = list("R/test.R" = c(1, 10), "R/test2.R"))
+package_coverage(line_exclusions = list("R/test.R" = c(1, 10), "R/test2.R"))
 ```
 
 ## Exclusion Comments ##
@@ -145,14 +158,13 @@ f2 <- function(x) { # nocov start
 } # nocov end
 ```
 
-The patterns used can be specified by the `exclude_pattern`, `exclude_start`,
-`exclude_end` arguments to `package_coverage()` or by setting the global
-options `covr.exclude_pattern`, `covr.exclude_start`, `covr.exclude_end`.
+The patterns used can be specified by setting the global options
+`covr.exclude_pattern`, `covr.exclude_start`, `covr.exclude_end`.
 
 # Compatibility #
 ## Test ##
-Covr is compatible with any testing package, it simply executes the code in
-`tests/` on your package.
+Covr is compatible with any testing package, it uses
+`tools::testInstalledPackage()` to run your packages tests.
 
 ## Compiler ##
 If your package has compiled code `covr` requires a compiler that generates
@@ -160,12 +172,14 @@ If your package has compiled code `covr` requires a compiler that generates
 output.  It is known to work with clang versions `3.5` and gcc versions `4.2`.
 It should also work with later versions of both those compilers.
 
-If the appropriate gcov version is not on your path you can set the appropriate location.
+If the appropriate gcov version is not on your path you can set the appropriate
+location. If you set this path to "" it will turn _off_ coverage of compiled code.
 ```r
 options(covr.gcov = "path/to/gcov")
 ```
 
-Covr has _not_ been tested with `icc`, Intel's compiler.
+Covr has _not_ been tested with `icc`, Intel's compiler as it does not have
+gcov compatible output.
 
 # Alternative Coverage Tools #
 - <https://github.com/MangoTheCat/testCoverage>
