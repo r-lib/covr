@@ -63,8 +63,16 @@ impute_srcref <- function(x, parent_ref) {
       )
     },
 
+    "switch" = {
+      c(list(NULL),
+        list(make_srcref(3)),
+        Map(make_srcref,
+          from = seq(7, NROW(pd_child), 4))
+        )
+    },
+
     NULL
   )
 }
 
-is_conditional_or_loop <- function(x) is.symbol(x[[1L]]) && as.character(x[[1L]]) %in% c("if", "for", "else")
+is_conditional_or_loop <- function(x) is.symbol(x[[1L]]) && as.character(x[[1L]]) %in% c("if", "for", "else", "switch")
