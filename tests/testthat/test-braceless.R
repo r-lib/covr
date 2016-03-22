@@ -10,7 +10,7 @@ test_that("if", {
 
   expect_equal(percent_coverage(function_coverage(f, f(TRUE))), 50)
   expect_equal(percent_coverage(function_coverage(f, f(FALSE))), 75)
-  expect_equal(percent_coverage(function_coverage(f, f(TRUE), f(FALSE))), 100)
+  expect_equal(percent_coverage(function_coverage(f, { f(TRUE); f(FALSE) })), 100)
 })
 
 test_that("if complex", {
@@ -23,5 +23,5 @@ test_that("if complex", {
 
   expect_equal(percent_coverage(function_coverage(f, f(TRUE))), 50)
   expect_equal(percent_coverage(function_coverage(f, f(FALSE))), 75)
-  expect_equal(percent_coverage(function_coverage(f, f(TRUE), f(FALSE))), 100)
+  expect_equal(percent_coverage(function_coverage(f, { f(TRUE); f(FALSE) })), 100)
 })
