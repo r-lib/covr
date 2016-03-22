@@ -63,6 +63,7 @@ impute_srcref <- function(x, parent_ref) {
   stopifnot(length(pd_expr_idx) == 1L)
   expr_id <- pd$id[pd_expr_idx]
   pd_child <- pd[pd$parent == expr_id, ]
+  pd_child <- pd_child[order(pd_child$line1, pd_child$col1), ]
 
   line_offset <- parent_ref[[7L]] - parent_ref[[1L]]
 
