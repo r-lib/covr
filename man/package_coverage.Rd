@@ -7,7 +7,7 @@
 package_coverage(path = ".", type = c("tests", "vignettes", "examples",
   "all", "none"), combine_types = TRUE, relative_path = TRUE,
   quiet = TRUE, clean = TRUE, line_exclusions = NULL,
-  function_exclusions = NULL, code = character(), ...)
+  function_exclusions = NULL, code = character(), ..., exclusions)
 }
 \arguments{
 \item{path}{file path to the package}
@@ -36,6 +36,8 @@ names to exclude. Example \code{print\\.} to match print methods.}
 \item{code}{Additional test code to run.}
 
 \item{...}{Additional arguments passed to \code{\link[tools]{testInstalledPackage}}}
+
+\item{exclusions}{\sQuote{Depricated}, please use \sQuote{line_exclusions} instead.}
 }
 \description{
 Calculate test coverage for a package
