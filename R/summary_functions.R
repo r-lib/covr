@@ -87,7 +87,21 @@ tally_coverage <- function(x, by = c("line", "expression")) {
 #' @export
 zero_coverage <- function(x, ...) {
   coverage_data <- tally_coverage(x, ...)
-  coverage_data <- coverage_data[coverage_data$value == 0, ]
+  coverage_data <- coverage_data[coverage_data$value == 0, , drop = FALSE]
+
+  res <- coverage_data[
+    # need to use %in% rather than explicit indexing because
+    # tally_coverage returns a df without the columns if
+    # by is equal to "line"
+    colnames(coverage_data) %in%
+      c("filename",
+        "functions",
+        "line",
+        "first_line",
+        "last_line",
+        "first_column",
+        "last_column",
+        "value")]
 
   if (getOption("covr.rstudio_source_markers", TRUE) &&
       rstudioapi::hasFun("sourceMarkers")) {
@@ -97,21 +111,9 @@ zero_coverage <- function(x, ...) {
                         markers = markers,
                         basePath = attr(x, "package")$path,
                         autoSelect = "first")
-    invisible(x)
+    invisible(res)
   } else {
-
-    coverage_data[
-                  # need to use %in% rather than explicit indexing because
-                  # tally_coverage returns a df without the columns if
-                  # by is equal to "line"
-                  colnames(coverage_data) %in%
-                    c("filename",
-                      "functions",
-                      "first_line",
-                      "last_line",
-                      "first_column",
-                      "last_column",
-                      "value")]
+    res
   }
 }
 
@@ -227,7 +229,7 @@ markers.data.frame <- function(x, type = "test") { # nolint
       message = sprintf("No %s Coverage!", to_title(type))
     )},
     x$filename,
-    x$first_line,
+    x$first_line %||% x$line,
     x$first_column %||% rep(list(NULL), NROW(x)),
     USE.NAMES = FALSE)
 }
