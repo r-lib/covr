@@ -121,6 +121,7 @@ package_coverage <- function(path = ".",
     res <- list()
     for (t in type) {
       res[[t]] <- do.call(Recall, c(called_args, type = t))
+      attr(res[[t]], "type") <- t
     }
 
     attr(res, "package") <- pkg
