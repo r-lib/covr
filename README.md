@@ -92,20 +92,6 @@ as.data.frame(cov)
 zero_coverage(cov)
 ```
 
-# Implementation #
-`covr` tracks test coverage by augmenting a packages function definitions with
-counting calls.
-
-The vignette
-[vignettes/how_it_works.Rmd](https://github.com/jimhester/covr/blob/master/vignettes/how_it_works.Rmd)
-contains a detailed explanation of the technique and the rational behind it.
-
-You can view the vignette from within `R` using
-
-```r
-vignette("how_it_works", package = "covr")
-```
-
 # Exclusions #
 
 `covr` supports a couple of different ways of excluding some or all of a file.
@@ -180,6 +166,28 @@ options(covr.gcov = "path/to/gcov")
 
 Covr has _not_ been tested with `icc`, Intel's compiler as it does not have
 gcov compatible output.
+
+# FAQ #
+## How does covr work? ##
+`covr` tracks test coverage by modifying a package's code to add tracking calls
+to each call.
+
+The vignette
+[vignettes/how_it_works.Rmd](https://github.com/jimhester/covr/blob/master/vignettes/how_it_works.Rmd)
+contains a detailed explanation of the technique and the rational behind it.
+
+You can view the vignette from within `R` using
+
+```r
+vignette("how_it_works", package = "covr")
+```
+
+## Why can't covr run during R CMD check ##
+Because covr modifies the package code it is possible there are unknown edge
+cases where that modification affects the output. In addition when tracking
+coverage for compiled code covr compiles the package without optimization,
+which _can_ modify behavior (usually due to package bugs which are masked with
+higher optimization levels).
 
 # Alternative Coverage Tools #
 - <https://github.com/MangoTheCat/testCoverage>
