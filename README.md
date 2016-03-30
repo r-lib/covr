@@ -147,27 +147,25 @@ f2 <- function(x) { # nocov start
 The patterns used can be specified by setting the global options
 `covr.exclude_pattern`, `covr.exclude_start`, `covr.exclude_end`.
 
-# Compatibility #
-## Test ##
-Covr is compatible with any testing package, it uses
+
+# FAQ #
+## Will covr work with testthat, RUnit, etc... ##
+Covr should be compatible with _any_ testing framework, it uses
 `tools::testInstalledPackage()` to run your packages tests.
 
-## Compiler ##
-If your package has compiled code `covr` requires a compiler that generates
-[Gcov](https://gcc.gnu.org/onlinedocs/gcc/Gcov.html) compatible
-output.  It is known to work with clang versions `3.5` and gcc versions `4.2`.
-It should also work with later versions of both those compilers.
+## Will covr work with alternative compilers such as ICC ##
+Covr will _not_ work with `icc`, Intel's compiler as it does not have
+[Gcov](https://gcc.gnu.org/onlinedocs/gcc/Gcov.html) compatible output.
+
+Covr is known to work with clang versions `3.5+` and gcc version `4.2+`.
 
 If the appropriate gcov version is not on your path you can set the appropriate
-location. If you set this path to "" it will turn _off_ coverage of compiled code.
+location with the `covr.gcov` options. If you set this path to "" it will turn
+_off_ coverage of compiled code.
 ```r
 options(covr.gcov = "path/to/gcov")
 ```
 
-Covr has _not_ been tested with `icc`, Intel's compiler as it does not have
-gcov compatible output.
-
-# FAQ #
 ## How does covr work? ##
 `covr` tracks test coverage by modifying a package's code to add tracking calls
 to each call.
