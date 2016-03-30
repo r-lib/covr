@@ -12,7 +12,11 @@ the$replacements <- list()
 trace_environment <- function(env) {
   clear_counters()
 
-  the$replacements <- c(replacements_S4(env), compact(lapply(ls(env, all.names = TRUE), replacement, env = env)))
+  the$replacements <- compact(c(
+      replacements_S4(env),
+      replacements_RC(env),
+      lapply(ls(env, all.names = TRUE), replacement, env = env)))
+
   lapply(the$replacements, replace)
 }
 

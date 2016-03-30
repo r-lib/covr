@@ -1,4 +1,5 @@
 ## 2.0.0 ##
+* Now tracks coverage for RC methods
 * Rewrote loading and saving to support parallel code and tests including
   `quit()` calls.
 * Made passing code to function_coverage() and package_coverage() _not_ use
