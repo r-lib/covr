@@ -68,11 +68,11 @@ cov <- package_coverage()
 shine(cov)
 ```
 
-If used with `type = "all"` the Shiny Application will allow you to
-interactively toggle between Test, Vignette and Example coverage.
+If used with `type = "all", combine_types = FALSE` the Shiny Application will
+allow you to interactively toggle between Test, Vignette and Example coverage.
 
 ```r
-cov <- package_coverage(type = "all")
+cov <- package_coverage(type = "all", combine_types = FALSE)
 
 shine(cov)
 ```
@@ -150,7 +150,7 @@ The patterns used can be specified by setting the global options
 
 # FAQ #
 ## Will covr work with testthat, RUnit, etc... ##
-Covr should be compatible with _any_ testing framework, it uses
+Covr should be compatible with any testing package, it uses
 `tools::testInstalledPackage()` to run your packages tests.
 
 ## Will covr work with alternative compilers such as ICC ##
