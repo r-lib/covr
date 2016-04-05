@@ -4,6 +4,9 @@
 * win-builder (devel and release)
 
 ## R CMD check results
+I believe this release should fix the ERRORs on Solaris, but I do not have a
+way to test that to be positive.
+
 There were no ERRORs or WARNINGs.
 
 There were the following NOTEs:
