@@ -16,3 +16,4 @@ _dev\.R$
 ^covr.*$
 ^cran_comments\.md$
 ^revdep/
+^cran-comments\.md$
