@@ -81,7 +81,7 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
 #' names to exclude. Example \code{print\\.} to match print methods.
 #' @param code Additional test code to run.
 #' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}
-#' @param exclusions \sQuote{Depricated}, please use \sQuote{line_exclusions} instead.
+#' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
 #' @seealso exclusions
 #' @export
 package_coverage <- function(path = ".",

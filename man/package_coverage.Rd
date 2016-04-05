@@ -37,7 +37,7 @@ names to exclude. Example \code{print\\.} to match print methods.}
 
 \item{...}{Additional arguments passed to \code{\link[tools]{testInstalledPackage}}}
 
-\item{exclusions}{\sQuote{Depricated}, please use \sQuote{line_exclusions} instead.}
+\item{exclusions}{\sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.}
 }
 \description{
 Calculate test coverage for a package
