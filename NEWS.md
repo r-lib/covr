@@ -8,7 +8,7 @@
 * `NULL` statements are analyzed for coverage (#156, @krlmlr).
 * Finer coverage analysis for brace-less `if`, `while` and `for` statements (#154, @krlmlr).
 * Run any combination of coverage types (#104, #133)
-* Remove inconsitencies in line counts between shiny app and services (#129)
+* Remove inconsistencies in line counts between shiny app and services (#129)
 * Include header files in gcov output (#112)
 * Add support for C++11 (#131)
 * Always clean gcov files even on failure (#108)
