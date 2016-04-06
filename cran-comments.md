@@ -1,3 +1,7 @@
+## Resubmission
+This is a resubmission. In this version I have fixed the package URL to be in
+the canonical form.
+
 ## Test environments
 * local OS X install, R 3.2.4
 * ubuntu 12.04 (on travis-ci), R 3.2.4
