@@ -16,3 +16,7 @@
 
   invisible()
 }
+
+if (R.version.string < "3.2") {
+  lengths <- function(x, ...) vapply(x, length, integer(1L))
+}
