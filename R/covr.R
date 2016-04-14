@@ -213,6 +213,10 @@ merge_coverage <- function(...) {
 
   x <- objs[[1]]
   others <- objs[-1]
+
+  if (R.version.string < "3.2") {
+    lengths <- function(x, ...) vapply(x, length, integer(1L))
+  }
   stopifnot(all(lengths(others) == length(x)))
 
   for (y in others) {
