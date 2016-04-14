@@ -62,6 +62,44 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
   structure(as.list(.counters), class = "coverage")
 }
 
+#' Calculate test coverage for sets of files
+#'
+#' The files in \code{source_files} are first sourced in to a new environment
+#' to define functions to be checked. Then they are instrumented to track
+#' coverage and the files in the \code{test_files} are sourced.
+#' @param source_files Character vector of source files with function
+#'   definitions to measure coverage
+#' @param test_files Character vector of test files with code to test the
+#'   functions
+#' @inheritParams package_coverage
+#' @export
+file_coverage <- function(
+  source_files,
+  test_files,
+  line_exclusions = NULL,
+  function_exclusions = NULL) {
+
+  env <- new.env(parent = baseenv())
+
+  lapply(source_files,
+     sys.source, keep.source = TRUE, envir = env)
+
+  trace_environment(env)
+  on.exit({
+    reset_traces()
+    clear_counters()
+  })
+
+  lapply(test_files,
+     sys.source, keep.source = TRUE, envir = env)
+  coverage <- structure(as.list(.counters), class = "coverage")
+
+  exclude(coverage,
+    line_exclusions = line_exclusions,
+    function_exclusions = function_exclusions,
+    path = NULL)
+}
+
 #' Calculate test coverage for a package
 #'
 #' @param path file path to the package
