@@ -20,7 +20,8 @@ Imports:
     rex,
     httr,
     crayon,
-    withr
+    withr,
+    memoise
 Suggests:
     R6,
     knitr,
