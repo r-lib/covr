@@ -17,6 +17,8 @@ b(0)
 b(1)
 b(2)")
 
+on.exit(unlink(c("s1", "t1")))
+
 test_that("it works on single files", {
   cov <- file_coverage("s1", "t1")
   cov_d <- as.data.frame(cov)

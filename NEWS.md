@@ -1,3 +1,6 @@
+## 2.0.2 ##
+* Memoised and Vectorized functions now able to be tracked.
+
 ## 2.0.1 ##
 * Support for filtering by function as well as line.
 * Now tracks coverage for RC methods
