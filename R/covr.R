@@ -186,16 +186,21 @@ package_coverage <- function(path = ".",
 
   # install the package in a temporary directory
   withr::with_makevars(flags, assignment = "+=",
-    utils::install.packages(repos = NULL, lib = tmp_lib, pkg$path, type = "source", INSTALL_opts = c("--example", "--install-tests", "--with-keep.source", "--no-multiarch"), quiet = quiet))
+    utils::install.packages(repos = NULL,
+                            lib = tmp_lib,
+                            pkg$path,
+                            type = "source",
+                            INSTALL_opts = c("--example",
+                                             "--install-tests",
+                                             "--with-keep.source",
+                                             "--no-multiarch"),
+                            quiet = quiet))
 
   # add hooks to the package startup
   add_hooks(pkg$package, tmp_lib)
 
-  withr::with_envvar(c(
-    SHLIB_LIBADD = "--coverage",
-      R_LIBS_USER = env_path(tmp_lib, Sys.getenv("R_LIBS_USER"))), {
-    withr::with_libpaths(tmp_lib, action = "prefix", {
-      withCallingHandlers({
+  withr::with_envvar(c(R_LIBS_USER = env_path(tmp_lib, .libPaths())), {
+    withCallingHandlers({
       if ("vignettes" %in% type) {
         type <- type[type != "vignettes"]
         run_vignettes(pkg, tmp_lib)
@@ -210,14 +215,14 @@ package_coverage <- function(path = ".",
         })
       }
       if ("tests" %in% type) {
-          tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = "tests", lib.loc = tmp_lib, ...)
+        tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = "tests", lib.loc = tmp_lib, ...)
       }
 
       run_commands(pkg, tmp_lib, code)
-      },
-      message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
-      warning = function(e) if (quiet) invokeRestart("muffleWarning") else e)
-    })})
+    },
+    message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
+    warning = function(e) if (quiet) invokeRestart("muffleWarning") else e)
+    })
 
   # read tracing files
   trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
