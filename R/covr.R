@@ -174,13 +174,6 @@ package_coverage <- function(path = ".",
 
   flags <- getOption("covr.flags")
 
-  if (is_windows()) {
-
-    # workaround for https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16384
-    # LDFLAGS is ignored on Windows so we need to also override PKG_LIBS
-    flags[["PKG_LIBS"]] <- "--coverage"
-  }
-
   if (isTRUE(clean)) {
     on.exit({
       clean_objects(pkg$path)
@@ -192,7 +185,7 @@ package_coverage <- function(path = ".",
   clean_objects(pkg$path)
 
   # install the package in a temporary directory
-  withr::with_makevars(flags,
+  withr::with_makevars(flags, assignment = "+=",
     utils::install.packages(repos = NULL, lib = tmp_lib, pkg$path, type = "source", INSTALL_opts = c("--example", "--install-tests", "--with-keep.source", "--no-multiarch"), quiet = quiet))
 
   # add hooks to the package startup
