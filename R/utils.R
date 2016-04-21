@@ -221,7 +221,7 @@ clean_objects <- function(path) {
   files <- list.files(file.path(path, "src"),
                       pattern = rex::rex(".",
                         or("o", "sl", "so", "dylib",
-                          "a", "dll", "def"), end),
+                          "a", "dll"), end),
                       full.names = TRUE, recursive = TRUE)
   unlink(files)
 
