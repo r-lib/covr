@@ -1,10 +1,3 @@
-table tbody tr td {
-  padding: 0
-}
-.table-condensed tbody tr td {
-  padding: 0
-}
-
 table tr:hover td {
   font-weight:bold;text-decoration:none
 }
@@ -51,10 +44,18 @@ table.table-condensed pre {
   background-color: transparent;
   margin: 0;
   padding: 0;
-  padding-left: 3px;
   border: 0;
   font-size: 11px;
 }
+div#source_table td {
+  padding: 0;
+  padding-left: 5px;
+}
+
+div#source_table td.num {
+  padding-right: 5px;
+}
+
 table.table-condensed {
   font-size: 11px;
 }
