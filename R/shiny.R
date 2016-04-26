@@ -62,8 +62,16 @@ shine.coverages <- function(x, ...) {
   )
 }
 
+get_package_name <- function(x) {
+   attr(x, "package")$package
+}
+
+#' Display covr results using a standalone report
+#'
+#' @param x a coverage dataset
+#' @param browse whether to open a browser with the result.
 #' @export
-shine.coverage <- function(x, ...) {
+shine.coverage <- report <- function(x, file = paste0(get_package_name(x), "-report.html"), browse = interactive()) {
 
   loadNamespace("shiny")
 
@@ -91,10 +99,11 @@ shine.coverage <- function(x, ...) {
           ),
     title = paste(attr(x, "package")$package, "Coverage"))
 
-  con <- file("test.html", open = "w")
+  con <- file(description = file, open = "w")
   renderPage(ui, con)
   close(con)
-  browseURL("test.html")
+  if (browse) browseURL(file)
+  invisible()
 }
 
 to_shiny_data <- function(x) {
