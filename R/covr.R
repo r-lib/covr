@@ -232,6 +232,9 @@ package_coverage <- function(path = ".",
     package = pkg,
     relative = relative_path)
 
+  # Exclude both RcppExports to avoid reduntant coverage information
+  line_exclusions <- c("src/RcppExports.cpp", "R/RcppExports.R", line_exclusions)
+
   exclude(coverage,
     line_exclusions = line_exclusions,
     function_exclusions = function_exclusions,

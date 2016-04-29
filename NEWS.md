@@ -1,4 +1,5 @@
 ## 2.0.2 ##
+* Automatically exclude RcppExport files (#170).
 * Memoised and Vectorized functions now able to be tracked.
 
 ## 2.0.1 ##
