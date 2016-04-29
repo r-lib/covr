@@ -63,7 +63,7 @@ shine.coverages <- function(x, ...) {
 }
 
 get_package_name <- function(x) {
-   attr(x, "package")$package
+   attr(x, "package")$package %||% "coverage"
 }
 
 #' Display covr results using a standalone report
