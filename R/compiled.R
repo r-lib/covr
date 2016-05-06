@@ -1,10 +1,19 @@
 # this does not handle LCOV_EXCL_START ect.
-parse_gcov <- function(file, source_file) {
+parse_gcov <- function(file, package_path = "") {
   if (!file.exists(file)) {
     return(NULL)
   }
 
   lines <- readLines(file)
+  source_file <- rex::re_matches(lines[1], rex::rex("Source:", capture(name = "source", anything)))$source
+
+  # retrieve full path to the source files
+  source_file <- normalize_path(source_file)
+
+  # If the source file does not start with the package path ignore it.
+  if (!grepl(rex::rex(start, package_path), source_file)) {
+    return(NULL)
+  }
 
   re <- rex::rex(any_spaces,
     capture(name = "coverage", some_of(digit, "-", "#", "=")),
@@ -52,10 +61,10 @@ parse_gcov <- function(file, source_file) {
   res
 }
 
-clear_gcov <- function(path) {
+clean_gcov <- function(path) {
   src_dir <- file.path(path, "src")
 
-  gcov_files <- dir(src_dir,
+  gcov_files <- list.files(src_dir,
                     pattern = rex::rex(or(".gcda", ".gcno", ".gcov"), end),
                     full.names = TRUE,
                     recursive = TRUE)
@@ -63,48 +72,30 @@ clear_gcov <- function(path) {
   unlink(gcov_files)
 }
 
-run_gcov <- function(path, sources, quiet = TRUE,
-                     gcov_path = options("covr.gcov")) {
-
-  sources <- normalizePath(sources)
-  src_path <- normalizePath(file.path(path, "src"))
-
-  res <- unlist(recursive = FALSE,
-    Filter(Negate(is.null),
-    lapply(sources,
-    function(src) {
-      gcda <- paste0(remove_extension(src), ".gcda")
-      gcno <- paste0(remove_extension(src), ".gcno")
-      if (file.exists(gcno) && file.exists(gcda)) {
-        in_dir(src_path,
-          system_check(gcov_path,
-            args = c(src, "-o", dirname(src)),
-            quiet = quiet)
-        )
-        # the gcov files are in the src_path with the basename of the file
-        gcov_file <- file.path(src_path, paste0(basename(src), ".gcov"))
-        if (file.exists(gcov_file)) {
-          parse_gcov(gcov_file, src)
-        }
-      }
-    })))
-
-  if (is.null(res)) {
-    res <- list()
+run_gcov <- function(path, quiet = TRUE,
+                      gcov_path = getOption("covr.gcov", ""),
+                      gcov_args = getOption("covr.gcov_args", NULL)) {
+  if (!nzchar(gcov_path)) {
+    return()
   }
 
-  class(res) <- "coverage"
-  res
-}
+  src_path <- normalize_path(file.path(path, "src"))
+  if (!file.exists(src_path)) {
+     return()
+  }
 
-remove_extension <- function(x) {
-  rex::re_substitutes(x, rex::rex(".", except_any_of("."), end), "")
-}
-
-sources <- function(pkg = ".") {
-  pkg <- devtools::as.package(pkg)
-  srcdir <- file.path(pkg$path, "src")
-  dir(srcdir, rex::rex(".", one_of("cfh"), except_any_of("."), end),
-      recursive = TRUE,
-      full.names = TRUE)
+  gcov_inputs <- list.files(path, pattern = rex::rex(".gcno", end), recursive = TRUE, full.names = TRUE)
+  withr::with_dir(src_path, {
+    run_gcov <- function(src) {
+      system_check(gcov_path,
+        args = c(gcov_args, src, "-o", dirname(src)),
+        quiet = quiet, echo = !quiet)
+    }
+    lapply(gcov_inputs, run_gcov)
+    gcov_outputs <- list.files(path, pattern = rex::rex(".gcov", end), recursive = TRUE, full.names = TRUE)
+    structure(
+      unlist(recursive = FALSE,
+        lapply(gcov_outputs, parse_gcov, package_path = path)),
+      class = "coverage")
+  })
 }

@@ -41,7 +41,9 @@
 NULL
 
 exclude <- function(coverage,
-  exclusions = NULL, exclude_pattern = getOption("covr.exclude_pattern"),
+  line_exclusions = NULL,
+  function_exclusions = NULL,
+  exclude_pattern = getOption("covr.exclude_pattern"),
   exclude_start = getOption("covr.exclude_start"),
   exclude_end = getOption("covr.exclude_end"),
   path = NULL) {
@@ -53,19 +55,24 @@ exclude <- function(coverage,
       parse_exclusions(x$file_lines, exclude_pattern, exclude_start, exclude_end)
     })
 
-  names(source_exclusions) <- lapply(sources, display_name)
-
-  excl <- normalize_exclusions(c(source_exclusions, exclusions), path)
+  excl <- normalize_exclusions(c(source_exclusions, line_exclusions), path)
 
   df <- as.data.frame(coverage, sort = FALSE)
 
+  to_exclude <- rep(FALSE, length(coverage))
+
+  if (!is.null(function_exclusions)) {
+    to_exclude <- Reduce(`|`, init = to_exclude,
+      Map(rex::re_matches, function_exclusions, MoreArgs = list(data = df$functions)))
+  }
+
   df$full_name <- vapply(coverage,
     function(x) {
-      normalizePath(getSrcFilename(x$srcref, full.names = TRUE), mustWork = FALSE)
+      normalize_path(getSrcFilename(x$srcref, full.names = TRUE))
     },
     character(1))
 
-  to_exclude <- vapply(seq_len(NROW(df)),
+  to_exclude <- to_exclude | vapply(seq_len(NROW(df)),
     function(i) {
       file <- df[i, "full_name"]
       which_exclusion <- match(file, names(excl))
@@ -100,7 +107,7 @@ parse_exclusions <- function(lines,
       stop(length(starts), " starts but only ", length(ends), " ends!")
     }
 
-    for(i in seq_along(starts)) {
+    for (i in seq_along(starts)) {
       exclusions <- c(exclusions, seq(starts[i], ends[i]))
     }
   }
@@ -154,7 +161,7 @@ normalize_exclusions <- function(x, path = NULL) {
   if (!is.null(path)) {
     names(x) <- file.path(path, names(x))
   }
-  names(x) <- normalizePath(names(x), mustWork = FALSE)
+  names(x) <- normalize_path(names(x))
 
   remove_line_duplicates(
     remove_file_duplicates(

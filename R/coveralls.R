@@ -17,7 +17,7 @@ coveralls <- function(..., coverage = NULL,
                       quiet = TRUE) {
 
   if (is.null(coverage)) {
-    coverage <- package_coverage(...)
+    coverage <- package_coverage(..., quiet = quiet)
   }
 
   if (!quiet) {
@@ -41,7 +41,7 @@ coveralls <- function(..., coverage = NULL,
 }
 
 to_file <- function(x) {
-  name <- tempfile()
+  name <- temp_file()
   con <- file(name)
   writeChar(con = con, x, eos = NULL)
   close(con)
@@ -53,13 +53,12 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
 
   coverages <- per_line(x)
 
-  res <- unname(lapply(coverages,
-    function(coverage) {
+  res <- Map(function(coverage, name) {
       list(
-        "name" = jsonlite::unbox(display_name(coverage)),
+        "name" = jsonlite::unbox(name),
         "source" = jsonlite::unbox(paste(collapse = "\n", coverage$file$file_lines)),
         "coverage" = coverage$coverage)
-    }))
+    }, coverages, names(coverages), USE.NAMES = FALSE)
 
   git_info <- switch(service_name,
     drone = jenkins_git_info(), # drone has the same env vars as jenkins
@@ -96,10 +95,10 @@ jenkins_git_info <- function() {
   )
   head <- lapply(structure(
     scan(
-      sep="\n",
+      sep = "\n",
       what = "character",
-      text=system_output("git", c("log", "-n", "1",
-          paste0("--pretty=format:", paste(collapse="%n", formats)))
+      text = system_output("git", c("log", "-n", "1",
+          paste0("--pretty=format:", paste(collapse = "%n", formats)))
         ),
       quiet = TRUE
     ),

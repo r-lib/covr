@@ -1,0 +1,10 @@
+language: r
+sudo: false
+cache: packages
+r:
+  - oldrel
+  - release
+  - devel
+
+after_success:
+  - test $TRAVIS_R_VERSION = "3.2.4" && R CMD INSTALL $PKG_TARBALL && source shim_package.sh && Rscript -e 'covr::codecov()'

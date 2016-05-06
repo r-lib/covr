@@ -5,7 +5,8 @@ test_that("parse_gcov parses files properly", {
     `base::readLines` = function(...) c(
 "        -:    0:Source:simple.c"
     ),
-    expect_equal(parse_gcov("hi.c.gcov", "hi.c.gcov"), NULL)
+    `base::normalizePath` = function(...) "simple.c",
+    expect_equal(parse_gcov("hi.c.gcov"), NULL)
   )
 
   with_mock(
@@ -14,7 +15,8 @@ test_that("parse_gcov parses files properly", {
 "        -:    0:Source:simple.c",
 "        -:    1:#define USE_RINTERNALS"
     ),
-    expect_equal(parse_gcov("hi.c.gcov", "hi.c.gcov"), NULL)
+    `base::normalizePath` = function(...) "simple.c",
+    expect_equal(parse_gcov("hi.c.gcov"), NULL)
   )
 
   with_mock(
@@ -32,7 +34,8 @@ test_that("parse_gcov parses files properly", {
 "        -:    5:",
 "        4:    6:SEXP simple_(SEXP x) {"
     ),
-    expect_equal(unname(value(parse_gcov("hi.c.gcov", "hi.c.gcov"))), 4)
+    `base::normalizePath` = function(...) "simple.c",
+    expect_equal(unname(value(parse_gcov("hi.c.gcov"))), 4)
   )
   with_mock(
     `base::file.exists` = function(...) TRUE,
@@ -51,15 +54,16 @@ test_that("parse_gcov parses files properly", {
 "        -:    7:  }",
 "    #####:    8:    pout[0] = 0;" # nolint
     ),
-    expect_equal( value(unname(parse_gcov("hi.c.gcov", "hi.c.gcov"))), c(4, 0))
+    `base::normalizePath` = function(...) "simple.c",
+    expect_equal(value(unname(parse_gcov("hi.c.gcov"))), c(4, 0))
   )
 })
 
-test_that("clear_gcov correctly clears files", {
+test_that("clean_gcov correctly clears files", {
   with_mock(
-    `base::dir` = function(...) c("simple.c.gcov", "simple.gcda", "simple.gcno"),
+    `base::list.files` = function(...) c("simple.c.gcov", "simple.gcda", "simple.gcno"),
     `base::unlink` = function(...) list(...),
-    files <- clear_gcov("TestGcov")[[1]],
+    files <- clean_gcov("TestGcov")[[1]],
     expect_match(files[1], "simple.c.gcov"),
     expect_match(files[2], "simple.gcda"),
     expect_match(files[3], "simple.gcno")

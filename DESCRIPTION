@@ -1,32 +1,40 @@
 Package: covr
 Title: Test Coverage for Packages
-Version: 1.2.3
+Version: 2.0.1.9000
 Authors@R: person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre"))
 Description: Track and report code coverage for your package and (optionally)
-    upload the results to a coverage service like Codecov (http://codecov.io)
-    or Coveralls (http://coveralls.io).  Code coverage is a measure of the
-    amount of code being exercised by the tests.  It is an indirect measure of
-    test quality. This package is compatible with any testing methodology or
-    framework and tracks coverage of both R code and compiled C/C++/Fortran code.
+    upload the results to a coverage service like Codecov (http://codecov.io) or
+    Coveralls (http://coveralls.io). Code coverage is a measure of the amount of
+    code being exercised by the tests. It is an indirect measure of test quality.
+    This package is compatible with any testing methodology or framework and tracks
+    coverage of both R code and compiled C/C++/Fortran code.
 URL: https://github.com/jimhester/covr
 BugReports: https://github.com/jimhester/covr/issues
 Depends:
     R (>= 3.1.0),
     methods
 Imports:
+    stats,
+    utils,
     jsonlite,
     rex,
-    devtools,
     httr,
     crayon,
-    htmltools
+    withr (>= 1.0.1.9000),
+    memoise
 Suggests:
     R6,
     knitr,
+    rmarkdown,
     shiny (>= 0.11.1),
+    htmltools,
     DT,
     testthat,
-    rstudioapi (>= 0.2)
+    rstudioapi (>= 0.2),
+    devtools
+Remotes:
+  jimhester/withr
 License: MIT + file LICENSE
 LazyData: true
 VignetteBuilder: knitr
+RoxygenNote: 5.0.1

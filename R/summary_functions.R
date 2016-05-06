@@ -17,29 +17,57 @@ percent_coverage <- function(x, ...) {
 #' @export
 tally_coverage <- function(x, by = c("line", "expression")) {
   df <- as.data.frame(x)
+  if (NROW(df) == 0) {
+    return(df)
+  }
 
   by <- match.arg(by)
 
   switch(by,
          "line" = {
 
-           # aggregate drops all NA's in grouping variables using
-           # complete.cases, so we have to temporary convert the NA's to
-           # regular characters and then back
-           na2char <- function(x) {
-             x[is.na(x)] <- "NA_character_"
-             x
-           }
-           char2na <- function(x) {
-             x[x == "NA_character_"] <- NA_character_
-             x
+           # if it already has a line column it has already been tallied.
+           if (!is.null(df$line)) {
+             return(df)
            }
 
-           df$functions <- na2char(df$functions)
-           res <- aggregate(value ~ filename + functions + first_line,
-                                    data = df, FUN = sum, na.action = na.pass)
-           res$functions <- char2na(res$functions)
-           res
+           # aggregate() can't cope with zero-length data frames anyway.
+           if (nrow(df) == 0L) {
+             return(NULL)
+           }
+
+           # results with NA functions (such as from compiled code) are dropped
+           # unless NA is a level.
+           df$functions <- addNA(df$functions)
+           res <- expand_lines(df)
+
+           res <- aggregate(value ~ filename + functions + line,
+                                    data = res, FUN = min, na.action = na.pass)
+           res$functions <- as.character(res$functions)
+
+           # exclude blank lines from results
+           if (inherits(x, "coverage")) {
+             srcfiles <- unique(lapply(x, function(x) attr(x$srcref, "srcfile")))
+
+             srcfile_names <- vapply(srcfiles, `[[`, character(1), "filename")
+
+             blank_lines <- compact(
+               setNames(lapply(srcfiles, function(srcfile) attr(srcfile_lines(srcfile), "blanks")),
+               srcfile_names))
+             if (length(blank_lines)) {
+               blank_lines <- utils::stack(blank_lines)
+
+               non_blanks <- setdiff.data.frame(
+                 res,
+                 blank_lines,
+                 by.x = c("filename", "line"),
+                 by.y = c("ind", "values"))
+
+               res <- res[non_blanks, ]
+             }
+             res
+           }
+           res[order(res$filename, res$line), ]
          },
 
          "expression" = df
@@ -59,7 +87,21 @@ tally_coverage <- function(x, by = c("line", "expression")) {
 #' @export
 zero_coverage <- function(x, ...) {
   coverage_data <- tally_coverage(x, ...)
-  coverage_data <- coverage_data[coverage_data$value == 0, ]
+  coverage_data <- coverage_data[coverage_data$value == 0, , drop = FALSE]
+
+  res <- coverage_data[
+    # need to use %in% rather than explicit indexing because
+    # tally_coverage returns a df without the columns if
+    # by is equal to "line"
+    colnames(coverage_data) %in%
+      c("filename",
+        "functions",
+        "line",
+        "first_line",
+        "last_line",
+        "first_column",
+        "last_column",
+        "value")]
 
   if (getOption("covr.rstudio_source_markers", TRUE) &&
       rstudioapi::hasFun("sourceMarkers")) {
@@ -69,21 +111,9 @@ zero_coverage <- function(x, ...) {
                         markers = markers,
                         basePath = attr(x, "package")$path,
                         autoSelect = "first")
-    invisible(x)
+    invisible(res)
   } else {
-
-    coverage_data[
-                  # need to use %in% rather than explicit indexing because
-                  # tally_coverage returns a df without the columns if
-                  # by is equal to "line"
-                  colnames(coverage_data) %in%
-                    c("filename",
-                      "functions",
-                      "first_line",
-                      "last_line",
-                      "first_column",
-                      "last_column",
-                      "value")]
+    res
   }
 }
 
@@ -96,6 +126,9 @@ zero_coverage <- function(x, ...) {
 #' @export
 print.coverage <- function(x, group = c("filename", "functions"), by = "line", ...) {
 
+  if (length(x) == 0) {
+    return()
+  }
   group <- match.arg(group)
 
   type <- attr(x, "type")
@@ -104,7 +137,7 @@ print.coverage <- function(x, group = c("filename", "functions"), by = "line", .
     type <- NULL
   }
 
-  df <- tally_coverage(as.data.frame(x), by = by)
+  df <- tally_coverage(x, by = by)
 
   if (!NROW(df)) {
     return(invisible())
@@ -131,7 +164,7 @@ print.coverage <- function(x, group = c("filename", "functions"), by = "line", .
 
 #' @export
 print.coverages <- function(x, ...) {
-  for(i in seq_along(x)) {
+  for (i in seq_along(x)) {
     # Add a blank line between consecutive coverage items
     if (i != 1) {
       message()
@@ -185,7 +218,7 @@ markers.coverage <- function(x, ...) {
 
 }
 
-markers.data.frame <- function(x, type = "test") {
+markers.data.frame <- function(x, type = "test") { # nolint
   # generate the markers
   markers <- Map(function(filename, line, column) {
     list(
@@ -196,7 +229,19 @@ markers.data.frame <- function(x, type = "test") {
       message = sprintf("No %s Coverage!", to_title(type))
     )},
     x$filename,
-    x$first_line,
+    x$first_line %||% x$line,
     x$first_column %||% rep(list(NULL), NROW(x)),
     USE.NAMES = FALSE)
+}
+
+# Expand lines given as start and end ranges to enumerate each line
+expand_lines <- function(x) {
+  repeats <- (x$last_line - x$first_line) + 1L
+
+  lines <- unlist(Map(seq, x$first_line, x$last_line)) %||% integer()
+
+  res <- x[rep(seq_len(NROW(x)), repeats), c("filename", "functions", "value")]
+  res$line <- lines
+  rownames(res) <- NULL
+  res
 }

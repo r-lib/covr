@@ -149,19 +149,18 @@ codecov <- function(...,
 }
 
 to_codecov <- function(x) {
-  coverages <- unname(lapply(per_line(x),
+  coverages <- lapply(per_line(x),
     function(xx) {
       xx$coverage <- c(NA, xx$coverage)
       xx
-    }))
+    })
 
-  res <- lapply(coverages,
-    function(coverage) {
+  res <- Map(function(coverage, name) {
       list(
-        "name" = jsonlite::unbox(display_name(coverage)),
+        "name" = jsonlite::unbox(name),
         "coverage" = coverage$coverage
       )
-    })
+    }, coverages, names(coverages), USE.NAMES = FALSE)
 
   jsonlite::toJSON(na = "null", list("files" = res, "uploader" = jsonlite::unbox("R")))
 }

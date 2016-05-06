@@ -15,3 +15,5 @@ _dev\.R$
 ^tests/testthat/.*/.*(o|sl|so|dylib|a|dll|def)$
 ^covr.*$
 ^cran_comments\.md$
+^revdep/
+^cran-comments\.md$

@@ -46,29 +46,31 @@ ci_vars <- c(
   "WERCKER_GIT_REPOSITORY" = NA,
   "WERCKER_MAIN_PIPELINE_STARTED" = NA)
 
+cov <- package_coverage("TestS4")
+
 test_that("it generates a properly formatted json file", {
 
-  with_envvar(ci_vars,
+  withr::with_envvar(ci_vars,
     with_mock(
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
       `covr:::local_branch` = function() "master",
       `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
       json <- jsonlite::fromJSON(res$body),
 
-      expect_match(json$files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
+      expect_match(json$files$name, "R/TestS4.R"),
       expect_equal(json$files$coverage[[1]],
-        c(NA, NA, NA, NA, NA, 5, 2, 5, 3, 5, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+        c(NA, NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA)
         ),
       expect_equal(json$uploader, "R")
       ))
-  })
+})
 
 test_that("it works with local repos", {
-  with_envvar(ci_vars, {
+  withr::with_envvar(ci_vars, {
 
     with_mock(
       `httr::POST` = function(...) list(...),
@@ -76,7 +78,7 @@ test_that("it works with local repos", {
       `covr:::local_branch` = function() "master",
       `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$url, "2"), # nolint
       expect_match(res$query$branch, "master"),
@@ -85,13 +87,13 @@ test_that("it works with local repos", {
     })
   })
 test_that("it works with local repos and explicit branch and commit", {
-  with_envvar(ci_vars, {
+  withr::with_envvar(ci_vars, {
 
     with_mock(
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4", branch = "master", commit = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
+      res <- codecov(coverage = cov, branch = "master", commit = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
 
       expect_match(res$url, "/upload/v2"), # nolint
       expect_match(res$query$branch, "master"),
@@ -100,7 +102,7 @@ test_that("it works with local repos and explicit branch and commit", {
     })
   })
 test_that("it adds the token to the query if available", {
-  with_envvar(c(
+  withr::with_envvar(c(
       ci_vars,
       "CODECOV_TOKEN" = "codecov_test"
       ),
@@ -110,7 +112,7 @@ test_that("it adds the token to the query if available", {
       `covr:::local_branch` = function() "master",
       `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$url, "/upload/v2"), # nolint
       expect_match(res$query$branch, "master"),
@@ -120,7 +122,7 @@ test_that("it adds the token to the query if available", {
     )
   })
 test_that("it works with jenkins", {
-  with_envvar(c(
+  withr::with_envvar(c(
       ci_vars,
       "JENKINS_URL" = "jenkins.com",
       "GIT_BRANCH" = "test",
@@ -133,7 +135,7 @@ test_that("it works with jenkins", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "jenkins"),
       expect_match(res$query$branch, "test"),
@@ -145,7 +147,7 @@ test_that("it works with jenkins", {
   })
 
 test_that("it works with travis normal builds", {
-  with_envvar(c(
+  withr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "TRAVIS" = "true",
@@ -161,7 +163,7 @@ test_that("it works with travis normal builds", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "travis"),
       expect_match(res$query$branch, "master"),
@@ -175,7 +177,7 @@ test_that("it works with travis normal builds", {
   })
 
 test_that("it works with travis pull requests", {
-  with_envvar(c(
+  withr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "TRAVIS" = "true",
@@ -191,7 +193,7 @@ test_that("it works with travis pull requests", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "travis"),
       expect_match(res$query$branch, "master"),
@@ -205,7 +207,7 @@ test_that("it works with travis pull requests", {
   })
 
 test_that("it works with codeship", {
-  with_envvar(c(
+  withr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "CI_NAME" = "codeship",
@@ -219,7 +221,7 @@ test_that("it works with codeship", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "codeship"),
       expect_match(res$query$branch, "master"),
@@ -230,7 +232,7 @@ test_that("it works with codeship", {
     )
   })
 test_that("it works with circleci", {
-  with_envvar(c(
+  withr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "CIRCLECI" = "true",
@@ -245,7 +247,7 @@ test_that("it works with circleci", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "circleci"),
       expect_match(res$query$branch, "master"),
@@ -257,7 +259,7 @@ test_that("it works with circleci", {
     )
   })
 test_that("it works with semaphore", {
-  with_envvar(c(
+  withr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "SEMAPHORE" = "true",
@@ -271,7 +273,7 @@ test_that("it works with semaphore", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "semaphore"),
       expect_match(res$query$branch, "master"),
@@ -283,7 +285,7 @@ test_that("it works with semaphore", {
     )
   })
 test_that("it works with drone", {
-  with_envvar(c(
+  withr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "DRONE" = "true",
@@ -297,7 +299,7 @@ test_that("it works with drone", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "drone.io"),
       expect_match(res$query$branch, "master"),
@@ -308,7 +310,7 @@ test_that("it works with drone", {
     )
   })
 test_that("it works with AppVeyor", {
-  with_envvar(c(
+  withr::with_envvar(c(
       ci_vars,
       "CI" = "True",
       "APPVEYOR" = "True",
@@ -322,7 +324,7 @@ test_that("it works with AppVeyor", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "AppVeyor"),
       expect_match(res$query$branch, "master"),
@@ -334,7 +336,7 @@ test_that("it works with AppVeyor", {
     )
   })
 test_that("it works with Wercker", {
-  with_envvar(c(
+  withr::with_envvar(c(
       ci_vars,
       "CI" = "true",
       "WERCKER_GIT_BRANCH" = "master",
@@ -348,7 +350,7 @@ test_that("it works with Wercker", {
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
 
-      res <- codecov("TestS4"),
+      res <- codecov(coverage = cov),
 
       expect_match(res$query$service, "wercker"),
       expect_match(res$query$branch, "master"),
