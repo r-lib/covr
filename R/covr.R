@@ -307,7 +307,7 @@ run_commands <- function(pkg, lib, commands) {
   outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
   failfile <- paste(outfile, "fail", sep = "." )
   cat(
-    "library('", pkg$package, "')",
+    "library('", pkg$package, "')\n",
     commands, "\n", file = outfile, sep = "")
   cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                "CMD BATCH --vanilla --no-timing",
