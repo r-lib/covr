@@ -71,15 +71,17 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
 #'   definitions to measure coverage
 #' @param test_files Character vector of test files with code to test the
 #'   functions
+#' @param parent_env The parent environment to use when sourcing the files.
 #' @inheritParams package_coverage
 #' @export
 file_coverage <- function(
   source_files,
   test_files,
   line_exclusions = NULL,
-  function_exclusions = NULL) {
+  function_exclusions = NULL,
+  parent_env = parent.frame()) {
 
-  env <- new.env(parent = baseenv())
+  env <- new.env(parent = parent_env)
 
   lapply(source_files,
      sys.source, keep.source = TRUE, envir = env)
@@ -92,6 +94,7 @@ file_coverage <- function(
 
   lapply(test_files,
      sys.source, keep.source = TRUE, envir = env)
+
   coverage <- structure(as.list(.counters), class = "coverage")
 
   exclude(coverage,
