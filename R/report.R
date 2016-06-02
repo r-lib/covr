@@ -1,24 +1,19 @@
-#' Display covr results using a shiny app
+#' Display covr results using a standalone report
 #'
-#' The shiny app is designed to provide a local display of coverage
-#' information. However it does not and
-#' will not track coverage over time.
 #' @param x a coverage dataset
-#' @param ... additional arguments passed to methods
+#' @param browse whether to open a browser to veiew the report.
+#' @export
+#' @aliases shine
 #' @examples
 #' \dontrun{
 #' x <- package_coverage()
-#' shine(x)
+#' report(x)
 #' }
 #' @export
-shine <- function(x, ...) UseMethod("shine")
-
-shine.default <- function(x, ...) {
-  stop("shine must be called on a coverage object!", call. = FALSE)
-}
+report <- shine <- function(x, ...) UseMethod("report")
 
 #' @export
-shine.coverages <- function(x, ...) {
+report.coverages <- function(x, ...) {
 
   loadNamespace("shiny")
 
@@ -62,16 +57,9 @@ shine.coverages <- function(x, ...) {
   )
 }
 
-get_package_name <- function(x) {
-   attr(x, "package")$package %||% "coverage"
-}
-
-#' Display covr results using a standalone report
-#'
-#' @param x a coverage dataset
-#' @param browse whether to open a browser with the result.
-#' @export
-shine.coverage <- report <- function(x, file = paste0(get_package_name(x), "-report.html"), browse = interactive()) {
+report.coverage <- function(x,
+  file = file.path(tempdir(), paste0(get_package_name(x), "-report.html")),
+  browse = interactive()) {
 
   loadNamespace("shiny")
 

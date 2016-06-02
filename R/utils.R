@@ -284,3 +284,7 @@ temp_dir <- function() {
 temp_file <- function(pattern = "file", tmpdir = temp_dir(), fileext = "") {
   normalize_path(tempfile(pattern, tmpdir, fileext))
 }
+
+get_package_name <- function(x) {
+   attr(x, "package")$package %||% "coverage"
+}
