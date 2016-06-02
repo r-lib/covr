@@ -1,8 +1,9 @@
 #' Display covr results using a standalone report
 #'
 #' @param x a coverage dataset
+#' @param file The report filename.
 #' @param browse whether to open a browser to veiew the report.
-#' @export
+#' @param ... Additional arguments passed to methods
 #' @aliases shine
 #' @examples
 #' \dontrun{
@@ -57,9 +58,11 @@ report.coverages <- function(x, ...) {
   )
 }
 
+#' @rdname report
+#' @export
 report.coverage <- function(x,
   file = file.path(tempdir(), paste0(get_package_name(x), "-report.html")),
-  browse = interactive()) {
+  browse = interactive(), ...) {
 
   loadNamespace("shiny")
 
@@ -90,7 +93,7 @@ report.coverage <- function(x,
   con <- file(description = file, open = "w")
   renderPage(ui, con)
   close(con)
-  if (browse) browseURL(file)
+  if (browse) getOption("viewer", utils::browseURL)
   invisible()
 }
 

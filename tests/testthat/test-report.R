@@ -1,32 +1,15 @@
-context("shine")
+context("report")
 cov <- package_coverage("TestS4", type = "all", combine_types = FALSE)
 
 test_that("it works with coverage objects", {
-  with_mock(`shiny::runApp` = function(...) list(...),
-    res <- shine(cov$tests),
-    data <- environment(res[[1]]$server)$data,
-    test_S4 <- data$full[["R/TestS4.R"]],
-
-    expect_equal(test_S4$line, 1:38),
-
-    expect_equal(test_S4$coverage,
-      c("", "", "", "", "", "", "5", "2", "", "3", "", "", "", "", "", "",
-      "", "", "", "", "", "", "", "", "1", "", "", "", "",
-      "", "1", "", "", "", "", "", "1", "")),
-
-    expect_equal(data$file_stats,
-      x <- data.frame(
-        Coverage = "<div class=\"coverage-box coverage-high\">100.00</div>",
-        File = "<a href=\"#\">R/TestS4.R</a>",
-        Lines = 38L,
-        Relevant = 6L,
-        Covered = 6L,
-        Missed = 0L,
-        `Hits / Line` = "2",
-        row.names = "R/TestS4.R",
-        stringsAsFactors = FALSE,
-        check.names = FALSE))
-    )
+  tmp <- tempfile()
+  set.seed(42)
+  # Shiny uses its own seed which is not affected by set.seed, so we need to
+  # set that as well to have reproducability
+  g <- shiny:::.globals
+  g$ownSeed <- .Random.seed
+  report(cov$tests, file = tmp, browse = FALSE)
+  expect_equal(readLines(tmp), readLines("test-report.htm"))
 })
 
 test_that("it works with coverages objects", {

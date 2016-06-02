@@ -3,6 +3,7 @@
 S3method(as.data.frame,coverage)
 S3method(print,coverage)
 S3method(print,coverages)
+S3method(report,coverage)
 S3method(report,coverages)
 S3method(value,coverage)
 S3method(value,expression_coverage)

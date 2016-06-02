@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <script type="application/shiny-singletons"></script>
+  <script type="application/html-dependencies">json2[2014.02.04];jquery[1.11.1];htmlwidgets[0.6];datatables-binding[0.1];datatables[1.10.7];datatables-default[1.10.7];highlight.js[6.2];bootstrap[3.3.5]</script>
+<script src="/Users/jhester/Library/R/3.3/library/shiny/www/shared/json2-min.js"></script>
+<script src="/Users/jhester/Library/R/3.3/library/DT/htmlwidgets/lib/jquery/jquery.min.js"></script>
+<script src="/Users/jhester/Library/R/3.3/library/htmlwidgets/www/htmlwidgets.js"></script>
+<script src="/Users/jhester/Library/R/3.3/library/DT/htmlwidgets/datatables.js"></script>
+<script src="/Users/jhester/Library/R/3.3/library/DT/htmlwidgets/lib/datatables/js/jquery.dataTables.min.js"></script>
+<link href="/Users/jhester/Library/R/3.3/library/DT/htmlwidgets/lib/datatables/css/default/dataTables.extra.css" rel="stylesheet" />
+<link href="/Users/jhester/Library/R/3.3/library/DT/htmlwidgets/lib/datatables/css/default/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="/Users/jhester/Library/R/3.3/library/shiny/www/shared/highlight/rstudio.css" rel="stylesheet" />
+<script src="/Users/jhester/Library/R/3.3/library/shiny/www/shared/highlight/highlight.pack.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="/Users/jhester/Library/R/3.3/library/shiny/www/shared/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+<script src="/Users/jhester/Library/R/3.3/library/shiny/www/shared/bootstrap/js/bootstrap.min.js"></script>
+<script src="/Users/jhester/Library/R/3.3/library/shiny/www/shared/bootstrap/shim/html5shiv.min.js"></script>
+<script src="/Users/jhester/Library/R/3.3/library/shiny/www/shared/bootstrap/shim/respond.min.js"></script>
+  <title>TestS4 Coverage</title>
+</head>
+<div class="container-fluid">
+  <style type="text/css">table tr:hover td {
+  font-weight:bold;text-decoration:none
+}
+table tr.covered td{
+  background-color:rgba(95,151,68,0.3)
+}
+table tr:hover.covered .num{
+  background-color:rgba(95,151,68,0.7)
+}
+table tr.missed td{
+  background-color:rgba(185,73,71,0.3)
+}
+table tr:hover.missed .num{
+  background-color:rgba(185,73,71,0.7)
+}
+
+table tr.missed:hover td{
+  -webkit-box-shadow:0 -2px 0 0 #b94947 inset;
+  -moz-box-shadow:0 -2px 0 0 #b94947 inset;
+  box-shadow:0 -2px 0 0 #b94947 inset
+}
+table tr.covered:hover td{
+  -webkit-box-shadow:0 -2px 0 0 #5f9744 inset;
+  -moz-box-shadow:0 -2px 0 0 #5f9744 inset;
+  box-shadow:0 -2px 0 0 #5f9744 inset
+}
+
+table tr.never td{
+  background-color:transparent
+}
+
+table .num {
+  border-right: 1px solid rgba(0,0,0,0.1)
+}
+td.coverage em {
+  opacity: 0.5;
+}
+
+table td.coverage {
+  font-weight: bold;
+  text-align: right;
+}
+table.table-condensed pre {
+  background-color: transparent;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 11px;
+}
+div#files td {
+  padding: 0;
+  padding-left: 5px;
+}
+
+div#files td.num {
+  padding-right: 5px;
+}
+
+table.table-condensed {
+  font-size: 11px;
+}
+
+.coverage-high {
+  background-color: #5f9744
+}
+
+.coverage-medium {
+  background-color: #f89406
+}
+
+.coverage-low {
+  background-color: #b94947
+}
+
+.coverage-box {
+  color: #fffdfa;
+  width: 50px;
+  height: 20px;
+  text-align: center;
+}</style>
+  <div class="col-sm-8 col-sm-offset-2">
+    <div class="tabbable tabs-above">
+      <ul class="nav nav-tabs">
+        <li class="active">
+          <a href="#tab-9233-1" data-toggle="tab" data-value="Files">Files</a>
+        </li>
+        <li>
+          <a href="#tab-9233-2" data-toggle="tab" data-value="Source">Source</a>
+        </li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane active" data-value="Files" id="tab-9233-1">
+          <div id="htmlwidget-9148" style="width:100%;height:auto;" class="datatables html-widget"></div>
+          <script type="application/json" data-for="htmlwidget-9148">{"x":{"data":[["<div class=\"coverage-box coverage-high\">100.00\u003c/div>"],["<a href=\"#\">R/TestS4.R\u003c/a>"],[38],[6],[6],[0],["2"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Coverage\u003c/th>\n      <th>File\u003c/th>\n      <th>Lines\u003c/th>\n      <th>Relevant\u003c/th>\n      <th>Covered\u003c/th>\n      <th>Missed\u003c/th>\n      <th>Hits / Line\u003c/th>\n    \u003c/tr>\n  \u003c/thead>\n\u003c/table>","options":{"searching":false,"dom":"t","paging":false,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5]}],"order":[],"autoWidth":false,"orderClasses":false},"callback":"function(table) {\ntable.on('click.dt', 'a', function() {\n  files = $('div#files div');\n  files.not('div.hidden').addClass('hidden');\n  id = $(this).text();\n  files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');\n  $('ul.nav a[data-value=Source]').tab('show');\n});\n}","filter":"none","selection":"multiple"},"evals":["callback"],"jsHooks":[]}</script>
+        </div>
+        <div class="tab-pane" data-value="Source" id="tab-9233-2">
+          <div id="files">
+            <div id="R/TestS4.R" class="hidden">
+              <table class="table-condensed">
+                <tbody>
+                  <tr class="never">
+                    <td class="num">1</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">#' an example function</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">2</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">#'</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">3</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">#' @export</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">4</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">#' @examples</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">5</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">#' a(1)</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">6</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">a &lt;- function(x) {</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="covered">
+                    <td class="num">7</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  if (x &lt;= 1) {</pre>
+                    </td>
+                    <td class="coverage">5<em>x</em></td>
+                  </tr>
+                  <tr class="covered">
+                    <td class="num">8</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">    1</pre>
+                    </td>
+                    <td class="coverage">2<em>x</em></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">9</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  } else {</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="covered">
+                    <td class="num">10</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">    2</pre>
+                    </td>
+                    <td class="coverage">3<em>x</em></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">11</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  }</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">12</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">}</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">13</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r"></pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">14</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">#' @export</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">15</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">TestS4 &lt;- setClass("TestS4", # nolint</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">16</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  slots = list(name = "character", enabled = "logical"))</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">17</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r"></pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">18</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">#' @export</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">19</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">setGeneric("print2", function(x, y) {</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">20</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">})</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">21</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r"></pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">22</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">setMethod("print2",</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">23</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  c(x = "TestS4"),</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">24</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  function(x) {</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="covered">
+                    <td class="num">25</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">    1 + 1</pre>
+                    </td>
+                    <td class="coverage">1<em>x</em></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">26</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  })</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">27</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r"></pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">28</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">setMethod("print2",</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">29</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  c(x = "TestS4", y = "character"),</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">30</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  function(x, y) {</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="covered">
+                    <td class="num">31</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">    1 + 2</pre>
+                    </td>
+                    <td class="coverage">1<em>x</em></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">32</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  })</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">33</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r"></pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">34</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">setMethod("show",</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">35</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  c(object = "TestS4"),</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">36</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  function(object) {</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                  <tr class="covered">
+                    <td class="num">37</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">    1 + 3</pre>
+                    </td>
+                    <td class="coverage">1<em>x</em></td>
+                  </tr>
+                  <tr class="never">
+                    <td class="num">38</td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">  })</pre>
+                    </td>
+                    <td class="coverage"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <script>$('div#files pre').each(function(i, block) {
+    hljs.highlightBlock(block);
+});</script>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</html>
