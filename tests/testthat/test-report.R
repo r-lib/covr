@@ -9,7 +9,11 @@ test_that("it works with coverage objects", {
   g <- shiny:::.globals
   g$ownSeed <- .Random.seed
   report(cov$tests, file = tmp, browse = FALSE)
-  expect_equal(readLines(tmp), readLines("test-report.htm"))
+  simplify_link <- function(x) {
+    rex::re_substitutes(x,
+      rex::rex(capture(or("src", "href")), "=", quote, non_quotes, quote), "\\1=\"\">")
+  }
+  expect_equal(simplify_link(readLines(tmp)), simplify_link(readLines("test-report.htm")))
 })
 
 test_that("it works with coverages objects", {
