@@ -11,7 +11,10 @@
 #' report(x)
 #' }
 #' @export
-report <- shine <- function(x, ...) UseMethod("report")
+report <- function(x, ...) UseMethod("report")
+
+#' @export
+shine <- report
 
 #' @export
 report.coverages <- function(x, ...) {
