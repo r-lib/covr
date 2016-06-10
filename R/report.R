@@ -96,7 +96,9 @@ report.coverage <- function(x,
   con <- file(description = file, open = "w")
   renderPage(ui, con)
   close(con)
-  if (browse) getOption("viewer", utils::browseURL)
+  if (browse) {
+    (getOption("viewer", utils::browseURL))(file)
+  }
   invisible()
 }
 
