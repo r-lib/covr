@@ -144,8 +144,10 @@ codecov <- function(...,
                           build = Sys.getenv("CI_BUILD_ID"),
                           slug = slug,
                           commit = commit %||% Sys.getenv("CI_BUILD_REF"))
+    if (! quiet) {
       message('Using GitLab-CI code...')
       print(str(codecov_query))
+    }
   # ---------
   # Local GIT
   # ---------
@@ -160,8 +162,7 @@ codecov <- function(...,
     codecov_query$token <- token
   }
 
-    coverage_json <- to_codecov(coverage)
-    print(str(coverage_json))
+  coverage_json <- to_codecov(coverage)
 
   httr::content(httr::POST(url = codecov_url, query = codecov_query, body = coverage_json, encode = "json"))
 }
