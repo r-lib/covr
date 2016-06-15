@@ -253,6 +253,10 @@ merge_coverage <- function(...) {
     return()
   }
 
+  ## FIXME: https://github.com/jimhester/covr/issues/177
+  ns <- lengths(objs)
+  objs <- objs[ns != 2]
+  
   x <- objs[[1]]
   others <- objs[-1]
 
