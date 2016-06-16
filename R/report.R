@@ -223,8 +223,6 @@ renderPage <- function(ui, connection) {
     list(
       htmltools::htmlDependency("json2", "2014.02.04", system.file(package = "shiny", "www", "shared"), script = "json2-min.js"),
       htmltools::htmlDependency("jquery", "1.11.0", system.file(package = "shiny", "www", "shared"), script = "jquery.min.js")#
-      #htmltools::htmlDependency("shiny", packageVersion("shiny"), system.file(package = "shiny", "www", "shared"),
-        #script = "shiny.min.js", stylesheet = "shiny.css")
     ),
     result$dependencies
   )
