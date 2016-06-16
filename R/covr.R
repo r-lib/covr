@@ -312,6 +312,8 @@ run_vignettes <- function(pkg, lib) {
   res <- system(cmd)
   if (res != 0) {
     stop("Error running Vignettes:\n", paste(readLines(failfile), collapse = "\n"))
+  } else {
+    file.rename(failfile, outfile)
   }
 }
 
@@ -327,6 +329,8 @@ run_commands <- function(pkg, lib, commands) {
   res <- system(cmd)
   if (res != 0) {
     stop("Error running commands:\n", paste(readLines(failfile), collapse = "\n"))
+  } else {
+    file.rename(failfile, outfile)
   }
 }
 
