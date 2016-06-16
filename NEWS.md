@@ -1,4 +1,5 @@
 ## 2.0.2 ##
+* Add support for GitLab CI (#190, @enbrown).
 * Update exclusion documentation to include line_exclusions and function
   exclusions (#191).
 * Support coverage of R6 methods (#174).

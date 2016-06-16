@@ -35,6 +35,7 @@ without needing `CODECOV_TOKEN`).
 - [drone.io](https://drone.io)
 - [AppVeyor\*](http://www.appveyor.com)
 - [Wercker](http://wercker.com)
+- [GitLab-CI](https://about.gitlab.com/gitlab-ci/)
 
 You will also need to enable the repository on [Codecov](https://codecov.io/).
 
