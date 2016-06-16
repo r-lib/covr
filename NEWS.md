@@ -1,6 +1,7 @@
 ## 2.0.2 ##
 * Update exclusion documentation to include line_exclusions and function
   exclusions (#191).
+* Support coverage of R6 methods (#174).
 * Explicitly set default packages (including methods) (#183, #180)
 * Set R_LIBS and R_LIBS_SITE as well as R_LIBS_USER (#188).
 * Automatically exclude RcppExport files (#170).

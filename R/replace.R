@@ -1,6 +1,5 @@
 #' @useDynLib covr covr_duplicate_
-replacement <- function(name, env = as.environment(-1)) {
-  target_value <- get(name, envir = env)
+replacement <- function(name, env = as.environment(-1), target_value = get(name, envir = env)) {
   if (is.function(target_value) && !is.primitive(target_value)) {
     if (is_vectorized(target_value)) {
       new_value <- target_value

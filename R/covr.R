@@ -15,6 +15,7 @@ trace_environment <- function(env) {
   the$replacements <- compact(c(
       replacements_S4(env),
       replacements_RC(env),
+      replacements_R6(env),
       lapply(ls(env, all.names = TRUE), replacement, env = env)))
 
   lapply(the$replacements, replace)
