@@ -6,12 +6,20 @@
 \description{
 covr supports a couple of different ways of excluding some or all of a file.
 }
-\section{Exclusions Argument}{
+\section{Line Exclusions}{
 
 
-The exclusions argument to \code{package_coverage()} can be used to exclude some or
-all of a file.  This argument takes a list of filenames or named ranges to
-exclude.
+The \code{line_exclusions} argument to \code{package_coverage()} can be used
+to exclude some or all of a file.  This argument takes a list of filenames
+or named ranges to exclude.
+}
+
+\section{Function Exclusions}{
+
+
+Alternatively \code{function_exclusions} can be used to exclude R functions
+based on regular expression(s). For example \code{print\\.*} can be used to
+exclude all the print methods defined in a package from coverage.
 }
 
 \section{Exclusion Comments}{
@@ -29,10 +37,13 @@ options \code{covr.exclude_pattern}, \code{covr.exclude_start}, \code{covr.exclu
 package_coverage(exclusions = "R/test.R")
 
 # exclude lines 1 to 10 and 15 from R/test.R
-package_coverage(exclusions = list("R/test.R" = c(1:10, 15)))
+package_coverage(line_exclusions = list("R/test.R" = c(1:10, 15)))
 
 # exclude lines 1 to 10 from R/test.R, all of R/test2.R
-package_coverage(exclusions = list("R/test.R" = 1:10, "R/test2.R"))
+package_coverage(line_exclusions = list("R/test.R" = 1:10, "R/test2.R"))
+
+# exclude all print and format methods from the package.
+package_coverage(function_exclusions = c("print\\\\.", "format\\\\."))
 
 # single line exclusions
 f1 <- function(x) {

@@ -1,4 +1,6 @@
 ## 2.0.2 ##
+* Update exclusion documentation to include line_exclusions and function
+  exclusions (#191).
 * Automatically exclude RcppExport files (#170).
 * Memoised and Vectorized functions now able to be tracked.
 
