@@ -202,7 +202,15 @@ package_coverage <- function(path = ".",
   # add hooks to the package startup
   add_hooks(pkg$package, tmp_lib)
 
-  withr::with_envvar(c(R_LIBS_USER = env_path(tmp_lib, .libPaths())), {
+  libs <- env_path(tmp_lib, .libPaths())
+
+  withr::with_envvar(
+    c(R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
+      R_LIBS = libs,
+      R_LIBS_USER = libs,
+      R_LIBS_SITE = libs), {
+
+
     withCallingHandlers({
       if ("vignettes" %in% type) {
         type <- type[type != "vignettes"]
