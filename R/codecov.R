@@ -134,20 +134,13 @@ codecov <- function(...,
   # ---------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("CI_SERVER_NAME") == "GitLab CI") {
     # http://docs.gitlab.com/ce/ci/variables/README.html
-    slug <- Sys.getenv("CI_BUILD_REPO")
-    slug <- sub('\\.git$', '', slug)
-    slug <- strsplit(slug, '/', fixed = TRUE)[[1]][4:5]
-    slug <- paste0(slug, collapse = '/')
+    slug <- sub(".*/([^/]+/[^/]+)[.]git", "\\1", Sys.getenv("CI_BUILD_REPO"))
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
     codecov_query <- list(service = "gitlab",
                           branch = branch %||% Sys.getenv("CI_BUILD_REF_NAME"),
                           build = Sys.getenv("CI_BUILD_ID"),
                           slug = slug,
                           commit = commit %||% Sys.getenv("CI_BUILD_REF"))
-    if (! quiet) {
-      message('Using GitLab-CI code...')
-      print(str(codecov_query))
-    }
   # ---------
   # Local GIT
   # ---------
