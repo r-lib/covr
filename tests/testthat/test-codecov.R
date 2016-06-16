@@ -361,3 +361,29 @@ test_that("it works with Wercker", {
       )
     )
   })
+
+test_that("it works with GitLab", {
+  withr::with_envvar(c(
+      ci_vars,
+      "CI" = "true",
+      "CI_SERVER_NAME" = "GitLab CI",
+      "CI_BUILD_ID" = "5",
+      "CI_BUILD_REPO" = "https://gitlab.com/tester/test.git",
+      "CI_BUILD_REF_NAME" = "master",
+      "CI_BUILD_REF" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+      ),
+
+    with_mock(
+      `httr::POST` = function(...) list(...),
+      `httr::content` = identity,
+
+      res <- codecov(coverage = cov),
+
+      expect_match(res$query$service, "gitlab"),
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$build, "5"),
+      expect_match(res$query$slug, "tester/test"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+      )
+    )
+  })
