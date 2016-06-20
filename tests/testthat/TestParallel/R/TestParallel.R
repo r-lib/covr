@@ -1,14 +1,16 @@
 #' an example function
 #'
 #' @export
-test_me <- function(x, y){
-  if (TRUE)
-    x + y
-  else
-    x - y
+test1 <- function(x, y){
+  x + y
 }
 
 #' @export
-dont_test_me <- function(x, y){
+test2 <- function(x, y){
   x * y
+}
+
+#' @export
+test3 <- function(x, y){
+  x - y
 }
