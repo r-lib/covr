@@ -7,7 +7,8 @@
 package_coverage(path = ".", type = c("tests", "vignettes", "examples",
   "all", "none"), combine_types = TRUE, relative_path = TRUE,
   quiet = TRUE, clean = TRUE, line_exclusions = NULL,
-  function_exclusions = NULL, code = character(), ..., exclusions)
+  function_exclusions = NULL, code = character(),
+  fix_parallel_mcexit = FALSE, ..., exclusions)
 }
 \arguments{
 \item{path}{file path to the package}
@@ -34,6 +35,9 @@ each file.}
 names to exclude. Example \code{print\\.} to match print methods.}
 
 \item{code}{Additional test code to run.}
+
+\item{fix_parallel_mcexit}{fix parallel:::mcexit to make it compatible with
+covr}
 
 \item{...}{Additional arguments passed to \code{\link[tools]{testInstalledPackage}}}
 
