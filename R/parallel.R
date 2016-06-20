@@ -21,8 +21,6 @@ add_parallel_mcexit_fix_to_package_startup <- function(pkg_name, lib) {
 
 
 fix_mcexit <- function(lib) {
-  library(parallel)
-
   # try to detect if already fixed
   f <- parallel:::mcexit
   if (exists('original_mcexit', envir = environment(f))) return(invisible(FALSE))
