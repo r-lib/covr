@@ -20,9 +20,12 @@ add_parallel_mcexit_fix_to_package_startup <- function(pkg_name, lib) {
 }
 
 
+
 fix_mcexit <- function(lib) {
   # try to detect if already fixed
-  f <- parallel:::mcexit
+  get_from_ns <- `:::`
+
+  f <- get_from_ns('parallel', 'mcexit')
   if (exists('original_mcexit', envir = environment(f))) return(invisible(FALSE))
 
   ## available from the fixed_mcexit closure
@@ -31,11 +34,11 @@ fix_mcexit <- function(lib) {
   # make parallel:::mcexit compatible with covr
   fixed_mcexit <- function(...) {
     cat('saving trace in "', lib, '"\n')
-    covr:::save_trace(lib)
+    save_trace(lib)
     original_mcexit(...)
   }
 
-  covr:::replace_binding('parallel', 'mcexit', fixed_mcexit)
+  replace_binding('parallel', 'mcexit', fixed_mcexit)
 
   invisible(TRUE)
 }
