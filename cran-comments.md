@@ -1,16 +1,12 @@
 ## Resubmission
-This is a resubmission. In this version I have fixed the package URL to be in
-the canonical form.
 
 ## Test environments
-* local OS X install, R 3.2.4
-* ubuntu 12.04 (on travis-ci), R 3.2.4
+* OS X El Capitan, R 3.3.0
+* ubuntu 12.04 (on travis-ci), R 3.2.5, 3.3.0, R-devel
+* Windows Server 2012 R2 (x64), R 3.3.0
 * win-builder (devel and release)
 
 ## R CMD check results
-I believe this release should fix the ERRORs on Solaris, but I do not have a
-way to test that to be positive.
-
 There were no ERRORs or WARNINGs.
 
 There were the following NOTEs:
@@ -60,7 +56,7 @@ There were the following NOTEs:
 ## Reverse dependencies
 
 Covr is a development tool only so its code is not actually run when building
-any downstream dependencies. Nonetheless I have run R CMD check on the 21
+any downstream dependencies. Nonetheless I have run R CMD check on the 47
 downstream dependencies. There were no relevant Errors.
 
-  Summary at: https://github.com/jimhester/covr/blob/master/revdep/index.md
+  Summary at: https://github.com/jimhester/covr/tree/master/revdep
