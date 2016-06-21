@@ -107,9 +107,9 @@ file_coverage <- function(
 #' Calculate test coverage for a package
 #'
 #' @param path file path to the package
-#' @param type run the package \sQuote{test}, \sQuote{vignette},
-#' \sQuote{example}, \sQuote{all}, or \sQuote{none}. The default is
-#' \sQuote{test}.
+#' @param type run the package \sQuote{tests}, \sQuote{vignettes},
+#' \sQuote{examples}, \sQuote{all}, or \sQuote{none}. The default is
+#' \sQuote{tests}.
 #' @param combine_types If \code{TRUE} (the default) the coverage for all types
 #' is simply summed into one coverage object. If \code{FALSE} separate objects
 #' are used for each type of coverage.
