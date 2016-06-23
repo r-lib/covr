@@ -15,6 +15,7 @@ trace_environment <- function(env) {
   the$replacements <- compact(c(
       replacements_S4(env),
       replacements_RC(env),
+      replacements_R6(env),
       lapply(ls(env, all.names = TRUE), replacement, env = env)))
 
   lapply(the$replacements, replace)
@@ -202,7 +203,15 @@ package_coverage <- function(path = ".",
   # add hooks to the package startup
   add_hooks(pkg$package, tmp_lib)
 
-  withr::with_envvar(c(R_LIBS_USER = env_path(tmp_lib, .libPaths())), {
+  libs <- env_path(tmp_lib, .libPaths())
+
+  withr::with_envvar(
+    c(R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
+      R_LIBS = libs,
+      R_LIBS_USER = libs,
+      R_LIBS_SITE = libs), {
+
+
     withCallingHandlers({
       if ("vignettes" %in% type) {
         type <- type[type != "vignettes"]
@@ -303,6 +312,8 @@ run_vignettes <- function(pkg, lib) {
   res <- system(cmd)
   if (res != 0) {
     stop("Error running Vignettes:\n", paste(readLines(failfile), collapse = "\n"))
+  } else {
+    file.rename(failfile, outfile)
   }
 }
 
@@ -318,6 +329,8 @@ run_commands <- function(pkg, lib, commands) {
   res <- system(cmd)
   if (res != 0) {
     stop("Error running commands:\n", paste(readLines(failfile), collapse = "\n"))
+  } else {
+    file.rename(failfile, outfile)
   }
 }
 

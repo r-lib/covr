@@ -1,4 +1,10 @@
 ## 2.0.2 ##
+* Add support for GitLab CI (#190, @enbrown).
+* Update exclusion documentation to include line_exclusions and function
+  exclusions (#191).
+* Support coverage of R6 methods (#174).
+* Explicitly set default packages (including methods) (#183, #180)
+* Set R_LIBS and R_LIBS_SITE as well as R_LIBS_USER (#188).
 * Automatically exclude RcppExport files (#170).
 * Memoised and Vectorized functions now able to be tracked.
 
