@@ -20,27 +20,16 @@ add_parallel_mcexit_fix_to_package_startup <- function(pkg_name, lib) {
 }
 
 
-
+# patch parallel:::mcexit to force it to save the covr trace on exit
 fix_mcexit <- function(lib) {
-  # try to detect if already fixed
-  get_from_ns <- `:::`
+  get_from_ns <- `:::` # trick to fool R CMD check
+  mcexit <- get_from_ns('parallel', 'mcexit')
 
-  f <- get_from_ns('parallel', 'mcexit')
-  if (exists('original_mcexit', envir = environment(f))) return(invisible(FALSE))
+  # directly pach mcexit
+  body(mcexit) <- as.call(append(after = 1, as.list(body(mcexit)),
+      bquote(covr:::save_trace(.(lib)))))
 
-  ## available from the fixed_mcexit closure
-  original_mcexit <- f
-
-  # make parallel:::mcexit compatible with covr
-  fixed_mcexit <- function(...) {
-    cat('saving trace in "', lib, '"\n')
-    save_trace(lib)
-    original_mcexit(...)
-  }
-
-  replace_binding('parallel', 'mcexit', fixed_mcexit)
-
-  invisible(TRUE)
+  replace_binding('parallel', 'mcexit', mcexit)
 }
 
 
