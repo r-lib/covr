@@ -122,8 +122,6 @@ file_coverage <- function(
 #' @param function_exclusions a vector of regular expressions matching function
 #' names to exclude. Example \code{print\\.} to match print methods.
 #' @param code Additional test code to run.
-#' @param fix_parallel_mcexit	fix parallel:::mcexit to make it compatible with
-#' 	covr
 #' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}
 #' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
 #' @seealso exclusions
@@ -137,7 +135,6 @@ package_coverage <- function(path = ".",
                              line_exclusions = NULL,
                              function_exclusions = NULL,
                              code = character(),
-                             fix_parallel_mcexit = FALSE,
                              ...,
                              exclusions) {
 
@@ -203,7 +200,8 @@ package_coverage <- function(path = ".",
 
   # add hooks to the package startup
   add_hooks(pkg$package, tmp_lib)
-  if (fix_parallel_mcexit)
+
+  if (should_enable_parallel_mcexit_fix(pkg))
     add_parallel_mcexit_fix_to_package_startup(pkg$package, tmp_lib)
 
   libs <- env_path(tmp_lib, .libPaths())

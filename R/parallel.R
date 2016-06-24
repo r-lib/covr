@@ -33,4 +33,18 @@ fix_mcexit <- function(lib) {
 }
 
 
+uses_parallel <- function(pkg) {
+  any(grepl("\\bparallel\\b",
+      pkg[c("depends", "imports", "suggests", "enhances", "linkingto")]))
+}
 
+# consider in that order: the environment variable COVR.FIX_PARALLEL_MCEXIT,
+# the option covr.fix_parallel_mcexit, or auto-detection of the usage of
+# parallel by the package (cf uses_parallel()).
+should_enable_parallel_mcexit_fix <- function(pkg) {
+  var <- Sys.getenv('COVR.FIX_PARALLEL_MCEXIT')
+  if (nzchar(var))
+    isTRUE(as.logical(var))
+  else
+    isTRUE(getOption("covr.fix_parallel_mcexit", uses_parallel(pkg)))
+}
