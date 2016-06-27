@@ -20,7 +20,7 @@ to_cobertura <- function(cov, filename = 'cobertura.xml'){
   sources <- XML::newXMLNode(
       name = "sources", 
       parent = top)
-  sourceFiles <- unique(covr:::display_name(cov))
+  sourceFiles <- unique(covr::display_name(cov))
   for(f in sourceFiles){
     source <- XML::newXMLNode(
         name = "source", 
@@ -33,7 +33,7 @@ to_cobertura <- function(cov, filename = 'cobertura.xml'){
       name = "packages", 
       parent = top)
   
-  packageName <- sub(".*?/(.+?)/R/.+?\\.[Rr]", "\\1", get("filename", attr(cov[[1]]$srcref, 'srcfile')))
+  packageName <- attr(x, "package")$package
   if(length(packageName) > 1){
     stop("We have covr results for more than one package? We do not support that for now.")
   }
