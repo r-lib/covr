@@ -1,16 +1,15 @@
-FROM rocker/r-devel
+FROM rocker/hadleyverse
 MAINTAINER james.f.hester@gmail.com
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-	git \
-	libcurl4-openssl-dev \
-	nano \
-	sudo
+# install deps from current github master
+RUN Rscript -e 'devtools::install_github("jimhester/covr", dependencies = TRUE)'
 
-RUN Rscript -e 'install.packages(c("crayon", "devtools", "digest", "testthat", "rex", "roxygen2"))'
+# remove installed covr to be sure not to conflict with current source version
+RUN Rscript -e 'remove.packages("covr")'
 
-# karl: was needed to test a package of mine
-RUN Rscript -e 'install.packages(c("brew", "dplyr", "gdata", "plyr","reshape2","seqinr","stringr","logging", "pryr"))'
+# docker user setup
+RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo && \
+	chmod -R a+rwx /usr/local/lib/R/site-library
 
 USER docker
 WORKDIR /home/docker
