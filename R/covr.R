@@ -171,8 +171,6 @@ package_coverage <- function(path = ".",
     return(res)
   }
 
-  on.exit(clear_counters())
-
   tmp_lib <- temp_file("R_LIBS")
   dir.create(tmp_lib)
 

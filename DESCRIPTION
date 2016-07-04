@@ -20,7 +20,7 @@ Imports:
     rex,
     httr,
     crayon,
-    withr (>= 1.0.1.9000),
+    withr (>= 1.0.2),
     memoise
 Suggests:
     R6,
@@ -32,8 +32,6 @@ Suggests:
     testthat,
     rstudioapi (>= 0.2),
     devtools
-Remotes:
-  jimhester/withr
 License: MIT + file LICENSE
 LazyData: true
 VignetteBuilder: knitr

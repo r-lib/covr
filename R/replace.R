@@ -4,7 +4,7 @@ replacement <- function(name, env = as.environment(-1), target_value = get(name,
     if (is_vectorized(target_value)) {
       new_value <- target_value
       environment(new_value)$FUN <- trace_calls(environment(new_value)$FUN, name)
-    } else if (memoise::is.memoised(target_value)) {
+    } else if (is.function(target_value) && inherits(target_value, "memoised")) {
       new_value <- target_value
       environment(new_value)$`_f` <- trace_calls(environment(new_value)$`_f`, name)
     } else {
