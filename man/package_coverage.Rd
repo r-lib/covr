@@ -42,7 +42,7 @@ names to exclude. Example \code{print\\.} to match print methods.}
 \description{
 Supports parallelized code using \code{\link[parallel]{mcparallel}}
 by automatically applying a patch on mcparallel:::mcexit.
-This behaviour can be explictly set using the environment variable
+This behaviour can be explicitly set using the environment variable
 \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
 \code{Ccovr.fix_parallel_mcexit}.
 }
