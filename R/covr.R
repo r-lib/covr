@@ -110,7 +110,7 @@ file_coverage <- function(
 #' by automatically applying a patch on mcparallel:::mcexit.
 #' This behaviour can be explicitly set using the environment variable
 #' \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
-#' \code{Ccovr.fix_parallel_mcexit}.
+#' \code{covr.fix_parallel_mcexit}.
 #'
 #' @param path file path to the package
 #' @param type run the package \sQuote{tests}, \sQuote{vignettes},
