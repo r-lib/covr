@@ -1,4 +1,6 @@
 ## 2.1.0 ##
+* Add mcparallel support (#195, @kforner) by fixing mcparallel:::mcexit
+	automatically for packages using parallel.
 * Add support for GitLab CI (#190, @enbrown).
 * Update exclusion documentation to include line_exclusions and function
   exclusions (#191).

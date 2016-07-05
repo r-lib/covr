@@ -106,6 +106,12 @@ file_coverage <- function(
 
 #' Calculate test coverage for a package
 #'
+#' Supports parallelized code using \code{\link[parallel]{mcparallel}}
+#' by automatically applying a patch on mcparallel:::mcexit.
+#' This behaviour can be explicitly set using the environment variable
+#' \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
+#' \code{Ccovr.fix_parallel_mcexit}.
+#'
 #' @param path file path to the package
 #' @param type run the package \sQuote{tests}, \sQuote{vignettes},
 #' \sQuote{examples}, \sQuote{all}, or \sQuote{none}. The default is
@@ -199,7 +205,8 @@ package_coverage <- function(path = ".",
                             quiet = quiet))
 
   # add hooks to the package startup
-  add_hooks(pkg$package, tmp_lib)
+  add_hooks(pkg$package, tmp_lib,
+    fix_mcexit = should_enable_parallel_mcexit_fix(pkg))
 
   libs <- env_path(tmp_lib, .libPaths())
 
@@ -343,12 +350,18 @@ run_commands <- function(pkg, lib, commands) {
 # regardless of how the process terminates.
 # @param pkg_name name of the package to add hooks to
 # @param lib the library path to look in
-add_hooks <- function(pkg_name, lib) {
+# @param fix_mcexit whether to add the fix for mcparallel:::mcexit
+add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
   lines <- readLines(file.path(lib, pkg_name, "R", pkg_name))
   lines <- append(lines,
     c("setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
       paste0("reg.finalizer(ns, function(...) { covr:::save_trace(\"", lib, "\") }, onexit = TRUE)")),
     length(lines) - 1L)
+
+  if (fix_mcexit) {
+    lines <- append(lines, sprintf("covr:::fix_mcexit('%s')", lib))
+  }
+
   writeLines(text = lines, con = load_script)
 }
