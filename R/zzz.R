@@ -13,8 +13,8 @@
 
                  # LDFLAGS is ignored on windows and visa versa
                  LDFLAGS = if (!is_windows()) "-coverage" else NULL,
-                 SHLIB_LIBADD = if (is_windows()) "-coverage" else NULL
-  ))
+                 SHLIB_LIBADD = if (is_windows()) "-coverage" else NULL)
+  )
   toset <- !(names(op_covr) %in% names(op))
   if (any(toset)) options(op_covr[toset])
 
