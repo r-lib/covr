@@ -35,7 +35,7 @@ test_that("uses_parallel", {
 
 test_that("should_enable_parallel_mcexit_fix", {
   on.exit({
-      Sys.unsetenv('COVR.FIX_PARALLEL_MCEXIT')
+      Sys.unsetenv('COVR_FIX_PARALLEL_MCEXIT')
       options(covr.fix_parallel_mcexit = NULL)
     }, add = TRUE
   )
@@ -52,9 +52,9 @@ test_that("should_enable_parallel_mcexit_fix", {
 
   .test_config <- function(var, option, pkgname) {
     if (is.na(var))
-      Sys.unsetenv('COVR.FIX_PARALLEL_MCEXIT')
+      Sys.unsetenv('COVR_FIX_PARALLEL_MCEXIT')
     else
-      Sys.setenv(COVR.FIX_PARALLEL_MCEXIT = var)
+      Sys.setenv(COVR_FIX_PARALLEL_MCEXIT = var)
 
 
     if (is.na(option))
