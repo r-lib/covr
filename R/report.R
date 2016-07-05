@@ -99,7 +99,7 @@ report.coverage <- function(x,
   if (browse) {
     utils::browseURL(file)
   }
-  invisible()
+  invisible(file)
 }
 
 to_shiny_data <- function(x) {
