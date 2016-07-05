@@ -36,13 +36,7 @@ test_that("if complex", {
 })
 
 test_that("switch", {
-  f <<- function(x) {
-    switch(x,
-      a = 1,
-      b = 2,
-      c = d <- 1
-    )
-  }
+  f <- function(x) { switch(x, a = 1, b = 2, c = d <- 1) }
 
   expect_equal(length(zero_coverage(function_coverage(f, { f("a"); f("b") }))$line),
     1)
