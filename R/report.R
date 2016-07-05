@@ -220,10 +220,7 @@ renderPage <- function(ui, connection) {
   result <- htmltools::renderTags(ui)
 
   deps <- c(
-    list(
-      htmltools::htmlDependency("json2", "2014.02.04", system.file(package = "shiny", "www", "shared"), script = "json2-min.js"),
-      htmltools::htmlDependency("jquery", "1.11.0", system.file(package = "shiny", "www", "shared"), script = "jquery.min.js")#
-    ),
+    list(),
     result$dependencies
   )
   deps <- htmltools::resolveDependencies(deps)
