@@ -1,3 +1,7 @@
+## 2.1.0.9000 ##
+* Add mcparallel support by fixing `mcparallel:::mcexit()`
+  automatically for packages using parallel (#195, @kforner).
+
 ## 2.1.0 ##
 ## 2.0.2 ##
 * Add mcparallel support (#195, @kforner) by fixing mcparallel:::mcexit
@@ -16,7 +20,7 @@
 * Now tracks coverage for RC methods
 * Rewrote loading and saving to support parallel code and tests including
   `quit()` calls.
-* Made passing code to function_coverage() and package_coverage() _not_ use
+* Made passing code to `function_coverage()` and `package_coverage()` _not_ use
   non-standard evaluation.
 * `NULL` statements are analyzed for coverage (#156, @krlmlr).
 * Finer coverage analysis for brace-less `if`, `while` and `for` statements (#154, @krlmlr).
