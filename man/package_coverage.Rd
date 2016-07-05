@@ -12,9 +12,9 @@ package_coverage(path = ".", type = c("tests", "vignettes", "examples",
 \arguments{
 \item{path}{file path to the package}
 
-\item{type}{run the package \sQuote{test}, \sQuote{vignette},
-\sQuote{example}, \sQuote{all}, or \sQuote{none}. The default is
-\sQuote{test}.}
+\item{type}{run the package \sQuote{tests}, \sQuote{vignettes},
+\sQuote{examples}, \sQuote{all}, or \sQuote{none}. The default is
+\sQuote{tests}.}
 
 \item{combine_types}{If \code{TRUE} (the default) the coverage for all types
 is simply summed into one coverage object. If \code{FALSE} separate objects
