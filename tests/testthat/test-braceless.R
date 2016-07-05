@@ -36,7 +36,7 @@ test_that("if complex", {
 })
 
 test_that("switch", {
-  f <<- function(x) {
+  f <- function(x) {
     switch(x,
       a = 1,
       b = 2,

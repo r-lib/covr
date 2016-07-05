@@ -4,3 +4,6 @@
 inst/doc
 .Rproj.user
 covr.Rproj
+cache/
+data.Rmd
+vignettes/covr_performance.Rmd

@@ -17,3 +17,6 @@ _dev\.R$
 ^cran_comments\.md$
 ^revdep/
 ^cran-comments\.md$
+^cache$
+^data.Rmd$
+^covr_performance.Rmd$
