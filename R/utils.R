@@ -190,8 +190,10 @@ per_line <- function(coverage) {
   # byte start, line end, byte end
 
   ref_dat <- split(
-    ref_mx, matrix(filenames, nrow=9L, ncol=length(filenames), byrow=TRUE)
-  )
+    ref_mx, factor(
+      matrix(filenames, nrow=9L, ncol=length(filenames), byrow=TRUE),
+      levels=names(file_lengths)
+  ) )
   ref_dat_proc <- lapply(
     seq_along(ref_dat),
     function(i) {
