@@ -150,9 +150,10 @@ per_line <- function(coverage) {
       # if it is not a blank line
       if (!line %in% blank_lines[[filename]]) {
 
+        value <- df[i, "value"]
         # if current coverage is NA or last line < max last line
-        if (is.na(res[[filename]][line]) || line <= max_last) {
-          res[[filename]][line] <- df[i, "value"]
+        if (is.na(res[[filename]][line]) || line < max_last || (line == max_last && res[[filename]][line] > value)) {
+          res[[filename]][line] <- value
         }
 
         if (df[i, "filename"] != prev_filename) {
