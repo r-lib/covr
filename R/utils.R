@@ -119,7 +119,7 @@ traced_files <- function(x) {
   res
 }
 
-per_line <- function(coverage) {
+per_line_old <- function(coverage) {
 
   files <- traced_files(coverage)
 
@@ -157,6 +157,111 @@ per_line <- function(coverage) {
       structure(list(file = file, coverage = coverage), class = "line_coverage")
     },
     files, res),
+    class = "line_coverages")
+}
+# Alternative version that counts at a byte level instead of line level
+
+per_line <- function(coverage) {
+
+  files <- traced_files(coverage)
+
+  blank_lines <- lapply(files, function(file) {
+    which(rex::re_matches(file$file_lines, rex::rex(start, any_spaces, maybe("#", anything), end)))
+    })
+
+  file_lengths <- lapply(files, function(file) {
+    length(file$file_lines)
+  })
+
+  res <- lapply(file_lengths,
+    function(x) {
+      rep(NA_real_, length.out = x)
+    })
+
+  filenames <- display_name(coverage)
+  # Get all the reference data for each line, appending the coverage info
+
+  ref_mx  <- rbind(
+    vapply(coverage, "[[", numeric(8L), "srcref"),
+    vapply(coverage, "[[", numeric(1L), "value")
+  )
+  # Split by file, and compute byte coverage
+  # Here we assume that in srcref the first four columns are: line start,
+  # byte start, line end, byte end
+
+  ref_dat <- split(
+    ref_mx, matrix(filenames, nrow=9L, ncol=length(filenames), byrow=TRUE)
+  )
+  ref_dat_proc <- lapply(
+    seq_along(ref_dat),
+    function(i) {
+      r_d <- matrix(ref_dat[[i]], nrow=9L)
+      file_len <- file_lengths[[i]]
+
+      # Create a matrix that represents every byte in the file; need to know
+      # largest column.  mask_mx is used to track what bytes actually have
+      # data on any given line.  We waste some memory by allocating entire
+      # matrix, but gain some speed in computing what bytes we need to worry
+      # about
+
+      max_col <- max(r_d[4L, ])
+      single_line_exp <- which(r_d[1L, ] == r_d[3L, ])
+      res_mx <- matrix(-1, nrow=max_col, ncol=file_len)
+      mask_mx <- lines_mx <- matrix(0, nrow=max_col, ncol=file_len)
+      line_ranges <- Map(
+        seq.int, r_d[2L, single_line_exp], r_d[4L, single_line_exp]
+      )
+      line_start <- r_d[1L, single_line_exp]
+      bytes_w_dat <- unlist(
+        lapply(
+          seq_along(line_ranges),
+          function(i) (line_start[i]  - 1L) * max_col + line_ranges[[i]]
+      ) )
+      mask_mx[bytes_w_dat] <- 1
+
+      # Mark the bytes based on coverage; recall last number is the coverage
+      # value
+
+      for(j in seq.int(ncol(r_d))) {
+        dat <- r_d[, j]
+        line_1 <- dat[1L]
+        line_2 <- dat[3L]
+        col_1 <- dat[2L]
+        col_2 <- dat[4L]
+
+        cov_range <- seq(
+          (line_1 - 1L) * max_col + col_1, (line_2 - 1L) * max_col + col_2
+        )
+        res_mx[cov_range] <- pmax(res_mx[cov_range], dat[9L])
+      }
+      # which lines had zero coverage if we ignore the masks; need to track
+      # these so we can highlight multi-line expressions with zero coverage
+
+      lines_mx[res_mx == 0] <- 1
+      lines_zero <- !!colSums(lines_mx)
+
+      # compute final line coverage by finding the minimum values that did
+      # actually have line coverage info; notice how we only allow coverage
+      # values from single line expressions by using the mask
+
+      res_mx[!mask_mx] <- -1
+      res_mx_t <- t(res_mx)
+      res_mx_t[res_mx_t < 0] <- Inf
+      line_cov <- res_mx_t[cbind(seq.int(nrow(res_mx_t)), max.col(-res_mx_t))]
+      line_cov[!is.finite(line_cov)] <- NA
+
+      # For any lines that are NA but actually have zero line coverage, reset to
+      # zero
+
+      line_cov[is.na(line_cov) & lines_zero] <- 0
+      line_cov
+    }
+  )
+  structure(
+    Map(function(file, coverage) {
+      structure(list(file = file, coverage = coverage), class = "line_coverage")
+    },
+    files, ref_dat_proc),
     class = "line_coverages")
 }
 
