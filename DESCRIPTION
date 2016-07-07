@@ -22,8 +22,7 @@ Imports:
     httr,
     crayon,
     withr (>= 1.0.2),
-    memoise,
-    XML
+    memoise
 Suggests:
     R6,
     knitr,
@@ -33,7 +32,8 @@ Suggests:
     DT,
     testthat,
     rstudioapi (>= 0.2),
-    devtools
+    devtools,
+    xml2 (>= 1.0.0)
 License: MIT + file LICENSE
 LazyData: true
 VignetteBuilder: knitr

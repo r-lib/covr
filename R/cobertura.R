@@ -1,181 +1,89 @@
 #' Create a Cobertura XML file
+#'
+#' This functionality requires the xml2 package be installed.
 #' @param cov the coverage object returned from \code{\link{package_coverage}}
 #' @param filename the name of the Cobertura XML file
 #' @author Willem Ligtenberg
 #' @export
-to_cobertura <- function(cov, filename = 'cobertura.xml'){
-  xmlDocument = XML::newXMLDoc()
+to_cobertura <- function(cov, filename = "cobertura.xml"){
+
+  loadNamespace("xml2")
 
   df <- tally_coverage(cov, by = "line")
+  percent_overall <- percent_coverage(df, by = "line") / 100
+  percent_per_file <- tapply(df$value, df$filename, FUN = function(x) (sum(x > 0) / length(x)))
+  percent_per_function <- tapply(df$value, df$functions, FUN = function(x) (sum(x > 0) / length(x)))
 
-  top <- XML::newXMLNode(name = "coverage",
-      attrs = c(
-          "line-rate" = as.character(percent_coverage(df, by = "line")/100),
-          "branch-rate" = "0",
-          version = sessionInfo()$otherPkgs$covr$Version,
-          timestamp = as.character(Sys.time())),
-      parent = xmlDocument)
+  d <- xml2::xml_new_document()
+
+  top <- xml2::xml_add_child(d,
+    "coverage",
+    "line-rate" = as.character(percent_overall),
+    "branch-rate" = "0",
+    version = as.character(packageVersion("covr")),
+    timestamp = as.character(Sys.time()))
 
   # Add sources
-  sources <- XML::newXMLNode(
-      name = "sources",
-      parent = top)
-  sourceFiles <- unique(display_name(cov))
-  for(f in sourceFiles){
-    source <- XML::newXMLNode(
-        name = "source",
-        text = f,
-        parent = sources)
+  sources <- xml2::xml_add_child(top, "sources")
+  files <- unique(df$filename)
+  for (f in files){
+    xml2::xml_add_child(sources, "source", f)
   }
 
   # Add packages
-  packages <- XML::newXMLNode(
-      name = "packages",
-      parent = top)
+  packages <- xml2::xml_add_child(top, "packages")
+  package <- xml2::xml_add_child(packages, "package",
+    name = attr(cov, "package")$package,
+    "line-rate" = as.character(percent_overall),
+    "branch-rate" = "0",
+    complexity = "0")
 
-  packageName <- attr(cov, "package")$package
-  if(length(packageName) > 1){
-    stop("We have covr results for more than one package? We do not support that for now.")
-  }
-  package <- XML::newXMLNode(
-      name = "package",
-      attrs = c(
-          name = packageName,
-          "line-rate" = as.character(percent_coverage(df, by = "line")/100),
-          "branch-rate" = "0",
-          complexity = "0"),
-      parent = packages)
-
-  classes <- XML::newXMLNode(
-      name = "classes",
-      parent = package)
+  classes <- xml2::xml_add_child(package, "classes")
 
   # Add classes (for which we will use files for now)
-  for(f in sourceFiles){
-    cl <- XML::newXMLNode(
-        name = "class",
-        attrs = c(
-            name = basename(f),
-            filename = f,
-            "line-rate" = as.character(percent_coverage(df[df$filename == f, ], by = "line")/100),
-            "branch-rate" = "0",
-            complexity = "0"),
-        parent = classes)
+  for (f in files){
+    class <- xml2::xml_add_child(classes, "class",
+      name = basename(f),
+      filename = f,
+      "line-rate" = as.character(percent_per_file[f]),
+      "branch-rate" = "0",
+      complexity = "0")
+
     # Add methods
-    ms <- XML::newXMLNode(
-        name = "methods",
-        parent = cl)
-    for(fname in unique(df$functions)){
-      fun <- XML::newXMLNode(
-          name = "method",
-          attrs = c(
-              name = fname,
-              signature = "NA",
-              "line-rate" = as.character(percent_coverage(df[df$functions == fname, ], by = "line")/100),
-              "branch-rate" = "0"),
-          parent = ms)
+    methods <- xml2::xml_add_child(class, "methods")
+
+    for (fun_name in unique(df[df$filename == f, "functions"])) {
+      fun <- xml2::xml_add_child(methods, "method",
+        name = fun_name,
+        signature = "NA",
+        "line-rate" = as.character(percent_per_function[fun_name]),
+        "branch-rate" = "0")
+
       # Add lines
-      ls <- XML::newXMLNode(
-          name = "lines",
-          parent = fun)
-      for(i in seq_len(nrow(df[df$functions == fname, ]))){
-        line <- df[df$functions == fname, ][i, ]
-        l <- XML::newXMLNode(
-            name = "line",
-            attrs = c(
-                number = as.character(line$line),
-                hits = as.character(line$value),
-                branch = "false"),
-            parent = ls)
+      lines <- xml2::xml_add_child(fun, "lines")
+      fun_lines <- which(df$functions == fun_name)
+      for (i in fun_lines){
+        line <- df[i, ]
+        xml2::xml_add_child(lines, "line",
+          number = as.character(line$line),
+          hits = as.character(line$value),
+          branch = "false")
       }
     }
-    # Add lines
-    ls2 <- XML::newXMLNode(
-        name = "lines",
-        parent = cl)
-    for(i in seq_len(nrow(df))){
+
+    # Add lines for "class"
+    class_lines <- xml2::xml_add_child(class, "lines")
+    file_lines <- which(df$filename == f)
+    for (i in file_lines) {
       line <- df[i, ]
-      l <- XML::newXMLNode(
-          name = "line",
-          attrs = c(
-              number = as.character(line$line),
-              hits = as.character(line$value),
-              branch = "false"),
-          parent = ls2)
+      xml2::xml_add_child(class_lines, "line",
+        number = as.character(line$line),
+        hits = as.character(line$value),
+        branch = "false")
     }
   }
 
+  xml2::write_xml(d, file = filename)
 
-  # This workaround was suggested by Duncan:
-  # http://r.789695.n4.nabble.com/saveXML-prefix-argument-td4678407.html
-
-  cat(XML::saveXML(xmlDocument, encoding = "UTF-8", indent = TRUE, prefix = cobertura_dtd()), "\n", sep = "",
-      file = filename)
-}
-
-
-#' Generate cobertura DTD
-#' @return String that contains the cobertura DTD
-#' @author Willem Ligtenberg
-cobertura_dtd <- function(){
-  return('<?xml version="1.0" encoding="UTF-8" ?>
-
-          <!-- Internal DTD -->
-          <!DOCTYPE coverage [
-          <!-- Portions (C) International Organization for Standardization 1986:
-          Permission to copy in any form is granted for use with
-          conforming SGML systems and applications as defined in
-          ISO 8879, provided this notice is included in all copies.
-          -->
-
-          <!ELEMENT coverage (sources?,packages)>
-          <!ATTLIST coverage line-rate   CDATA #REQUIRED>
-          <!ATTLIST coverage branch-rate CDATA #REQUIRED>
-          <!ATTLIST coverage version     CDATA #REQUIRED>
-          <!ATTLIST coverage timestamp   CDATA #REQUIRED>
-
-          <!ELEMENT sources (source*)>
-
-          <!ELEMENT source (#PCDATA)>
-
-          <!ELEMENT packages (package*)>
-
-          <!ELEMENT package (classes)>
-          <!ATTLIST package name        CDATA #REQUIRED>
-          <!ATTLIST package line-rate   CDATA #REQUIRED>
-          <!ATTLIST package branch-rate CDATA #REQUIRED>
-          <!ATTLIST package complexity  CDATA #REQUIRED>
-
-          <!ELEMENT classes (class*)>
-
-          <!ELEMENT class (methods,lines)>
-          <!ATTLIST class name        CDATA #REQUIRED>
-          <!ATTLIST class filename    CDATA #REQUIRED>
-          <!ATTLIST class line-rate   CDATA #REQUIRED>
-          <!ATTLIST class branch-rate CDATA #REQUIRED>
-          <!ATTLIST class complexity  CDATA #REQUIRED>
-
-          <!ELEMENT methods (method*)>
-
-          <!ELEMENT method (lines)>
-          <!ATTLIST method name        CDATA #REQUIRED>
-          <!ATTLIST method signature   CDATA #REQUIRED>
-          <!ATTLIST method line-rate   CDATA #REQUIRED>
-          <!ATTLIST method branch-rate CDATA #REQUIRED>
-
-          <!ELEMENT lines (line*)>
-
-          <!ELEMENT line (conditions*)>
-          <!ATTLIST line number CDATA #REQUIRED>
-          <!ATTLIST line hits   CDATA #REQUIRED>
-          <!ATTLIST line branch CDATA "false">
-          <!ATTLIST line condition-coverage CDATA "100%">
-
-          <!ELEMENT conditions (condition*)>
-
-          <!ELEMENT condition EMPTY>
-          <!ATTLIST condition number CDATA #REQUIRED>
-          <!ATTLIST condition type CDATA #REQUIRED>
-          <!ATTLIST condition coverage CDATA #REQUIRED>
-          ]>')
+  invisible(d)
 }

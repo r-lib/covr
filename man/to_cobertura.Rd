@@ -12,7 +12,7 @@ to_cobertura(cov, filename = "cobertura.xml")
 \item{filename}{the name of the Cobertura XML file}
 }
 \description{
-Create a Cobertura XML file
+This functionality requires the xml2 package be installed.
 }
 \author{
 Willem Ligtenberg
