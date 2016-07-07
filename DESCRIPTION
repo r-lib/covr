@@ -1,7 +1,8 @@
 Package: covr
 Title: Test Coverage for Packages
 Version: 2.1.0.9000
-Authors@R: person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre"))
+Authors@R: c(person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre")),
+    person("Willem", "Ligtenberg", email = "willem.ligtenberg@openanalytics.eu", role = "ctb"))
 Description: Track and report code coverage for your package and (optionally)
     upload the results to a coverage service like Codecov (http://codecov.io) or
     Coveralls (http://coveralls.io). Code coverage is a measure of the amount of
@@ -21,7 +22,8 @@ Imports:
     httr,
     crayon,
     withr (>= 1.0.2),
-    memoise
+    memoise,
+    XML
 Suggests:
     R6,
     knitr,
