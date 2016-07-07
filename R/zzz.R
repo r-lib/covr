@@ -8,6 +8,8 @@
     covr.exclude_end = rex::rex("#", any_spaces, "nocov", any_spaces, "end"),
     covr.flags = c(CFLAGS = "-O0 -coverage",
                  CXXFLAGS = "-O0 -coverage",
+                 CXX1XFLAGS = "-O0 -coverage",
+
                  FFLAGS = "-O0 -coverage",
                  FCFLAGS = "-O0 -coverage",
 
