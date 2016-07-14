@@ -120,6 +120,7 @@ traced_files <- function(x) {
 }
 
 per_line <- function(coverage) {
+  df <- as.data.frame(coverage)
 
   files <- traced_files(coverage)
 
@@ -136,18 +137,31 @@ per_line <- function(coverage) {
       rep(NA_real_, length.out = x)
     })
 
-  filenames <- display_name(coverage)
-  for (i in seq_along(coverage)) {
-    x <- coverage[[i]]
-    filename <- filenames[[i]]
-    value <- x$value
-    for (line in seq(x$srcref[1], x$srcref[3])) {
+  # df is sorted by file and first line ascending, so we store the maximum
+  # last_line seen to detect if the previous expression contains the current
+  # expression.
+  max_last <- 0
+  prev_filename <- ""
+
+  for (i in seq_len(NROW(df))) {
+    filename <- df[i, "filename"]
+    for (line in seq(df[i, "first_line"], df[i, "last_line"])) {
+
       # if it is not a blank line
       if (!line %in% blank_lines[[filename]]) {
 
-      # if current coverage is na or coverage is less than current coverage
-        if (is.na(res[[filename]][line]) || value < res[[filename]][line]) {
+        value <- df[i, "value"]
+        # if current coverage is NA or last line < max last line
+        if (is.na(res[[filename]][line]) || line < max_last || (line == max_last && res[[filename]][line] > value)) {
           res[[filename]][line] <- value
+        }
+
+        if (df[i, "filename"] != prev_filename) {
+          prev_filename <- df[i, "filename"]
+          max_last <- 0
+        }
+        if (df[i, "last_line"] > max_last) {
+          max_last <- df[i, "last_line"]
         }
       }
     }
