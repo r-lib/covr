@@ -1,0 +1,5 @@
+fun1()
+fun2()
+fun3()
+fun4(1)
+fun4(1L)
