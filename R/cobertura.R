@@ -20,7 +20,7 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
     "coverage",
     "line-rate" = as.character(percent_overall),
     "branch-rate" = "0",
-    version = as.character(packageVersion("covr")),
+    version = as.character(utils::packageVersion("covr")),
     timestamp = as.character(Sys.time()))
 
   # Add sources
