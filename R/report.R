@@ -2,7 +2,7 @@
 #'
 #' @param x a coverage dataset
 #' @param file The report filename.
-#' @param browse whether to open a browser to veiew the report.
+#' @param browse whether to open a browser to view the report.
 #' @param ... Additional arguments passed to methods
 #' @aliases shine
 #' @examples
