@@ -87,6 +87,7 @@ report.coverage <- function(x,
   id = $(this).text();
   files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');
   $('ul.nav a[data-value=Source]').text(id);
+  $('ul.nav a[data-value=Source]').tab('show');
 });"))),
             shiny::tabPanel("Source", addHighlight(renderSourceTable(data$full)))
             )
