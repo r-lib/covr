@@ -98,6 +98,10 @@ table.table-condensed {
   width: 50px;
   height: 20px;
   text-align: center;
+}
+
+a.clicked {
+  color: #609
 }</style>
   <div class="col-sm-8 col-sm-offset-2">
     <div class="tabbable tabs-above">
@@ -112,7 +116,7 @@ table.table-condensed {
       <div class="tab-content">
         <div class="tab-pane active" data-value="Files" id="tab-9233-1">
           <div id="htmlwidget-9148" style="width:100%;height:auto;" class="datatables html-widget"></div>
-          <script type="application/json" data-for="htmlwidget-9148">{"x":{"data":[["<div class=\"coverage-box coverage-high\">100.00\u003c/div>"],["<a href=\"#\">R/TestS4.R\u003c/a>"],[38],[6],[6],[0],["2"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Coverage\u003c/th>\n      <th>File\u003c/th>\n      <th>Lines\u003c/th>\n      <th>Relevant\u003c/th>\n      <th>Covered\u003c/th>\n      <th>Missed\u003c/th>\n      <th>Hits / Line\u003c/th>\n    \u003c/tr>\n  \u003c/thead>\n\u003c/table>","options":{"searching":false,"dom":"t","paging":false,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5]}],"order":[],"autoWidth":false,"orderClasses":false},"callback":"function(table) {\ntable.on('click.dt', 'a', function() {\n  files = $('div#files div');\n  files.not('div.hidden').addClass('hidden');\n  id = $(this).text();\n  files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');\n  $('ul.nav a[data-value=Source]').tab('show');\n});\n}","filter":"none","selection":"multiple"},"evals":["callback"],"jsHooks":[]}</script>
+          <script type="application/json" data-for="htmlwidget-9148">{"x":{"data":[["<div class=\"coverage-box coverage-high\">100.00\u003c/div>"],["<a href=\"#\">R/TestS4.R\u003c/a>"],[38],[6],[6],[0],["2"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Coverage\u003c/th>\n      <th>File\u003c/th>\n      <th>Lines\u003c/th>\n      <th>Relevant\u003c/th>\n      <th>Covered\u003c/th>\n      <th>Missed\u003c/th>\n      <th>Hits / Line\u003c/th>\n    \u003c/tr>\n  \u003c/thead>\n\u003c/table>","options":{"searching":false,"dom":"t","paging":false,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5]}],"order":[],"autoWidth":false,"orderClasses":false},"callback":"function(table) {\ntable.on('click.dt', 'a', function() {\n  files = $('div#files div');\n  files.not('div.hidden').addClass('hidden');\n  id = $(this).text();\n  $(this).addClass('clicked');\n  files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');\n  $('ul.nav a[data-value=Source]').html(id);\n  $('ul.nav a[data-value=Source]').tab('show');\n});\n}","filter":"none","selection":"multiple"},"evals":["callback"],"jsHooks":[]}</script>
         </div>
         <div class="tab-pane" data-value="Source" id="tab-9233-2">
           <div id="files">
