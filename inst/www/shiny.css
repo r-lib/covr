@@ -78,3 +78,7 @@ table.table-condensed {
   height: 20px;
   text-align: center;
 }
+
+a.clicked {
+  color: #609
+}
