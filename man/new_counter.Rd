@@ -14,4 +14,5 @@ new_counter(src_ref, parent_functions)
 \description{
 initialize a new counter
 }
+\keyword{internal}
 

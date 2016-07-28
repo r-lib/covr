@@ -10,6 +10,7 @@
 #' @param ... additional arguments passed to \code{\link[base]{system}}
 #' @return \code{TRUE} if the command succeeds, an error will be thrown if the
 #' command fails.
+#' @keywords internal
 system_check <- function(cmd, args = character(), env = character(),
                          quiet = FALSE, echo = FALSE, ...) {
   full <- paste(c(shQuote(cmd), lapply(args, shQuote)), collapse = " ")
@@ -36,6 +37,7 @@ system_check <- function(cmd, args = character(), env = character(),
 #' @inheritParams system_check
 #' @return command output if the command succeeds, an error will be thrown if
 #' the command fails.
+#' @keywords internal
 system_output <- function(cmd, args = character(), env = character(),
                           quiet = FALSE, echo = FALSE, ...) {
   full <- paste(c(shQuote(cmd), lapply(args, shQuote)), collapse = " ")

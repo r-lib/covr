@@ -12,4 +12,5 @@ key(x)
 \description{
 Generate a key for a  call
 }
+\keyword{internal}
 

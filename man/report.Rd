@@ -18,7 +18,7 @@ report(x, ...)
 
 \item{file}{The report filename.}
 
-\item{browse}{whether to open a browser to veiew the report.}
+\item{browse}{whether to open a browser to view the report.}
 }
 \description{
 Display covr results using a standalone report

@@ -12,4 +12,5 @@ count(key)
 \description{
 increment a given counter
 }
+\keyword{internal}
 
