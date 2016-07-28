@@ -14,6 +14,7 @@
 report <- function(x, ...) UseMethod("report")
 
 #' @export
+#' @rdname report
 shine <- report
 
 #' @export

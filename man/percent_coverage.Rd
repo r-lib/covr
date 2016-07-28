@@ -11,7 +11,10 @@ percent_coverage(x, ...)
 
 \item{...}{additional arguments passed to \code{\link{tally_coverage}}}
 }
+\value{
+The total percentage as a \code{numeric(1)}.
+}
 \description{
-Print the total percent coverage
+Calculate the total percent coverage from a coverage result object.
 }
 

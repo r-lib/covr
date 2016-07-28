@@ -8,6 +8,8 @@
 \usage{
 report(x, ...)
 
+shine(x, ...)
+
 \method{report}{coverage}(x, file = file.path(tempdir(),
   paste0(get_package_name(x), "-report.html")), browse = interactive(), ...)
 }

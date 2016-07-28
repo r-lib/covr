@@ -12,12 +12,15 @@ zero_coverage(x, ...)
 \item{...}{additional arguments passed to
 \code{\link{tally_coverage}}}
 }
+\value{
+A \code{data.frame} with coverage data where the coverage is 0.
+}
 \description{
 When examining the test coverage of a package, it is useful to know if there are
 any locations where there is \bold{0} test coverage.
 }
 \details{
-if used within Rstudio this function outputs the results using the
+if used within RStudio this function outputs the results using the
 Marker API.
 }
 

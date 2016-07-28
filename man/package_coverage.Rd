@@ -23,9 +23,11 @@ are used for each type of coverage.}
 \item{relative_path}{whether to output the paths as relative or absolute
 paths.}
 
-\item{quiet}{whether to load and compile the package quietly}
+\item{quiet}{whether to load and compile the package quietly, useful for
+debugging errors.}
 
-\item{clean}{whether to clean temporary output files after running.}
+\item{clean}{whether to clean temporary output files after running, mainly
+useful for debugging errors.}
 
 \item{line_exclusions}{a named list of files with the lines to exclude from
 each file.}
@@ -33,7 +35,7 @@ each file.}
 \item{function_exclusions}{a vector of regular expressions matching function
 names to exclude. Example \code{print\\.} to match print methods.}
 
-\item{code}{Additional test code to run.}
+\item{code}{A character vector of additional test code to run.}
 
 \item{...}{Additional arguments passed to \code{\link[tools]{testInstalledPackage}}}
 
@@ -47,6 +49,6 @@ This behaviour can be explicitly set using the environment variable
 \code{covr.fix_parallel_mcexit}.
 }
 \seealso{
-exclusions
+\code{\link{exclusions}}
 }
 

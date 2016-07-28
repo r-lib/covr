@@ -16,6 +16,9 @@
 
 \item{...}{additional arguments ignored}
 }
+\value{
+The coverage object (invisibly).
+}
 \description{
 Print a coverage object
 }

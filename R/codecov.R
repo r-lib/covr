@@ -5,12 +5,14 @@
 #' @param ... arguments passed to \code{\link{package_coverage}}
 #' @param base_url Codecov url (change for Enterprise)
 #' @param quiet if \code{FALSE}, print the coverage before submission.
-#' @param token a codecov upload token, if \code{NULL} and the environment
+#' @param token a codecov upload token, if \code{NULL} the environment
 #' variable \sQuote{CODECOV_TOKEN} is used.
-#' @param commit explicitly set the commit this corresponds to, this is looked
-#' up from the service or locally if it is \code{NULL}.
-#' @param branch explicitly set the branch this corresponds to, this is looked
-#' up from the service or locally if it is \code{NULL}.
+#' @param commit explicitly set the commit this coverage result object
+#' corresponds to. Is looked up from the service or locally if it is
+#' \code{NULL}.
+#' @param branch explicitly set the branch this coverage result object
+#' corresponds to, this is looked up from the service or locally if it is
+#' \code{NULL}.
 #' @export
 #' @examples
 #' \dontrun{

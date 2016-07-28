@@ -11,6 +11,9 @@ tally_coverage(x, by = c("line", "expression"))
 
 \item{by}{whether to tally coverage by line or expression}
 }
+\value{
+a \code{data.frame} of coverage tallied by line or expression.
+}
 \description{
 Tally coverage by line or expression
 }

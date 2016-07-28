@@ -30,7 +30,7 @@ save_trace <- function(directory) {
   saveRDS(.counters, file = tmp_file)
 }
 
-#' Calculate test coverage for specific function.
+#' Calculate test coverage for a specific function.
 #'
 #' @param fun name of the function.
 #' @param env environment the function is defined in.
@@ -65,9 +65,9 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
 
 #' Calculate test coverage for sets of files
 #'
-#' The files in \code{source_files} are first sourced in to a new environment
+#' The files in \code{source_files} are first sourced into a new environment
 #' to define functions to be checked. Then they are instrumented to track
-#' coverage and the files in the \code{test_files} are sourced.
+#' coverage and the files in \code{test_files} are sourced.
 #' @param source_files Character vector of source files with function
 #'   definitions to measure coverage
 #' @param test_files Character vector of test files with code to test the
@@ -121,16 +121,18 @@ file_coverage <- function(
 #' are used for each type of coverage.
 #' @param relative_path whether to output the paths as relative or absolute
 #' paths.
-#' @param quiet whether to load and compile the package quietly
-#' @param clean whether to clean temporary output files after running.
+#' @param quiet whether to load and compile the package quietly, useful for
+#' debugging errors.
+#' @param clean whether to clean temporary output files after running, mainly
+#' useful for debugging errors.
 #' @param line_exclusions a named list of files with the lines to exclude from
 #' each file.
 #' @param function_exclusions a vector of regular expressions matching function
 #' names to exclude. Example \code{print\\.} to match print methods.
-#' @param code Additional test code to run.
+#' @param code A character vector of additional test code to run.
 #' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}
 #' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
-#' @seealso exclusions
+#' @seealso \code{\link{exclusions}}
 #' @export
 package_coverage <- function(path = ".",
                              type = c("tests", "vignettes", "examples", "all", "none"),

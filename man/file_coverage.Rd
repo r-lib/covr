@@ -23,8 +23,8 @@ names to exclude. Example \code{print\\.} to match print methods.}
 \item{parent_env}{The parent environment to use when sourcing the files.}
 }
 \description{
-The files in \code{source_files} are first sourced in to a new environment
+The files in \code{source_files} are first sourced into a new environment
 to define functions to be checked. Then they are instrumented to track
-coverage and the files in the \code{test_files} are sourced.
+coverage and the files in \code{test_files} are sourced.
 }
 
