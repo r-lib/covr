@@ -43,12 +43,12 @@ package without having to resort to alternate parsing or changes to the R
 source.
 
 # Modifying the call tree ##
-The core function in covr is
+The core function in covr is `trace_calls()`, located in
 [R/trace_calls.R](https://github.com/jimhester/covr/blob/59e17a5317a0fd69a6701e19317f20e27b6c44f5/R/trace_calls.R#L9-L72).
-This function was adapted from
-[pryr::modify_lang](https://github.com/hadley/pryr/blob/2ba41e433a59025267570247b933112009691c7a/R/modify-lang.r#L21-L49).
+This function was adapted from ideas in [Advanced R - Walking the AST with
+recursive functions](http://adv-r.had.co.nz/Expressions.html#ast-funs).
 This recursive function modifies each of the leaves (atomic or name objects) of
-a R expression by applying a given function to them. For non-leaves we simply
+an R expression by applying a given function to them. For non-leaves we simply
 call `modify_lang` recursively in various ways. The logic behind `modify_lang` and
 similar functions to parse and modify R's AST is explained in more detail at
 [Walking the AST with recursive
@@ -96,7 +96,7 @@ function.
 identical({ 1 + 2; 3 + 4 }, `{`(1 + 2, 3 + 4))
 ```
 Remembering that braces always return the value of the last evaluated
-expression we can call a counting function followed by the previous function
+expression, we can call a counting function followed by the previous function
 substituting `as.call(recurse(x))` in our function above with.
 ```{r, eval = FALSE}
 `{`(count(), as.call(recurse(x)))
@@ -132,7 +132,7 @@ To work around this, detailed parse data (obtained from a refined version of
 level for `if`, `for` and `while` constructs.
 
 # Replacing #
-After we have our modified function definition how do we re-define the function
+After we have our modified function definition, how do we re-define the function
 to use the updated definition, and ensure that all other functions which call
 the old function also use the new definition? You might try redefining the function directly.
 
@@ -144,7 +144,7 @@ f1() == 2
 ```
 
 While this does work for the simple case of calling the new function in the
-same environment, it fails if the another function calls a function in a
+same environment, it fails if another function calls a function in a
 different environment.
 ```{r}
 env <- new.env()
@@ -209,17 +209,17 @@ from [clang](http://clang.llvm.org/) versions 3.5 and greater.
 Both of these compilers track execution coverage when given the `--coverage`
 flag. In addition it is necessary to turn off compiler optimization `-O0`,
 otherwise the coverage output is difficult or impossible to interpret as
-multiple lines can be optimized into one, functions can be inlined etc.
+multiple lines can be optimized into one, functions can be inlined, etc.
 
 ## Makevars ##
 R passes flags defined in `PKG_CFLAGS` to the compiler, however it also has
-default flags including `-02` (defined in `$R_HOME/etc/Makeconf`) which need to
+default flags including `-02` (defined in `$R_HOME/etc/Makeconf`), which need to
 be overridden. Unfortunately it is not possible to override the default flags
 with environment variables (as the new flags are added to the left of the
 defaults rather than the right). However if Make variables are defined in
 `~/.R/Makevars` they _are_ used in place of the defaults.
 
-Therefore we need to temporarily add `-O0 --coverage` to
+Therefore, we need to temporarily add `-O0 --coverage` to
 the Makevars file, then restore the previous state after the coverage is run.
 The implementation of this is in
 [R/makevars.R](https://github.com/jimhester/covr/blob/9753e0e257b053059b85be90ef6eb614a5af9bba/R/makevars.R).
@@ -243,8 +243,8 @@ therefore also works with parallel code.
 
 # Output Formats #
 The output format returned by covr is a very simple one. It consists of a
-named character vector, where the names are colon delimited information from
-the source references. Namely the file, line and columns the traced call is
+named character vector, where the names are colon-delimited information from
+the source references. Namely, the file, line and columns the traced call is
 from. The value is simply the number of times that given call was called and
 the source ref of the original call. There is also an `as.data.frame` method to
 make subsetting by various features easy to do
@@ -260,6 +260,6 @@ over time, and ensure that all your new code is fully covered.
 They both have simple JSON based APIs to submit and report on coverage.
 
 # Conclusion #
-Covr aims to be a simple easy to understand implementation, hopefully this
+Covr aims to be a simple and easy to understand implementation, hopefully this
 vignette helps to explain the rationale behind the package and explain how and
 why it works.
