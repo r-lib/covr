@@ -173,7 +173,7 @@ to each call.
 
 The vignette
 [vignettes/how_it_works.Rmd](https://github.com/jimhester/covr/blob/master/vignettes/how_it_works.Rmd)
-contains a detailed explanation of the technique and the rational behind it.
+contains a detailed explanation of the technique and the rationale behind it.
 
 You can view the vignette from within `R` using
 
