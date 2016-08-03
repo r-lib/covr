@@ -106,11 +106,17 @@ file_coverage <- function(
 
 #' Calculate test coverage for a package
 #'
+#' This function calculates the test coverage for a development package on the
+#' \code{path}. By default it runs only the package tests, but it can also run
+#' vignette and example code.
+#'
+#' #ifdef unix
 #' Supports parallelized code using \code{\link{mcparallel}}
 #' by automatically applying a patch on mcparallel:::mcexit.
 #' This behaviour can be explicitly set using the environment variable
 #' \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
 #' \code{covr.fix_parallel_mcexit}.
+#' #endif
 #'
 #' @param path file path to the package
 #' @param type run the package \sQuote{tests}, \sQuote{vignettes},
@@ -132,7 +138,8 @@ file_coverage <- function(
 #' @param code A character vector of additional test code to run.
 #' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}
 #' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
-#' @seealso \code{\link{exclusions}}
+#' @seealso \code{\link{exclusions}} For details on excluding parts of the
+#' package from the coverage calculations.
 #' @export
 package_coverage <- function(path = ".",
                              type = c("tests", "vignettes", "examples", "all", "none"),

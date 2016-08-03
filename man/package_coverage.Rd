@@ -42,13 +42,21 @@ names to exclude. Example \code{print\\.} to match print methods.}
 \item{exclusions}{\sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.}
 }
 \description{
+This function calculates the test coverage for a development package on the
+\code{path}. By default it runs only the package tests, but it can also run
+vignette and example code.
+}
+\details{
+#ifdef unix
 Supports parallelized code using \code{\link{mcparallel}}
 by automatically applying a patch on mcparallel:::mcexit.
 This behaviour can be explicitly set using the environment variable
 \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
 \code{covr.fix_parallel_mcexit}.
+#endif
 }
 \seealso{
-\code{\link{exclusions}}
+\code{\link{exclusions}} For details on excluding parts of the
+package from the coverage calculations.
 }
 
