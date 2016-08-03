@@ -106,7 +106,7 @@ file_coverage <- function(
 
 #' Calculate test coverage for a package
 #'
-#' Supports parallelized code using \code{\link[parallel]{mcparallel}}
+#' Supports parallelized code using \code{\link{mcparallel}}
 #' by automatically applying a patch on mcparallel:::mcexit.
 #' This behaviour can be explicitly set using the environment variable
 #' \code{COVR_FIX_PARALLEL_MCEXIT} or the global option

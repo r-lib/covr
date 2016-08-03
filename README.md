@@ -9,7 +9,7 @@ Track test coverage for your R package and (optionally) upload the results to
 
 # Installation #
 ## Codecov ##
-If you are already using [Travis-CI](https://travis-ci.org) or [Appveyor CI](http://www.appveyor.com) add the
+If you are already using [Travis-CI](https://travis-ci.org) or [Appveyor CI](http://ci.appveyor.com) add the
 following to your project's `.travis.yml` to track your coverage results
 over time with [Codecov](https://codecov.io).
 
@@ -32,7 +32,6 @@ without needing `CODECOV_TOKEN`).
 - [Codeship](https://www.codeship.io/)
 - [Circleci\*](https://circleci.com)
 - [Semaphore](https://semaphoreapp.com)
-- [drone.io](https://www.drone.io)
 - [AppVeyor\*](http://ci.appveyor.com)
 - [Wercker](http://wercker.com)
 - [GitLab-CI](https://about.gitlab.com/gitlab-ci/)

@@ -16,7 +16,7 @@ fix_mcexit <- function(lib) {
 
   # directly pach mcexit
   body(mcexit) <- as.call(append(after = 1, as.list(body(mcexit)),
-      bquote(covr:::save_trace(.(lib)))))
+      as.call(list(call(":::", as.symbol("covr"), as.symbol("save_trace")), lib))))
 
   replace_binding('parallel', 'mcexit', mcexit)
 }
