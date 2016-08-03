@@ -47,12 +47,17 @@ This function calculates the test coverage for a development package on the
 vignette and example code.
 }
 \details{
+This function uses \code{\link[tools]{testInstalledPackage}} to run the
+code, if you would like to test your package in another way you can set
+\code{type = "none"} and pass the code to run as a character vector to the
+\code{code} parameter.
+
 #ifdef unix
-Supports parallelized code using \code{\link{mcparallel}}
-by automatically applying a patch on mcparallel:::mcexit.
-This behaviour can be explicitly set using the environment variable
-\code{COVR_FIX_PARALLEL_MCEXIT} or the global option
-\code{covr.fix_parallel_mcexit}.
+Parallelized code using \code{\link{mcparallel}}
+needs to be use a patched \code{mcparallel:::mcexit}. This is done
+automatically if the package depends on parallel, but can also be explicitly
+set using the environment variable \code{COVR_FIX_PARALLEL_MCEXIT} or the
+global option \code{covr.fix_parallel_mcexit}.
 #endif
 }
 \seealso{
