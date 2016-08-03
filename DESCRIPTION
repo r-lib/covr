@@ -4,12 +4,12 @@ Version: 2.1.0.9000
 Authors@R: c(person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre")),
     person("Willem", "Ligtenberg", email = "willem.ligtenberg@openanalytics.eu", role = "ctb"))
 Description: Track and report code coverage for your package and (optionally)
-    upload the results to a coverage service like Codecov (http://codecov.io) or
-    Coveralls (http://coveralls.io). Code coverage is a measure of the amount of
+    upload the results to a coverage service like 'Codecov' (http://codecov.io) or
+    'Coveralls' (http://coveralls.io). Code coverage is a measure of the amount of
     code being exercised by a set of tests. It is an indirect measure of test
     quality and completeness. This package is compatible with any testing
     methodology or framework and tracks coverage of both R code and compiled
-    C/C++/Fortran code.
+    C/C++/FORTRAN code.
 URL: https://github.com/jimhester/covr
 BugReports: https://github.com/jimhester/covr/issues
 Depends:
@@ -30,6 +30,7 @@ Suggests:
     rmarkdown,
     shiny (>= 0.11.1),
     htmltools,
+    htmlwidgets (>= 0.7),
     DT,
     testthat,
     rstudioapi (>= 0.2),
