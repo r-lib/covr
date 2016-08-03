@@ -32,8 +32,8 @@ without needing `CODECOV_TOKEN`).
 - [Codeship](https://www.codeship.io/)
 - [Circleci\*](https://circleci.com)
 - [Semaphore](https://semaphoreapp.com)
-- [drone.io](https://drone.io)
-- [AppVeyor\*](http://www.appveyor.com)
+- [drone.io](https://www.drone.io)
+- [AppVeyor\*](http://ci.appveyor.com)
 - [Wercker](http://wercker.com)
 - [GitLab-CI](https://about.gitlab.com/gitlab-ci/)
 
@@ -56,7 +56,7 @@ For CI systems not supported by coveralls you need to set the `COVERALLS_TOKEN`
 environment variable. It is wise to use a [Secure Variable](http://docs.travis-ci.com/user/environment-variables/#Secure-Variables)
 so that it is not revealed publicly.
 
-Also you will need to turn on coveralls for your project at <https://coveralls.io/repos/new>.
+Also you will need to turn on coveralls for your project at <https://coveralls.io/repos>.
 
 # Interactive Usage #
 
