@@ -8,6 +8,7 @@ test_that("it works with coverage objects", {
   # set that as well to have reproducibility
   g <- shiny:::.globals
   g$ownSeed <- .Random.seed
+  htmlwidgets::setWidgetIdSeed(42)
   report(cov$tests, file = tmp, browse = FALSE)
   simplify_link <- function(x) {
     rex::re_substitutes(x,
