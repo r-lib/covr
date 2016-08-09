@@ -1,11 +1,11 @@
-## 2.1.0.9000 ##
-* Add mcparallel support by fixing `mcparallel:::mcexit()`
+## 2.2.0 ##
+* Fix tests broken with updated htmlwidgets
+* Change report tab title based on filename (Chen Liang).
+* Add support for cobertura XML output (@wligtenberg).
+* Add mcparallel support by patching `mcparallel:::mcexit()`
   automatically for packages using parallel (#195, @kforner).
 
 ## 2.1.0 ##
-## 2.0.2 ##
-* Add mcparallel support (#195, @kforner) by fixing mcparallel:::mcexit
-	automatically for packages using parallel.
 * Add support for GitLab CI (#190, @enbrown).
 * Update exclusion documentation to include line_exclusions and function
   exclusions (#191).

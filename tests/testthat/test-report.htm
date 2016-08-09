@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8"/>
 <script src="lib/htmlwidgets-0.7/htmlwidgets.js"></script>
-<script src="lib/jquery-1.11.1/jquery.min.js"></script>
-<script src="lib/datatables-binding-0.1/datatables.js"></script>
-<script src="lib/datatables-1.10.7/jquery.dataTables.min.js"></script>
-<link href="lib/datatables-default-1.10.7/dataTables.extra.css" rel="stylesheet" />
-<link href="lib/datatables-default-1.10.7/jquery.dataTables.min.css" rel="stylesheet" />
+<script src="lib/jquery-1.12.4/jquery.min.js"></script>
+<script src="lib/datatables-binding-0.2/datatables.js"></script>
+<link href="lib/dt-core-1.10.12/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="lib/dt-core-1.10.12/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="lib/dt-core-1.10.12/js/jquery.dataTables.min.js"></script>
 <link href="lib/highlight.js-6.2/rstudio.css" rel="stylesheet" />
 <script src="lib/highlight.js-6.2/highlight.pack.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -111,8 +111,8 @@ table.table-condensed {
       </ul>
       <div class="tab-content">
         <div class="tab-pane active" data-value="Files" id="tab-9233-1">
-          <div id="htmlwidget-eaef49d4a484bc22a8b4" style="width:100%;height:auto;" class="datatables html-widget"></div>
-          <script type="application/json" data-for="htmlwidget-eaef49d4a484bc22a8b4">{"x":{"data":[["<div class=\"coverage-box coverage-high\">100.00\u003c/div>"],["<a href=\"#\">R/TestS4.R\u003c/a>"],[38],[6],[6],[0],["2"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Coverage\u003c/th>\n      <th>File\u003c/th>\n      <th>Lines\u003c/th>\n      <th>Relevant\u003c/th>\n      <th>Covered\u003c/th>\n      <th>Missed\u003c/th>\n      <th>Hits / Line\u003c/th>\n    \u003c/tr>\n  \u003c/thead>\n\u003c/table>","options":{"searching":false,"dom":"t","paging":false,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5]}],"order":[],"autoWidth":false,"orderClasses":false},"callback":"function(table) {\ntable.on('click.dt', 'a', function() {\n  files = $('div#files div');\n  files.not('div.hidden').addClass('hidden');\n  id = $(this).text();\n  files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');\n  $('ul.nav a[data-value=Source]').text(id).tab('show');\n});\n}","filter":"none","selection":"multiple"},"evals":["callback"],"jsHooks":[]}</script>
+          <div id="htmlwidget-eaef49d4a484bc22a8b4" style="width:960px;height:500px;" class="datatables html-widget"></div>
+          <script type="application/json" data-for="htmlwidget-eaef49d4a484bc22a8b4">{"x":{"filter":"none","data":[["<div class=\"coverage-box coverage-high\">100.00\u003c/div>"],["<a href=\"#\">R/TestS4.R\u003c/a>"],[38],[6],[6],[0],["2"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Coverage\u003c/th>\n      <th>File\u003c/th>\n      <th>Lines\u003c/th>\n      <th>Relevant\u003c/th>\n      <th>Covered\u003c/th>\n      <th>Missed\u003c/th>\n      <th>Hits / Line\u003c/th>\n    \u003c/tr>\n  \u003c/thead>\n\u003c/table>","options":{"searching":false,"dom":"t","paging":false,"columnDefs":[{"className":"dt-right","targets":[2,3,4,5]}],"order":[],"autoWidth":false,"orderClasses":false},"callback":"function(table) {\ntable.on('click.dt', 'a', function() {\n  files = $('div#files div');\n  files.not('div.hidden').addClass('hidden');\n  id = $(this).text();\n  files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');\n  $('ul.nav a[data-value=Source]').text(id).tab('show');\n});\n}","selection":{"mode":"multiple","selected":null,"target":"row"}},"evals":["callback"],"jsHooks":[]}</script>
         </div>
         <div class="tab-pane" data-value="Source" id="tab-9233-2">
           <div id="files">

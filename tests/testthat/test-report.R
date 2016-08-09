@@ -2,6 +2,8 @@ context("report")
 cov <- package_coverage("TestS4", type = "all", combine_types = FALSE)
 
 test_that("it works with coverage objects", {
+  skip_on_cran()
+
   tmp <- tempfile()
   set.seed(42)
   # Shiny uses its own seed which is not affected by set.seed, so we need to

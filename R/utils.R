@@ -44,7 +44,8 @@ to_title <- function(x) {
                       global = TRUE)
 }
 
-srcfile_lines <- memoise::memoise(function(srcfile) {
+#' @importFrom memoise memoise
+srcfile_lines <- memoise(function(srcfile) {
   lines <- getSrcLines(srcfile, 1, Inf)
   matches <- rex::re_matches(lines,
     rex::rex(start, any_spaces, "#line", spaces,

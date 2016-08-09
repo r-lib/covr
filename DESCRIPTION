@@ -1,6 +1,6 @@
 Package: covr
 Title: Test Coverage for Packages
-Version: 2.2.0
+Version: 2.2.1
 Authors@R: c(person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre")),
     person("Willem", "Ligtenberg", email = "willem.ligtenberg@openanalytics.eu", role = "ctb"))
 Description: Track and report code coverage for your package and (optionally)
@@ -31,7 +31,7 @@ Suggests:
     shiny (>= 0.11.1),
     htmltools,
     htmlwidgets (>= 0.7),
-    DT,
+    DT (>= 0.2),
     testthat,
     rstudioapi (>= 0.2),
     devtools,
