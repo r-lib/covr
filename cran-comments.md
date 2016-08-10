@@ -1,5 +1,5 @@
 This release is mainly to fix test errors caused by an update to the
-htmlwidgets package.
+DT package (0.2).
 
 ## Test environments
 * OS X El Capitan, R 3.3.0

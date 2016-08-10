@@ -1,3 +1,6 @@
+## 2.2.1 ##
+* Fix test broken with DT 0.2
+
 ## 2.2.0 ##
 * Fix tests broken with updated htmlwidgets
 * Change report tab title based on filename (Chen Liang).
