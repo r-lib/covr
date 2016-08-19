@@ -33,8 +33,8 @@ save_trace <- function(directory) {
 #' Calculate test coverage for a specific function.
 #'
 #' @param fun name of the function.
-#' @param env environment the function is defined in.
 #' @param code expressions to run.
+#' @param env environment the function is defined in.
 #' @param enc the enclosing environment which to run the expressions.
 #' @export
 function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()) {
@@ -102,6 +102,31 @@ file_coverage <- function(
     line_exclusions = line_exclusions,
     function_exclusions = function_exclusions,
     path = NULL)
+}
+
+#' Calculate coverage of code directly
+#'
+#' This function is useful for testing, and is a thin wrapper around
+#' \code{\link{file_coverage}} because parseData is not populated properly
+#' unless the functions are defined in a file.
+#' @param source_code A character vector of source code
+#' @param test_code A character vector of test code
+#' @inheritParams file_coverage
+#' @param ... Additional arguments passed to \code{\link{file_coverage}}
+#' @export
+code_coverage <- function(
+   source_code,
+   test_code,
+   line_exclusions = NULL,
+   function_exclusions = NULL,
+   ...) {
+  src <- tempfile("source.R")
+  test <- tempfile("test.R")
+  on.exit(file.remove(src, test))
+  cat(source_code, file = src)
+  cat(test_code, file = test)
+  file_coverage(src, test, line_exclusions = line_exclusions,
+    function_exclusions = function_exclusions, ...)
 }
 
 #' Calculate test coverage for a package

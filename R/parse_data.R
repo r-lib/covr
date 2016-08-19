@@ -41,9 +41,9 @@ impute_srcref <- function(x, parent_ref) {
     "if" = {
       src_ref <- list(
         NULL,
-        make_srcref(2, 4),
+        make_srcref(3),
         make_srcref(5),
-        make_srcref(6, 7)
+        make_srcref(7)
       )
       # the fourth component isn't used for an "if" without "else"
       src_ref[seq_along(x)]
