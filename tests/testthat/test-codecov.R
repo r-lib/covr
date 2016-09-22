@@ -326,7 +326,7 @@ test_that("it works with AppVeyor", {
 
       res <- codecov(coverage = cov),
 
-      expect_match(res$query$service, "AppVeyor"),
+      expect_match(res$query$service, "appveyor"),
       expect_match(res$query$branch, "master"),
       expect_match(res$query$build, "5"),
       expect_match(res$query$owner, "tester"),
