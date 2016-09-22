@@ -53,6 +53,12 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
     }
   }
   else if (is.function(x)) {
+
+    # We cannot trace primitive functions
+    if (is.primitive(x)) {
+      return(x)
+    }
+
     fun_body <- body(x)
 
     if (!is.null(attr(x, "srcref")) &&
