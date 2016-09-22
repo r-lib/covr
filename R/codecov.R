@@ -113,7 +113,7 @@ codecov <- function(...,
     # http://www.appveyor.com/docs/environment-variables
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
     name_info <- strsplit(Sys.getenv("APPVEYOR_REPO_NAME"), "/")[[1]]
-    codecov_query <- list(service = "AppVeyor",
+    codecov_query <- list(service = "appveyor",
                           branch = branch %||% Sys.getenv("APPVEYOR_REPO_BRANCH"),
                           build = Sys.getenv("APPVEYOR_BUILD_NUMBER"),
                           owner = name_info[1],
