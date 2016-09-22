@@ -1,8 +1,17 @@
 context("report")
 cov <- package_coverage("TestS4", type = "all", combine_types = FALSE)
 
+skip_on_ci <- function() {
+  if (!identical(Sys.getenv("CI"), "true")) {
+    return(invisible(TRUE))
+  }
+
+  skip("On CI")
+}
+
 test_that("it works with coverage objects", {
   skip_on_cran()
+  skip_on_ci()
 
   tmp <- tempfile()
   set.seed(42)
