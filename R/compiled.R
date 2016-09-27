@@ -88,10 +88,10 @@ run_gcov <- function(path, quiet = TRUE,
   withr::with_dir(src_path, {
     run_gcov <- function(src) {
       system_check(gcov_path,
-        args = c(gcov_args, src, "-o", dirname(src)),
+        args = c(gcov_args, src, "-o", dirname(src[[1]])),
         quiet = quiet, echo = !quiet)
     }
-    lapply(gcov_inputs, run_gcov)
+    tapply(gcov_inputs, dirname(gcov_inputs), run_gcov)
     gcov_outputs <- list.files(path, pattern = rex::rex(".gcov", end), recursive = TRUE, full.names = TRUE)
     structure(
       unlist(recursive = FALSE,
