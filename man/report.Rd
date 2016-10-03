@@ -2,21 +2,17 @@
 % Please edit documentation in R/report.R
 \name{report}
 \alias{report}
-\alias{report.coverage}
 \alias{shine}
 \title{Display covr results using a standalone report}
 \usage{
-report(x, ...)
+report(x, file = file.path(tempdir(), paste0(get_package_name(x),
+  "-report.html")), browse = interactive())
 
-shine(x, ...)
-
-\method{report}{coverage}(x, file = file.path(tempdir(),
-  paste0(get_package_name(x), "-report.html")), browse = interactive(), ...)
+shine(x, file = file.path(tempdir(), paste0(get_package_name(x),
+  "-report.html")), browse = interactive())
 }
 \arguments{
 \item{x}{a coverage dataset}
-
-\item{...}{Additional arguments passed to methods}
 
 \item{file}{The report filename.}
 

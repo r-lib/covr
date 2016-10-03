@@ -3,7 +3,6 @@
 #' @param x a coverage dataset
 #' @param file The report filename.
 #' @param browse whether to open a browser to view the report.
-#' @param ... Additional arguments passed to methods
 #' @aliases shine
 #' @examples
 #' \dontrun{
@@ -11,62 +10,12 @@
 #' report(x)
 #' }
 #' @export
-report <- function(x, ...) UseMethod("report")
-
-#' @export
-#' @rdname report
-shine <- report
-
-#' @export
-report.coverages <- function(x, ...) {
-
-  loadNamespace("shiny")
-
-  data <- lapply(x, to_shiny_data)
-
-  ui <- shiny::fluidPage(
-    shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
-    shiny::column(2,
-      shiny::radioButtons("type", label = shiny::h3("Coverage Type"),
-        choices = setNames(names(data), to_title(names(data))))
-    ),
-    shiny::column(8,
-      shiny::tabsetPanel(
-        shiny::tabPanel("Files", DT::dataTableOutput(outputId = "file_table")),
-        shiny::tabPanel("Source", addHighlight(shiny::tableOutput("source_table")))
-        )
-      ),
-    title = paste(attr(x, "package")$package, "Coverage"))
-
-  server <- function(input, output, session) {
-    output$file_table <- DT::renderDataTable(
-      data[[input$type]]$file_stats,
-      escape = FALSE,
-      options = list(searching = FALSE, dom = "t", paging = FALSE),
-      rownames = FALSE,
-      callback = DT::JS("table.on('click.dt', 'a', function() {
-        id = $(this).text().replace(/(:|\\.|\\[|\\]|,)/g, '\\\\$1');
-        $('div#' + id).show();
-        $('ul.nav a[data-value=Source]').tab('show');
-      });"))
-    shiny::observe({
-      if (!is.null(input$filename)) {
-        output$source_table <- renderSourceTable(data[[input$type]]$full[[input$filename]])
-      }
-    })
-  }
-
-  shiny::runApp(list(ui = ui, server = server),
-    launch.browser = getOption("viewer", utils::browseURL),
-    quiet = TRUE
-  )
-}
-
-#' @rdname report
-#' @export
-report.coverage <- function(x,
+# This function was originally a shiny application, but has been converted into
+# a normal static document. Hence the shiny calls / dependency despite not
+# actually using shiny.
+report <- function(x,
   file = file.path(tempdir(), paste0(get_package_name(x), "-report.html")),
-  browse = interactive(), ...) {
+  browse = interactive()) {
 
   loadNamespace("shiny")
 
@@ -224,3 +173,7 @@ addHighlight <- function(x = list()) {
 
   htmltools::attachDependencies(x, c(htmltools::htmlDependencies(x), list(highlight)))
 }
+
+#' @export
+#' @rdname report
+shine <- report
