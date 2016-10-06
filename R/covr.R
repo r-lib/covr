@@ -268,11 +268,11 @@ package_coverage <- function(path = ".",
         # testInstalledPackage explicitly sets R_LIBS="" on windows, and does
         # not restore it after, so we need to reset it ourselves.
         withr::with_envvar(c(R_LIBS = Sys.getenv("R_LIBS")), {
-          tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = "examples", lib.loc = tmp_lib, ...)
+          tools::testInstalledPackage(pkg$package, outDir = file.path(tmp_lib, pkg$package), types = "examples", lib.loc = tmp_lib, ...)
         })
       }
       if ("tests" %in% type) {
-        tools::testInstalledPackage(pkg$package, outDir = tmp_lib, types = "tests", lib.loc = tmp_lib, ...)
+        tools::testInstalledPackage(pkg$package, outDir = file.path(tmp_lib, pkg$package), types = "tests", lib.loc = tmp_lib, ...)
       }
 
       run_commands(pkg, tmp_lib, code)
