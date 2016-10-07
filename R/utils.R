@@ -44,8 +44,7 @@ to_title <- function(x) {
                       global = TRUE)
 }
 
-#' @importFrom memoise memoise
-srcfile_lines <- memoise(function(srcfile) {
+srcfile_lines <- function(srcfile) {
   lines <- getSrcLines(srcfile, 1, Inf)
   matches <- rex::re_matches(lines,
     rex::rex(start, any_spaces, "#line", spaces,
@@ -82,7 +81,7 @@ srcfile_lines <- memoise(function(srcfile) {
     attr(res, "blanks") <- which(rex::re_matches(res, rex::rex(start, any_spaces, maybe("#", anything), end)))
   }
   res
-})
+}
 
 traced_files <- function(x) {
   res <- list()
