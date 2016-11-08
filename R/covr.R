@@ -263,18 +263,27 @@ package_coverage <- function(path = ".",
         run_vignettes(pkg, tmp_lib)
       }
 
+      out_dir <- file.path(tmp_lib, pkg$package)
       if ("examples" %in% type) {
         type <- type[type != "examples"]
         # testInstalledPackage explicitly sets R_LIBS="" on windows, and does
         # not restore it after, so we need to reset it ourselves.
         withr::with_envvar(c(R_LIBS = Sys.getenv("R_LIBS")), {
-          tools::testInstalledPackage(pkg$package, outDir = file.path(tmp_lib, pkg$package), types = "examples", lib.loc = tmp_lib, ...)
+          result <- tools::testInstalledPackage(pkg$package, outDir = out_dir, types = "examples", lib.loc = tmp_lib, ...)
+          if (result != 0L) {
+            show_failures(out_dir)
+          }
         })
       }
       if ("tests" %in% type) {
-        tools::testInstalledPackage(pkg$package, outDir = file.path(tmp_lib, pkg$package), types = "tests", lib.loc = tmp_lib, ...)
+        result <- tools::testInstalledPackage(pkg$package, outDir = out_dir, types = "tests", lib.loc = tmp_lib, ...)
+        if (result != 0L) {
+          show_failures(out_dir)
+        }
       }
 
+      # We always run the commands file (even if empty) to load the package and
+      # initialize all the counters to 0.
       run_commands(pkg, tmp_lib, code)
     },
     message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
@@ -296,6 +305,16 @@ package_coverage <- function(path = ".",
     line_exclusions = line_exclusions,
     function_exclusions = function_exclusions,
     path = if (isTRUE(relative_path)) pkg$path else NULL)
+}
+
+show_failures <- function(dir) {
+  fail_files <- list.files(dir, pattern = "fail$", recursive = TRUE, full.names = TRUE)
+  for (file in fail_files) {
+    lines <- readLines(file)
+    # Skip header lines (until first >)
+    lines <- lines[seq(head(which(grepl("^>", lines)), n = 1), length(lines))]
+    stop("Failure in `", file, "`\n", paste(lines, collapse = "\n"), call. = FALSE)
+  }
 }
 
 # merge multiple coverage outputs together Assumes the order of coverage lines
@@ -356,7 +375,7 @@ run_vignettes <- function(pkg, lib) {
                shQuote(outfile), shQuote(failfile))
   res <- system(cmd)
   if (res != 0) {
-    stop("Error running Vignettes:\n", paste(readLines(failfile), collapse = "\n"))
+    show_failures(dirname(failfile))
   } else {
     file.rename(failfile, outfile)
   }
@@ -372,8 +391,8 @@ run_commands <- function(pkg, lib, commands) {
                "CMD BATCH --vanilla --no-timing",
                shQuote(outfile), shQuote(failfile))
   res <- system(cmd)
-  if (res != 0) {
-    stop("Error running commands:\n", paste(readLines(failfile), collapse = "\n"))
+  if (res != 0L) {
+    show_failures(dirname(failfile))
   } else {
     file.rename(failfile, outfile)
   }
