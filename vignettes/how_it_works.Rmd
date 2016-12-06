@@ -26,51 +26,19 @@ Code coverage consists of:
 Measuring code coverage allows developers to asses their progress in quality checking their own (or their collaborators) code.
 Measuring code coverage allows code consumers to have confidence in the measures taken by the package authors to verify high code quality.
 **covr** provides three functions to calculate test coverage.
-`package_coverage` performs coverage calculation on an R package.
-Unit tests must be contained in the `"tests"` directory.
-`file_coverage` performs coverage calculation on one or more R scripts by executing one or more R scripts.
-`function_coverage` performs coverage calculation on a single named function, using an expression provided.
+- `package_coverage()` performs coverage calculation on an R package. (Unit tests must be contained in the `"tests"` directory.)
+- `file_coverage()` performs coverage calculation on one or more R scripts by executing one or more R scripts.
+- `function_coverage()` performs coverage calculation on a single named function, using an expression provided.
 
 In addition to providing an objective metric of test suite extensiveness, it is often advantageous for developers to have a code level view of their unit tests.
 An interface for visually marking code with test coverage results allows a clear box view of the unit test suite.
-The clear box view can be accessed using online tools or **shiny**, using `shine`.
-
-# Prior Art #
-
-## Overview ##
-
-Prior to writing **covr**, there were a handful of coverage tools for R code.
-[**R-coverage**](http://r2d2.quartzbio.com/posts/r-coverage-docker.html) by Karl Forner and
-[**testCoverage**](https://github.com/MangoTheCat/testCoverage) by Tom Taverner, Chris Campbell & Suchen Jin were the two of which I was most aware.
-
-## R-coverage ##
-
-**R-coverage** provides a very robust solution by modifying
-the R source code to instrument the code for each call.
-Unfortunately this requires you to patch the source of the R application itself.
-Getting the changes incorporated into the core R distribution would likely be challenging.
-
-## Test Coverage ##
-
-**testCoverage** uses `getParseData`, R's alternate parser (from 3.0) to analyse the R source code.
-The package replaces symbols in the code to be tested with a unique identifier.
-This is then injected into a tracing function that will report each time the symbol is called.
-The first symbol at each level of the expression tree is traced, allowing the coverage of code branches to be checked.
-This is a complicated implementation I do not fully
-understand, which is one of the reasons I decided to write **covr**.
-
-## Covr ##
-
-**covr** takes an approach in-between the two previous tools.
-Function definitions are modified by parsing the abstract syntax tree and inserting trace statements.
-These modified definitions are then transparently replaced in-place using C.
-This allows us to correctly instrument every call and function in a package without having to resort to alternate parsing or changes to the R source.
+The clear box view can be accessed using online tools or a local report can be generated using `report()`.
 
 # Instrumenting R Source Code #
 
 ## Modifying the call tree ##
 
-The core function in **covr** is `trace_calls`.
+The core function in **covr** is `trace_calls()`.
 This function was adapted from ideas in [_Advanced R - Walking the Abstract Syntax Tree with
 recursive functions_](http://adv-r.had.co.nz/Expressions.html#ast-funs).
 This recursive function modifies each of the leaves (atomic or name objects) of
@@ -121,7 +89,7 @@ if (x)
 ```
 
 To work around this, detailed parse data (obtained from a refined version of
-`getParseData`) is analyzed to impute source references at sub-statement level for `if`, `for` and `while` constructs.
+`getParseData`) is analyzed to impute source references at sub-statement level for `if`, `for`, `while` and `switch` constructs.
 
 ## Replacing Source In Place ##
 
@@ -152,7 +120,7 @@ env$f2() == 3
 As modifying external environments and correctly restoring them can be tricky
 to get correct, we use the C function
 [`reassign_function`](https://github.com/jimhester/covr/blob/9753e0e257b053059b85be90ef6eb614a5af9bba/src/reassign.c#L7-L20),
-which is used in `testthat::with_mock`.
+which is also used in `testthat::with_mock`.
 This function takes a function name,
 environment, old definition, new definition and copies the formals, body,
 attributes and environment from the old function to the new function.
@@ -258,6 +226,37 @@ coverage.
 over time, and ensure that all new code is appropriately covered.
 
 They both have JSON-based APIs to submit and report on coverage. The functions `codecov` and `coveralls` create outputs that can be consumed by these services.
+
+# Prior Art #
+
+## Overview ##
+
+Prior to writing **covr**, there were a handful of coverage tools for R code.
+[**R-coverage**](http://r2d2.quartzbio.com/posts/r-coverage-docker.html) by Karl Forner and
+[**testCoverage**](https://github.com/MangoTheCat/testCoverage) by Tom Taverner, Chris Campbell & Suchen Jin.
+
+## R-coverage ##
+
+**R-coverage** provides a very robust solution by modifying
+the R source code to instrument the code for each call.
+Unfortunately this requires you to patch the source of the R application itself.
+Getting the changes incorporated into the core R distribution would likely be challenging.
+
+## Test Coverage ##
+
+**testCoverage** uses `getParseData`, R's alternate parser (from 3.0) to analyse the R source code.
+The package replaces symbols in the code to be tested with a unique identifier.
+This is then injected into a tracing function that will report each time the symbol is called.
+The first symbol at each level of the expression tree is traced, allowing the coverage of code branches to be checked.
+This is a complicated implementation I do not fully
+understand, which is one of the reasons I decided to write **covr**.
+
+## Covr ##
+
+**covr** takes an approach in-between the two previous tools.
+Function definitions are modified by parsing the abstract syntax tree and inserting trace statements.
+These modified definitions are then transparently replaced in-place using C.
+This allows us to correctly instrument every call and function in a package without having to resort to alternate parsing or changes to the R source.
 
 # Conclusion #
 
