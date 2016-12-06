@@ -62,11 +62,13 @@ test_that("coveralls generates a properly formatted json file", {
       res <- coveralls(coverage = cov),
       json <- jsonlite::fromJSON(res$body$json_file),
 
-      expect_equal(nrow(json$source_files), 1),
+      expect_true(nrow(json$source_files) >= 1),
+      fidx <-seq_len(length(json$source_files$name))[basename(json$source_files$name)=="TestS4.R"],
+      expect_equal(length(fidx), 1),
       expect_equal(json$service_name, "fakeci"),
-      expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
-      expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R")),
-      expect_equal(json$source_files$coverage[[1]],
+      expect_match(json$source_files$name[[fidx]], rex::rex("R", one_of("/", "\\"), "TestS4.R")),
+      expect_equal(json$source_files$source[[fidx]], read_file("TestS4/R/TestS4.R")),
+      expect_equal(json$source_files$coverage[[fidx]],
         c(NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA))
     )
@@ -86,12 +88,14 @@ test_that("coveralls can spawn a job using repo_token", {
       json <- jsonlite::fromJSON(res$body$json_file),
 
       expect_equal(is.null(json$git), FALSE),
-      expect_equal(nrow(json$source_files), 1),
+      expect_true(nrow(json$source_files) >= 1),
+      fidx <-seq_len(length(json$source_files$name))[basename(json$source_files$name)=="TestS4.R"],
+      expect_equal(length(fidx), 1),
       expect_equal(json$service_name, NULL),
       expect_equal(json$repo_token, "mytoken"),
-      expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
-      expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R")),
-      expect_equal(json$source_files$coverage[[1]],
+      expect_match(json$source_files$name[[fidx]], rex::rex("R", one_of("/", "\\"), "TestS4.R")),
+      expect_equal(json$source_files$source[[fidx]], read_file("TestS4/R/TestS4.R")),
+      expect_equal(json$source_files$coverage[[fidx]],
         c(NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA))
     )
