@@ -9,6 +9,10 @@ vignette: >
  \usepackage[utf8]{inputenc}
 ---
 
+```{r setup, include = FALSE}
+library(covr)
+```
+
 # Introduction #
 
 The **covr** package provides a framework for measuring unit test coverage.
@@ -83,7 +87,7 @@ there are a few non-calls we also want to count.
 Each statement comes with a source reference. Unfortunately, the following is
 counted as one statement:
 
-```{r}
+```r
 if (x)
  y()
 ```
