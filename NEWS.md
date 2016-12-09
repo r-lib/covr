@@ -1,3 +1,7 @@
+## 2.2.1.9000 ##
+* Fix gcov execution: parse all files in the same subdir at the same time
+  instead of one by one (#220, @Enchufa2)
+
 ## 2.2.1 ##
 * Fix test broken with DT 0.2
 
