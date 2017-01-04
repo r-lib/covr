@@ -37,4 +37,3 @@ Run covr on a package and upload the result to codecov.io
 codecov(path = "test")
 }
 }
-

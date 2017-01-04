@@ -29,4 +29,3 @@ This function automatically quotes both the command and each
 argument so they are properly protected from shell expansion.
 }
 \keyword{internal}
-

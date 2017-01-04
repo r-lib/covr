@@ -27,4 +27,3 @@ If set to NULL, it is assumed that the job is running on travis-ci}
 \description{
 Run covr on a package and upload the result to coveralls
 }
-

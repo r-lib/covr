@@ -64,4 +64,3 @@ global option \code{covr.fix_parallel_mcexit}.
 \code{\link{exclusions}} For details on excluding parts of the
 package from the coverage calculations.
 }
-

@@ -13,4 +13,3 @@ key(x)
 Generate a key for a  call
 }
 \keyword{internal}
-

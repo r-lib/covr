@@ -17,4 +17,3 @@ The total percentage as a \code{numeric(1)}.
 \description{
 Calculate the total percent coverage from a coverage result object.
 }
-

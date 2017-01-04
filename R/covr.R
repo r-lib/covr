@@ -1,6 +1,6 @@
 #' @import methods
 #' @importFrom stats aggregate na.omit na.pass setNames
-#' @importFrom utils capture.output getSrcFilename relist str
+#' @importFrom utils capture.output getSrcFilename relist str head
 NULL
 
 rex::register_shortcuts("covr")

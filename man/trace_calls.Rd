@@ -24,4 +24,3 @@ This function calls itself recursively so it can properly traverse the AST.
 \url{http://adv-r.had.co.nz/Expressions.html}
 }
 \keyword{internal}
-

@@ -17,4 +17,3 @@ a \code{data.frame} of coverage tallied by line or expression.
 \description{
 Tally coverage by line or expression
 }
-

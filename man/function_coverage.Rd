@@ -18,4 +18,3 @@ function_coverage(fun, code = NULL, env = NULL, enc = parent.frame())
 \description{
 Calculate test coverage for a specific function.
 }
-

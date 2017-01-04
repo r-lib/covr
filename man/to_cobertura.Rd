@@ -17,4 +17,3 @@ This functionality requires the xml2 package be installed.
 \author{
 Willem Ligtenberg
 }
-

@@ -13,4 +13,3 @@ count(key)
 increment a given counter
 }
 \keyword{internal}
-

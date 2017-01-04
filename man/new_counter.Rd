@@ -15,4 +15,3 @@ new_counter(src_ref, parent_functions)
 initialize a new counter
 }
 \keyword{internal}
-

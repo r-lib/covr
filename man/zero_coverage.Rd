@@ -23,4 +23,3 @@ any locations where there is \bold{0} test coverage.
 if used within RStudio this function outputs the results using the
 Marker API.
 }
-

@@ -10,4 +10,3 @@ clear_counters()
 clear all previous counters
 }
 \keyword{internal}
-

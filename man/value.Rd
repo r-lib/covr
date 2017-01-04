@@ -14,4 +14,3 @@ value(x, ...)
 \description{
 Retrieve the value from an object
 }
-

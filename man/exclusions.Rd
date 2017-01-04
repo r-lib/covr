@@ -31,6 +31,7 @@ The patterns used can be specified by the \code{exclude_pattern}, \code{exclude_
 \code{exclude_end} arguments to \code{package_coverage()} or by setting the global
 options \code{covr.exclude_pattern}, \code{covr.exclude_start}, \code{covr.exclude_end}.
 }
+
 \examples{
 \dontrun{
 # exclude whole file of R/test.R
@@ -56,4 +57,3 @@ f2 <- function(x) { # nocov start
 } # nocov end
 }
 }
-

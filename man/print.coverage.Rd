@@ -22,4 +22,3 @@ The coverage object (invisibly).
 \description{
 Print a coverage object
 }
-
