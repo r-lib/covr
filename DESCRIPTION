@@ -1,8 +1,28 @@
+Encoding: UTF-8
 Package: covr
 Title: Test Coverage for Packages
 Version: 2.2.1
-Authors@R: c(person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre")),
-    person("Willem", "Ligtenberg", email = "willem.ligtenberg@openanalytics.eu", role = "ctb"))
+Authors@R: c(
+    person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre")),
+    person("Willem", "Ligtenberg", email = "willem.ligtenberg@openanalytics.eu", role = "ctb"),
+    person("Kirill", "Müller", role = "ctb"),
+    person("Henrik", "Bengtsson", role = "ctb"),
+    person("Steve", "Peak", role = "ctb"),
+    person("Kirill", "Sevastyanenko", role = "ctb"),
+    person("Jon", "Clayden", role = "ctb"),
+    person("Robert", "Flight", role = "ctb"),
+    person("Eric", "Brown", role = "ctb"),
+    person("Brodie", "Gaslam", role = "ctb"),
+    person("Will", "Beasley", role = "ctb"),
+    person("Robert", "Krzyzanowski", role = "ctb"),
+    person("Markus", "Wamser", role = "ctb"),
+    person("Karl", "Forner", role = "ctb"),
+    person("Gergely", "Daróczi", role = "ctb"),
+    person("Jouni", "Helske", role = "ctb"),
+    person("Kun", "Ren", role = "ctb"),
+    person("Jeroen", "Ooms", role = "ctb"),
+    person("Ken", "Williams", role = "ctb"),
+    person("Chris", "Campbell", role = "ctb"))
 Description: Track and report code coverage for your package and (optionally)
     upload the results to a coverage service like 'Codecov' (http://codecov.io) or
     'Coveralls' (http://coveralls.io). Code coverage is a measure of the amount of
