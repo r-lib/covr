@@ -1,5 +1,5 @@
-This release is mainly to fix test errors caused by an update to the
-DT package (0.2).
+This release fixes a test error when run with the soon to be submitted xml2
+1.1.0 release.
 
 ## Test environments
 * OS X El Capitan, R 3.3.0
@@ -13,7 +13,7 @@ There were no NOTEs, ERRORs or WARNINGs.
 ## Reverse dependencies
 
 Covr is a development tool only so its code is not actually run when building
-any downstream dependencies. Nonetheless I have run R CMD check on the 72
+any downstream dependencies. Nonetheless I have run R CMD check on the 151
 downstream dependencies. There were no relevant Errors.
 
   Summary at: https://github.com/jimhester/covr/tree/master/revdep
