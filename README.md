@@ -29,7 +29,7 @@ without needing `CODECOV_TOKEN`).
 
 - [Jenkins](https://jenkins-ci.org)
 - [Travis CI\*](https://travis-ci.com)
-- [Codeship](https://www.codeship.io/)
+- [Codeship](https://www.codeship.com)
 - [Circleci\*](https://circleci.com)
 - [Semaphore](https://semaphoreapp.com)
 - [AppVeyor\*](http://ci.appveyor.com)
