@@ -328,12 +328,17 @@ merge_coverage <- function(...) {
     return()
   }
 
-  x <- objs[[1]]
-  others <- objs[-1]
-
   if (getRversion() < "3.2.0") {
     lengths <- function(x, ...) vapply(x, length, integer(1L))
   }
+
+  ## FIXME: https://github.com/jimhester/covr/issues/177
+  ns <- lengths(objs)
+  objs <- objs[ns != 2]
+  
+  x <- objs[[1]]
+  others <- objs[-1]
+
   stopifnot(all(lengths(others) == length(x)))
 
   for (y in others) {
