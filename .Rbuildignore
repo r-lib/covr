@@ -20,3 +20,4 @@ _dev\.R$
 ^cache$
 ^data.Rmd$
 ^covr_performance.Rmd$
+^revdep$
