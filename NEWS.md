@@ -1,3 +1,8 @@
+## 2.2.2 ##
+* Fix test broken with xml2 v1.1.0
+* Filter out non-local filenames from results (#237).
+* Vignette rewrite / improvements (#229, @CSJCampbell).
+
 ## 2.2.1 ##
 * Fix test broken with DT 0.2
 
