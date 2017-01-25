@@ -17,6 +17,29 @@
                  LDFLAGS = if (!is_windows()) "--coverage" else NULL,
                  SHLIB_LIBADD = if (is_windows()) "--coverage" else NULL)
   )
+
+## BEGIN Oracle Contribution
+# License: GPL-3 with additional permission for MIT under GPL-3 Section 7 as set forth in license documents.
+#
+# add icc code coverage settings
+  icov_flag <- "-O0 -prof-gen=srcpos"
+  op_covr <- c(op_covr, list(
+    covr.icov = Sys.which("codecov"),
+    covr.icov_args = NULL,
+    covr.icov_prof = Sys.which("profmerge"),
+    covr.icov_flags = c(CFLAGS = icov_flag,
+                 CXXFLAGS = icov_flag,
+                 CXX1XFLAGS = icov_flag,
+
+                 FFLAGS = icov_flag,
+                 FCFLAGS = icov_flag,
+
+                 # LDFLAGS is ignored on windows and visa versa
+                 LDFLAGS = icov_flag,
+                 SHLIB_LIBADD = icov_flag)
+  ))
+## END Oracle Contribution
+
   toset <- !(names(op_covr) %in% names(op))
   if (any(toset)) options(op_covr[toset])
 
