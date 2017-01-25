@@ -222,6 +222,25 @@ package_coverage <- function(path = ".",
 
   flags <- getOption("covr.flags")
 
+  ## BEGIN Oracle Contribution
+  # License: GPL-3 with additional permission for MIT under GPL-3 Section 7 as set forth in license documents.
+  #
+  # check for icc compiler
+  compiler <- get_compiler()
+  if (compiler == "icc")
+  {
+    if (length(getOption("covr.icov")) > 0L)
+    {
+      flags <- getOption("covr.icov_flags")
+      # clean up old icov files
+      unlink(file.path(pkg$path, "src","*.dyn"))
+      unlink(file.path(pkg$path, "src","pgopti.*"))
+    }
+    else
+      stop("icc is not available")
+  }
+  ## END Oracle Contribution
+    
   if (isTRUE(clean)) {
     on.exit({
       clean_objects(pkg$path)
@@ -299,7 +318,18 @@ package_coverage <- function(path = ".",
     relative = relative_path)
 
   coverage <- filter_non_package_files(coverage)
-
+    
+  ## BEGIN Oracle Contribution
+  # License: GPL-3 with additional permission for MIT under GPL-3 Section 7 as set forth in license documents.
+  #
+  # use icc compiler
+  if (compiler == "icc")
+    coverage <- structure(c(coverage, run_icov(pkg$path, quiet = quiet)),
+      class = "coverage",
+      package = pkg,
+      relative = relative_path)
+  ## END Oracle Contribution
+  
   # Exclude both RcppExports to avoid reduntant coverage information
   line_exclusions <- c("src/RcppExports.cpp", "R/RcppExports.R", line_exclusions)
 
@@ -426,3 +456,31 @@ add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
 
   writeLines(text = lines, con = load_script)
 }
+
+## BEGIN Oracle Contribution
+# License: GPL-3 with additional permission for MIT under GPL-3 Section 7 as set forth in license documents.
+#
+# check if gcc or icc is used
+get_compiler <- function()
+{
+  mkconf <- readLines(file.path(R.home(component="etc"), "Makeconf"))
+  compiler <- rex::re_matches(mkconf,
+                rex::rex(start, "CC = ",
+                         capture(name = "compiler", anything),
+                         " ", anything))$compiler
+  compiler <- compiler[!is.na(compiler)]
+
+  res <- try(system(paste(compiler, "--version"), intern=TRUE), silent=TRUE)
+  if (!inherits(res, "try-error"))
+  {
+    if (length(grep("gcc ", res)) > 0L)
+      return("gcc")
+    else if (length(grep("icc ", res)) > 0L)
+      return("icc")
+  }
+
+  warning("cannot recognize a supported compiler. gcc is used by default")
+
+  return("gcc")
+}
+## END Oracle Contribution
