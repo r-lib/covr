@@ -227,7 +227,11 @@ package_coverage <- function(path = ".",
   #
   # check for icc compiler
   compiler <- get_compiler()
-  if (compiler == "icc")
+  if (compiler == "gcc")
+  {
+    flags <- getOption("covr.flags")
+  }
+  else if (compiler == "icc")
   {
     if (length(getOption("covr.icov")) > 0L)
     {
@@ -237,7 +241,13 @@ package_coverage <- function(path = ".",
       unlink(file.path(pkg$path, "src","pgopti.*"))
     }
     else
+    {
       stop("icc is not available")
+    }
+  }
+  else
+  {
+    stop("only gcc or icc is supported")
   }
   ## END Oracle Contribution
     
@@ -463,24 +473,17 @@ add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
 # check if gcc or icc is used
 get_compiler <- function()
 {
-  mkconf <- readLines(file.path(R.home(component="etc"), "Makeconf"))
-  compiler <- rex::re_matches(mkconf,
-                rex::rex(start, "CC = ",
-                         capture(name = "compiler", anything),
-                         " ", anything))$compiler
-  compiler <- compiler[!is.na(compiler)]
+  compiler <- paste(system(paste(R.home("bin"), "R --vanilla CMD config CC",
+                                 sep="/"), intern = TRUE), collapse="")
 
   res <- try(system(paste(compiler, "--version"), intern=TRUE), silent=TRUE)
   if (!inherits(res, "try-error"))
   {
-    if (length(grep("gcc ", res)) > 0L)
+    if (length(grep("gcc ", res)) > 0L || length(grep("clang ", res)) > 0L)
       return("gcc")
     else if (length(grep("icc ", res)) > 0L)
       return("icc")
   }
-
-  warning("cannot recognize a supported compiler. gcc is used by default")
-
-  return("gcc")
+  stop(gettextf("cannot recognize this compiler '%s'.", compiler))
 }
 ## END Oracle Contribution
