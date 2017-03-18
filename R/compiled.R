@@ -176,12 +176,8 @@ parse_icov <- function(lines, package_path = "") {
 run_icov <- function(path, quiet = TRUE,
                      icov_path = getOption("covr.icov", ""),
                      icov_args = getOption("covr.icov_args", NULL)) {
+  
   src_path <- normalize_path(file.path(path, "src"))
-  if (!file.exists(path)) {
-     warning(gettexf("Package source files does not exist under %s", src_path))
-     return()
-  }
-
   if (!file.exists(src_path)) {
      return()
   }
