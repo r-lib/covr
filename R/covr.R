@@ -227,26 +227,19 @@ package_coverage <- function(path = ".",
   #
   # check for icc compiler
   compiler <- get_compiler()
-  if (compiler == "gcc")
-  {
+  if (compiler == "gcc") {
     flags <- getOption("covr.flags")
   }
-  else if (compiler == "icc")
-  {
-    if (length(getOption("covr.icov")) > 0L)
-    {
+  else if (compiler == "icc") {
+    if (length(getOption("covr.icov")) > 0L) {
       flags <- getOption("covr.icov_flags")
       # clean up old icov files
       unlink(file.path(pkg$path, "src","*.dyn"))
       unlink(file.path(pkg$path, "src","pgopti.*"))
-    }
-    else
-    {
+    } else {
       stop("icc is not available")
     }
-  }
-  else
-  {
+  } else {
     stop("only gcc or icc is supported")
   }
   ## END Oracle Contribution
@@ -322,24 +315,25 @@ package_coverage <- function(path = ".",
   # read tracing files
   trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
   coverage <- merge_coverage(lapply(trace_files, function(x) as.list(readRDS(x))))
-  coverage <- structure(c(coverage, run_gcov(pkg$path, quiet = quiet)),
-    class = "coverage",
-    package = pkg,
-    relative = relative_path)
-
-  coverage <- filter_non_package_files(coverage)
-    
+  if (compiler == "gcc") {
+    coverage <- structure(c(coverage, run_gcov(pkg$path, quiet = quiet)),
+      class = "coverage",
+      package = pkg,
+      relative = relative_path)
+  } else {
   ## BEGIN Oracle Contribution
   # License: GPL-3 with additional permission for MIT under GPL-3 Section 7 as set forth in license documents.
   #
   # use icc compiler
-  if (compiler == "icc")
     coverage <- structure(c(coverage, run_icov(pkg$path, quiet = quiet)),
       class = "coverage",
       package = pkg,
       relative = relative_path)
   ## END Oracle Contribution
+  }
   
+  coverage <- filter_non_package_files(coverage)
+
   # Exclude both RcppExports to avoid reduntant coverage information
   line_exclusions <- c("src/RcppExports.cpp", "R/RcppExports.R", line_exclusions)
 
@@ -471,18 +465,17 @@ add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
 # License: GPL-3 with additional permission for MIT under GPL-3 Section 7 as set forth in license documents.
 #
 # check if gcc or icc is used
-get_compiler <- function()
-{
+get_compiler <- function() {
   compiler <- paste(system(paste(R.home("bin"), "R --vanilla CMD config CC",
                                  sep="/"), intern = TRUE), collapse="")
 
   res <- try(system(paste(compiler, "--version"), intern=TRUE), silent=TRUE)
-  if (!inherits(res, "try-error"))
-  {
-    if (length(grep("gcc ", res)) > 0L || length(grep("clang ", res)) > 0L)
+  if (!inherits(res, "try-error")) {
+    if (length(grep("gcc ", res)) > 0L || length(grep("clang ", res)) > 0L) {
       return("gcc")
-    else if (length(grep("icc ", res)) > 0L)
+    } else if (length(grep("icc ", res)) > 0L) {
       return("icc")
+    }
   }
   stop(gettextf("cannot recognize this compiler '%s'.", compiler))
 }
