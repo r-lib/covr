@@ -466,6 +466,10 @@ add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
 #
 # check if gcc or icc is used
 get_compiler <- function() {
+  if (Sys.info()["sysname"] == "Windows") {
+    return("gcc")
+  }
+
   compiler <- paste(system(paste(R.home("bin"), "R --vanilla CMD config CC",
                                  sep="/"), intern = TRUE), collapse="")
 
