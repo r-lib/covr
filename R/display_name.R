@@ -13,6 +13,6 @@ display_name <- function(x) {
 }
 
 filter_non_package_files <- function(x) {
-  filenames <- vapply(x, function(x) getSrcFilename(x$srcref, full.names = TRUE), character(1))
+  filenames <- vapply(x, function(x) if (length(fn <- getSrcFilename(x$srcref, full.names = TRUE)) > 0) fn else "", character(1))
   x[rex::re_matches(filenames, rex::rex(attr(x, "package")$path, "/"), "")]
 }
