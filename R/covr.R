@@ -250,7 +250,7 @@ package_coverage <- function(path = ".",
 
   libs <- env_path(tmp_lib, .libPaths())
 
-  withr::with_envvar(
+  withr$with_envvar(
     c(R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
       R_LIBS = libs,
       R_LIBS_USER = libs,
@@ -268,7 +268,7 @@ package_coverage <- function(path = ".",
         type <- type[type != "examples"]
         # testInstalledPackage explicitly sets R_LIBS="" on windows, and does
         # not restore it after, so we need to reset it ourselves.
-        withr::with_envvar(c(R_LIBS = Sys.getenv("R_LIBS")), {
+        withr$with_envvar(c(R_LIBS = Sys.getenv("R_LIBS")), {
           result <- tools::testInstalledPackage(pkg$package, outDir = out_dir, types = "examples", lib.loc = tmp_lib, ...)
           if (result != 0L) {
             show_failures(out_dir)

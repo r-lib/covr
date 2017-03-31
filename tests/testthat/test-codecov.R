@@ -50,7 +50,7 @@ cov <- package_coverage("TestS4")
 
 test_that("it generates a properly formatted json file", {
 
-  withr::with_envvar(ci_vars,
+  withr$with_envvar(ci_vars,
     with_mock(
       `httr::POST` = function(...) list(...),
       `httr::content` = identity,
@@ -70,7 +70,7 @@ test_that("it generates a properly formatted json file", {
 })
 
 test_that("it works with local repos", {
-  withr::with_envvar(ci_vars, {
+  withr$with_envvar(ci_vars, {
 
     with_mock(
       `httr::POST` = function(...) list(...),
@@ -87,7 +87,7 @@ test_that("it works with local repos", {
     })
   })
 test_that("it works with local repos and explicit branch and commit", {
-  withr::with_envvar(ci_vars, {
+  withr$with_envvar(ci_vars, {
 
     with_mock(
       `httr::POST` = function(...) list(...),
@@ -102,7 +102,7 @@ test_that("it works with local repos and explicit branch and commit", {
     })
   })
 test_that("it adds the token to the query if available", {
-  withr::with_envvar(c(
+  withr$with_envvar(c(
       ci_vars,
       "CODECOV_TOKEN" = "codecov_test"
       ),
@@ -122,7 +122,7 @@ test_that("it adds the token to the query if available", {
     )
   })
 test_that("it works with jenkins", {
-  withr::with_envvar(c(
+  withr$with_envvar(c(
       ci_vars,
       "JENKINS_URL" = "jenkins.com",
       "GIT_BRANCH" = "test",
@@ -147,7 +147,7 @@ test_that("it works with jenkins", {
   })
 
 test_that("it works with travis normal builds", {
-  withr::with_envvar(c(
+  withr$with_envvar(c(
       ci_vars,
       "CI" = "true",
       "TRAVIS" = "true",
@@ -177,7 +177,7 @@ test_that("it works with travis normal builds", {
   })
 
 test_that("it works with travis pull requests", {
-  withr::with_envvar(c(
+  withr$with_envvar(c(
       ci_vars,
       "CI" = "true",
       "TRAVIS" = "true",
@@ -207,7 +207,7 @@ test_that("it works with travis pull requests", {
   })
 
 test_that("it works with codeship", {
-  withr::with_envvar(c(
+  withr$with_envvar(c(
       ci_vars,
       "CI" = "true",
       "CI_NAME" = "codeship",
@@ -232,7 +232,7 @@ test_that("it works with codeship", {
     )
   })
 test_that("it works with circleci", {
-  withr::with_envvar(c(
+  withr$with_envvar(c(
       ci_vars,
       "CI" = "true",
       "CIRCLECI" = "true",
@@ -259,7 +259,7 @@ test_that("it works with circleci", {
     )
   })
 test_that("it works with semaphore", {
-  withr::with_envvar(c(
+  withr$with_envvar(c(
       ci_vars,
       "CI" = "true",
       "SEMAPHORE" = "true",
@@ -285,7 +285,7 @@ test_that("it works with semaphore", {
     )
   })
 test_that("it works with drone", {
-  withr::with_envvar(c(
+  withr$with_envvar(c(
       ci_vars,
       "CI" = "true",
       "DRONE" = "true",
@@ -310,7 +310,7 @@ test_that("it works with drone", {
     )
   })
 test_that("it works with AppVeyor", {
-  withr::with_envvar(c(
+  withr$with_envvar(c(
       ci_vars,
       "CI" = "True",
       "APPVEYOR" = "True",
@@ -336,7 +336,7 @@ test_that("it works with AppVeyor", {
     )
   })
 test_that("it works with Wercker", {
-  withr::with_envvar(c(
+  withr$with_envvar(c(
       ci_vars,
       "CI" = "true",
       "WERCKER_GIT_BRANCH" = "master",
@@ -363,7 +363,7 @@ test_that("it works with Wercker", {
   })
 
 test_that("it works with GitLab", {
-  withr::with_envvar(c(
+  withr$with_envvar(c(
       ci_vars,
       "CI" = "true",
       "CI_SERVER_NAME" = "GitLab CI",
