@@ -4,6 +4,8 @@
 [![codecov.io](https://codecov.io/github/jimhester/covr/coverage.svg?branch=master)](https://codecov.io/github/jimhester/covr?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/covr)](https://cran.r-project.org/package=covr)
 
+Testing a pull request
+
 Track test coverage for your R package and (optionally) upload the results to
 [coveralls](https://coveralls.io/) or [codecov](https://codecov.io/).
 
