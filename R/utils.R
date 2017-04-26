@@ -305,7 +305,7 @@ get_package_name <- function(x) {
 
 get_source_filename <- function(x, full.names = FALSE, unique = TRUE) {
   res <- getSrcFilename(x, full.names, unique)
-  if (length(x) == 0) {
+  if (length(res) == 0) {
     return("")
   }
   res
