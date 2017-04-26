@@ -332,7 +332,7 @@ merge_coverage <- function(...) {
   others <- objs[-1]
 
   if (getRversion() < "3.2.0") {
-    lengths <- function(x, ...) vapply(x, length, integer(1L))
+    lengths <- function(x, ...) viapply(x, length)
   }
   stopifnot(all(lengths(others) == length(x)))
 

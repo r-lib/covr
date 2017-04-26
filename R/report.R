@@ -108,14 +108,12 @@ sort_file_stats <- function(stats) {
 }
 
 add_link <- function(files) {
-  vapply(files, character(1), FUN = function(file) {
-           as.character(shiny::a(href = "#", file))
-              })
+  vcapply(files, function(file) { as.character(shiny::a(href = "#", file)) })
 }
 
 add_color_box <- function(nums) {
 
-  vapply(nums, character(1), FUN = function(num) {
+  vcapply(nums, function(num) {
     nnum <- as.numeric(num)
     if (nnum > 90) {
       as.character(shiny::div(class = "coverage-box coverage-high", num))

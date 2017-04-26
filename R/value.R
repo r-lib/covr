@@ -6,7 +6,7 @@ value <- function(x, ...) UseMethod("value")
 
 #' @export
 value.coverage <- function(x, ...) {
-  vapply(x, value, numeric(1), ...)
+  vdapply(x, value, ...)
 }
 
 #' @export

@@ -37,7 +37,7 @@ parse_gcov <- function(file, package_path = "") {
   # create srcfile reference from the source file
   src_file <- srcfilecopy(source_file, readLines(source_file))
 
-  line_lengths <- vapply(src_file$lines[as.numeric(matches$line)], nchar, numeric(1))
+  line_lengths <- vdapply(src_file$lines[as.numeric(matches$line)], nchar)
 
   if (any(is.na(values))) {
     stop("values could not be coerced to numeric ", matches$coverage)
