@@ -28,3 +28,11 @@ test_that("it works as expected", {
   expect_equal(current_commit("TestSummary"), "test_hash")
   })
 })
+
+context("get_source_filename")
+test_that("it works", {
+  x <- eval(bquote(function() 1))
+
+  expect_identical(character(), getSrcFilename(x))
+  expect_identical("", get_source_filename(x))
+})
