@@ -77,7 +77,7 @@ exclude <- function(coverage,
 
   df$full_name <- vapply(coverage,
     function(x) {
-      normalize_path(getSrcFilename(x$srcref, full.names = TRUE))
+      normalize_path(get_source_filename(x$srcref, full.names = TRUE))
     },
     character(1))
 

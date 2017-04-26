@@ -302,3 +302,13 @@ temp_file <- function(pattern = "file", tmpdir = temp_dir(), fileext = "") {
 get_package_name <- function(x) {
    attr(x, "package")$package %||% "coverage"
 }
+
+get_source_filename <- function(x, full.names = FALSE, unique = TRUE) {
+  res <- getSrcFilename(x, full.names, unique)
+  if (length(x) == 0) {
+    return("")
+  }
+  res
+}
+
+vcapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = character(1))

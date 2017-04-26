@@ -127,7 +127,7 @@ clear_counters <- function() {
 #' @param x the srcref of the call to create a key for
 #' @keywords internal
 key <- function(x) {
-  paste(collapse = ":", c(utils::getSrcFilename(x), x))
+  paste(collapse = ":", c(get_source_filename(x), x))
 }
 
 f1 <- function() {

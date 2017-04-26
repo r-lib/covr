@@ -209,7 +209,7 @@ markers.coverage <- function(x, ...) {
 
   # generate the markers
   markers <- lapply(unname(x), function(xx) {
-    filename <- getSrcFilename(xx$srcref, full.names = TRUE)
+    filename <- get_source_filename(xx$srcref, full.names = TRUE)
 
     list(
       type = "warning",
