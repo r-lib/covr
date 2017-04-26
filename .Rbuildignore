@@ -21,3 +21,4 @@ _dev\.R$
 ^data.Rmd$
 ^covr_performance.Rmd$
 ^revdep$
+^LICENSE$
