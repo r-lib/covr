@@ -94,8 +94,8 @@ run_gcov <- function(path, quiet = TRUE,
     tapply(gcov_inputs, dirname(gcov_inputs), run_gcov)
     gcov_outputs <- list.files(path, pattern = rex::rex(".gcov", end), recursive = TRUE, full.names = TRUE)
     structure(
-      unlist(recursive = FALSE,
-        lapply(gcov_outputs, parse_gcov, package_path = path)),
+      as.list(unlist(recursive = FALSE,
+        lapply(gcov_outputs, parse_gcov, package_path = path))),
       class = "coverage")
   })
 }
