@@ -142,14 +142,14 @@ code_coverage <- function(
 #' \code{code} parameter.
 #'
 #' #ifdef unix
-#' Parallelized code using \code{\link{mcparallel}}
-#' needs to be use a patched \code{mcparallel:::mcexit}. This is done
-#' automatically if the package depends on parallel, but can also be explicitly
-#' set using the environment variable \code{COVR_FIX_PARALLEL_MCEXIT} or the
-#' global option \code{covr.fix_parallel_mcexit}.
+#' Parallelized code using \pkg{parallel}'s \code{\link{mcparallel}} needs to
+#' be use a patched \code{parallel:::mcexit}. This is done automatically if the
+#' package depends on \pkg{parallel}, but can also be explicitly set using the
+#' environment variable \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
+#' \code{covr.fix_parallel_mcexit}.
 #' #endif
 #'
-#' @param path file path to the package
+#' @param path file path to the package.
 #' @param type run the package \sQuote{tests}, \sQuote{vignettes},
 #' \sQuote{examples}, \sQuote{all}, or \sQuote{none}. The default is
 #' \sQuote{tests}.
@@ -167,7 +167,7 @@ code_coverage <- function(
 #' @param function_exclusions a vector of regular expressions matching function
 #' names to exclude. Example \code{print\\.} to match print methods.
 #' @param code A character vector of additional test code to run.
-#' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}
+#' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}.
 #' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
 #' @seealso \code{\link{exclusions}} For details on excluding parts of the
 #' package from the coverage calculations.
