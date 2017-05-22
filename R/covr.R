@@ -292,7 +292,7 @@ package_coverage <- function(path = ".",
 
   # read tracing files
   trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
-  coverage <- merge_coverage(lapply(trace_files, function(x) as.list(readRDS(x))))
+  coverage <- merge_coverage_files(trace_files)
   coverage <- structure(c(coverage, run_gcov(pkg$path, quiet = quiet)),
     class = "coverage",
     package = pkg,
@@ -341,6 +341,31 @@ merge_coverage <- function(...) {
       x[[i]]$value <- x[[i]]$value + y[[i]]$value
     }
   }
+  x
+}
+
+merge_coverage_files <- function(files) {
+  nfiles <- length(files)
+  if (nfiles == 0) {
+    return()
+  }
+
+  x <- readRDS(files[1])
+  x <- as.list(x)
+  if (nfiles == 1) {
+    return(x)
+  }
+
+  names <- names(x)
+  for (i in 2:nfiles) {
+    y <- readRDS(files[i])
+    stopifnot(identical(names(y), names))
+    for (name in names) {
+      x[[name]]$value <- x[[name]]$value + y[[name]]$value
+    }
+    y <- NULL
+  }
+  
   x
 }
 
