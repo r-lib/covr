@@ -292,7 +292,7 @@ package_coverage <- function(path = ".",
 
   # read tracing files
   trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
-  coverage <- merge_coverage_files(trace_files)
+  coverage <- merge_coverage(trace_files)
   coverage <- structure(c(coverage, run_gcov(pkg$path, quiet = quiet)),
     class = "coverage",
     package = pkg,
@@ -319,32 +319,10 @@ show_failures <- function(dir) {
   }
 }
 
-# merge multiple coverage outputs together Assumes the order of coverage lines
+# merge multiple coverage files together. Assumes the order of coverage lines
 # is the same in each object, this should always be the case if the objects are
 # from the same initial library.
-merge_coverage <- function(...) {
-  objs <- as.list(...)
-  if (length(objs) == 0) {
-    return()
-  }
-
-  x <- objs[[1]]
-  others <- objs[-1]
-
-  if (getRversion() < "3.2.0") {
-    lengths <- function(x, ...) viapply(x, length)
-  }
-  stopifnot(all(lengths(others) == length(x)))
-
-  for (y in others) {
-    for (i in seq_along(x)) {
-      x[[i]]$value <- x[[i]]$value + y[[i]]$value
-    }
-  }
-  x
-}
-
-merge_coverage_files <- function(files) {
+merge_coverage <- function(files) {
   nfiles <- length(files)
   if (nfiles == 0) {
     return()
@@ -365,7 +343,7 @@ merge_coverage_files <- function(files) {
     }
     y <- NULL
   }
-  
+ 
   x
 }
 
