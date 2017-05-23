@@ -292,7 +292,7 @@ package_coverage <- function(path = ".",
 
   # read tracing files
   trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
-  coverage <- merge_coverage(lapply(trace_files, function(x) as.list(readRDS(x))))
+  coverage <- merge_coverage(trace_files)
   coverage <- structure(c(coverage, run_gcov(pkg$path, quiet = quiet)),
     class = "coverage",
     package = pkg,
@@ -319,28 +319,31 @@ show_failures <- function(dir) {
   }
 }
 
-# merge multiple coverage outputs together Assumes the order of coverage lines
+# merge multiple coverage files together. Assumes the order of coverage lines
 # is the same in each object, this should always be the case if the objects are
 # from the same initial library.
-merge_coverage <- function(...) {
-  objs <- as.list(...)
-  if (length(objs) == 0) {
+merge_coverage <- function(files) {
+  nfiles <- length(files)
+  if (nfiles == 0) {
     return()
   }
 
-  x <- objs[[1]]
-  others <- objs[-1]
-
-  if (getRversion() < "3.2.0") {
-    lengths <- function(x, ...) viapply(x, length)
+  x <- readRDS(files[1])
+  x <- as.list(x)
+  if (nfiles == 1) {
+    return(x)
   }
-  stopifnot(all(lengths(others) == length(x)))
 
-  for (y in others) {
-    for (i in seq_along(x)) {
-      x[[i]]$value <- x[[i]]$value + y[[i]]$value
+  names <- names(x)
+  for (i in 2:nfiles) {
+    y <- readRDS(files[i])
+    stopifnot(identical(names(y), names))
+    for (name in names) {
+      x[[name]]$value <- x[[name]]$value + y[[name]]$value
     }
+    y <- NULL
   }
+ 
   x
 }
 

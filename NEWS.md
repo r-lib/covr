@@ -1,3 +1,6 @@
+## 2.2.2-9000 ##
+* Made the gather-and-merge-results step at the end of package_coverage() more memory efficient (#226, @HenrikBengtsson).
+
 ## 2.2.2 ##
 * `filter_not_package_files()` now works if a source reference does not have a filename (#254, @hughjonesd).
 * Fix test broken with xml2 v1.1.0
