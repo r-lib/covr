@@ -5,5 +5,8 @@ test_that("corner-cases are handled as expected", {
     cov <- file_coverage("corner-cases.R", "corner-cases-test.R")
   }))
 
-  expect_equal(as.data.frame(cov), readRDS("corner-cases.Rds"))
+  cov <- as.data.frame(cov)
+  cov <- cov[cov$filename == "corner-cases.R",]
+  rownames(cov) <- NULL # get default row names after removing some files
+  expect_equal(cov, readRDS("corner-cases.Rds"))
 })

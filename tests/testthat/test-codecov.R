@@ -59,9 +59,10 @@ test_that("it generates a properly formatted json file", {
 
       res <- codecov(coverage = cov),
       json <- jsonlite::fromJSON(res$body),
+      fidx <- seq_len(length(json$files$name))[json$files$name == "R/TestS4.R"],
 
-      expect_match(json$files$name, "R/TestS4.R"),
-      expect_equal(json$files$coverage[[1]],
+      expect_equal(length(fidx), 1),
+      expect_equal(json$files$coverage[[fidx]],
         c(NA, NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA)
         ),
