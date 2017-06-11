@@ -222,10 +222,7 @@ package_coverage <- function(path = ".",
 
   flags <- getOption("covr.flags")
 
-  ## BEGIN Oracle Contribution
-  # License: GPL-3 with additional permission for MIT under GPL-3 Section 7 as set forth in license documents.
-  #
-  # check for icc compiler
+  # check for compiler
   compiler <- get_compiler()
   if (compiler == "gcc") {
     flags <- getOption("covr.flags")
@@ -242,7 +239,6 @@ package_coverage <- function(path = ".",
   } else {
     stop("only gcc or icc is supported")
   }
-  ## END Oracle Contribution
     
   if (isTRUE(clean)) {
     on.exit({
@@ -321,15 +317,11 @@ package_coverage <- function(path = ".",
       package = pkg,
       relative = relative_path)
   } else {
-  ## BEGIN Oracle Contribution
-  # License: GPL-3 with additional permission for MIT under GPL-3 Section 7 as set forth in license documents.
-  #
   # use icc compiler
     coverage <- structure(c(coverage, run_icov(pkg$path, quiet = quiet)),
       class = "coverage",
       package = pkg,
       relative = relative_path)
-  ## END Oracle Contribution
   }
   
   coverage <- filter_non_package_files(coverage)
@@ -461,9 +453,6 @@ add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
   writeLines(text = lines, con = load_script)
 }
 
-## BEGIN Oracle Contribution
-# License: GPL-3 with additional permission for MIT under GPL-3 Section 7 as set forth in license documents.
-#
 # check if gcc or icc is used
 get_compiler <- function() {
   if (Sys.info()["sysname"] == "Windows") {
@@ -483,4 +472,3 @@ get_compiler <- function() {
   }
   stop(gettextf("cannot recognize this compiler '%s'.", compiler))
 }
-## END Oracle Contribution
