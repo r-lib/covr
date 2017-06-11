@@ -8,7 +8,7 @@ as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, sort =
                   column_names)
   if (length(x)) {
     res$filename <- display_name(x)
-    res$functions <- vapply(x, function(xx) xx$functions[1], character(1))
+    res$functions <- vcapply(x, function(xx) xx$functions[1])
 
     vals <- t(vapply(x,
                      function(xx) c(xx$srcref, xx$value),

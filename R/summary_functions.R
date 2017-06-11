@@ -51,7 +51,7 @@ tally_coverage <- function(x, by = c("line", "expression")) {
            if (inherits(x, "coverage")) {
              srcfiles <- unique(lapply(x, function(x) attr(x$srcref, "srcfile")))
 
-             srcfile_names <- vapply(srcfiles, `[[`, character(1), "filename")
+             srcfile_names <- vcapply(srcfiles, `[[`, "filename")
 
              blank_lines <- compact(
                setNames(lapply(srcfiles, function(srcfile) attr(srcfile_lines(srcfile), "blanks")),
@@ -192,9 +192,9 @@ markers.coverages <- function(x, ...) {
   mrks <- unlist(lapply(unname(x), markers), recursive = FALSE)
 
   mrks <- mrks[order(
-    vapply(mrks, `[[`, character(1), "file"),
-    vapply(mrks, `[[`, integer(1), "line"),
-    vapply(mrks, `[[`, character(1), "message")
+    vcapply(mrks, `[[`, "file"),
+    viapply(mrks, `[[`, "line"),
+    vcapply(mrks, `[[`, "message")
     )]
 
   # request source markers
@@ -209,7 +209,7 @@ markers.coverage <- function(x, ...) {
 
   # generate the markers
   markers <- lapply(unname(x), function(xx) {
-    filename <- getSrcFilename(xx$srcref, full.names = TRUE)
+    filename <- get_source_filename(xx$srcref, full.names = TRUE)
 
     list(
       type = "warning",

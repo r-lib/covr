@@ -75,13 +75,12 @@ exclude <- function(coverage,
       Map(rex::re_matches, function_exclusions, MoreArgs = list(data = df$functions)))
   }
 
-  df$full_name <- vapply(coverage,
+  df$full_name <- vcapply(coverage,
     function(x) {
-      normalize_path(getSrcFilename(x$srcref, full.names = TRUE))
-    },
-    character(1))
+      normalize_path(get_source_filename(x$srcref, full.names = TRUE))
+    })
 
-  to_exclude <- to_exclude | vapply(seq_len(NROW(df)),
+  to_exclude <- to_exclude | vlapply(seq_len(NROW(df)),
     function(i) {
       file <- df[i, "full_name"]
       which_exclusion <- match(file, names(excl))
@@ -91,8 +90,7 @@ exclude <- function(coverage,
           excl[[which_exclusion]] == Inf ||
           all(seq(df[i, "first_line"], df[i, "last_line"]) %in% excl[[file]])
         )
-    },
-    logical(1))
+    })
 
   if (any(to_exclude)) {
     coverage <- coverage[!to_exclude]
@@ -129,7 +127,7 @@ parse_exclusions <- function(lines,
 file_exclusions <- function(x, path = NULL) {
   excl <- normalize_exclusions(x, path)
 
-  full_files <- vapply(excl, function(x1) length(x1) == 1 && x1 == Inf, logical(1))
+  full_files <- vlapply(excl, function(x1) length(x1) == 1 && x1 == Inf)
   if (any(full_files)) {
     names(excl)[full_files]
   } else {
@@ -150,11 +148,10 @@ normalize_exclusions <- function(x, path = NULL) {
     if (any(unnamed)) {
 
       # must be character vectors of length 1
-      bad <- vapply(seq_along(x),
+      bad <- vlapply(seq_along(x),
         function(i) {
           unnamed[i] & (!is.character(x[[i]]) | length(x[[i]]) != 1)
-        },
-        logical(1))
+        })
 
       if (any(bad)) {
         stop("Full file exclusions must be character vectors of length 1. items: ",
@@ -174,7 +171,7 @@ normalize_exclusions <- function(x, path = NULL) {
 
   remove_line_duplicates(
     remove_file_duplicates(
-      remove_empty(x)
+      compact(x)
     )
   )
 }
@@ -204,8 +201,4 @@ remove_line_duplicates <- function(x) {
   x[] <- lapply(x, unique)
 
   x
-}
-
-remove_empty <- function(x) {
-  x[vapply(x, length, numeric(1)) > 0]
 }

@@ -38,7 +38,7 @@ test_that("function_coverage return last expr", {
     }
 
     cov_fun <- function(...) {
-      vapply(function_coverage("fun", env = environment(fun), ...), "[[", numeric(1), "value")
+      vdapply(function_coverage("fun", env = environment(fun), ...), "[[", "value")
     }
 
     expect_equal(as.numeric(cov_fun()), c(0L, 0L))

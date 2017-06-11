@@ -142,14 +142,14 @@ code_coverage <- function(
 #' \code{code} parameter.
 #'
 #' #ifdef unix
-#' Parallelized code using \code{\link{mcparallel}}
-#' needs to be use a patched \code{mcparallel:::mcexit}. This is done
-#' automatically if the package depends on parallel, but can also be explicitly
-#' set using the environment variable \code{COVR_FIX_PARALLEL_MCEXIT} or the
-#' global option \code{covr.fix_parallel_mcexit}.
+#' Parallelized code using \pkg{parallel}'s \code{\link{mcparallel}} needs to
+#' be use a patched \code{parallel:::mcexit}. This is done automatically if the
+#' package depends on \pkg{parallel}, but can also be explicitly set using the
+#' environment variable \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
+#' \code{covr.fix_parallel_mcexit}.
 #' #endif
 #'
-#' @param path file path to the package
+#' @param path file path to the package.
 #' @param type run the package \sQuote{tests}, \sQuote{vignettes},
 #' \sQuote{examples}, \sQuote{all}, or \sQuote{none}. The default is
 #' \sQuote{tests}.
@@ -167,7 +167,7 @@ code_coverage <- function(
 #' @param function_exclusions a vector of regular expressions matching function
 #' names to exclude. Example \code{print\\.} to match print methods.
 #' @param code A character vector of additional test code to run.
-#' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}
+#' @param ... Additional arguments passed to \code{\link[tools]{testInstalledPackage}}.
 #' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
 #' @seealso \code{\link{exclusions}} For details on excluding parts of the
 #' package from the coverage calculations.
@@ -310,7 +310,7 @@ package_coverage <- function(path = ".",
 
   # read tracing files
   trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
-  coverage <- merge_coverage(lapply(trace_files, function(x) as.list(readRDS(x))))
+  coverage <- merge_coverage(trace_files)
   if (compiler == "gcc") {
     coverage <- structure(c(coverage, run_gcov(pkg$path, quiet = quiet)),
       class = "coverage",
@@ -323,7 +323,7 @@ package_coverage <- function(path = ".",
       package = pkg,
       relative = relative_path)
   }
-  
+
   coverage <- filter_non_package_files(coverage)
 
   # Exclude both RcppExports to avoid reduntant coverage information
@@ -345,28 +345,31 @@ show_failures <- function(dir) {
   }
 }
 
-# merge multiple coverage outputs together Assumes the order of coverage lines
+# merge multiple coverage files together. Assumes the order of coverage lines
 # is the same in each object, this should always be the case if the objects are
 # from the same initial library.
-merge_coverage <- function(...) {
-  objs <- as.list(...)
-  if (length(objs) == 0) {
+merge_coverage <- function(files) {
+  nfiles <- length(files)
+  if (nfiles == 0) {
     return()
   }
 
-  x <- objs[[1]]
-  others <- objs[-1]
-
-  if (getRversion() < "3.2.0") {
-    lengths <- function(x, ...) vapply(x, length, integer(1L))
+  x <- readRDS(files[1])
+  x <- as.list(x)
+  if (nfiles == 1) {
+    return(x)
   }
-  stopifnot(all(lengths(others) == length(x)))
 
-  for (y in others) {
-    for (i in seq_along(x)) {
-      x[[i]]$value <- x[[i]]$value + y[[i]]$value
+  names <- names(x)
+  for (i in 2:nfiles) {
+    y <- readRDS(files[i])
+    stopifnot(identical(names(y), names))
+    for (name in names) {
+      x[[name]]$value <- x[[name]]$value + y[[name]]$value
     }
+    y <- NULL
   }
+ 
   x
 }
 

@@ -1,10 +1,10 @@
 Encoding: UTF-8
 Package: covr
 Title: Test Coverage for Packages
-Version: 2.2.2
+Version: 2.2.2.9000
 Authors@R: c(
     person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre")),
-    person("Willem", "Ligtenberg", email = "willem.ligtenberg@openanalytics.eu", role = "ctb"),
+    person("Willem", "Ligtenberg", role = "ctb"),
     person("Kirill", "Müller", role = "ctb"),
     person("Henrik", "Bengtsson", role = "ctb"),
     person("Steve", "Peak", role = "ctb"),
@@ -22,7 +22,8 @@ Authors@R: c(
     person("Kun", "Ren", role = "ctb"),
     person("Jeroen", "Ooms", role = "ctb"),
     person("Ken", "Williams", role = "ctb"),
-    person("Chris", "Campbell", role = "ctb"))
+    person("Chris", "Campbell", role = "ctb"),
+    person("David", "Hugh-Jones", role = "ctb"))
 Description: Track and report code coverage for your package and (optionally)
     upload the results to a coverage service like 'Codecov' (http://codecov.io) or
     'Coveralls' (http://coveralls.io). Code coverage is a measure of the amount of
@@ -57,7 +58,7 @@ Suggests:
     xml2 (>= 1.0.0),
     parallel,
     memoise
-License: MIT + file LICENSE
+License: GPL-3
 LazyData: true
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1.9000
+RoxygenNote: 6.0.1

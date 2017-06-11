@@ -7,7 +7,7 @@
 }
 
 compact <- function(x) {
-  x[vapply(x, length, integer(1)) != 0]
+  x[viapply(x, length) != 0]
 }
 
 trim <- function(x) {
@@ -302,3 +302,16 @@ temp_file <- function(pattern = "file", tmpdir = temp_dir(), fileext = "") {
 get_package_name <- function(x) {
    attr(x, "package")$package %||% "coverage"
 }
+
+get_source_filename <- function(x, full.names = FALSE, unique = TRUE) {
+  res <- getSrcFilename(x, full.names, unique)
+  if (length(res) == 0) {
+    return("")
+  }
+  res
+}
+
+vcapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = character(1))
+vdapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = numeric(1))
+viapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = integer(1))
+vlapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = logical(1))
