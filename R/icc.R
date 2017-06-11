@@ -1,7 +1,3 @@
-## BEGIN Oracle Contribution
-# License: GPL-3 with additional permission for MIT under GPL-3 Section 7 as set forth in license documents.
-#
-
 parse_icov <- function(lines, package_path = "") {
 
   source_file <- trim_ws(lines[1L])
@@ -127,5 +123,3 @@ trim_ws <- function(x) {
   x <- sub("^[ \t\r\n]+", "", x, perl = TRUE)
   sub("[ \t\r\n]+$", "", x, perl = TRUE)
 }
-
-## END Oracle Contribution
