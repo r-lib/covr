@@ -57,7 +57,7 @@ Suggests:
     xml2 (>= 1.0.0),
     parallel,
     memoise
-License: MIT + file LICENSE + Portions GPLv3 with Additional Permission | GPLv3
+License: MIT + file LICENSE
 LazyData: true
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1.9000
