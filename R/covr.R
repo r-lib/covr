@@ -311,18 +311,16 @@ package_coverage <- function(path = ".",
   # read tracing files
   trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
   coverage <- merge_coverage(trace_files)
-  if (compiler == "gcc") {
-    coverage <- structure(c(coverage, run_gcov(pkg$path, quiet = quiet)),
-      class = "coverage",
-      package = pkg,
-      relative = relative_path)
+  if (!uses_icc()) {
+    res <- run_gcov(pkg$path, quiet = quiet)
   } else {
-  # use icc compiler
-    coverage <- structure(c(coverage, run_icov(pkg$path, quiet = quiet)),
+    res <- run_icov(pkg$path, quiet = quiet)
+  }
+  
+  coverage <- structure(c(coverage, res),
       class = "coverage",
       package = pkg,
       relative = relative_path)
-  }
 
   coverage <- filter_non_package_files(coverage)
 
@@ -456,22 +454,11 @@ add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
   writeLines(text = lines, con = load_script)
 }
 
-# check if gcc or icc is used
-get_compiler <- function() {
-  if (Sys.info()["sysname"] == "Windows") {
-    return("gcc")
-  }
-
-  compiler <- paste(system(paste(R.home("bin"), "R --vanilla CMD config CC",
-                                 sep="/"), intern = TRUE), collapse="")
-
-  res <- try(system(paste(compiler, "--version"), intern=TRUE), silent=TRUE)
-  if (!inherits(res, "try-error")) {
-    if (length(grep("gcc ", res)) > 0L || length(grep("clang ", res)) > 0L) {
-      return("gcc")
-    } else if (length(grep("icc ", res)) > 0L) {
-      return("icc")
-    }
-  }
-  stop(gettextf("cannot recognize this compiler '%s'.", compiler))
+# check if icc is used
+uses_icc <- function() {
+  compiler <- tryCatch(
+    paste(system(paste(R.home("bin"), "R --vanilla CMD config CC", sep="/"),
+        intern = TRUE), collapse=""),
+    error = function(e) "")
+  grepl("\\bicc\\b", compiler)
 }
