@@ -223,11 +223,10 @@ package_coverage <- function(path = ".",
   flags <- getOption("covr.flags")
 
   # check for compiler
-  compiler <- get_compiler()
-  if (compiler == "gcc") {
+  if (!uses_icc()) {
     flags <- getOption("covr.flags")
   }
-  else if (compiler == "icc") {
+  else {
     if (length(getOption("covr.icov")) > 0L) {
       flags <- getOption("covr.icov_flags")
       # clean up old icov files
@@ -236,8 +235,6 @@ package_coverage <- function(path = ".",
     } else {
       stop("icc is not available")
     }
-  } else {
-    stop("only gcc or icc is supported")
   }
     
   if (isTRUE(clean)) {
