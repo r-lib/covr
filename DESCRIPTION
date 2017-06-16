@@ -23,7 +23,7 @@ Authors@R: c(
     person("Jeroen", "Ooms", role = "ctb"),
     person("Ken", "Williams", role = "ctb"),
     person("Chris", "Campbell", role = "ctb"),
-    person("David", "Hugh-Jones", role = "ctb"))
+    person("David", "Hugh-Jones", role = "ctb")),
     person("Qin", "Wang", role = "ctb"))
 Description: Track and report code coverage for your package and (optionally)
     upload the results to a coverage service like 'Codecov' (http://codecov.io) or
