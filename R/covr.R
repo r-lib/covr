@@ -222,6 +222,21 @@ package_coverage <- function(path = ".",
 
   flags <- getOption("covr.flags")
 
+  # check for compiler
+  if (!uses_icc()) {
+    flags <- getOption("covr.flags")
+  }
+  else {
+    if (length(getOption("covr.icov")) > 0L) {
+      flags <- getOption("covr.icov_flags")
+      # clean up old icov files
+      unlink(file.path(pkg$path, "src","*.dyn"))
+      unlink(file.path(pkg$path, "src","pgopti.*"))
+    } else {
+      stop("icc is not available")
+    }
+  }
+    
   if (isTRUE(clean)) {
     on.exit({
       clean_objects(pkg$path)
@@ -293,10 +308,16 @@ package_coverage <- function(path = ".",
   # read tracing files
   trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
   coverage <- merge_coverage(trace_files)
-  coverage <- structure(c(coverage, run_gcov(pkg$path, quiet = quiet)),
-    class = "coverage",
-    package = pkg,
-    relative = relative_path)
+  if (!uses_icc()) {
+    res <- run_gcov(pkg$path, quiet = quiet)
+  } else {
+    res <- run_icov(pkg$path, quiet = quiet)
+  }
+  
+  coverage <- structure(c(coverage, res),
+      class = "coverage",
+      package = pkg,
+      relative = relative_path)
 
   coverage <- filter_non_package_files(coverage)
 
@@ -428,4 +449,13 @@ add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
   }
 
   writeLines(text = lines, con = load_script)
+}
+
+# check if icc is used
+uses_icc <- function() {
+  compiler <- tryCatch(
+    paste(system(paste(R.home("bin"), "R --vanilla CMD config CC", sep="/"),
+        intern = TRUE), collapse=""),
+    error = function(e) "")
+  grepl("\\bicc\\b", compiler)
 }

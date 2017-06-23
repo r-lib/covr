@@ -34,31 +34,7 @@ parse_gcov <- function(file, package_path = "") {
 
   values <- as.numeric(matches$coverage)
 
-  # create srcfile reference from the source file
-  src_file <- srcfilecopy(source_file, readLines(source_file))
-
-  line_lengths <- vdapply(src_file$lines[as.numeric(matches$line)], nchar)
-
-  if (any(is.na(values))) {
-    stop("values could not be coerced to numeric ", matches$coverage)
-  }
-
-  res <- Map(function(line, length, value) {
-    src_ref <- srcref(src_file, c(line, 1, line, length))
-    res <- list(srcref = src_ref, value = value, functions = NA_character_)
-    class(res) <- "line_coverage"
-    res
-  },
-  matches$line, line_lengths, values)
-
-  if (!length(res)) {
-    return(NULL)
-  }
-
-  names(res) <- lapply(res, function(x) key(x$srcref))
-
-  class(res) <- "line_coverages"
-  res
+  line_coverages(source_file, matches, values, rep(NA_character_, length(values)))
 }
 
 clean_gcov <- function(path) {
@@ -98,4 +74,33 @@ run_gcov <- function(path, quiet = TRUE,
         lapply(gcov_outputs, parse_gcov, package_path = path))),
       class = "coverage")
   })
+}
+
+line_coverages <- function(source_file, matches, values, functions)
+{
+  # create srcfile reference from the source file
+  src_file <- srcfilecopy(source_file, readLines(source_file))
+
+  line_lengths <- vapply(src_file$lines[as.numeric(matches$line)], nchar, numeric(1))
+
+  if (any(is.na(values))) {
+    stop("values could not be coerced to numeric ", matches$coverage)
+  }
+
+  res <- Map(function(line, length, value, func) {
+    src_ref <- srcref(src_file, c(line, 1, line, length))
+    res <- list(srcref = src_ref, value = value, functions = func)
+    class(res) <- "line_coverage"
+    res
+  },
+  matches$line, line_lengths, values, functions)
+
+  if (!length(res)) {
+    return(NULL)
+  }
+
+  names(res) <- lapply(res, function(x) key(x$srcref))
+
+  class(res) <- "line_coverages"
+  res
 }
