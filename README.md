@@ -154,8 +154,8 @@ Covr should be compatible with any testing package, it uses
 `tools::testInstalledPackage()` to run your packages tests.
 
 ## Will covr work with alternative compilers such as ICC ##
-Covr will _not_ work with `icc`, Intel's compiler as it does not have
-[Gcov](https://gcc.gnu.org/onlinedocs/gcc/Gcov.html) compatible output.
+Covr now supports Intel's `icc` compiler, thanks to work contributed by Qin
+Wang at Oracle.
 
 Covr is known to work with clang versions `3.5+` and gcc version `4.2+`.
 
