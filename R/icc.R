@@ -37,7 +37,7 @@ parse_icov <- function(lines, package_path = "") {
         nums <- c(idx1[2L:length(idx1)]-1L, length(r1)) - idx1
         stopifnot(sum(nums) == nrow(m1))
         m1$functions <- unlist(mapply(rep, r1[idx1], nums,
-                                      SIMPLIFY=FALSE, USE.NAMES=FALSE)) 
+                                      SIMPLIFY=FALSE, USE.NAMES=FALSE))
       }
     }
   }
@@ -65,7 +65,7 @@ parse_icov <- function(lines, package_path = "") {
 run_icov <- function(path, quiet = TRUE,
                      icov_path = getOption("covr.icov", ""),
                      icov_args = getOption("covr.icov_args", NULL)) {
-  
+
   src_path <- normalize_path(file.path(path, "src"))
   if (!file.exists(src_path)) {
      return()
@@ -85,7 +85,7 @@ run_icov <- function(path, quiet = TRUE,
   icov_inputs <- list.files(path, pattern = rex::rex(".dyn", end),
                             recursive = TRUE, full.names = TRUE)
   if (length(icov_inputs) == 0L) {
-    warning("no icc .dyn files are generated")  
+    warning("no icc .dyn files are generated")
     return()
   }
 
@@ -97,11 +97,11 @@ run_icov <- function(path, quiet = TRUE,
   system_check(icov_path,
         args = c("-prj", "tmp", "-spi", file.path(src_path, "pgopti.spi"),
                  "-dpi", file.path(src_path, "pgopti.dpi"),
-                 "-include-nonexec", 
+                 "-include-nonexec",
                  "-txtbcvrg", "bcovg.log"),
         quiet = quiet, echo = !quiet)
   })
-  
+
   lines <- readLines(file.path(src_path, "bcovg.log"))
 
   # generate line coverage

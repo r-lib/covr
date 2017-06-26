@@ -236,7 +236,7 @@ package_coverage <- function(path = ".",
       stop("icc is not available")
     }
   }
-    
+
   if (isTRUE(clean)) {
     on.exit({
       clean_objects(pkg$path)
@@ -269,7 +269,8 @@ package_coverage <- function(path = ".",
     c(R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
       R_LIBS = libs,
       R_LIBS_USER = libs,
-      R_LIBS_SITE = libs), {
+      R_LIBS_SITE = libs,
+      R_COVR = "true"), {
 
 
     withCallingHandlers({
@@ -313,7 +314,7 @@ package_coverage <- function(path = ".",
   } else {
     res <- run_icov(pkg$path, quiet = quiet)
   }
-  
+
   coverage <- structure(c(coverage, res),
       class = "coverage",
       package = pkg,
@@ -364,7 +365,7 @@ merge_coverage <- function(files) {
     }
     y <- NULL
   }
- 
+
   x
 }
 
