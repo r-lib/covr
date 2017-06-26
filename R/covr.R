@@ -236,7 +236,7 @@ package_coverage <- function(path = ".",
       stop("icc is not available")
     }
   }
-    
+
   if (isTRUE(clean)) {
     on.exit({
       clean_objects(pkg$path)
@@ -313,7 +313,7 @@ package_coverage <- function(path = ".",
   } else {
     res <- run_icov(pkg$path, quiet = quiet)
   }
-  
+
   coverage <- structure(c(coverage, res),
       class = "coverage",
       package = pkg,
@@ -364,7 +364,7 @@ merge_coverage <- function(files) {
     }
     y <- NULL
   }
- 
+
   x
 }
 

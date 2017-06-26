@@ -13,7 +13,7 @@ build-docker-checker:
 
 run-rocker: build-docker-checker
 	-docker rm $(RCHECKER)
-	docker run --rm -ti -v $(PWD)/..:/home/docker $(RCHECKER) bash 
+	docker run --rm -ti -v $(PWD)/..:/home/docker $(RCHECKER) bash
 	
 test: build-docker-checker fix-permission-tests
 	docker run --rm -ti -v $(PWD)/..:/home/docker $(RCHECKER) Rscript -e 'library(devtools);install("covr");test("covr", "$(FILTER)")'
