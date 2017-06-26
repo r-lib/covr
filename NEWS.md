@@ -1,3 +1,5 @@
+## 3.0.0.9000 ##
+
 ## 3.0.0 ##
 * The covr license has been changed to GPL-3.
 * Set environment variable `R_COVR=true` when covr is running (#236, #268).
