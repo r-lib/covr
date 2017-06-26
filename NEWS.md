@@ -1,4 +1,5 @@
 ## 2.2.2-9000 ##
+* Set environment variable `R_COVR=true` when covr is running (#236, #268).
 * Made the gather-and-merge-results step at the end of package_coverage() more memory efficient (#226, @HenrikBengtsson).
 * Support code coverage with icc (#247, @QinWang).
 

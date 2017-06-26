@@ -269,7 +269,8 @@ package_coverage <- function(path = ".",
     c(R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
       R_LIBS = libs,
       R_LIBS_USER = libs,
-      R_LIBS_SITE = libs), {
+      R_LIBS_SITE = libs,
+      R_COVR = "true"), {
 
 
     withCallingHandlers({
