@@ -1,5 +1,5 @@
-This release fixes a test error when run with the soon to be submitted xml2
-1.1.0 release.
+This release changes the package license from MIT to GPL-3. I obtained approval
+from all contributors <https://github.com/jimhester/covr/issues/256> for the license change.
 
 ## Test environments
 * OS X El Capitan, R 3.3.0
@@ -17,7 +17,14 @@ There were no NOTEs, ERRORs or WARNINGs.
 ## Reverse dependencies
 
 Covr is a development tool only so its code is not actually run when building
-any downstream dependencies. Nonetheless I have run R CMD check on the 151
-downstream dependencies. There were no relevant Errors.
+any downstream dependencies. Nonetheless I have run R CMD check on the 260
+downstream dependencies.
+
+The errors in biolink, geofacet, Wmisc are due to `lintr::expect_lint_free()`
+not working properly when it is used while running `devtools::revdep_check()`.
+I opened issue [#251](https://github.com/jimhester/lintr/issues/251) to track
+this bug in lintr.
+
+I did not see any other errors that were relevant to the covr changes.
 
   Summary at: https://github.com/jimhester/covr/tree/master/revdep
