@@ -17,7 +17,7 @@ There were no NOTEs, ERRORs or WARNINGs.
 ## Reverse dependencies
 
 Covr is a development tool only so its code is not actually run when building
-any downstream dependencies. Nonetheless I have run R CMD check on the 260
+any downstream dependencies. Nonetheless I have run R CMD check on the 262
 downstream dependencies.
 
 The errors in biolink, geofacet, Wmisc are due to `lintr::expect_lint_free()`
