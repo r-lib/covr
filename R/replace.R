@@ -1,4 +1,4 @@
-#' @useDynLib covr covr_duplicate_
+#' @useDynLib covr, .registration = TRUE
 replacement <- function(name, env = as.environment(-1), target_value = get(name, envir = env)) {
   if (is.function(target_value) && !is.primitive(target_value)) {
     if (is_vectorized(target_value)) {
@@ -26,12 +26,10 @@ replacement <- function(name, env = as.environment(-1), target_value = get(name,
   }
 }
 
-#' @useDynLib covr covr_reassign_function
 replace <- function(replacement) {
   .Call(covr_reassign_function, replacement$name, replacement$env, replacement$target_value, replacement$new_value)
 }
 
-#' @useDynLib covr covr_reassign_function
 reset <- function(replacement) {
   .Call(covr_reassign_function, replacement$name, replacement$env, replacement$target_value, replacement$orig_value)
 }
