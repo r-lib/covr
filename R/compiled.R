@@ -64,7 +64,7 @@ run_gcov <- function(path, quiet = TRUE,
   withr::with_dir(src_path, {
     run_gcov <- function(src) {
       system_check(gcov_path,
-        args = c(gcov_args, src, "-o", dirname(src[[1]])),
+        args = c(gcov_args, src, "-p", "-o", dirname(src[[1]])),
         quiet = quiet, echo = !quiet)
     }
     tapply(gcov_inputs, dirname(gcov_inputs), run_gcov)
