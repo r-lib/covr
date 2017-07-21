@@ -4,7 +4,7 @@
 \alias{trace_calls}
 \title{trace each call with a srcref attribute}
 \usage{
-trace_calls(x, parent_functions = NULL, parent_ref = NULL)
+trace_calls(x, parent_functions = NULL, parent_ref = getSrcref(x))
 }
 \arguments{
 \item{x}{the call}
