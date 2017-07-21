@@ -2,7 +2,7 @@ impute_srcref <- function(x, parent_ref) {
   if (!is_conditional_or_loop(x)) return(NULL)
   if (is.null(parent_ref)) return(NULL)
 
-  pd <- utils::getParseData(parent_ref, includeText = FALSE)
+  pd <- get_tokens(parent_ref)
   pd_expr <-
     pd$line1 == parent_ref[[7L]] &
     pd$col1 == parent_ref[[2L]] &
@@ -67,10 +67,19 @@ impute_srcref <- function(x, parent_ref) {
     },
 
     "switch" = {
+      terms <- which(pd_child$token %in% c("SYMBOL_SUB", "STR_CONST"))
+      commas <- which(pd_child$token == "','")
+      last_expression <- tail(which(pd_child$token == "expr"), n = 1)
+      if (length(commas) == length(terms)) {
+        # no default value, remove last term
+        terms <- terms[-length(terms)]
+      }
       c(list(NULL),
         list(make_srcref(3)),
         Map(make_srcref,
-          from = seq(7, NROW(pd_child), 4))
+          from = terms,
+          to = commas[-1L]),
+        list(make_srcref(last_expression))
         )
     },
 
@@ -79,3 +88,9 @@ impute_srcref <- function(x, parent_ref) {
 }
 
 is_conditional_or_loop <- function(x) is.symbol(x[[1L]]) && as.character(x[[1L]]) %in% c("if", "for", "else", "switch")
+
+# Needed to work around https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16756
+get_tokens <- function(srcref) {
+  getParseData(srcref) %||%
+    getParseData(parse(text = getSrcLines(attr(getSrcref(srcref), "srcfile"), 1L, Inf), keep.source = TRUE))
+}

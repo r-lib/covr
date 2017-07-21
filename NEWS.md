@@ -1,4 +1,8 @@
 ## 3.0.0.9000 ##
+* Fix `switch` support for packages, which was broken due to a bug in
+  how parse data is stored in packages.
+* Improve behavior of `switch` coverage, it now supports default values and
+  fall through properly.
 
 ## 3.0.0 ##
 * The covr license has been changed to GPL-3.

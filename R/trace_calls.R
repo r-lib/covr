@@ -8,7 +8,7 @@
 #' @return a modified expression with count calls inserted before each previous
 #' call.
 #' @keywords internal
-trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
+trace_calls <- function (x, parent_functions = NULL, parent_ref = getSrcref(x)) {
 
   # Construct the calls by hand to avoid a NOTE from R CMD check
   count <- function(key, val) {
