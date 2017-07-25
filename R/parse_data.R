@@ -68,19 +68,10 @@ impute_srcref <- function(x, parent_ref) {
     },
 
     "switch" = {
-      terms <- which(pd_child$token %in% c("SYMBOL_SUB", "STR_CONST"))
-      commas <- which(pd_child$token == "','")
-      last_expression <- tail(which(pd_child$token == "expr"), n = 1)
-      if (length(commas) == length(terms)) {
-        # no default value, remove last term
-        terms <- terms[-length(terms)]
-      }
       c(list(NULL),
         list(make_srcref(3)),
         Map(make_srcref,
-          from = terms,
-          to = commas[-1L]),
-        list(make_srcref(last_expression))
+          from = seq(7, NROW(pd_child), 4))
         )
     },
 
