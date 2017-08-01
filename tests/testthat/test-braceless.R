@@ -68,22 +68,3 @@ test_that("switch with default value", {
   expect_equal(length(zero_coverage(code_coverage(f, "f(\"a\"); f(\"c\")"))$line),
     2)
 })
-
-test_that("switch with fall through values", {
-  f <-
-'f <- function(x) {
-  switch(x,
-    a1 = ,
-    a = 1,
-    b = 2,
-    c = d <- 1,
-    NULL
-  )
-}'
-
-  expect_equal(length(zero_coverage(code_coverage(f, "f(\"a\"); f(\"b\"); f(\"c\")"))$line),
-    2)
-
-  expect_equal(length(zero_coverage(code_coverage(f, "f(\"a\"); f(\"c\")"))$line),
-    3)
-})
