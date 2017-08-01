@@ -68,11 +68,9 @@ impute_srcref <- function(x, parent_ref) {
     },
 
     "switch" = {
-      c(list(NULL),
-        list(make_srcref(3)),
-        Map(make_srcref,
-          from = seq(7, NROW(pd_child), 4))
-        )
+      exprs <- which(pd_child$token == "expr")
+      exprs <- exprs[exprs >= 3]
+      c(list(NULL), Map(make_srcref, from = exprs))
     },
 
     NULL
