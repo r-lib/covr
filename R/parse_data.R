@@ -79,8 +79,27 @@ impute_srcref <- function(x, parent_ref) {
 
 is_conditional_or_loop <- function(x) is.symbol(x[[1L]]) && as.character(x[[1L]]) %in% c("if", "for", "else", "switch")
 
+package_parse_data <- new.env()
+
+get_parse_data <- function(srcfile) {
+  if (length(package_parse_data) == 0) {
+    lines <- getSrcLines(srcfile, 1L, Inf)
+    res <- lapply(split_on_line_directives(lines),
+      function(x) getParseData(parse(text = x, keep.source = TRUE), includeText = FALSE))
+    for (i in seq_along(res)) {
+      package_parse_data[[names(res)[[i]]]] <- res[[i]]
+    }
+  }
+  package_parse_data[[srcfile[["filename"]]]]
+}
+
+clean_parse_data <- function() {
+  for (nme in ls(package_parse_data)) {
+    rm(nme, envir = package_parse_data)
+  }
+}
+
 # Needed to work around https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16756
 get_tokens <- function(srcref) {
-  getParseData(srcref) %||%
-    getParseData(parse(text = getSrcLines(attr(getSrcref(srcref), "srcfile"), 1L, Inf), keep.source = TRUE))
+  getParseData(srcref) %||% get_parse_data(attr(getSrcref(srcref), "srcfile"))
 }

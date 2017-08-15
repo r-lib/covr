@@ -241,6 +241,7 @@ package_coverage <- function(path = ".",
     on.exit({
       clean_objects(pkg$path)
       clean_gcov(pkg$path)
+      clean_parse_data()
     }, add = TRUE)
   }
 

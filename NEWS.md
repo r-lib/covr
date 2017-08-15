@@ -1,6 +1,9 @@
 ## 3.0.0.9000 ##
+* Fix for a performance regression in parsing and reading parse data (#274).
+
 * Fix `switch` support for packages, which was broken due to a bug in
   how parse data is stored in packages.
+
 * Improve behavior of `switch` coverage, it now supports default values and
   fall through properly.
 
