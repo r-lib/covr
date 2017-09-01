@@ -34,6 +34,7 @@ test_that("uses_parallel", {
 
 
 test_that("should_enable_parallel_mcexit_fix", {
+  skip_on_os("windows")
   on.exit({
       Sys.unsetenv('COVR_FIX_PARALLEL_MCEXIT')
       options(covr.fix_parallel_mcexit = NULL)
