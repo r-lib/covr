@@ -1,4 +1,6 @@
 ## 3.0.0.9000 ##
+* Never use mcexit fix on windows (#223).
+
 * Fix for a performance regression in parsing and reading parse data (#274).
 
 * Fix `switch` support for packages, which was broken due to a bug in
