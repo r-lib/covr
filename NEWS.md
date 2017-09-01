@@ -9,6 +9,10 @@
 * Improve behavior of `switch` coverage, it now supports default values and
   fall through properly.
 
+* Add `-p` flag to gcov command to preserve file paths. Fixes a bug where
+  gcov output didn't get reported when multiple compiled source files had
+  the same name (#271, @patperry)
+
 ## 3.0.0 ##
 * The covr license has been changed to GPL-3.
 * Set environment variable `R_COVR=true` when covr is running (#236, #268).
