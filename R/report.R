@@ -1,6 +1,6 @@
 #' Display covr results using a standalone report
 #'
-#' @param x a coverage dataset
+#' @param x a coverage dataset, defaults to running `package_coverage()`.
 #' @param file The report filename.
 #' @param browse whether to open a browser to view the report.
 #' @aliases shine
@@ -13,7 +13,7 @@
 # This function was originally a shiny application, but has been converted into
 # a normal static document. Hence the shiny calls / dependency despite not
 # actually using shiny.
-report <- function(x,
+report <- function(x = package_coverage(),
   file = file.path(tempdir(), paste0(get_package_name(x), "-report.html")),
   browse = interactive()) {
 
