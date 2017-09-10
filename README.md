@@ -57,6 +57,29 @@ so that it is not revealed publicly.
 
 Also you will need to turn on coveralls for your project at <https://coveralls.io/repos>.
 
+## testthat ##
+If you would rather include unit tests for coverage in your [testthat](https://github.com/hadley/testthat) test suite, add a file `tests/testthat/test_coverage.R`:
+
+```
+context("coverage")
+
+test_that("Coverage", {
+  if (Sys.getenv("COVR_IS_RUNNING", FALSE)) {
+    skip("Coverage checks already running")
+  }
+  withr::with_envvar(
+    c("COVR_IS_RUNNING" = TRUE),
+    {
+      # testthat unit tests go here...
+      cov <- covr::package_coverage()
+      avg <- covr::percent_coverage(cov)
+      cat(round(avg), "% average\n", sep = "")
+      expect_gte(avg, 90, expected.label = "the required minimum coverage")
+    }
+  )
+})
+```
+
 # Interactive Usage #
 
 ## Shiny Application ##
