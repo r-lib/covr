@@ -175,3 +175,11 @@ addHighlight <- function(x = list()) {
 #' @export
 #' @rdname report
 shine <- report
+
+addin_report <- function() {
+  loadNamespace("rstudioapi")
+
+  project <- rstudioapi::getActiveProject()
+
+  covr::report(covr::package_coverage(project %||% getwd()))
+}

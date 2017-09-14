@@ -33,6 +33,12 @@ package. Using `report()` requires [shiny](https://github.com/rstudio/shiny).
 report()
 ```
 
+covr also defines an [RStudio Addin](https://rstudio.github.io/rstudioaddins/),
+which runs `report()` on the active project. This can be used via the addin
+menu or by binding the action to a
+[shortcut](https://rstudio.github.io/rstudioaddins/#keyboard-shorcuts), e.g.
+Ctrl-Shift-C.
+
 ## Interactively ##
 ```r
 # if your working directory is in the packages base directory

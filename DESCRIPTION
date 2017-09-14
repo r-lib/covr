@@ -58,7 +58,8 @@ Suggests:
     devtools,
     xml2 (>= 1.0.0),
     parallel,
-    memoise
+    memoise,
+    rstudioapi
 License: GPL-3
 LazyData: true
 VignetteBuilder: knitr
