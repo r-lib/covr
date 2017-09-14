@@ -4,10 +4,54 @@
 [![codecov.io](https://codecov.io/github/jimhester/covr/coverage.svg?branch=master)](https://codecov.io/github/jimhester/covr?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/covr)](https://cran.r-project.org/package=covr)
 
-Track test coverage for your R package and (optionally) upload the results to
-[coveralls](https://coveralls.io/) or [codecov](https://codecov.io/).
+Track test coverage for your R package and view reports locally or (optionally)
+upload the results to [codecov](https://codecov.io/) or [coveralls](https://coveralls.io/).
 
 # Installation #
+
+```r
+install.packages("covr")
+
+# For devel version
+devtools::install_github("jimhester/covr")
+```
+
+The easiest way to setup coverage for use on [Travis-CI](https://travis-ci.org)
+is with [usethis](https://github.com/r-lib/usethis).
+
+```r
+usethis::use_coverage()
+```
+
+# Usage #
+
+A coverage report can be used to inspect coverage for each line in your
+package. Using `report()` requires [shiny](https://github.com/rstudio/shiny).
+
+```r
+# If run with no arguments implicitly calls `package_coverage()`
+report()
+```
+
+## Interactively ##
+```r
+# if your working directory is in the packages base directory
+package_coverage()
+
+# or a package in another directory
+cov <- package_coverage("/dir/lintr")
+
+# view results as a data.frame
+as.data.frame(cov)
+
+# zero_coverage() can be used to filter only uncovered lines.
+# If run within RStudio, `zero_coverage()` will open a marker pane containing
+# all uncovered lines.
+zero_coverage(cov)
+```
+
+# Manual Installation
+
 ## Codecov ##
 If you are already using [Travis-CI](https://travis-ci.org) or [Appveyor CI](http://ci.appveyor.com) add the
 following to your project's `.travis.yml` to track your coverage results
@@ -56,41 +100,6 @@ environment variable. It is wise to use a [Secure Variable](http://docs.travis-c
 so that it is not revealed publicly.
 
 Also you will need to turn on coveralls for your project at <https://coveralls.io/repos>.
-
-# Interactive Usage #
-
-## Shiny Application ##
-A [shiny](http://shiny.rstudio.com/) Application can be used to
-view coverage per line.
-```r
-cov <- package_coverage()
-
-shine(cov)
-```
-
-If used with `type = "all", combine_types = FALSE` the Shiny Application will
-allow you to interactively toggle between Test, Vignette and Example coverage.
-
-```r
-cov <- package_coverage(type = "all", combine_types = FALSE)
-
-shine(cov)
-```
-
-## R Command Line ##
-```r
-# if your working directory is in the packages base directory
-package_coverage()
-
-# or a package in another directory
-cov <- package_coverage("lintr")
-
-# view results as a data.frame
-as.data.frame(cov)
-
-# zero_coverage() can be used to filter only uncovered lines.
-zero_coverage(cov)
-```
 
 # Exclusions #
 
