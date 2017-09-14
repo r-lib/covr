@@ -16,7 +16,7 @@ install.packages("covr")
 devtools::install_github("jimhester/covr")
 ```
 
-The easiest way to setup coverage for use on [Travis-CI](https://travis-ci.org)
+The easiest way to setup covr on [Travis-CI](https://travis-ci.org)
 is with [usethis](https://github.com/r-lib/usethis).
 
 ```r
@@ -29,6 +29,8 @@ A coverage report can be used to inspect coverage for each line in your
 package. Using `report()` requires [shiny](https://github.com/rstudio/shiny).
 
 ```r
+library(covr)
+
 # If run with no arguments implicitly calls `package_coverage()`
 report()
 ```
@@ -37,11 +39,11 @@ covr also defines an [RStudio Addin](https://rstudio.github.io/rstudioaddins/),
 which runs `report()` on the active project. This can be used via the addin
 menu or by binding the action to a
 [shortcut](https://rstudio.github.io/rstudioaddins/#keyboard-shorcuts), e.g.
-Ctrl-Shift-C.
+*Ctrl-Shift-C*.
 
 ## Interactively ##
 ```r
-# if your working directory is in the packages base directory
+# if `getwd()` is the package's directory.
 package_coverage()
 
 # or a package in another directory
@@ -50,9 +52,9 @@ cov <- package_coverage("/dir/lintr")
 # view results as a data.frame
 as.data.frame(cov)
 
-# zero_coverage() can be used to filter only uncovered lines.
-# If run within RStudio, `zero_coverage()` will open a marker pane containing
-# all uncovered lines.
+# zero_coverage() shows only uncovered lines.
+# If run within RStudio, `zero_coverage()` will open a marker pane with the
+# uncovered lines.
 zero_coverage(cov)
 ```
 
