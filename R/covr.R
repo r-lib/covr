@@ -336,6 +336,7 @@ package_coverage <- function(path = ".",
 #'
 #' @param x a coverage dataset, defaults to running `package_coverage()`.
 #' @return A list containing coverage result for each individual file and the whole package
+#' @export
 coverage_to_list <- function(x = package_coverage()){
   covr_df <- tally_coverage(x)
   file_result <- tapply(covr_df$value, covr_df$filename,
