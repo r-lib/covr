@@ -3,6 +3,7 @@
 \name{report}
 \alias{report}
 \alias{shine}
+\alias{shine}
 \title{Display covr results using a standalone report}
 \usage{
 report(x = package_coverage(), file = file.path(tempdir(),
