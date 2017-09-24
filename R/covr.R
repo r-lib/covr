@@ -332,8 +332,12 @@ package_coverage <- function(path = ".",
     path = if (isTRUE(relative_path)) pkg$path else NULL)
 }
 
-coverage_to_vector <- function(x = package_coverage()){
-  covr_df <- tally_coverage(as.data.frame(x))
+#' Convert a coverage dataset to a list
+#'
+#' @param x a coverage dataset, defaults to running `package_coverage()`.
+#' @return A list containing coverage result for each individual file and the whole package
+coverage_to_list <- function(x = package_coverage()){
+  covr_df <- tally_coverage(x)
   file_result <- tapply(covr_df$value, covr_df$filename,
     FUN = function(x) round(sum(x > 0) / length(x) * 100, digits = 2))
   total_result <- round(sum(covr_df$value > 0) / nrow(covr_df) * 100, digits = 2)
