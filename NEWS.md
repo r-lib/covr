@@ -1,4 +1,6 @@
 ## 3.0.0.9000 ##
+* Add an RStudio Addin for running a coverage report.
+
 * Never use mcexit fix on windows (#223).
 
 * Fix for a performance regression in parsing and reading parse data (#274).
