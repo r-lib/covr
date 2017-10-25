@@ -55,11 +55,9 @@ Suggests:
     DT (>= 0.2),
     testthat,
     rstudioapi (>= 0.2),
-    devtools,
     xml2 (>= 1.0.0),
     parallel,
     memoise,
-    rstudioapi
 License: GPL-3
 LazyData: true
 VignetteBuilder: knitr
