@@ -58,6 +58,7 @@ Suggests:
     xml2 (>= 1.0.0),
     parallel,
     memoise,
+    mockery
 License: GPL-3
 LazyData: true
 VignetteBuilder: knitr
