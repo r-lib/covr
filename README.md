@@ -1,7 +1,7 @@
 # Covr #
-[![Build Status](https://travis-ci.org/jimhester/covr.svg?branch=master)](https://travis-ci.org/jimhester/covr)
+[![Build Status](https://travis-ci.org/r-lib/covr.svg?branch=master)](https://travis-ci.org/r-lib/covr)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jimhester/covr?branch=master&svg=true)](https://ci.appveyor.com/project/jimhester/covr)
-[![codecov.io](https://codecov.io/github/jimhester/covr/coverage.svg?branch=master)](https://codecov.io/github/jimhester/covr?branch=master)
+[![codecov.io](https://codecov.io/github/r-lib/covr/coverage.svg?branch=master)](https://codecov.io/github/r-lib/covr?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/covr)](https://cran.r-project.org/package=covr)
 
 Track test coverage for your R package and view reports locally or (optionally)
@@ -13,7 +13,7 @@ upload the results to [codecov](https://codecov.io/) or [coveralls](https://cove
 install.packages("covr")
 
 # For devel version
-devtools::install_github("jimhester/covr")
+devtools::install_github("r-lib/covr")
 ```
 
 The easiest way to setup covr on [Travis-CI](https://travis-ci.org)
@@ -67,7 +67,7 @@ over time with [Codecov](https://codecov.io).
 
 ```yml
 r_github_packages:
-  - jimhester/covr
+  - r-lib/covr
 
 after_success:
   - Rscript -e 'covr::codecov()'
@@ -97,7 +97,7 @@ using `coveralls()`.
 
 ```yml
 r_github_packages:
-  - jimhester/covr
+  - r-lib/covr
 
 after_success:
   - Rscript -e 'covr::coveralls()'
@@ -188,7 +188,7 @@ options(covr.gcov = "path/to/gcov")
 to each call.
 
 The vignette
-[vignettes/how_it_works.Rmd](https://github.com/jimhester/covr/blob/master/vignettes/how_it_works.Rmd)
+[vignettes/how_it_works.Rmd](https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd)
 contains a detailed explanation of the technique and the rationale behind it.
 
 You can view the vignette from within `R` using
