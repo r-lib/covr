@@ -2,13 +2,9 @@
 % Please edit documentation in R/report.R
 \name{report}
 \alias{report}
-\alias{shine}
 \title{Display covr results using a standalone report}
 \usage{
 report(x = package_coverage(), file = file.path(tempdir(),
-  paste0(get_package_name(x), "-report.html")), browse = interactive())
-
-shine(x = package_coverage(), file = file.path(tempdir(),
   paste0(get_package_name(x), "-report.html")), browse = interactive())
 }
 \arguments{
