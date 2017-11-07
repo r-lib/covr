@@ -7,3 +7,5 @@ covr.Rproj
 cache/
 data.Rmd
 vignettes/covr_performance.Rmd
+revdep/checks
+revdep/library
