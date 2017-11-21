@@ -2,18 +2,13 @@
 % Please edit documentation in R/report.R
 \name{report}
 \alias{report}
-\alias{shine}
-\alias{shine}
 \title{Display covr results using a standalone report}
 \usage{
 report(x = package_coverage(), file = file.path(tempdir(),
   paste0(get_package_name(x), "-report.html")), browse = interactive())
-
-shine(x = package_coverage(), file = file.path(tempdir(),
-  paste0(get_package_name(x), "-report.html")), browse = interactive())
 }
 \arguments{
-\item{x}{a coverage dataset, defaults to running `package_coverage()`.}
+\item{x}{a coverage dataset, defaults to running \code{package_coverage()}.}
 
 \item{file}{The report filename.}
 

@@ -7,7 +7,7 @@
 count(key)
 }
 \arguments{
-\item{key}{generated with \code{\link{key}}}
+\item{key}{generated with \code{\link[=key]{key()}}}
 }
 \description{
 increment a given counter

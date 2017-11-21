@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Package: covr
 Title: Test Coverage for Packages
-Version: 3.0.0.9000
+Version: 3.0.1
 Authors@R: c(
     person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre")),
     person("Willem", "Ligtenberg", role = "ctb"),
@@ -32,8 +32,8 @@ Description: Track and report code coverage for your package and (optionally)
     quality and completeness. This package is compatible with any testing
     methodology or framework and tracks coverage of both R code and compiled
     C/C++/FORTRAN code.
-URL: https://github.com/jimhester/covr
-BugReports: https://github.com/jimhester/covr/issues
+URL: https://github.com/r-lib/covr
+BugReports: https://github.com/r-lib/covr/issues
 Depends:
     R (>= 3.1.0),
     methods
@@ -55,12 +55,12 @@ Suggests:
     DT (>= 0.2),
     testthat,
     rstudioapi (>= 0.2),
-    devtools,
     xml2 (>= 1.0.0),
     parallel,
     memoise,
-    rstudioapi
+    mockery
 License: GPL-3
 LazyData: true
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
+Roxygen: list(markdown = TRUE)

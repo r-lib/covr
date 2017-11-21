@@ -37,7 +37,7 @@ names to exclude. Example \code{print\\.} to match print methods.}
 
 \item{code}{A character vector of additional test code to run.}
 
-\item{...}{Additional arguments passed to \code{\link[tools]{testInstalledPackage}}.}
+\item{...}{Additional arguments passed to \code{\link[tools:testInstalledPackage]{tools::testInstalledPackage()}}.}
 
 \item{exclusions}{\sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.}
 }
@@ -47,13 +47,13 @@ This function calculates the test coverage for a development package on the
 vignette and example code.
 }
 \details{
-This function uses \code{\link[tools]{testInstalledPackage}} to run the
+This function uses \code{\link[tools:testInstalledPackage]{tools::testInstalledPackage()}} to run the
 code, if you would like to test your package in another way you can set
 \code{type = "none"} and pass the code to run as a character vector to the
 \code{code} parameter.
 
 #ifdef unix
-Parallelized code using \pkg{parallel}'s \code{\link{mcparallel}} needs to
+Parallelized code using \pkg{parallel}'s \code{\link[=mcparallel]{mcparallel()}} needs to
 be use a patched \code{parallel:::mcexit}. This is done automatically if the
 package depends on \pkg{parallel}, but can also be explicitly set using the
 environment variable \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
@@ -61,6 +61,6 @@ environment variable \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
 #endif
 }
 \seealso{
-\code{\link{exclusions}} For details on excluding parts of the
+\code{\link[=exclusions]{exclusions()}} For details on excluding parts of the
 package from the coverage calculations.
 }

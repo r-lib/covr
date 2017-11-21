@@ -1,15 +1,15 @@
 #' Run covr on a package and upload the result to coveralls
-#' @param coverage an existing coverage object to submit, if \code{NULL},
-#' \code{\link{package_coverage}} will be called with the arguments from
-#' \code{...}
-#' @param ... arguments passed to \code{\link{package_coverage}}
+#' @param coverage an existing coverage object to submit, if `NULL`,
+#' [package_coverage()] will be called with the arguments from
+#' `...`
+#' @param ... arguments passed to [package_coverage()]
 #' @param repo_token The secret repo token for your repository,
 #' found at the bottom of your repository's page on Coveralls. This is useful
 #' if your job is running on a service Coveralls doesn't support out-of-the-box.
 #' If set to NULL, it is assumed that the job is running on travis-ci
 #' @param service_name the CI service to use, if environment variable
 #' \sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.
-#' @param quiet if \code{FALSE}, print the coverage before submission.
+#' @param quiet if `FALSE`, print the coverage before submission.
 #' @export
 coveralls <- function(..., coverage = NULL,
                       repo_token = Sys.getenv("COVERALLS_TOKEN"),

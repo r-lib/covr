@@ -3,7 +3,6 @@
 #' @param x a coverage dataset, defaults to running `package_coverage()`.
 #' @param file The report filename.
 #' @param browse whether to open a browser to view the report.
-#' @aliases shine
 #' @examples
 #' \dontrun{
 #' x <- package_coverage()
@@ -172,10 +171,18 @@ addHighlight <- function(x = list()) {
   htmltools::attachDependencies(x, c(htmltools::htmlDependencies(x), list(highlight)))
 }
 
-#' @export
-#' @rdname report
-shine <- report
+#' Deprecated Functions
 
+#' These functions are Deprecated in this release of covr, they will be
+#' marked as Defunct and removed in a future version.
+#'
+#' @export
+#' @keywords internal
+#' @rdname covr-deprecated
+shine <- function(...) {
+  .Deprecated("report()", package = "covr")
+  report(...)
+}
 addin_report <- function() {
   loadNamespace("rstudioapi")
 

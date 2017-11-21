@@ -21,6 +21,6 @@ call.
 This function calls itself recursively so it can properly traverse the AST.
 }
 \seealso{
-\url{http://adv-r.had.co.nz/Expressions.html}
+http://adv-r.had.co.nz/Expressions.html
 }
 \keyword{internal}

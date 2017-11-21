@@ -164,3 +164,56 @@ test_that("it returns a normalizedPath if the file can be found", {
     file_exclusions(list("testthat/test-exclusions.R", "testthat.R"), ".."),
     rex::rex(or("test-exclusions.R", "testthat.R")))
 })
+
+describe("covrignore", {
+  it("returns NULL if empty or no file exclusions", {
+    withr::with_options(list(covr.covrignore = ""),
+      expect_equal(parse_covr_ignore(), NULL)
+      )
+    withr::with_envvar(list("COVR_COVRIGNORE" = ""),
+      expect_equal(parse_covr_ignore(), NULL)
+      )
+    tf <- tempfile()
+    on.exit(unlink(tf))
+    writeLines("", tf)
+    withr::with_options(list(covr.covrignore = tf),
+      expect_equal(parse_covr_ignore(), NULL)
+      )
+    withr::with_envvar(list("COVR_COVRIGNORE" = tf),
+      expect_equal(parse_covr_ignore(), NULL)
+      )
+    })
+  it("returns the file if file exists", {
+    td <- tempfile()
+    on.exit(unlink(td, recursive = TRUE))
+    dir.create(td)
+    writeLines("foo.c", file.path(td, ".covrignore"))
+    writeLines("", file.path(td, "foo.c"))
+    withr::with_dir(td, {
+      expect_equal(parse_covr_ignore(), "foo.c")
+    })
+  })
+  it("handles globs correctly", {
+    td <- tempfile()
+    on.exit(unlink(td, recursive = TRUE))
+    dir.create(td)
+    writeLines("foo.*", file.path(td, ".covrignore"))
+    writeLines("", file.path(td, "foo.c"))
+    writeLines("", file.path(td, "foo.o"))
+    withr::with_dir(td, {
+      expect_equal(parse_covr_ignore(), c("foo.c", "foo.o"))
+    })
+  })
+  it("handles directories correctly", {
+    td <- tempfile()
+    on.exit(unlink(td, recursive = TRUE))
+    dir.create(td)
+    dir.create(file.path(td, "src"))
+    writeLines("src", file.path(td, ".covrignore"))
+    writeLines("", file.path(td, "src", "foo.c"))
+    writeLines("", file.path(td, "src", "foo.o"))
+    withr::with_dir(td, {
+      expect_equal(parse_covr_ignore(), c("src//foo.c", "src//foo.o"))
+    })
+  })
+})

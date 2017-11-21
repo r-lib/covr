@@ -7,7 +7,7 @@
 tally_coverage(x, by = c("line", "expression"))
 }
 \arguments{
-\item{x}{the coverage object returned from \code{\link{package_coverage}}}
+\item{x}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
 
 \item{by}{whether to tally coverage by line or expression}
 }

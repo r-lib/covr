@@ -8,10 +8,10 @@ codecov(..., coverage = NULL, base_url = "https://codecov.io",
   token = NULL, commit = NULL, branch = NULL, quiet = TRUE)
 }
 \arguments{
-\item{...}{arguments passed to \code{\link{package_coverage}}}
+\item{...}{arguments passed to \code{\link[=package_coverage]{package_coverage()}}}
 
 \item{coverage}{an existing coverage object to submit, if \code{NULL},
-\code{\link{package_coverage}} will be called with the arguments from
+\code{\link[=package_coverage]{package_coverage()}} will be called with the arguments from
 \code{...}}
 
 \item{base_url}{Codecov url (change for Enterprise)}

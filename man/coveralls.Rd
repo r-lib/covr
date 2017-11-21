@@ -8,10 +8,10 @@ coveralls(..., coverage = NULL, repo_token = Sys.getenv("COVERALLS_TOKEN"),
   service_name = Sys.getenv("CI_NAME", "travis-ci"), quiet = TRUE)
 }
 \arguments{
-\item{...}{arguments passed to \code{\link{package_coverage}}}
+\item{...}{arguments passed to \code{\link[=package_coverage]{package_coverage()}}}
 
 \item{coverage}{an existing coverage object to submit, if \code{NULL},
-\code{\link{package_coverage}} will be called with the arguments from
+\code{\link[=package_coverage]{package_coverage()}} will be called with the arguments from
 \code{...}}
 
 \item{repo_token}{The secret repo token for your repository,

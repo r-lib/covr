@@ -1,4 +1,4 @@
-## 3.0.0.9000 ##
+## 3.0.1 ##
 * Add an RStudio Addin for running a coverage report.
 
 * Never use mcexit fix on windows (#223).
