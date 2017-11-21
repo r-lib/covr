@@ -202,3 +202,18 @@ remove_line_duplicates <- function(x) {
 
   x
 }
+
+parse_covr_ignore <- function(file = getOption("covr.covrignore", Sys.getenv("COVR_COVRIGNORE", ".covrignore"))) {
+  if (!file.exists(file)) {
+    return(NULL)
+  }
+  lines <- readLines(file)
+  paths <- Sys.glob(lines, dirmark = TRUE)
+  unlist(lapply(paths, function(x) {
+      if (dir.exists(x)) {
+        list.files(recursive = TRUE, all.files = TRUE, path = x, full.names = TRUE)
+      } else {
+        x
+      }
+    }))
+}

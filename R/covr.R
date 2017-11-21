@@ -324,7 +324,7 @@ package_coverage <- function(path = ".",
   coverage <- filter_non_package_files(coverage)
 
   # Exclude both RcppExports to avoid reduntant coverage information
-  line_exclusions <- c("src/RcppExports.cpp", "R/RcppExports.R", line_exclusions)
+  line_exclusions <- c("src/RcppExports.cpp", "R/RcppExports.R", line_exclusions, parse_covr_ignore())
 
   exclude(coverage,
     line_exclusions = line_exclusions,

@@ -111,7 +111,24 @@ Also you will need to turn on coveralls for your project at <https://coveralls.i
 
 # Exclusions #
 
-`covr` supports a couple of different ways of excluding some or all of a file.
+`covr` supports a few of different ways of excluding some or all of a file.
+
+## .covrignore file ##
+
+A `.covrignore` file located in your package's root directory can be used to
+exclude files or directories.
+
+The lines in the `.covrignore` file are interpreted as a list of file globs to
+ignore. It uses the globbing rules in `Sys.glob()`. Any directories listed will
+ignore all the files in the directory.
+
+Alternative locations for the file can be set by the environment variable
+`COVR_COVRIGNORE` or the R option `covr.covrignore`.
+
+The `.covrignore` file should be added to your `.RBuildignore` file unless you
+want to distribute it with your package. If so it can be added to
+`inst/.covrignore` instead.
+
 
 ## Function Exclusions ##
 The `function_exclusions` argument to `package_coverage()` can be used to
