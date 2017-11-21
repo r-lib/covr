@@ -351,6 +351,19 @@ package_coverage <- function(path = ".",
     path = if (isTRUE(relative_path)) pkg$path else NULL)
 }
 
+#' Convert a coverage dataset to a list
+#'
+#' @param x a coverage dataset, defaults to running `package_coverage()`.
+#' @return A list containing coverage result for each individual file and the whole package
+#' @export
+coverage_to_list <- function(x = package_coverage()){
+  covr_df <- tally_coverage(x)
+  file_result <- tapply(covr_df$value, covr_df$filename,
+    FUN = function(x) round(sum(x > 0) / length(x) * 100, digits = 2))
+  total_result <- round(sum(covr_df$value > 0) / nrow(covr_df) * 100, digits = 2)
+  return(list(filecoverage = file_result, totalcoverage = total_result))
+}
+
 show_failures <- function(dir) {
   fail_files <- list.files(dir, pattern = "fail$", recursive = TRUE, full.names = TRUE)
   for (file in fail_files) {
