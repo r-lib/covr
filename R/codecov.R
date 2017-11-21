@@ -1,18 +1,18 @@
 #' Run covr on a package and upload the result to codecov.io
-#' @param coverage an existing coverage object to submit, if \code{NULL},
-#' \code{\link{package_coverage}} will be called with the arguments from
-#' \code{...}
-#' @param ... arguments passed to \code{\link{package_coverage}}
+#' @param coverage an existing coverage object to submit, if `NULL`,
+#' [package_coverage()] will be called with the arguments from
+#' `...`
+#' @param ... arguments passed to [package_coverage()]
 #' @param base_url Codecov url (change for Enterprise)
-#' @param quiet if \code{FALSE}, print the coverage before submission.
-#' @param token a codecov upload token, if \code{NULL} the environment
+#' @param quiet if `FALSE`, print the coverage before submission.
+#' @param token a codecov upload token, if `NULL` the environment
 #' variable \sQuote{CODECOV_TOKEN} is used.
 #' @param commit explicitly set the commit this coverage result object
 #' corresponds to. Is looked up from the service or locally if it is
-#' \code{NULL}.
+#' `NULL`.
 #' @param branch explicitly set the branch this coverage result object
 #' corresponds to, this is looked up from the service or locally if it is
-#' \code{NULL}.
+#' `NULL`.
 #' @export
 #' @examples
 #' \dontrun{

@@ -5,10 +5,10 @@
 #' @param cmd the command to run.
 #' @param args a vector of command arguments.
 #' @param env a named character vector of environment variables.  Will be quoted
-#' @param quiet if \code{TRUE}, the command output will be echoed.
-#' @param echo if \code{TRUE}, the command to run will be echoed.
-#' @param ... additional arguments passed to \code{\link[base]{system}}
-#' @return \code{TRUE} if the command succeeds, an error will be thrown if the
+#' @param quiet if `TRUE`, the command output will be echoed.
+#' @param echo if `TRUE`, the command to run will be echoed.
+#' @param ... additional arguments passed to [base::system()]
+#' @return `TRUE` if the command succeeds, an error will be thrown if the
 #' command fails.
 #' @keywords internal
 system_check <- function(cmd, args = character(), env = character(),

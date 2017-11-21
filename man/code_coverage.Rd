@@ -18,10 +18,10 @@ each file.}
 \item{function_exclusions}{a vector of regular expressions matching function
 names to exclude. Example \code{print\\.} to match print methods.}
 
-\item{...}{Additional arguments passed to \code{\link{file_coverage}}}
+\item{...}{Additional arguments passed to \code{\link[=file_coverage]{file_coverage()}}}
 }
 \description{
 This function is useful for testing, and is a thin wrapper around
-\code{\link{file_coverage}} because parseData is not populated properly
+\code{\link[=file_coverage]{file_coverage()}} because parseData is not populated properly
 unless the functions are defined in a file.
 }

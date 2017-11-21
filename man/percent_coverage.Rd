@@ -7,9 +7,9 @@
 percent_coverage(x, ...)
 }
 \arguments{
-\item{x}{the coverage object returned from \code{\link{package_coverage}}}
+\item{x}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
 
-\item{...}{additional arguments passed to \code{\link{tally_coverage}}}
+\item{...}{additional arguments passed to \code{\link[=tally_coverage]{tally_coverage()}}}
 }
 \value{
 The total percentage as a \code{numeric(1)}.

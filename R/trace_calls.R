@@ -4,7 +4,7 @@
 #' @param x the call
 #' @param parent_functions the functions which this call is a child of.
 #' @param parent_ref argument used to set the srcref of the current call when recursing
-#' @seealso \url{http://adv-r.had.co.nz/Expressions.html}
+#' @seealso http://adv-r.had.co.nz/Expressions.html
 #' @return a modified expression with count calls inserted before each previous
 #' call.
 #' @keywords internal
@@ -96,7 +96,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
 
 #' initialize a new counter
 #'
-#' @param src_ref a \code{\link[base]{srcref}}
+#' @param src_ref a [base::srcref()]
 #' @param parent_functions the functions that this srcref is contained in.
 #' @keywords internal
 new_counter <- function(src_ref, parent_functions) {
@@ -109,7 +109,7 @@ new_counter <- function(src_ref, parent_functions) {
 
 #' increment a given counter
 #'
-#' @param key generated with \code{\link{key}}
+#' @param key generated with [key()]
 #' @keywords internal
 count <- function(key) {
   .counters[[key]]$value <- .counters[[key]]$value + 1

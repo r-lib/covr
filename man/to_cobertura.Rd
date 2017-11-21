@@ -7,7 +7,7 @@
 to_cobertura(cov, filename = "cobertura.xml")
 }
 \arguments{
-\item{cov}{the coverage object returned from \code{\link{package_coverage}}}
+\item{cov}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
 
 \item{filename}{the name of the Cobertura XML file}
 }

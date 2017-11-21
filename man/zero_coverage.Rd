@@ -7,17 +7,17 @@
 zero_coverage(x, ...)
 }
 \arguments{
-\item{x}{a coverage object returned \code{\link{package_coverage}}}
+\item{x}{a coverage object returned \code{\link[=package_coverage]{package_coverage()}}}
 
 \item{...}{additional arguments passed to
-\code{\link{tally_coverage}}}
+\code{\link[=tally_coverage]{tally_coverage()}}}
 }
 \value{
 A \code{data.frame} with coverage data where the coverage is 0.
 }
 \description{
 When examining the test coverage of a package, it is useful to know if there are
-any locations where there is \bold{0} test coverage.
+any locations where there is \strong{0} test coverage.
 }
 \details{
 if used within RStudio this function outputs the results using the

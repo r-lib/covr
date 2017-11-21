@@ -4,23 +4,23 @@
 #'
 #' @section Line Exclusions:
 #'
-#' The \code{line_exclusions} argument to \code{package_coverage()} can be used
+#' The `line_exclusions` argument to `package_coverage()` can be used
 #' to exclude some or all of a file.  This argument takes a list of filenames
 #' or named ranges to exclude.
 #'
 #' @section Function Exclusions:
 #'
-#' Alternatively \code{function_exclusions} can be used to exclude R functions
-#' based on regular expression(s). For example \code{print\\.*} can be used to
+#' Alternatively `function_exclusions` can be used to exclude R functions
+#' based on regular expression(s). For example `print\\.*` can be used to
 #' exclude all the print methods defined in a package from coverage.
 #'
 #' @section Exclusion Comments:
 #'
 #' In addition you can exclude lines from the coverage by putting special comments
 #' in your source code. This can be done per line or by specifying a range.
-#' The patterns used can be specified by the \code{exclude_pattern}, \code{exclude_start},
-#' \code{exclude_end} arguments to \code{package_coverage()} or by setting the global
-#' options \code{covr.exclude_pattern}, \code{covr.exclude_start}, \code{covr.exclude_end}.
+#' The patterns used can be specified by the `exclude_pattern`, `exclude_start`,
+#' `exclude_end` arguments to `package_coverage()` or by setting the global
+#' options `covr.exclude_pattern`, `covr.exclude_start`, `covr.exclude_end`.
 
 #' @examples
 #' \dontrun{

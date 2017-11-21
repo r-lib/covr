@@ -1,9 +1,9 @@
 #' Provide percent coverage of package
 #'
 #' Calculate the total percent coverage from a coverage result object.
-#' @param x the coverage object returned from \code{\link{package_coverage}}
-#' @param ... additional arguments passed to \code{\link{tally_coverage}}
-#' @return The total percentage as a \code{numeric(1)}.
+#' @param x the coverage object returned from [package_coverage()]
+#' @param ... additional arguments passed to [tally_coverage()]
+#' @return The total percentage as a `numeric(1)`.
 #' @export
 percent_coverage <- function(x, ...) {
   res <- tally_coverage(x, ...)
@@ -15,7 +15,7 @@ percent_coverage <- function(x, ...) {
 #'
 #' @inheritParams percent_coverage
 #' @param by whether to tally coverage by line or expression
-#' @return a \code{data.frame} of coverage tallied by line or expression.
+#' @return a `data.frame` of coverage tallied by line or expression.
 #' @export
 tally_coverage <- function(x, by = c("line", "expression")) {
   df <- as.data.frame(x)
@@ -79,12 +79,12 @@ tally_coverage <- function(x, by = c("line", "expression")) {
 #' Provide locations of zero coverage
 #'
 #' When examining the test coverage of a package, it is useful to know if there are
-#' any locations where there is \bold{0} test coverage.
+#' any locations where there is **0** test coverage.
 #'
-#' @param x a coverage object returned \code{\link{package_coverage}}
+#' @param x a coverage object returned [package_coverage()]
 #' @param ... additional arguments passed to
-#' \code{\link{tally_coverage}}
-#' @return A \code{data.frame} with coverage data where the coverage is 0.
+#' [tally_coverage()]
+#' @return A `data.frame` with coverage data where the coverage is 0.
 #' @details if used within RStudio this function outputs the results using the
 #' Marker API.
 #' @export

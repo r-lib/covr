@@ -1,7 +1,7 @@
 #' Create a Cobertura XML file
 #'
 #' This functionality requires the xml2 package be installed.
-#' @param cov the coverage object returned from \code{\link{package_coverage}}
+#' @param cov the coverage object returned from [package_coverage()]
 #' @param filename the name of the Cobertura XML file
 #' @author Willem Ligtenberg
 #' @export

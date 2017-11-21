@@ -18,7 +18,7 @@ system_output(cmd, args = character(), env = character(), quiet = FALSE,
 
 \item{echo}{if \code{TRUE}, the command to run will be echoed.}
 
-\item{...}{additional arguments passed to \code{\link[base]{system}}}
+\item{...}{additional arguments passed to \code{\link[base:system]{base::system()}}}
 }
 \value{
 command output if the command succeeds, an error will be thrown if
