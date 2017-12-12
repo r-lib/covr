@@ -392,10 +392,13 @@ merge_coverage <- function(files) {
   names <- names(x)
   for (i in 2:nfiles) {
     y <- readRDS(files[i])
-    stopifnot(identical(names(y), names))
-    for (name in names) {
+    for (name in intersect(names, names(y))) {
       x[[name]]$value <- x[[name]]$value + y[[name]]$value
     }
+    for (name in setdiff(names(y), names)) {
+      x[[name]] = y[[name]]
+    }
+    names = union(names, names(y))
     y <- NULL
   }
 
