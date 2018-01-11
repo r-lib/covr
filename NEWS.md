@@ -1,4 +1,4 @@
-## 3.0.2 ##
+## 3.0.1.9000 ##
 * Allow using `trace_calls()` for manually adding functions to package trace
   that are not found automatically (#295, @mb706).
 
