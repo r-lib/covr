@@ -396,9 +396,9 @@ merge_coverage <- function(files) {
       x[[name]]$value <- x[[name]]$value + y[[name]]$value
     }
     for (name in setdiff(names(y), names)) {
-      x[[name]] = y[[name]]
+      x[[name]] <- y[[name]]
     }
-    names = union(names, names(y))
+    names <- union(names, names(y))
     y <- NULL
   }
 
