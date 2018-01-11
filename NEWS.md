@@ -1,3 +1,7 @@
+## 3.0.2 ##
+* Allow using `trace_calls()` for manually adding functions to package trace
+  that are not found automatically (#295, @mb706).
+
 ## 3.0.1 ##
 * Add an RStudio Addin for running a coverage report.
 
