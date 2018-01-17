@@ -2,6 +2,8 @@
 * Allow using `trace_calls()` for manually adding functions to package trace
   that are not found automatically (#295, @mb706).
 
+* Add support for `.covrignore` files (#238), to exclude files from the coverage.
+
 ## 3.0.1 ##
 * Add an RStudio Addin for running a coverage report.
 
