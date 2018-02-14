@@ -4,7 +4,8 @@
 #' `...`
 #' @param ... arguments passed to [package_coverage()]
 #' @param base_url Codecov url (change for Enterprise)
-#' @param quiet if `FALSE`, print the coverage before submission.
+#' @param quiet if `FALSE`, print the coverage and the query elements
+#' before submission.
 #' @param token a codecov upload token, if `NULL` the environment
 #' variable \sQuote{CODECOV_TOKEN} is used.
 #' @param commit explicitly set the commit this coverage result object
@@ -49,7 +50,7 @@ codecov <- function(...,
   # Travis CI
   # ---------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("TRAVIS") == "true") {
-    # http://docs.travis-ci.com/user/ci-environment/#Environment-variables
+    # https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
     codecov_query <- list(branch = branch %||% Sys.getenv("TRAVIS_BRANCH"),
                           service = "travis",
@@ -112,12 +113,11 @@ codecov <- function(...,
   } else if (Sys.getenv("CI") == "True" && Sys.getenv("APPVEYOR") == "True") {
     # http://www.appveyor.com/docs/environment-variables
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
-    name_info <- strsplit(Sys.getenv("APPVEYOR_REPO_NAME"), "/")[[1]]
     codecov_query <- list(service = "appveyor",
                           branch = branch %||% Sys.getenv("APPVEYOR_REPO_BRANCH"),
-                          build = Sys.getenv("APPVEYOR_BUILD_NUMBER"),
-                          owner = name_info[1],
-                          repo = name_info[2],
+                          job = paste(Sys.getenv("APPVEYOR_ACCOUNT_NAME"), Sys.getenv("APPVEYOR_PROJECT_SLUG"), Sys.getenv("APPVEYOR_BUILD_VERSION"), sep = "/"),
+                          build = Sys.getenv("APPVEYOR_JOB_ID"),
+                          slug = Sys.getenv("APPVEYOR_REPO_NAME"),
                           commit = commit %||% Sys.getenv("APPVEYOR_REPO_COMMIT"))
   # -------
   # Wercker
@@ -158,6 +158,10 @@ codecov <- function(...,
   }
 
   coverage_json <- to_codecov(coverage)
+
+  if (!quiet) {
+    print(codecov_query)
+  }
 
   httr::content(httr::POST(url = codecov_url, query = codecov_query, body = coverage_json, encode = "json"))
 }
