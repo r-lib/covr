@@ -1,7 +1,10 @@
 context("codecov")
 ci_vars <- c(
   "APPVEYOR" = NA,
-  "APPVEYOR_BUILD_NUMBER" = NA,
+  "APPVEYOR_ACCOUNT_NAME" = NA,
+  "APPVEYOR_PROJECT_SLUG" = NA,
+  "APPVEYOR_BUILD_VERSION" = NA,
+  "APPVEYOR_JOB_ID" = NA,
   "APPVEYOR_REPO_BRANCH" = NA,
   "APPVEYOR_REPO_COMMIT" = NA,
   "APPVEYOR_REPO_NAME" = NA,
@@ -314,9 +317,12 @@ test_that("it works with AppVeyor", {
       ci_vars,
       "CI" = "True",
       "APPVEYOR" = "True",
-      "APPVEYOR_REPO_NAME" = "tester/test",
+      "APPVEYOR_REPO_NAME" = "testspace/test",
       "APPVEYOR_REPO_BRANCH" = "master",
-      "APPVEYOR_BUILD_NUMBER" = "5",
+      "APPVEYOR_ACCOUNT_NAME" = "testuser", # not necessarily the same as testspace above
+      "APPVEYOR_PROJECT_SLUG" = "test",
+      "APPVEYOR_BUILD_VERSION" = "1.0.5",
+      "APPVEYOR_JOB_ID" = "225apqggpmlkn5pr",
       "APPVEYOR_REPO_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
       ),
 
@@ -328,9 +334,9 @@ test_that("it works with AppVeyor", {
 
       expect_match(res$query$service, "appveyor"),
       expect_match(res$query$branch, "master"),
-      expect_match(res$query$build, "5"),
-      expect_match(res$query$owner, "tester"),
-      expect_match(res$query$repo, "test"),
+      expect_match(res$query$job, "testuser/test/1.0.5"),
+      expect_match(res$query$build, "225apqggpmlkn5pr"),
+      expect_match(res$query$slug, "testspace/test"),
       expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
       )
     )
