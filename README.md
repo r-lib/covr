@@ -75,27 +75,15 @@ after_success:
 
 If you are using [Appveyor CI](http://ci.appveyor.com), and are not using
 [Travis-CI](https://travis-ci.org) at the same time, then you can add the
-lines below to your project's `appveyor.yml`, after having added a directory
-`scripts` to your package root with an R script called `runCodecov.R`, with
-the following content:
-
-```r
-library(covr)
-sink(paste0(basename(normalizePath(".")), ".Rcheck/covrlog.txt"))
-codecov(quiet = FALSE)
-```
-
-Make sure to add `^scripts/` to your `.Rbuildignore` and don't forget to
-add `covr` to the `Suggests:` field of your package's `DESCRIPTION` file.
-
-appveyor.yml addition:
+lines below to your project's `appveyor.yml`:
 
 ```yml
 on_success:
-  - Rscript scripts\runCodecov.R
-  - cp *.Rcheck/covrlog.txt covrlog.txt
-  - appveyor PushArtifact covrlog.txt
+  - Rscript -e "covr::codecov()"
 ```
+
+Don't forget to add `covr` to the `Suggests:` field of your package's
+`DESCRIPTION` file; possibly also to `Remotes:` for `r-lib/covr`.
 
 For further details regarding [Appveyor CI](http://ci.appveyor.com) integration,
 also have a look at [r-appveyor](https://github.com/krlmlr/r-appveyor).
