@@ -4,8 +4,7 @@
 #' `...`
 #' @param ... arguments passed to [package_coverage()]
 #' @param base_url Codecov url (change for Enterprise)
-#' @param quiet if `FALSE`, print the coverage and the query elements
-#' before submission.
+#' @param quiet if `FALSE`, print the coverage before submission.
 #' @param token a codecov upload token, if `NULL` the environment
 #' variable \sQuote{CODECOV_TOKEN} is used.
 #' @param commit explicitly set the commit this coverage result object
@@ -158,10 +157,6 @@ codecov <- function(...,
   }
 
   coverage_json <- to_codecov(coverage)
-
-  if (!quiet) {
-    print(codecov_query)
-  }
 
   httr::content(httr::POST(url = codecov_url, query = codecov_query, body = coverage_json, encode = "json"))
 }
