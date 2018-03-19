@@ -61,7 +61,7 @@ zero_coverage(cov)
 # Manual Installation
 
 ## Codecov ##
-If you are already using [Travis-CI](https://travis-ci.org) or [Appveyor CI](http://ci.appveyor.com) add the
+If you are already using [Travis-CI](https://travis-ci.org) add the
 following to your project's `.travis.yml` to track your coverage results
 over time with [Codecov](https://codecov.io).
 
@@ -72,6 +72,21 @@ r_github_packages:
 after_success:
   - Rscript -e 'covr::codecov()'
 ```
+
+If you are using [Appveyor CI](http://ci.appveyor.com), and are not using
+[Travis-CI](https://travis-ci.org) at the same time, then you can add the
+lines below to your project's `appveyor.yml`:
+
+```yml
+on_success:
+  - Rscript -e "covr::codecov()"
+```
+
+Don't forget to add `covr` to the `Suggests:` field of your package's
+`DESCRIPTION` file; possibly also to `Remotes:` for `r-lib/covr`.
+
+For further details regarding [Appveyor CI](http://ci.appveyor.com) integration,
+also have a look at [r-appveyor](https://github.com/krlmlr/r-appveyor).
 
 To use a different CI service or call `codecov()` locally you can set the
 environment variable `CODECOV_TOKEN` to the token generated on codecov.io.
