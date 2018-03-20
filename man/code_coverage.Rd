@@ -16,7 +16,7 @@ code_coverage(source_code, test_code, line_exclusions = NULL,
 each file.}
 
 \item{function_exclusions}{a vector of regular expressions matching function
-names to exclude. Example \code{print\\.} to match print methods.}
+names to exclude. Example \code{print\\\.} to match print methods.}
 
 \item{...}{Additional arguments passed to \code{\link[=file_coverage]{file_coverage()}}}
 }

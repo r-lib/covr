@@ -11,7 +11,7 @@
 #' @section Function Exclusions:
 #'
 #' Alternatively `function_exclusions` can be used to exclude R functions
-#' based on regular expression(s). For example `print\\.*` can be used to
+#' based on regular expression(s). For example `print\\\.*` can be used to
 #' exclude all the print methods defined in a package from coverage.
 #'
 #' @section Exclusion Comments:
