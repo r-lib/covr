@@ -33,7 +33,7 @@ useful for debugging errors.}
 each file.}
 
 \item{function_exclusions}{a vector of regular expressions matching function
-names to exclude. Example \code{print\\.} to match print methods.}
+names to exclude. Example \code{print\\\.} to match print methods.}
 
 \item{code}{A character vector of additional test code to run.}
 

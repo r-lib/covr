@@ -184,7 +184,7 @@ code_coverage <- function(
 #' @param line_exclusions a named list of files with the lines to exclude from
 #' each file.
 #' @param function_exclusions a vector of regular expressions matching function
-#' names to exclude. Example `print\\.` to match print methods.
+#' names to exclude. Example `print\\\.` to match print methods.
 #' @param code A character vector of additional test code to run.
 #' @param ... Additional arguments passed to [tools::testInstalledPackage()].
 #' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
