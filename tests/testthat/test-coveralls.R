@@ -66,6 +66,7 @@ test_that("coveralls generates a properly formatted json file", {
       expect_equal(json$service_name, "fakeci"),
       expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
       expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R")),
+      expect_equal(json$source_files$source_digest, '1233f2eca5d84704101cb9d9b928f2e9'),
       expect_equal(json$source_files$coverage[[1]],
         c(NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA))
@@ -87,10 +88,12 @@ test_that("coveralls can spawn a job using repo_token", {
 
       expect_equal(is.null(json$git), FALSE),
       expect_equal(nrow(json$source_files), 1),
-      expect_equal(json$service_name, NULL),
+      # service_name set #285
+      expect_equal(json$service_name, "drone"),
       expect_equal(json$repo_token, "mytoken"),
       expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
       expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R")),
+      expect_equal(json$source_files$source_digest, '1233f2eca5d84704101cb9d9b928f2e9'),
       expect_equal(json$source_files$coverage[[1]],
         c(NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA))
@@ -115,6 +118,39 @@ test_that("generates correct payload for Drone and Jenkins", {
       expect_equal(git$remotes[[1]]$name, jsonlite::unbox("origin")),
       expect_equal(git$remotes[[1]]$url, jsonlite::unbox("covr"))
 
+    )
+  )
+})
+
+test_that("coveralls can spawn a job using repo_token - travis-pro #285", {
+
+  withr::with_envvar(c(ci_vars, "CI_NAME" = "travis-pro"),
+    with_mock(
+      `httr:::POST` = function(...) list(...),
+      `httr::content` = identity,
+      `httr::upload_file` = function(file) readChar(file, file.info(file)$size),
+      `covr::system_output` = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n"),
+
+      res <- coveralls(coverage = cov, repo_token = "mytoken"),
+      json <- jsonlite::fromJSON(res$body$json_file),
+
+      expect_equal(is.null(json$git), FALSE),
+      expect_equal(nrow(json$source_files), 1),
+      expect_equal(json$service_name, "travis-pro"),
+      expect_equal(json$repo_token, "mytoken"),
+      expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R")),
+      expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R")),
+      expect_equal(json$source_files$source_digest, '1233f2eca5d84704101cb9d9b928f2e9'),
+      expect_equal(json$source_files$coverage[[1]],
+                   c(NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+                     NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA)),
+      # git correct #285
+      expect_equal(json$git$head$id, "a"),
+      expect_equal(json$git$head$author_name, "b"),
+      expect_equal(json$git$head$author_email, "c"),
+      expect_equal(json$git$head$commiter_name, "d"),
+      expect_equal(json$git$head$commiter_email, "e"),
+      expect_equal(json$git$head$message, "f")
     )
   )
 })
