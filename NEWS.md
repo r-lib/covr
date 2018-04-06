@@ -4,6 +4,9 @@
 
 * Add support for `.covrignore` files (#238), to exclude files from the coverage.
 
+* Fix for Coveralls `Build processing error.` (#285) on pro accounts from
+  Travis CI (#306, @kiwiroy).
+
 ## 3.0.1 ##
 * Add an RStudio Addin for running a coverage report.
 
