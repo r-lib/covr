@@ -4,6 +4,8 @@
 
 * Add support for `.covrignore` files (#238), to exclude files from the coverage.
 
+* Keep attributes of function bodies (#311, @gaborcsardi)
+
 ## 3.0.1 ##
 * Add an RStudio Addin for running a coverage report.
 
