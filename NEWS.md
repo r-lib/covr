@@ -7,6 +7,8 @@
 * Fix for Coveralls `Build processing error.` (#285) on pro accounts from
   Travis CI (#306, @kiwiroy).
 
+* Keep attributes of function bodies (#311, @gaborcsardi)
+
 ## 3.0.1 ##
 * Add an RStudio Addin for running a coverage report.
 
