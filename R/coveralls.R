@@ -54,15 +54,18 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
   coverages <- per_line(x)
 
   res <- Map(function(coverage, name) {
+      source_code <- paste(collapse = "\n", coverage$file$file_lines)
       list(
         "name" = jsonlite::unbox(name),
-        "source" = jsonlite::unbox(paste(collapse = "\n", coverage$file$file_lines)),
+        "source" = jsonlite::unbox(source_code),
+        "source_digest" = jsonlite::unbox(digest::digest(source_code, algo = "md5", serialize = FALSE)),
         "coverage" = coverage$coverage)
     }, coverages, names(coverages), USE.NAMES = FALSE)
 
   git_info <- switch(service_name,
     drone = jenkins_git_info(), # drone has the same env vars as jenkins
     jenkins = jenkins_git_info(),
+    'travis-pro' = jenkins_git_info(),
     list(NULL)
   )
 
@@ -74,8 +77,9 @@ to_coveralls <- function(x, service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
   } else {
     tmp <- list(
       "repo_token" = jsonlite::unbox(repo_token),
+      "service_name" = jsonlite::unbox(service_name),
       "source_files" = res)
-    tmp$git <- list(git_info)
+    tmp$git <- git_info
     tmp
   }
 

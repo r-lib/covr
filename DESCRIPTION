@@ -38,6 +38,7 @@ Depends:
     R (>= 3.1.0),
     methods
 Imports:
+    digest,
     stats,
     utils,
     jsonlite,
