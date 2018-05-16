@@ -490,12 +490,3 @@ add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
 
   writeLines(text = lines, con = load_script)
 }
-
-# check if icc is used
-uses_icc <- function() {
-  compiler <- tryCatch(
-    paste(system(paste(R.home("bin"), "R --vanilla CMD config CC", sep="/"),
-        intern = TRUE), collapse=""),
-    error = function(e) "")
-  grepl("\\bicc\\b", compiler)
-}

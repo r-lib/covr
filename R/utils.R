@@ -329,3 +329,8 @@ vcapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = character(1))
 vdapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = numeric(1))
 viapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = integer(1))
 vlapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = logical(1))
+
+trim_ws <- function(x) {
+  x <- sub("^[ \t\r\n]+", "", x, perl = TRUE)
+  sub("[ \t\r\n]+$", "", x, perl = TRUE)
+}

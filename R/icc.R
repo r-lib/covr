@@ -119,7 +119,14 @@ run_icov <- function(path, quiet = TRUE,
       class = "coverage")
 }
 
-trim_ws <- function(x) {
-  x <- sub("^[ \t\r\n]+", "", x, perl = TRUE)
-  sub("[ \t\r\n]+$", "", x, perl = TRUE)
+# check if icc is used
+uses_icc <- function() {
+  compiler <- tryCatch(
+    {
+      system2(file.path(R.home("bin"), "R"),
+        args = c("--vanilla", "CMD", "config", "CC"),
+        stdout = TRUE)
+    },
+    warning = function(e) NA_character_)
+  grepl("\\bicc\\b", compiler)
 }
