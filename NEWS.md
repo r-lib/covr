@@ -1,4 +1,7 @@
 ## 3.0.1.9000 ##
+
+* Support future versions of R which do not use parse data by default (#309).
+
 * Allow using `trace_calls()` for manually adding functions to package trace
   that are not found automatically (#295, @mb706).
 
