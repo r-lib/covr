@@ -6,10 +6,14 @@ display_name <- function(x) {
 
   filenames <- vcapply(x, function(x) get_source_filename(x$srcref, full.names = TRUE))
   if (isTRUE(attr(x, "relative"))) {
-    rex::re_substitutes(filenames, rex::rex(attr(x, "package")$path, "/"), "")
+    to_relative_path(filenames, attr(x, "package")$path)
   } else {
     filenames
   }
+}
+
+to_relative_path <- function(path, base) {
+  rex::re_substitutes(path, rex::rex(base, "/"), "")
 }
 
 filter_non_package_files <- function(x) {
