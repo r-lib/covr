@@ -103,8 +103,10 @@ file_coverage <- function(
 
   env <- new.env(parent = parent_env)
 
-  lapply(source_files,
-     sys.source, keep.source = TRUE, envir = env)
+  withr::with_options(c("keep.parse.data.pkgs" = TRUE), {
+    lapply(source_files,
+      sys.source, keep.source = TRUE, envir = env)
+  })
 
   trace_environment(env)
   on.exit({
@@ -113,7 +115,7 @@ file_coverage <- function(
   })
 
   lapply(test_files,
-     sys.source, keep.source = TRUE, envir = env)
+    sys.source, keep.source = TRUE, envir = env)
 
   coverage <- structure(as.list(.counters), class = "coverage")
 
@@ -276,6 +278,7 @@ package_coverage <- function(path = ".",
                             INSTALL_opts = c("--example",
                                              "--install-tests",
                                              "--with-keep.source",
+                                             "--with-keep.parse.data",
                                              "--no-multiarch"),
                             quiet = quiet))
 
