@@ -73,6 +73,7 @@ exclude <- function(coverage,
   if (!is.null(function_exclusions)) {
     to_exclude <- Reduce(`|`, init = to_exclude,
       Map(rex::re_matches, function_exclusions, MoreArgs = list(data = df$functions)))
+    to_exclude[is.na(to_exclude)] <- FALSE
   }
 
   df$full_name <- vcapply(coverage,
