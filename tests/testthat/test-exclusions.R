@@ -213,7 +213,7 @@ describe("covrignore", {
     writeLines("", file.path(td, "src", "foo.c"))
     writeLines("", file.path(td, "src", "foo.o"))
     withr::with_dir(td, {
-      expect_equal(parse_covr_ignore(), c("src//foo.c", "src//foo.o"))
+      expect_equal(parse_covr_ignore(), c("src/foo.c", "src/foo.o"))
     })
   })
 })

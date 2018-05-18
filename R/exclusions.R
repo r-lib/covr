@@ -210,11 +210,14 @@ parse_covr_ignore <- function(file = getOption("covr.covrignore", Sys.getenv("CO
   }
   lines <- readLines(file)
   paths <- Sys.glob(lines, dirmark = TRUE)
-  unlist(lapply(paths, function(x) {
+  files <- unlist(
+    lapply(paths, function(x) {
       if (dir.exists(x)) {
         list.files(recursive = TRUE, all.files = TRUE, path = x, full.names = TRUE)
       } else {
         x
       }
     }))
+  files <- gsub("//", "/", files)
+  files
 }
