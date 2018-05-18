@@ -5,15 +5,18 @@ impute_srcref <- function(x, parent_ref) {
 
   pd <- get_tokens(parent_ref)
   pd_expr <-
-    pd$line1 == parent_ref[[7L]] &
+    (
+      (pd$line1 == parent_ref[[1L]] & pd$line2 == parent_ref[[3L]]) |
+      (pd$line1 == parent_ref[[7L]] & pd$line2 == parent_ref[[8L]])
+    ) &
     pd$col1 == parent_ref[[2L]] &
-    pd$line2 == parent_ref[[8L]] &
     pd$col2 == parent_ref[[4L]] &
     pd$token == "expr"
   pd_expr_idx <- which(pd_expr)
   if (length(pd_expr_idx) == 0L) return(NULL) # srcref not found in parse data
 
-  stopifnot(length(pd_expr_idx) == 1L)
+  if (length(pd_expr_idx) > 1) pd_expr_idx <- pd_expr_idx[[1]]
+
   expr_id <- pd$id[pd_expr_idx]
   pd_child <- pd[pd$parent == expr_id, ]
   pd_child <- pd_child[order(pd_child$line1, pd_child$col1), ]
@@ -21,7 +24,11 @@ impute_srcref <- function(x, parent_ref) {
   # exclude comments
   pd_child <- pd_child[pd_child$token != "COMMENT", ]
 
-  line_offset <- parent_ref[[7L]] - parent_ref[[1L]]
+  if (pd$line1[pd_expr_idx] == parent_ref[[7L]] & pd$line2[pd_expr_idx] == parent_ref[[8L]]) {
+    line_offset <- parent_ref[[7L]] - parent_ref[[1L]]
+  } else {
+    line_offset <- 0
+  }
 
   make_srcref <- function(from, to = from) {
     srcref(
