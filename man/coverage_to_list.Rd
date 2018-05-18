@@ -7,7 +7,7 @@
 coverage_to_list(x = package_coverage())
 }
 \arguments{
-\item{x}{a coverage dataset, defaults to running `package_coverage()`.}
+\item{x}{a coverage dataset, defaults to running \code{package_coverage()}.}
 }
 \value{
 A list containing coverage result for each individual file and the whole package
