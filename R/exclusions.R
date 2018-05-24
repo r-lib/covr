@@ -218,6 +218,4 @@ parse_covr_ignore <- function(file = getOption("covr.covrignore", Sys.getenv("CO
         x
       }
     }))
-  files <- gsub("//", "/", files)
-  files
 }
