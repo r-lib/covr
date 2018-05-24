@@ -1,4 +1,5 @@
-# Covr #
+# covr <img src="man/figures/logo.png" align="right" />
+
 [![Build Status](https://travis-ci.org/r-lib/covr.svg?branch=master)](https://travis-ci.org/r-lib/covr)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/jimhester/covr?branch=master&svg=true)](https://ci.appveyor.com/project/jimhester/covr)
 [![codecov.io](https://codecov.io/github/r-lib/covr/coverage.svg?branch=master)](https://codecov.io/github/r-lib/covr?branch=master)
