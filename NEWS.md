@@ -1,3 +1,7 @@
+## 3.1.0.9000 ##
+
+* DT explicitly loaded early in `report()` so that failures will occur fast if it is not installed. (#321, @renkun-ken).
+
 ## 3.1.0 ##
 
 ## Breaking changes
