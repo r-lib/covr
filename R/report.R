@@ -17,6 +17,7 @@ report <- function(x = package_coverage(),
   browse = interactive()) {
 
   loadNamespace("shiny")
+  loadNamespace("DT")
 
   data <- to_shiny_data(x)
 
