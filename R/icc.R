@@ -128,5 +128,5 @@ uses_icc <- function() {
         stdout = TRUE)
     },
     warning = function(e) NA_character_)
-  grepl("\\bicc\\b", paste0(compiler, collapse = "\n"))
+  isTRUE(any(grepl("\\bicc\\b", compiler)))
 }
