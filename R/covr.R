@@ -162,7 +162,7 @@ environment_coverage <- function(
   line_exclusions = NULL,
   function_exclusions = NULL) {
 
-  env <- new.env(parent = env)
+  exec_env <- new.env(parent = env)
 
   trace_environment(env)
   on.exit({
@@ -171,7 +171,7 @@ environment_coverage <- function(
   })
 
   lapply(test_files,
-    sys.source, keep.source = TRUE, envir = env)
+    sys.source, keep.source = TRUE, envir = exec_env)
 
   coverage <- structure(as.list(.counters), class = "coverage")
 
