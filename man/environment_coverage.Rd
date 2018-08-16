@@ -10,13 +10,14 @@ environment_coverage(env = parent.frame(), test_files,
 \arguments{
 \item{env}{The environment to be instrumented.}
 
+\item{test_files}{Character vector of test files with code to test the
+functions}
+
 \item{line_exclusions}{a named list of files with the lines to exclude from
 each file.}
 
 \item{function_exclusions}{a vector of regular expressions matching function
 names to exclude. Example \code{print\\\.} to match print methods.}
-
-\item{test_code}{A character vector of test code}
 }
 \description{
 Calculate coverage of an environment

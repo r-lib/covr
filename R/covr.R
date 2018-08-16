@@ -153,8 +153,7 @@ code_coverage <- function(
 #' Calculate coverage of an environment
 #'
 #' @param env The environment to be instrumented.
-#' @param test_code A character vector of test code
-#' @inheritParams package_coverage
+#' @inheritParams file_coverage
 #' @export
 environment_coverage <- function(
   env = parent.frame(),
