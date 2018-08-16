@@ -1,3 +1,8 @@
+#' Retrieve the path name (filenaem) for each coverage object
+#'
+#' @param x A coverage object
+#' @keywords internal
+#' @export
 display_name <- function(x) {
   stopifnot(inherits(x, "coverage"))
   if (length(x) == 0) {

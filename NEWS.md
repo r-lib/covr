@@ -1,5 +1,8 @@
 ## 3.1.0.9000 ##
 
+* `display_name()` is now exported, which can be useful to filter the coverage
+  object by filename.
+
 * `environment_coverage()` added, mainly so it can be used for `devtools::test_coverage_file()`.
 
 * DT explicitly loaded early in `report()` so that failures will occur fast if it is not installed. (#321, @renkun-ken).
