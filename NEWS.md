@@ -1,5 +1,7 @@
 ## 3.1.0.9000 ##
 
+* `environment_coverage()` added, mainly so it can be used for `devtools::test_coverage_file()`.
+
 * DT explicitly loaded early in `report()` so that failures will occur fast if it is not installed. (#321, @renkun-ken).
 
 ## 3.1.0 ##

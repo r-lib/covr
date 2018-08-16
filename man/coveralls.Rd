@@ -4,7 +4,8 @@
 \alias{coveralls}
 \title{Run covr on a package and upload the result to coveralls}
 \usage{
-coveralls(..., coverage = NULL, repo_token = Sys.getenv("COVERALLS_TOKEN"),
+coveralls(..., coverage = NULL,
+  repo_token = Sys.getenv("COVERALLS_TOKEN"),
   service_name = Sys.getenv("CI_NAME", "travis-ci"), quiet = TRUE)
 }
 \arguments{

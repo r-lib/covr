@@ -4,8 +4,8 @@
 \alias{system_output}
 \title{Run a system command and capture the output.}
 \usage{
-system_output(cmd, args = character(), env = character(), quiet = FALSE,
-  echo = FALSE, ...)
+system_output(cmd, args = character(), env = character(),
+  quiet = FALSE, echo = FALSE, ...)
 }
 \arguments{
 \item{cmd}{the command to run.}

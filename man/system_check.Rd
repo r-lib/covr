@@ -4,8 +4,8 @@
 \alias{system_check}
 \title{Run a system command and check if it succeeds.}
 \usage{
-system_check(cmd, args = character(), env = character(), quiet = FALSE,
-  echo = FALSE, ...)
+system_check(cmd, args = character(), env = character(),
+  quiet = FALSE, echo = FALSE, ...)
 }
 \arguments{
 \item{cmd}{the command to run.}

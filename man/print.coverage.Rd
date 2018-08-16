@@ -4,8 +4,8 @@
 \alias{print.coverage}
 \title{Print a coverage object}
 \usage{
-\method{print}{coverage}(x, group = c("filename", "functions"), by = "line",
-  ...)
+\method{print}{coverage}(x, group = c("filename", "functions"),
+  by = "line", ...)
 }
 \arguments{
 \item{x}{the coverage object to be printed}

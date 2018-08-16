@@ -150,6 +150,37 @@ code_coverage <- function(
     function_exclusions = function_exclusions, ...)
 }
 
+#' Calculate coverage of an environment
+#'
+#' @param env The environment to be instrumented.
+#' @param test_code A character vector of test code
+#' @inheritParams package_coverage
+#' @export
+environment_coverage <- function(
+  env = parent.frame(),
+  test_files,
+  line_exclusions = NULL,
+  function_exclusions = NULL) {
+
+  env <- new.env(parent = env)
+
+  trace_environment(env)
+  on.exit({
+    reset_traces()
+    clear_counters()
+  })
+
+  lapply(test_files,
+    sys.source, keep.source = TRUE, envir = env)
+
+  coverage <- structure(as.list(.counters), class = "coverage")
+
+  exclude(coverage,
+    line_exclusions = line_exclusions,
+    function_exclusions = function_exclusions,
+    path = NULL)
+}
+
 #' Calculate test coverage for a package
 #'
 #' This function calculates the test coverage for a development package on the
