@@ -520,3 +520,8 @@ add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
 
   writeLines(text = lines, con = load_script)
 }
+
+#' @export
+`[.coverage` <- function(x, ...) {
+  structure(NextMethod(), class = "coverage")
+}
