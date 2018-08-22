@@ -1,5 +1,8 @@
 ## 3.1.0.9000 ##
 
+* `report()` reworked to look more like codecov.io and to display the overall
+  coverage (#302, #307).
+
 * `display_name()` is now exported, which can be useful to filter the coverage
   object by filename.
 

@@ -21,27 +21,59 @@ report <- function(x = package_coverage(),
 
   data <- to_shiny_data(x)
 
-  ui <- shiny::fluidPage(
-    shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
-    shiny::column(8, offset = 2,
-      shiny::tabsetPanel(
-        shiny::tabPanel("Files",
-          DT::datatable(data$file_stats,
-            escape = FALSE,
-            options = list(searching = FALSE, dom = "t", paging = FALSE),
-            rownames = FALSE,
-            callback = DT::JS(
+  # Color the td cells by coverage amount, like codecov.io does
+  color_coverage_callback <- DT::JS(
+'function(td, cellData, rowData, row, col) {
+console.log(cellData);
+  var percent = cellData.replace("%", "");
+  if (percent > 90) {
+    var grad = "linear-gradient(90deg, #edfde7 " + cellData + ", white " + cellData + ")";
+  } else if (percent > 75) {
+    var grad = "linear-gradient(90deg, #f9ffe5 " + cellData + ", white " + cellData + ")";
+  } else {
+    var grad = "linear-gradient(90deg, #fcece9 " + cellData + ", white " + cellData + ")";
+  }
+  $(td).css("background", grad);
+}
+')
+
+  # Open a new file in the source tab and switch to it
+  file_choice_callback <- DT::JS(
 "table.on('click.dt', 'a', function() {
   files = $('div#files div');
   files.not('div.hidden').addClass('hidden');
   id = $(this).text();
   files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');
   $('ul.nav a[data-value=Source]').text(id).tab('show');
-});"))),
-            shiny::tabPanel("Source", addHighlight(renderSourceTable(data$full)))
-            )
-          ),
-    title = paste(attr(x, "package")$package, "Coverage"))
+});")
+
+  package_name <- attr(x, "package")$package
+  percentage <- sprintf("%02.2f%%", data$overall)
+
+  ui <- shiny::fluidPage(
+    shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
+    shiny::column(8, offset = 2,
+      shiny::HTML(paste0("<h2>", package_name, " coverage - ", percentage, "</h2>")),
+      shiny::tabsetPanel(
+        shiny::tabPanel("Files",
+          DT::datatable(
+            data$file_stats,
+            escape = FALSE,
+            options = list(
+              searching = FALSE,
+              dom = "t",
+              paging = FALSE,
+              columnDefs = list(
+                list(targets = 6, createdCell = color_coverage_callback))),
+            rownames = FALSE,
+            class = "row-border",
+            callback = file_choice_callback
+          )
+        ),
+        shiny::tabPanel("Source", addHighlight(renderSourceTable(data$full)))
+      )
+    )
+  )
 
   htmltools::save_html(ui, file)
   viewer <- getOption("viewer", utils::browseURL)
@@ -55,6 +87,7 @@ to_shiny_data <- function(x) {
   coverages <- per_line(x)
 
   res <- list()
+  res$overall <- percent_coverage(x)
   res$full <- lapply(coverages,
     function(coverage) {
       lines <- coverage$file$file_lines
@@ -79,7 +112,7 @@ to_shiny_data <- function(x) {
 
   res$file_stats <- sort_file_stats(res$file_stats)
 
-  res$file_stats$Coverage <- add_color_box(res$file_stats$Coverage)
+  res$file_stats$Coverage <- res$file_stats$Coverage
 
   res
 }
@@ -89,7 +122,7 @@ compute_file_stats <- function(files) {
     lapply(files,
       function(file) {
         data.frame(
-          Coverage = sprintf("%.2f", sum(file$coverage > 0) / sum(file$coverage != "") * 100),
+          Coverage = sprintf("%.2f%%", sum(file$coverage > 0) / sum(file$coverage != "") * 100),
           Lines = NROW(file),
           Relevant = sum(file$coverage != ""),
           Covered = sum(file$coverage > 0),
@@ -103,33 +136,19 @@ compute_file_stats <- function(files) {
 }
 
 sort_file_stats <- function(stats) {
-  stats[order(as.numeric(stats$Coverage), -stats$Relevant),
-        c("Coverage", "File", "Lines", "Relevant", "Covered", "Missed", "Hits / Line")]
+  stats[order(as.numeric(sub("%", "", stats$Coverage)), -stats$Relevant),
+        c("File", "Lines", "Relevant", "Covered", "Missed", "Hits / Line", "Coverage")]
 }
 
 add_link <- function(files) {
   vcapply(files, function(file) { as.character(shiny::a(href = "#", file)) })
 }
 
-add_color_box <- function(nums) {
-
-  vcapply(nums, function(num) {
-    nnum <- as.numeric(num)
-    if (nnum > 90) {
-      as.character(shiny::div(class = "coverage-box coverage-high", num))
-    } else if (nnum > 75) {
-      as.character(shiny::div(class = "coverage-box coverage-medium", num))
-    } else {
-      as.character(shiny::div(class = "coverage-box coverage-low", num))
-    }
-  })
-}
-
-renderSourceTable <- function(data) {
+renderSourceTable <- function(data, class = "hidden") {
 
   shiny::tags$div(id = "files",
     Map(function(lines, file) {
-      shiny::tags$div(id = file, class="hidden",
+      shiny::tags$div(id = file, class=class,
         shiny::tags$table(class = "table-condensed",
           shiny::tags$tbody(
             lapply(seq_len(NROW(lines)),
@@ -149,8 +168,8 @@ renderSourceTable <- function(data) {
                 }
                 shiny::tags$tr(class = cov_type,
                   shiny::tags$td(class = "num", lines[row_num, "line"]),
-                  shiny::tags$td(class = "col-sm-12", shiny::pre(class = "language-r", lines[row_num, "source"])),
-                  shiny::tags$td(class = "coverage", cov_value)
+                  shiny::tags$td(class = "coverage", cov_value),
+                  shiny::tags$td(class = "col-sm-12", shiny::pre(class = "language-r", lines[row_num, "source"]))
                   )
               })
             )

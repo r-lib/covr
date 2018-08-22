@@ -4,6 +4,7 @@ table tr:hover td {
 table tr.covered td{
   background-color:rgba(95,151,68,0.3)
 }
+
 table tr:hover.covered .num{
   background-color:rgba(95,151,68,0.7)
 }
@@ -29,16 +30,23 @@ table tr.never td{
   background-color:transparent
 }
 
+table tbody {
+  border-style: solid;
+  border: 1px solid rgba(0,0,0,0.1)
+}
+
 table .num {
   border-right: 1px solid rgba(0,0,0,0.1)
 }
+
 td.coverage em {
   opacity: 0.5;
 }
 
 table td.coverage {
+  border-right: 1px solid rgba(0,0,0,0.1);
   font-weight: bold;
-  text-align: right;
+  text-align: center;
 }
 table.table-condensed pre {
   background-color: transparent;
@@ -58,23 +66,4 @@ div#files td.num {
 
 table.table-condensed {
   font-size: 11px;
-}
-
-.coverage-high {
-  background-color: #5f9744
-}
-
-.coverage-medium {
-  background-color: #f89406
-}
-
-.coverage-low {
-  background-color: #b94947
-}
-
-.coverage-box {
-  color: #fffdfa;
-  width: 50px;
-  height: 20px;
-  text-align: center;
 }
