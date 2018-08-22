@@ -83,6 +83,49 @@ console.log(cellData);
   invisible(file)
 }
 
+#' A coverage report for a specific file
+#'
+#' @inheritParams report
+#' @param file The file to report on, if `NULL`, use the first file in the
+#'   coverage output.
+#' @param out_file The output file
+#' @export
+file_report <- function(x = package_coverage(), file = NULL, out_file = file.path(tempdir(), paste0(get_package_name(x), "-file-report.html")), browse = interactive()) {
+  loadNamespace("shiny")
+  loadNamespace("DT")
+
+  files <- display_name(x)
+
+  if (is.null(file)) {
+    file <- files[[1]]
+  }
+  stopifnot(length(file) == 1)
+
+  x <- x[files %in% file]
+
+  data <- to_shiny_data(x)
+
+  percentage <- data$file_stats$Coverage
+
+  ui <- shiny::fluidPage(
+    shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
+    shiny::column(8, offset = 2,
+      shiny::HTML(paste0("<h2>", file, " - ", percentage, "</h2>")),
+      addHighlight(
+        renderSourceTable(data$full, "")
+      )
+    )
+  )
+
+  htmltools::save_html(ui, out_file)
+  viewer <- getOption("viewer", utils::browseURL)
+  if (browse) {
+      viewer(out_file)
+  }
+
+  invisible(out_file)
+}
+
 to_shiny_data <- function(x) {
   coverages <- per_line(x)
 
