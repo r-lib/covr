@@ -16,6 +16,9 @@ report <- function(x = package_coverage(),
   file = file.path(tempdir(), paste0(get_package_name(x), "-report.html")),
   browse = interactive()) {
 
+  # Paths need to be absolute for save_html to work properly
+  file <- file.path(normalizePath(dirname(file), mustWork = TRUE), basename(file))
+
   loadNamespace("shiny")
   loadNamespace("DT")
 

@@ -1,5 +1,7 @@
 ## 3.1.0.9000 ##
 
+* `report()` now handles reports in relative paths with subdirectories correctly (#329)
+
 * `file_report()` added when viewing coverage for a single file (#308).
 
 * `report()` reworked to look more like codecov.io and to display the overall
