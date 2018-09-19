@@ -375,7 +375,7 @@ package_coverage <- function(path = ".",
 
   coverage <- filter_non_package_files(coverage)
 
-  # Exclude both RcppExports to avoid reduntant coverage information
+  # Exclude both RcppExports to avoid redundant coverage information
   line_exclusions <- c("src/RcppExports.cpp", "R/RcppExports.R", line_exclusions, parse_covr_ignore())
 
   exclude(coverage,
@@ -507,15 +507,17 @@ run_commands <- function(pkg, lib, commands) {
 # @param lib the library path to look in
 # @param fix_mcexit whether to add the fix for mcparallel:::mcexit
 add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
+  trace_dir <- paste0("Sys.getenv(\"COVERAGE_DIR\", \"", lib, "\")")
+
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
   lines <- readLines(file.path(lib, pkg_name, "R", pkg_name))
   lines <- append(lines,
     c("setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
-      paste0("reg.finalizer(ns, function(...) { covr:::save_trace(\"", lib, "\") }, onexit = TRUE)")),
+      paste0("reg.finalizer(ns, function(...) { covr:::save_trace(", trace_dir, ") }, onexit = TRUE)")),
     length(lines) - 1L)
 
   if (fix_mcexit) {
-    lines <- append(lines, sprintf("covr:::fix_mcexit('%s')", lib))
+    lines <- append(lines, sprintf("covr:::fix_mcexit('%s')", trace_dir))
   }
 
   writeLines(text = lines, con = load_script)

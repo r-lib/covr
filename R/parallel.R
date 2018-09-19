@@ -10,13 +10,13 @@ replace_binding <- function(package, name, value) {
 
 
 # patch parallel:::mcexit to force it to save the covr trace on exit
-fix_mcexit <- function(lib) {
+fix_mcexit <- function(trace_dir) {
   get_from_ns <- `:::` # trick to fool R CMD check
   mcexit <- get_from_ns('parallel', 'mcexit')
 
-  # directly pach mcexit
+  # directly patch mcexit
   body(mcexit) <- as.call(append(after = 1, as.list(body(mcexit)),
-      as.call(list(call(":::", as.symbol("covr"), as.symbol("save_trace")), lib))))
+      as.call(list(call(":::", as.symbol("covr"), as.symbol("save_trace")), trace_dir))))
 
   replace_binding('parallel', 'mcexit', mcexit)
 }
