@@ -4,24 +4,23 @@
 \alias{gitlab}
 \title{Run covr on package and create report for GitLab}
 \usage{
-gitlab(..., coverage = NULL, pubdir = "public",
-  file = "coverage.html", quiet = TRUE)
+gitlab(..., coverage = NULL, file = "public/coverage.html",
+  quiet = TRUE)
 }
 \arguments{
 \item{...}{arguments passed to \code{\link[=package_coverage]{package_coverage()}}}
 
 \item{coverage}{an existing coverage object to submit, if \code{NULL},
-\code{\link[=package_coverage]{package_coverage()}} will be called with the arguments from \code{...}}
+\code{\link[=package_coverage]{package_coverage()}} will be called with the arguments from
+\code{...}}
 
-\item{pubdir}{the subdirectory of the report to publish}
-
-\item{file}{the filename of the html file}
+\item{file}{The report filename.}
 
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }
 \description{
 Utilize internal GitLab static pages to publish package coverage.
 Creates local covr report in a package subdirectory.
-Use \code{pages} job documented in \url{https://docs.gitlab.com/ee/ci/yaml/README.html#pages}
-to publish the report.
+Uses the \href{https://docs.gitlab.com/ee/ci/yaml/README.html#pages}{pages}
+GitLab job to publish the report.
 }

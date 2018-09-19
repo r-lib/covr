@@ -1,6 +1,8 @@
 ## 3.1.0.9000 ##
 
 * `report()` now handles reports in relative paths with subdirectories correctly (#329)
+* `gitlab()` function added to create a coverage report for GitLab using
+  GitLab's internal pages (#327, #331).
 
 * `file_report()` added when viewing coverage for a single file (#308).
 
