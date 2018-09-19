@@ -22,6 +22,8 @@ report <- function(x = package_coverage(),
   loadNamespace("shiny")
   loadNamespace("DT")
 
+  dir.create(dirname(file), recursive = TRUE)
+
   data <- to_shiny_data(x)
 
   # Color the td cells by coverage amount, like codecov.io does
