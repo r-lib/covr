@@ -22,7 +22,7 @@ report <- function(x = package_coverage(),
   loadNamespace("shiny")
   loadNamespace("DT")
 
-  dir.create(dirname(file), recursive = TRUE)
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
 
   data <- to_shiny_data(x)
 
