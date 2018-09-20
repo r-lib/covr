@@ -31,6 +31,10 @@ impute_srcref <- function(x, parent_ref) {
   }
 
   make_srcref <- function(from, to = from) {
+    if (length(from) == 0) {
+      return(NULL)
+    }
+
     srcref(
       attr(parent_ref, "srcfile"),
       c(pd_child$line1[from] - line_offset,
