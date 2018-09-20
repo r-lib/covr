@@ -16,13 +16,14 @@ report <- function(x = package_coverage(),
   file = file.path(tempdir(), paste0(get_package_name(x), "-report.html")),
   browse = interactive()) {
 
+  # Create any directories as needed
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+
   # Paths need to be absolute for save_html to work properly
   file <- file.path(normalizePath(dirname(file), mustWork = TRUE), basename(file))
 
   loadNamespace("shiny")
   loadNamespace("DT")
-
-  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
 
   data <- to_shiny_data(x)
 
