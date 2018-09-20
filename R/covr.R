@@ -401,9 +401,23 @@ show_failures <- function(dir) {
   fail_files <- list.files(dir, pattern = "fail$", recursive = TRUE, full.names = TRUE)
   for (file in fail_files) {
     lines <- readLines(file)
+
     # Skip header lines (until first >)
-    lines <- lines[seq(head(which(grepl("^>", lines)), n = 1), length(lines))]
-    stop("Failure in `", file, "`\n", paste(lines, collapse = "\n"), call. = FALSE)
+    lines <- lines[seq(which.min(grepl("^>", lines)), length(lines))]
+
+
+    # R will only show options("warning.length") number of characters in an
+    # error, so show the last characters of that number
+    error_header <- paste0("Failure in `", file, "`\n")
+
+    # 9 is the length of `Error: ` + newline + NUL maybe?
+    error_length <- getOption("warning.length") - 9
+    error_body <- paste(lines, collapse = "\n")
+
+    error_body <- substr(error_body, nchar(error_body) - (error_length - nchar(error_header)), nchar(error_body))
+
+    cnd <- structure(list(message = paste0(error_header, error_body)), class = c("covr_error", "error", "condition"))
+    stop(cnd)
   }
 }
 

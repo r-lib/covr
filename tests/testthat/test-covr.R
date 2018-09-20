@@ -67,3 +67,21 @@ test_that("trace calls handles all possibilities", {
 
   expect_equal(trace_calls(list(expr)), list(expr))
 })
+
+context("show_failures")
+test_that("show_failures shows as much text as it can from the end", {
+  withr::with_options(c(warning.length = 300), {
+    td <- tempfile()
+    dir.create(td)
+
+    out <- file.path(td, "test.Rout.fail")
+    on.exit(unlink(td, recursive = TRUE))
+    writeLines(
+      "Lorem ipsum dolor sit amet, at erat praesent est mi ultrices. Eget in platea ac auctor et eu et venenatis. Tellus volutpat pellentesque. Dis nulla sem dignissim venenatis. Consequat montes maecenas congue donec ac himenaeos sed sed tempus. Ipsum risus lacus? Malesuada lectus, lacus egestas et lacus, in in ut sed. Tempus ligula dignissim a elementum semper maecenas eu. Enim pellentesque turpis at et ligula in est ut. Accumsan quis fermentum convallis proin ligula primis ut, curabitur. Sociosqu, fringilla, eu lacus eleifend conubia pellentesque viverra.",
+      out
+    )
+
+    # Expect the error to contain the end of the file
+    expect_error(show_failures(td), "eleifend conubia pellentesque viverra.", fixed = TRUE)
+  })
+})

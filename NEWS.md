@@ -1,6 +1,9 @@
 ## 3.1.0.9000 ##
 
+* `package_coverage()` now returns the end of the file if there is a test error (#319)
+
 * `report()` now handles reports in relative paths with subdirectories correctly (#329)
+
 * `gitlab()` function added to create a coverage report for GitLab using
   GitLab's internal pages (#327, #331).
 
