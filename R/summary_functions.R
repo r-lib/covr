@@ -18,7 +18,11 @@ percent_coverage <- function(x, ...) {
 #' @return a `data.frame` of coverage tallied by line or expression.
 #' @export
 tally_coverage <- function(x, by = c("line", "expression")) {
-  df <- as.data.frame(x)
+
+  # Rarely something goes wrong with the source references and we get all NAs
+  # for them, so we omit them here
+  df <- na.omit(as.data.frame(x))
+
   if (NROW(df) == 0) {
     return(df)
   }

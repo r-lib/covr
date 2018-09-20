@@ -1,5 +1,10 @@
 ## 3.1.0.9000 ##
 
+* `tally_coverage()` now avoids an error when there are NA values in the source
+  references (#322).
+
+* `covr(clean = TRUE)` now cleans the temporary library as well (#144)
+
 * `package_coverage()` now returns the end of the file if there is a test error (#319)
 
 * `report()` now handles reports in relative paths with subdirectories correctly (#329)
