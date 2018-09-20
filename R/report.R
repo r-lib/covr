@@ -57,7 +57,7 @@ console.log(cellData);
 
   ui <- shiny::fluidPage(
     shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
-    shiny::column(8, offset = 2,
+    column(8, offset = 2, size = "md",
       shiny::HTML(paste0("<h2>", package_name, " coverage - ", percentage, "</h2>")),
       shiny::tabsetPanel(
         shiny::tabPanel("Files",
@@ -114,7 +114,7 @@ file_report <- function(x = package_coverage(), file = NULL, out_file = file.pat
 
   ui <- shiny::fluidPage(
     shiny::includeCSS(system.file("www/shiny.css", package = "covr")),
-    shiny::column(8, offset = 2,
+    column(8, offset = 2, size = "md",
       shiny::HTML(paste0("<h2>", file, " - ", percentage, "</h2>")),
       addHighlight(
         renderSourceTable(data$full, "")
@@ -257,4 +257,14 @@ addin_report <- function() {
   project <- rstudioapi::getActiveProject()
 
   covr::report(covr::package_coverage(project %||% getwd()))
+}
+
+column <- function(width, ..., offset = 0, size = c("xs", "sm", "md", "lg")) {
+  size <- match.arg(size)
+
+  col_class <- paste0("col-", size, "-", width)
+  if (offset > 0) {
+    col_class <- paste0(col_class, " ", "col-", size, "-offset-", offset)
+  }
+  shiny::div(class = col_class, ...)
 }
