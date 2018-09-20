@@ -374,6 +374,10 @@ package_coverage <- function(path = ".",
       package = pkg,
       relative = relative_path)
 
+  if (!clean) {
+    attr(coverage, "library") <- tmp_lib
+  }
+
   coverage <- filter_non_package_files(coverage)
 
   # Exclude both RcppExports to avoid redundant coverage information
