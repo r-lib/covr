@@ -419,7 +419,10 @@ show_failures <- function(dir) {
     error_length <- getOption("warning.length") - 9
     error_body <- paste(lines, collapse = "\n")
 
-    error_body <- substr(error_body, nchar(error_body) - (error_length - nchar(error_header)), nchar(error_body))
+    header_len <- nchar(error_header, "bytes")
+    body_len <- nchar(error_body, "bytes")
+
+    error_body <- substr(error_body, body_len - (error_length - header_len), body_len)
 
     cnd <- structure(list(message = paste0(error_header, error_body)), class = c("covr_error", "error", "condition"))
     stop(cnd)
