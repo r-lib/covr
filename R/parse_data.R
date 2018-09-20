@@ -45,7 +45,8 @@ impute_srcref <- function(x, parent_ref) {
         pd_child$col2[to],
         pd_child$line1[from],
         pd_child$line2[to]
-      ))
+      )
+    )
   }
 
   switch(
@@ -79,9 +80,35 @@ impute_srcref <- function(x, parent_ref) {
     },
 
     "switch" = {
-      exprs <- which(pd_child$token == "expr")
-      exprs <- exprs[exprs >= 3]
-      c(list(NULL), Map(make_srcref, from = exprs))
+      exprs <- tail(which(pd_child$token == "expr"), n = -1)
+
+      # Add NULLs for drop through conditions
+      token <- pd_child$token
+      next_token <- c(tail(token, n = -1), NA_character_)
+      drops <- which(token == "EQ_SUB" & next_token != "expr")
+
+      exprs <- sort(c(exprs, drops))
+
+      ignore_drop_through <- function(x) {
+        if (x %in% drops) {
+          return(NULL)
+        }
+        x
+      }
+
+      exprs <- lapply(exprs, ignore_drop_through)
+
+      # Don't create srcrefs for ... conditions
+      ignore_dots <- function(x) {
+        if (identical("...", pd$text[pd$parent == pd_child$id[x]])) {
+          return(NULL)
+        }
+        x
+      }
+
+      exprs <- lapply(exprs, ignore_dots)
+
+      c(list(NULL), lapply(exprs, make_srcref))
     },
 
     NULL
@@ -96,7 +123,7 @@ get_parse_data <- function(srcfile) {
   if (length(package_parse_data) == 0) {
     lines <- getSrcLines(srcfile, 1L, Inf)
     res <- lapply(split_on_line_directives(lines),
-      function(x) getParseData(parse(text = x, keep.source = TRUE), includeText = FALSE))
+      function(x) getParseData(parse(text = x, keep.source = TRUE), includeText = TRUE))
     for (i in seq_along(res)) {
       package_parse_data[[names(res)[[i]]]] <- res[[i]]
     }

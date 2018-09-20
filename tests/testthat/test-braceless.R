@@ -68,3 +68,42 @@ test_that("switch with default value", {
   expect_equal(length(zero_coverage(code_coverage(f, "f(\"a\"); f(\"c\")"))$line),
     2)
 })
+
+test_that("switch with drop through", {
+  f <-
+'f <- function(x) {
+  switch(x,
+    a = ,
+    b = 2,
+    c = d <- 1,
+    NULL
+  )
+}'
+
+  res <- as.data.frame(code_coverage(f, 'f("a");f("b");f("c")'))
+  expect_equal(res$first_line, c(2, 4, 5, 6))
+  expect_equal(res$value, c(3, 2, 1, 0))
+
+})
+
+test_that("switch with ellipses", {
+  f <-
+'f <- function(x, ...) {
+  switch(typeof(x), ...)
+}'
+
+  res <- as.data.frame(code_coverage(f, "f(\"a\", character = TRUE)"))
+  expect_equal(res$first_line, 2)
+  expect_equal(res$value, 1)
+
+  f <-
+'f <- function(x, ...) {
+  switch(typeof(x),
+    ...,
+    character = TRUE)
+}'
+
+  res <- as.data.frame(code_coverage(f, "f(\"a\")"))
+  expect_equal(res$first_line, c(2, 4))
+  expect_equal(res$value, c(1, 1))
+})

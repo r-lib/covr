@@ -1,5 +1,8 @@
 ## 3.1.0.9000 ##
 
+* `impute_srcref()` now handles `...` and drop through arguments in switch
+  statements (#325).
+
 * `tally_coverage()` now avoids an error when there are NA values in the source
   references (#322).
 
