@@ -240,18 +240,6 @@ addHighlight <- function(x = list()) {
   htmltools::attachDependencies(x, c(htmltools::htmlDependencies(x), list(highlight)))
 }
 
-#' Deprecated Functions
-
-#' These functions are Deprecated in this release of covr, they will be
-#' marked as Defunct and removed in a future version.
-#'
-#' @export
-#' @keywords internal
-#' @rdname covr-deprecated
-shine <- function(...) {
-  .Deprecated("report()", package = "covr")
-  report(...)
-}
 addin_report <- function() {
   loadNamespace("rstudioapi")
 
