@@ -1,5 +1,7 @@
 ## 3.1.0.9000 ##
 
+* Fix for gcc-8 gcov output producing lines with no coverage counts in them (#328)
+
 * `impute_srcref()` now handles `...` and drop through arguments in switch
   statements (#325).
 

@@ -7,7 +7,6 @@
     covr.exclude_pattern = rex::rex("#", any_spaces, "nocov"),
     covr.exclude_start = rex::rex("#", any_spaces, "nocov", any_spaces, "start"),
     covr.exclude_end = rex::rex("#", any_spaces, "nocov", any_spaces, "end"),
-    covr.cc = Sys.which("gcc"),
     covr.flags = c(CFLAGS = "-O0 --coverage",
                  CXXFLAGS = "-O0 --coverage",
                  CXX1XFLAGS = "-O0 --coverage",

@@ -23,6 +23,11 @@ parse_gcov <- function(file, package_path = "") {
   )
 
   matches <- rex::re_matches(lines, re)
+
+  # Exclude lines with no match to the pattern
+  lines <- lines[!is.na(matches$coverage)]
+  matches <- na.omit(matches)
+
   # gcov lines which have no coverage
   matches$coverage[matches$coverage == "#####"] <- 0 # nolint
 
@@ -34,7 +39,14 @@ parse_gcov <- function(file, package_path = "") {
 
   values <- as.numeric(matches$coverage)
 
-  line_coverages(source_file, matches, values, rep(NA_character_, length(values)))
+  if (any(is.na(values))) {
+    stop("values could not be coerced to numeric ", matches$coverage)
+  }
+
+  # There are no functions for gcov, so we set everything to NA
+  functions <- rep(NA_character_, length(values))
+
+  line_coverages(source_file, matches, values, functions)
 }
 
 clean_gcov <- function(path) {
@@ -76,16 +88,12 @@ run_gcov <- function(path, quiet = TRUE,
   })
 }
 
-line_coverages <- function(source_file, matches, values, functions)
-{
+line_coverages <- function(source_file, matches, values, functions) {
+
   # create srcfile reference from the source file
   src_file <- srcfilecopy(source_file, readLines(source_file))
 
   line_lengths <- vapply(src_file$lines[as.numeric(matches$line)], nchar, numeric(1))
-
-  if (any(is.na(values))) {
-    stop("values could not be coerced to numeric ", matches$coverage)
-  }
 
   res <- Map(function(line, length, value, func) {
     src_ref <- srcref(src_file, c(line, 1, line, length))
