@@ -208,7 +208,7 @@ It consists of a named list, where the names are colon-delimited information fro
 The value is the number of times that given expression was called and the source ref of the original call.
 
 ```{r}
-# an object to analyse
+# an object to analyze
 f1 <- function(x) { x + 1 }
 # get results with no unit tests
 c1 <- function_coverage(fun = f1, code = NULL)

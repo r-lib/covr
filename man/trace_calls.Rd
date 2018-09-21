@@ -11,7 +11,8 @@ trace_calls(x, parent_functions = NULL, parent_ref = NULL)
 
 \item{parent_functions}{the functions which this call is a child of.}
 
-\item{parent_ref}{argument used to set the srcref of the current call when recursing}
+\item{parent_ref}{argument used to set the srcref of the current call during
+the recursion.}
 }
 \value{
 a modified expression with count calls inserted before each previous
@@ -21,6 +22,6 @@ call.
 This function calls itself recursively so it can properly traverse the AST.
 }
 \seealso{
-http://adv-r.had.co.nz/Expressions.html
+\url{http://adv-r.had.co.nz/Expressions.html}
 }
 \keyword{internal}

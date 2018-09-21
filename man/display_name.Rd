@@ -2,7 +2,7 @@
 % Please edit documentation in R/display_name.R
 \name{display_name}
 \alias{display_name}
-\title{Retrieve the path name (filenaem) for each coverage object}
+\title{Retrieve the path name (filename) for each coverage object}
 \usage{
 display_name(x)
 }
@@ -10,6 +10,6 @@ display_name(x)
 \item{x}{A coverage object}
 }
 \description{
-Retrieve the path name (filenaem) for each coverage object
+Retrieve the path name (filename) for each coverage object
 }
 \keyword{internal}

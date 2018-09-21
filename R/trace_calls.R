@@ -3,8 +3,9 @@
 #' This function calls itself recursively so it can properly traverse the AST.
 #' @param x the call
 #' @param parent_functions the functions which this call is a child of.
-#' @param parent_ref argument used to set the srcref of the current call when recursing
-#' @seealso http://adv-r.had.co.nz/Expressions.html
+#' @param parent_ref argument used to set the srcref of the current call during
+#'   the recursion.
+#' @seealso <http://adv-r.had.co.nz/Expressions.html>
 #' @return a modified expression with count calls inserted before each previous
 #' call.
 #' @keywords internal

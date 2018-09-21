@@ -1,4 +1,4 @@
-#' Retrieve the path name (filenaem) for each coverage object
+#' Retrieve the path name (filename) for each coverage object
 #'
 #' @param x A coverage object
 #' @keywords internal
