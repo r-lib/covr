@@ -16,7 +16,7 @@ C/C++/FORTRAN code.
 }
 \details{
 A coverage report can be used to inspect coverage for each line in your
-package. Using \code{report()} requires \href{https://github.com/rstudio/shiny}{shiny}.\preformatted{# If run with no arguments `report()` implicitly calls `package_coverage()`
+package. Using \code{report()} requires the additional dependencies \code{DT} and \code{htmltools}.\preformatted{# If run with no arguments `report()` implicitly calls `package_coverage()`
 report()
 }
 }
@@ -54,6 +54,11 @@ Other contributors:
   \item Chris Campbell [contributor]
   \item David Hugh-Jones [contributor]
   \item Qin Wang [contributor]
+  \item Ivan Sagalaev (highlight.js library) [contributor, copyright holder]
+  \item Mark Otto (Bootstrap library) [contributor]
+  \item Jacob Thornton (Bootstrap library) [contributor]
+  \item  Bootstrap contributors (Bootstrap library) [contributor]
+  \item  Twitter, Inc (Bootstrap library) [copyright holder]
 }
 
 }

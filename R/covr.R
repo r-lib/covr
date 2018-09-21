@@ -9,7 +9,7 @@
 #' C/C++/FORTRAN code.
 #'
 #' A coverage report can be used to inspect coverage for each line in your
-#' package. Using `report()` requires [shiny](https://github.com/rstudio/shiny).
+#' package. Using `report()` requires the additional dependencies `DT` and `htmltools`.
 #'
 #' ```r
 #' # If run with no arguments `report()` implicitly calls `package_coverage()`

@@ -16,6 +16,9 @@
 * `gitlab()` function added to create a coverage report for GitLab using
   GitLab's internal pages (@surmann, #327, #331).
 
+* The (optional) dependency on shiny has been removed. `report()` can now be
+  built with only DT and htmltools installed.
+
 ## Bugfixes and minor improvements
 
 * Fix for gcc-8 gcov output producing lines with no coverage counts in them (#328)

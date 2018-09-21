@@ -24,7 +24,13 @@ Authors@R: c(
     person("Ken", "Williams", role = "ctb"),
     person("Chris", "Campbell", role = "ctb"),
     person("David", "Hugh-Jones", role = "ctb"),
-    person("Qin", "Wang", role = "ctb"))
+    person("Qin", "Wang", role = "ctb"),
+    person("Ivan", "Sagalaev", role = c("ctb", "cph"), comment = "highlight.js library"),
+    person("Mark", "Otto", role = "ctb", comment = "Bootstrap library"),
+    person("Jacob", "Thornton", role = "ctb", comment = "Bootstrap library"),
+    person(family = "Bootstrap contributors", role = "ctb", comment = "Bootstrap library"),
+    person(family = "Twitter, Inc", role = "cph", comment = "Bootstrap library")
+    )
 Description: Track and report code coverage for your package and (optionally)
     upload the results to a coverage service like 'Codecov' <http://codecov.io> or
     'Coveralls' <http://coveralls.io>. Code coverage is a measure of the amount of
@@ -50,9 +56,7 @@ Suggests:
     R6,
     knitr,
     rmarkdown,
-    shiny (>= 0.11.1),
     htmltools,
-    htmlwidgets (>= 0.7),
     DT (>= 0.2),
     testthat,
     rstudioapi (>= 0.2),
