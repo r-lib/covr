@@ -1,5 +1,9 @@
 # Development
 
+# 3.2.1
+
+* Fix for regression when testing coverage of packages using mclapply (#335).
+
 # 3.2.0
 
 ## Breaking changes

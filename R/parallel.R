@@ -14,6 +14,8 @@ fix_mcexit <- function(trace_dir) {
   get_from_ns <- `:::` # trick to fool R CMD check
   mcexit <- get_from_ns('parallel', 'mcexit')
 
+  trace_dir <- parse(text = trace_dir)[[1]]
+
   # directly patch mcexit
   body(mcexit) <- as.call(append(after = 1, as.list(body(mcexit)),
       as.call(list(call(":::", as.symbol("covr"), as.symbol("save_trace")), trace_dir))))
