@@ -13,8 +13,8 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
   percent_overall <- percent_coverage(df, by = "line") / 100
   percent_per_file <- tapply(df$value, df$filename, FUN = function(x) (sum(x > 0) / length(x)))
   percent_per_function <- tapply(df$value, df$functions, FUN = function(x) (sum(x > 0) / length(x)))
-  lines_valid = nrow(df)
-  lines_covered = sum(df$value > 0)
+  lines_valid <- nrow(df)
+  lines_covered <- sum(df$value > 0)
                                  
   d <- xml2::xml_new_document()
 
