@@ -136,6 +136,10 @@ traced_files <- function(x) {
 per_line <- function(coverage) {
   df <- as.data.frame(coverage)
 
+  # In rare cases the source reference such as generated code onload the source
+  # reference will not exists, so the first_line will be NA
+  df <- df[!is.na(df$first_line), ]
+
   files <- traced_files(coverage)
 
   blank_lines <- lapply(files, function(file) {
