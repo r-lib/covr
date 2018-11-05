@@ -503,12 +503,12 @@ run_vignettes <- function(pkg, lib) {
 }
 
 run_commands <- function(pkg, lib, commands, batch) {
+  outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
+  failfile <- paste(outfile, "fail", sep = "." )
+  cat(
+    "library('", pkg$package, "')\n",
+    commands, "\n", file = outfile, sep = "")
   if (batch) {
-    outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
-    failfile <- paste(outfile, "fail", sep = "." )
-    cat(
-      "library('", pkg$package, "')\n",
-      commands, "\n", file = outfile, sep = "")
     cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                  "CMD BATCH --vanilla --no-timing",
                  shQuote(outfile), shQuote(failfile))
@@ -520,7 +520,9 @@ run_commands <- function(pkg, lib, commands, batch) {
     }
   }
   else {
-    eval(parse(text = paste("library(", pkg$package, ")\n", commands, sep = "")))
+    cmd <- paste(shQuote(file.path(R.home("bin"), "RScript")), shQuote(outfile))
+    res <- system(cmd)
+    if (res != 0L) stop("Failed running code coverage.")
   }
 }
 
