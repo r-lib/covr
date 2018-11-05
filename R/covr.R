@@ -218,6 +218,8 @@ environment_coverage <- function(
 #' @param function_exclusions a vector of regular expressions matching function
 #' names to exclude. Example `print\\\.` to match print methods.
 #' @param code A character vector of additional test code to run.
+#' @param batch whether to execute commands using \code{R CMD BATCH}, defaults to
+#' \code{TRUE}.
 #' @param ... Additional arguments passed to [tools::testInstalledPackage()].
 #' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
 #' @seealso [exclusions()] For details on excluding parts of the
@@ -232,6 +234,7 @@ package_coverage <- function(path = ".",
                              line_exclusions = NULL,
                              function_exclusions = NULL,
                              code = character(),
+                             batch = TRUE,
                              ...,
                              exclusions) {
 
@@ -354,7 +357,7 @@ package_coverage <- function(path = ".",
 
       # We always run the commands file (even if empty) to load the package and
       # initialize all the counters to 0.
-      run_commands(pkg, tmp_lib, code)
+      run_commands(pkg, tmp_lib, code, batch)
     },
     message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
     warning = function(e) if (quiet) invokeRestart("muffleWarning") else e)
@@ -499,20 +502,25 @@ run_vignettes <- function(pkg, lib) {
   }
 }
 
-run_commands <- function(pkg, lib, commands) {
-  outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
-  failfile <- paste(outfile, "fail", sep = "." )
-  cat(
-    "library('", pkg$package, "')\n",
-    commands, "\n", file = outfile, sep = "")
-  cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
-               "CMD BATCH --vanilla --no-timing",
-               shQuote(outfile), shQuote(failfile))
-  res <- system(cmd)
-  if (res != 0L) {
-    show_failures(dirname(failfile))
-  } else {
-    file.rename(failfile, outfile)
+run_commands <- function(pkg, lib, commands, batch) {
+  if (batch) {
+    outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
+    failfile <- paste(outfile, "fail", sep = "." )
+    cat(
+      "library('", pkg$package, "')\n",
+      commands, "\n", file = outfile, sep = "")
+    cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
+                 "CMD BATCH --vanilla --no-timing",
+                 shQuote(outfile), shQuote(failfile))
+    res <- system(cmd)
+    if (res != 0L) {
+      show_failures(dirname(failfile))
+    } else {
+      file.rename(failfile, outfile)
+    }
+  }
+  else {
+    eval(parse(text = paste("library(", pkg$package, ")\n", commands, sep = "")))
   }
 }
 
