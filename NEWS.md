@@ -1,5 +1,7 @@
 # Development
 
+* Cobertura coverage-04.dtd support (@samssann, #337).
+
 # 3.2.1
 
 * Fix for regression when testing coverage of packages using mclapply (#335).

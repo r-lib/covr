@@ -13,13 +13,20 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
   percent_overall <- percent_coverage(df, by = "line") / 100
   percent_per_file <- tapply(df$value, df$filename, FUN = function(x) (sum(x > 0) / length(x)))
   percent_per_function <- tapply(df$value, df$functions, FUN = function(x) (sum(x > 0) / length(x)))
-
+  lines_valid <- nrow(df)
+  lines_covered <- sum(df$value > 0)
+                                 
   d <- xml2::xml_new_document()
 
   top <- xml2::xml_add_child(d,
     "coverage",
     "line-rate" = as.character(percent_overall),
-    "branch-rate" = "0",
+    "branch-rate" = "0", 
+    `lines-covered` = as.character(lines_covered),
+    `lines-valid` = as.character(lines_valid),
+    `branches-covered` = "0",
+    `branches-valid` = "0",
+    complexity = 0,
     version = as.character(utils::packageVersion("covr")),
     timestamp = as.character(Sys.time()))
 
