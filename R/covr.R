@@ -218,8 +218,8 @@ environment_coverage <- function(
 #' @param function_exclusions a vector of regular expressions matching function
 #' names to exclude. Example `print\\\.` to match print methods.
 #' @param code A character vector of additional test code to run.
-#' @param batch whether to execute commands using \code{R CMD BATCH}, defaults to
-#' \code{TRUE}.
+#' @param batch whether to execute commands using \code{R CMD BATCH} or
+#' \code{R -e '<command>'}, defaults to \code{TRUE}.
 #' @param ... Additional arguments passed to [tools::testInstalledPackage()].
 #' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
 #' @seealso [exclusions()] For details on excluding parts of the
@@ -503,12 +503,12 @@ run_vignettes <- function(pkg, lib) {
 }
 
 run_commands <- function(pkg, lib, commands, batch) {
-  outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
-  failfile <- paste(outfile, "fail", sep = "." )
-  cat(
-    "library('", pkg$package, "')\n",
-    commands, "\n", file = outfile, sep = "")
   if (batch) {
+    outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
+    failfile <- paste(outfile, "fail", sep = "." )
+    cat(
+      "library('", pkg$package, "')\n",
+      commands, "\n", file = outfile, sep = "")
     cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                  "CMD BATCH --vanilla --no-timing",
                  shQuote(outfile), shQuote(failfile))
@@ -520,7 +520,10 @@ run_commands <- function(pkg, lib, commands, batch) {
     }
   }
   else {
-    cmd <- paste(shQuote(file.path(R.home("bin"), "RScript")), shQuote(outfile))
+    expr <- paste("library(", pkg$package, ");",
+                  paste(commands, collapse = ";"))
+    cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
+                 " -e ", shQuote(expr), sep = "")
     res <- system(cmd)
     if (res != 0L) stop("Failed running code coverage.")
   }

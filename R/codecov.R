@@ -5,8 +5,8 @@
 #' @param ... arguments passed to [package_coverage()]
 #' @param base_url Codecov url (change for Enterprise)
 #' @param quiet if `FALSE`, print the coverage before submission.
-#' @param batch whether to execute commands using \code{R CMD BATCH}, defaults to
-#' \code{TRUE}.
+#' @param batch whether to execute commands using \code{R CMD BATCH} or
+#' \code{R -e '<command>'}, defaults to \code{TRUE}.
 #' @param token a codecov upload token, if `NULL` the environment
 #' variable \sQuote{CODECOV_TOKEN} is used.
 #' @param commit explicitly set the commit this coverage result object
