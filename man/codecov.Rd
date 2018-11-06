@@ -5,7 +5,8 @@
 \title{Run covr on a package and upload the result to codecov.io}
 \usage{
 codecov(..., coverage = NULL, base_url = "https://codecov.io",
-  token = NULL, commit = NULL, branch = NULL, quiet = TRUE)
+  token = NULL, commit = NULL, branch = NULL, quiet = TRUE,
+  batch = TRUE)
 }
 \arguments{
 \item{...}{arguments passed to \code{\link[=package_coverage]{package_coverage()}}}
@@ -28,6 +29,9 @@ corresponds to, this is looked up from the service or locally if it is
 \code{NULL}.}
 
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
+
+\item{batch}{whether to execute commands using \code{R CMD BATCH} or
+\code{R -e '<command>'}, defaults to \code{TRUE}.}
 }
 \description{
 Run covr on a package and upload the result to codecov.io

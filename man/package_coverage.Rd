@@ -7,7 +7,8 @@
 package_coverage(path = ".", type = c("tests", "vignettes", "examples",
   "all", "none"), combine_types = TRUE, relative_path = TRUE,
   quiet = TRUE, clean = TRUE, line_exclusions = NULL,
-  function_exclusions = NULL, code = character(), ..., exclusions)
+  function_exclusions = NULL, code = character(), batch = TRUE, ...,
+  exclusions)
 }
 \arguments{
 \item{path}{file path to the package.}
@@ -36,6 +37,9 @@ each file.}
 names to exclude. Example \code{print\\\.} to match print methods.}
 
 \item{code}{A character vector of additional test code to run.}
+
+\item{batch}{whether to execute commands using \code{R CMD BATCH} or
+\code{R -e '<command>'}, defaults to \code{TRUE}.}
 
 \item{...}{Additional arguments passed to \code{\link[tools:testInstalledPackage]{tools::testInstalledPackage()}}.}
 
