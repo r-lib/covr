@@ -197,6 +197,8 @@ f2 <- function(x) { # nocov start
 The patterns used can be specified by setting the global options
 `covr.exclude_pattern`, `covr.exclude_start`, `covr.exclude_end`.
 
+NB: The same pattern applies to exclusions in the `src` folder, so skipped lines in, e.g., C code (where comments can start with `//`) should look like `// # nocov`.
+
 
 # FAQ #
 ## Will covr work with testthat, RUnit, etc... ##
