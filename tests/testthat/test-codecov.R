@@ -125,18 +125,20 @@ test_that("it adds the token to the query if available", {
     )
   })
 test_that("it looks for token in a .yml file", {
-  with_mock(
-    `httr::POST` = function(...) list(...),
-    `httr::content` = identity,
-    `covr:::local_branch` = function() "master",
-    `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+  withr::with_envvar(c(ci_vars),
+    with_mock(
+      `httr::POST` = function(...) list(...),
+      `httr::content` = identity,
+      `covr:::local_branch` = function() "master",
+      `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
 
-    res <- codecov(coverage = cov),
+      res <- codecov(coverage = cov),
 
-    expect_match(res$url, "/upload/v2"), # nolint
-    expect_match(res$query$branch, "master"),
-    expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
-    expect_match(res$query$token, "codecov_token_from_yaml")
+      expect_match(res$url, "/upload/v2"), # nolint
+      expect_match(res$query$branch, "master"),
+      expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"),
+      expect_match(res$query$token, "codecov_token_from_yaml")
+    )
   )
   })
 
