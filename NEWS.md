@@ -1,6 +1,7 @@
 # Development
 
 * Cobertura coverage-04.dtd support (@samssann, #337).
+* `codecov` will look at `codecov.yml` for token if `CODECOV_TOKEN` envvar is not set.
 
 # 3.2.1
 
