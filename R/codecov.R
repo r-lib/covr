@@ -156,7 +156,7 @@ codecov <- function(...,
   }
 
   token <- token %||% Sys.getenv("CODECOV_TOKEN")
-  token <- if (token == "") {
+  token <- if (!nzchar(token)) {
     extract_from_yaml(attr(coverage, "package")$path)
   } else {
     token
