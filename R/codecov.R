@@ -156,7 +156,11 @@ codecov <- function(...,
   }
 
   token <- token %||% Sys.getenv("CODECOV_TOKEN")
-  token <- if (token == "") extract_from_yaml(attr(coverage, "package")$path)
+  token <- if (token == "") {
+    extract_from_yaml(attr(coverage, "package")$path)
+  } else {
+    token
+  }
 
   if (nzchar(token)) {
     codecov_query$token <- token
@@ -169,7 +173,11 @@ codecov <- function(...,
 
 extract_from_yaml <- function(path){
   path_to_yaml <- file.path(path, "codecov.yml")
-  yaml::read_yaml(path_to_yaml)[["codecov"]][["token"]]
+  if (file.exists(path_to_yaml)) {
+    yaml::read_yaml(path_to_yaml)[["codecov"]][["token"]]
+  } else {
+    ""
+  }
 }
 
 to_codecov <- function(x) {
