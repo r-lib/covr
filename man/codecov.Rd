@@ -16,8 +16,14 @@ codecov(..., coverage = NULL, base_url = "https://codecov.io",
 
 \item{base_url}{Codecov url (change for Enterprise)}
 
-\item{token}{a codecov upload token, if \code{NULL} the environment
-variable \sQuote{CODECOV_TOKEN} is used.}
+\item{token}{a codecov upload token, if \code{NULL} then following external
+sources will be checked in this order:
+\enumerate{
+\item the environment variable \sQuote{CODECOV_TOKEN}. If it is empty, then
+\item package will look at directory of the package for a file \code{codecov.yml}.
+File must have \code{codecov} section where field \code{token} is set to a token that
+will be used.
+}}
 
 \item{commit}{explicitly set the commit this coverage result object
 corresponds to. Is looked up from the service or locally if it is
