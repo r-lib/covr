@@ -151,7 +151,8 @@ codecov <- function(...,
                           commit = commit %||% current_commit())
   }
 
-  token <- token %||% Sys.getenv("CODECOV_TOKEN")
+  token <- token %||% Sys.getenv("CODECOV_TOKEN") %||% extract_from_yaml(attr(coverage, "package")$path)
+
   if (nzchar(token)) {
     codecov_query$token <- token
   }
@@ -159,6 +160,11 @@ codecov <- function(...,
   coverage_json <- to_codecov(coverage)
 
   httr::content(httr::POST(url = codecov_url, query = codecov_query, body = coverage_json, encode = "json"))
+}
+
+extract_from_yaml <- function(path){
+  path_to_yaml <- file.path(path, "codecov.yml")
+  yaml::read_yaml(path_to_yaml)[["codecov"]][["token"]]
 }
 
 to_codecov <- function(x) {
