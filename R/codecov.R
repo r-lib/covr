@@ -155,7 +155,8 @@ codecov <- function(...,
                           commit = commit %||% current_commit())
   }
 
-  token <- token %||% Sys.getenv("CODECOV_TOKEN") %||% extract_from_yaml(attr(coverage, "package")$path)
+  token <- token %||% Sys.getenv("CODECOV_TOKEN")
+  token <- if (token == "") extract_from_yaml(attr(coverage, "package")$path)
 
   if (nzchar(token)) {
     codecov_query$token <- token
