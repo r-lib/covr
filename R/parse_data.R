@@ -132,9 +132,7 @@ get_parse_data <- function(srcfile) {
 }
 
 clean_parse_data <- function() {
-  for (nme in ls(package_parse_data)) {
-    rm(nme, envir = package_parse_data)
-  }
+  rm(list = ls(package_parse_data), envir = package_parse_data)
 }
 
 # Needed to work around https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16756
