@@ -5,8 +5,12 @@
 #' @param ... arguments passed to [package_coverage()]
 #' @param base_url Codecov url (change for Enterprise)
 #' @param quiet if `FALSE`, print the coverage before submission.
-#' @param token a codecov upload token, if `NULL` the environment
-#' variable \sQuote{CODECOV_TOKEN} is used.
+#' @param token a codecov upload token, if `NULL` then following external
+#'   sources will be checked in this order:
+#'   1. the environment variable \sQuote{CODECOV_TOKEN}. If it is empty, then
+#'   1. package will look at directory of the package for a file `codecov.yml`.
+#'   File must have `codecov` section where field `token` is set to a token that
+#'   will be used.
 #' @param commit explicitly set the commit this coverage result object
 #' corresponds to. Is looked up from the service or locally if it is
 #' `NULL`.
@@ -152,6 +156,12 @@ codecov <- function(...,
   }
 
   token <- token %||% Sys.getenv("CODECOV_TOKEN")
+  token <- if (!nzchar(token)) {
+    extract_from_yaml(attr(coverage, "package")$path)
+  } else {
+    token
+  }
+
   if (nzchar(token)) {
     codecov_query$token <- token
   }
@@ -159,6 +169,15 @@ codecov <- function(...,
   coverage_json <- to_codecov(coverage)
 
   httr::content(httr::POST(url = codecov_url, query = codecov_query, body = coverage_json, encode = "json"))
+}
+
+extract_from_yaml <- function(path){
+  path_to_yaml <- file.path(path, "codecov.yml")
+  if (file.exists(path_to_yaml)) {
+    yaml::read_yaml(path_to_yaml)[["codecov"]][["token"]]
+  } else {
+    ""
+  }
 }
 
 to_codecov <- function(x) {

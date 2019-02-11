@@ -1,0 +1,2 @@
+codecov:
+  token: codecov_token_from_yaml
