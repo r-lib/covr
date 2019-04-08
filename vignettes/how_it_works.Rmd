@@ -30,6 +30,7 @@ Code coverage consists of:
 Measuring code coverage allows developers to asses their progress in quality checking their own (or their collaborators) code.
 Measuring code coverage allows code consumers to have confidence in the measures taken by the package authors to verify high code quality.
 **covr** provides three functions to calculate test coverage.
+
 - `package_coverage()` performs coverage calculation on an R package. (Unit tests must be contained in the `"tests"` directory.)
 - `file_coverage()` performs coverage calculation on one or more R scripts by executing one or more R scripts.
 - `function_coverage()` performs coverage calculation on a single named function, using an expression provided.
