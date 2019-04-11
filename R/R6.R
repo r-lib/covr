@@ -1,5 +1,5 @@
 replacements_R6 <- function(env) {
-  unlist(recursive = FALSE, eapply(env,
+  unlist(recursive = FALSE, eapply(env, all.names = TRUE,
     function(obj) {
       if (inherits(obj, "R6ClassGenerator")) {
         unlist(recursive = FALSE, eapply(obj,

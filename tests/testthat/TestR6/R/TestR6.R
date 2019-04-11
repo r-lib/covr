@@ -20,3 +20,11 @@ TestR6 <- R6::R6Class("TestR6", # nolint
     }
   )
 )
+
+.InternalTestR6 <- R6::R6Class("InternalTestR6", # nolint
+    public = list(
+        some_method = function(x){
+            1 + 2
+        }
+    )
+)
