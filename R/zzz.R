@@ -11,6 +11,9 @@
                  CXXFLAGS = "-O0 --coverage",
                  CXX1XFLAGS = "-O0 --coverage",
                  CXX11FLAGS = "-O0 --coverage",
+                 CXX14FLAGS = "-O0 --coverage",
+                 CXX17FLAGS = "-O0 --coverage",
+                 CXX20FLAGS = "-O0 --coverage",
 
                  FFLAGS = "-O0 --coverage",
                  FCFLAGS = "-O0 --coverage",
@@ -29,6 +32,10 @@
     covr.icov_flags = c(CFLAGS = icov_flag,
                  CXXFLAGS = icov_flag,
                  CXX1XFLAGS = icov_flag,
+                 CXX11FLAGS = icov_flag,
+                 CXX14FLAGS = icov_flag,
+                 CXX17FLAGS = icov_flag,
+                 CXX20FLAGS = icov_flag,
 
                  FFLAGS = icov_flag,
                  FCFLAGS = icov_flag,
