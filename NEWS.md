@@ -13,6 +13,7 @@
 * Cobertura coverage-04.dtd support (@samssann, #337).
 * `codecov` will look at `codecov.yml` for token if `CODECOV_TOKEN` envvar is not set (@MishaCivey #349).
 * Some previously-ignored internal objects (like [R6](https://github.com/r-lib/R6) class generators prefixed with `.`) are now considered relevant for coverage (@jameslamb, #356).
+* Add option to skip cleaning of objects in package_coverage, assuming that objects are already compiled with the correct options (@jpritikin, #375)
 
 # 3.2.1
 

@@ -7,7 +7,8 @@
 package_coverage(path = ".", type = c("tests", "vignettes", "examples",
   "all", "none"), combine_types = TRUE, relative_path = TRUE,
   quiet = TRUE, clean = TRUE, line_exclusions = NULL,
-  function_exclusions = NULL, code = character(), ..., exclusions)
+  function_exclusions = NULL, code = character(), ..., exclusions,
+  pre_clean = TRUE)
 }
 \arguments{
 \item{path}{file path to the package.}
@@ -40,6 +41,8 @@ names to exclude. Example \code{print\\\.} to match print methods.}
 \item{...}{Additional arguments passed to \code{\link[tools:testInstalledPackage]{tools::testInstalledPackage()}}.}
 
 \item{exclusions}{\sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.}
+
+\item{pre_clean}{whether to delete all objects present in the src directory before recompiling}
 }
 \description{
 This function calculates the test coverage for a development package on the
