@@ -220,6 +220,7 @@ environment_coverage <- function(
 #' @param code A character vector of additional test code to run.
 #' @param ... Additional arguments passed to [tools::testInstalledPackage()].
 #' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
+#' @param pre_clean whether to delete all objects present in the src directory before recompiling
 #' @seealso [exclusions()] For details on excluding parts of the
 #' package from the coverage calculations.
 #' @export
@@ -233,7 +234,7 @@ package_coverage <- function(path = ".",
                              function_exclusions = NULL,
                              code = character(),
                              ...,
-                             exclusions) {
+                             exclusions, pre_clean=TRUE) {
 
   if (!missing(exclusions)) {
     warning(paste0("`exclusions` is deprecated and will be removed in an upcoming
@@ -298,7 +299,7 @@ package_coverage <- function(path = ".",
   }
 
   # clean any dlls prior to trying to install
-  clean_objects(pkg$path)
+  if (isTRUE(pre_clean)) clean_objects(pkg$path)
 
   # install the package in a temporary directory
   withr::with_makevars(flags, assignment = "+=",
