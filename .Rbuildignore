@@ -24,3 +24,5 @@ _dev\.R$
 ^LICENSE$
 ^CRAN-RELEASE$
 ^docs$
+^_pkgdown\.yml$
+^pkgdown$
