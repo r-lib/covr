@@ -12,3 +12,9 @@ matrix:
       - R CMD INSTALL $PKG_TARBALL
       - source shim_package.sh
       - Rscript -e 'covr::codecov()'
+      - source unshim_package.sh
+    before_cache: Rscript -e 'remotes::install_cran("pkgdown")'
+    deploy:
+      provider: script
+      script: Rscript -e 'pkgdown::deploy_site_github()'
+      skip_cleanup: true
