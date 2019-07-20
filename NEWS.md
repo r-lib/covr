@@ -1,5 +1,7 @@
 # Development
 
+* Work around issues related to the new curly curly syntax in rlang (#379, #377, rlang#813)
+
 * Define the necessary coverage flags for C++14, C++17 and C++20 (#369).
 
 * Cobertura coverage-04.dtd support (@samssann, #337).

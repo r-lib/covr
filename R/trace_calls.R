@@ -13,9 +13,11 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
 
   # Construct the calls by hand to avoid a NOTE from R CMD check
   count <- function(key, val) {
-    call("{",
-      as.call(list(call(":::", as.symbol("covr"), as.symbol("count")), key)),
-      val)
+    call("(",
+      call("{",
+        as.call(list(call(":::", as.symbol("covr"), as.symbol("count")), key)),
+        val)
+    )
   }
 
   if (is.null(parent_functions)) {
@@ -39,12 +41,16 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
     }
   }
   else if (is.call(x)) {
+    src_ref <- attr(x, "srcref") %||% impute_srcref(x, parent_ref)
     if ((identical(x[[1]], as.name("<-")) || identical(x[[1]], as.name("="))) && # nolint
-        (is.call(x[[3]]) && identical(x[[3]][[1]], as.name("function")))) {
+      (is.call(x[[3]]) && identical(x[[3]][[1]], as.name("function")))) {
       parent_functions <- c(parent_functions, as.character(x[[2]]))
     }
-    src_ref <- attr(x, "srcref") %||% impute_srcref(x, parent_ref)
-    if (!is.null(src_ref)) {
+
+    # do not try to trace curly curly
+    if (identical(x[[1]], as.name("{")) && length(x) == 2 && is.call(x[[2]]) && identical(x[[2]][[1]], as.name("{"))) {
+      as.call(x)
+    } else if (!is.null(src_ref)) {
       as.call(Map(trace_calls, x, src_ref, MoreArgs = list(parent_functions = parent_functions)))
     } else if (!is.null(parent_ref)) {
       key <- new_counter(parent_ref, parent_functions)

@@ -310,6 +310,7 @@ package_coverage <- function(path = ".",
                                              "--install-tests",
                                              "--with-keep.source",
                                              "--with-keep.parse.data",
+                                             "--no-staged-install",
                                              "--no-multiarch"),
                             quiet = quiet))
 
