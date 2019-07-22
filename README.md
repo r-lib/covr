@@ -240,4 +240,5 @@ which _can_ modify behavior (usually due to package bugs which are masked with
 higher optimization levels).
 
 # Alternative Coverage Tools #
+- <https://github.com/MangoTheCat/testCoverage> (no longer supported)
 - <http://r2d2.quartzbio.com/posts/r-coverage-docker.html>
