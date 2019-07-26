@@ -155,12 +155,7 @@ codecov <- function(...,
                           commit = commit %||% current_commit())
   }
 
-  token <- token %||% Sys.getenv("CODECOV_TOKEN")
-  token <- if (!nzchar(token)) {
-    extract_from_yaml(attr(coverage, "package")$path)
-  } else {
-    token
-  }
+  token <- token %||% Sys.getenv("CODECOV_TOKEN", extract_from_yaml(attr(coverage, "package")$path))
 
   if (nzchar(token)) {
     codecov_query$token <- token
@@ -174,7 +169,7 @@ codecov <- function(...,
 extract_from_yaml <- function(path){
   path_to_yaml <- file.path(path, "codecov.yml")
   if (file.exists(path_to_yaml)) {
-    yaml::read_yaml(path_to_yaml)[["codecov"]][["token"]]
+    yaml::read_yaml(path_to_yaml)[["codecov"]][["token"]] %||% ""
   } else {
     ""
   }
