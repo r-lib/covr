@@ -439,7 +439,7 @@ merge_coverage <- function(files) {
     return()
   }
 
-  x <- readRDS(files[1])
+  x <- suppressWarnings(readRDS(files[1]))
   x <- as.list(x)
   if (nfiles == 1) {
     return(x)
@@ -447,7 +447,7 @@ merge_coverage <- function(files) {
 
   names <- names(x)
   for (i in 2:nfiles) {
-    y <- readRDS(files[i])
+    y <- suppressWarnings(readRDS(files[i]))
     for (name in intersect(names, names(y))) {
       x[[name]]$value <- x[[name]]$value + y[[name]]$value
     }
