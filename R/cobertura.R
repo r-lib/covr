@@ -31,7 +31,7 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
     timestamp = as.character(Sys.time()))
 
   # Add sources
-  #sources <- xml2::xml_add_child(top, "sources")
+  sources <- xml2::xml_add_child(top, "sources")
   files <- unique(df$filename)
   #for (f in files){
     #xml2::xml_add_child(sources, "source", f)
@@ -62,7 +62,7 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
     for (fun_name in unique(df[df$filename == f, "functions"])) {
       fun <- xml2::xml_add_child(methods, "method",
         name = fun_name,
-        #signature = "NA",
+        signature = "",
         "line-rate" = as.character(percent_per_function[fun_name]),
         "branch-rate" = "0")
 
