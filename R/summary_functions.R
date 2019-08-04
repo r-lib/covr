@@ -21,7 +21,10 @@ tally_coverage <- function(x, by = c("line", "expression")) {
 
   # Rarely something goes wrong with the source references and we get all NAs
   # for them, so we omit them here
-  df <- na.omit(as.data.frame(x))
+  df <- as.data.frame(x)
+
+  all_na_rows <- rowSums(is.na(df)) == ncol(df)
+  df <- df[!all_na_rows, ]
 
   if (NROW(df) == 0) {
     return(df)
