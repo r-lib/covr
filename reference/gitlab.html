@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • covr</title>
+<title>Run covr on package and create report for GitLab — gitlab • covr</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,7 +30,12 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Run covr on package and create report for GitLab — gitlab" />
+
+<meta property="og:description" content="Utilize internal GitLab static pages to publish package coverage.
+Creates local covr report in a package subdirectory.
+Uses the pages
+GitLab job to publish the report." />
 
 <meta property="og:image" content="http://covr.r-lib.org/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -60,7 +65,7 @@
   </head>
 
   <body>
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -122,156 +127,56 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Run covr on package and create report for GitLab</h1>
+    <small class="dont-index">Source: <a href='https://github.com/r-lib/covr/blob/master/R/gitlab.R'><code>R/gitlab.R</code></a></small>
+    <div class="hidden name"><code>gitlab.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    
+    <p>Utilize internal GitLab static pages to publish package coverage.
+Creates local covr report in a package subdirectory.
+Uses the <a href='https://docs.gitlab.com/ee/ci/yaml/README.html#pages'>pages</a>
+GitLab job to publish the report.</p>
+    
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
-
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      <tr>
-        
-        <td>
-          <p><code><a href="azure.html">azure()</a></code> </p>
-        </td>
-        <td><p>Run covr on a package and output the result so it is available on Azure Pipelines</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="code_coverage.html">code_coverage()</a></code> </p>
-        </td>
-        <td><p>Calculate coverage of code directly</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="codecov.html">codecov()</a></code> </p>
-        </td>
-        <td><p>Run covr on a package and upload the result to codecov.io</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="coverage_to_list.html">coverage_to_list()</a></code> </p>
-        </td>
-        <td><p>Convert a coverage dataset to a list</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="coveralls.html">coveralls()</a></code> </p>
-        </td>
-        <td><p>Run covr on a package and upload the result to coveralls</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="covr-package.html">covr-package</a></code> </p>
-        </td>
-        <td><p>covr: Test coverage for packages</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="environment_coverage.html">environment_coverage()</a></code> </p>
-        </td>
-        <td><p>Calculate coverage of an environment</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="exclusions.html">exclusions</a></code> </p>
-        </td>
-        <td><p>Exclusions</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="file_coverage.html">file_coverage()</a></code> </p>
-        </td>
-        <td><p>Calculate test coverage for sets of files</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="file_report.html">file_report()</a></code> </p>
-        </td>
-        <td><p>A coverage report for a specific file</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="function_coverage.html">function_coverage()</a></code> </p>
-        </td>
-        <td><p>Calculate test coverage for a specific function.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="gitlab.html">gitlab()</a></code> </p>
-        </td>
-        <td><p>Run covr on package and create report for GitLab</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="package_coverage.html">package_coverage()</a></code> </p>
-        </td>
-        <td><p>Calculate test coverage for a package</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="percent_coverage.html">percent_coverage()</a></code> </p>
-        </td>
-        <td><p>Provide percent coverage of package</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="print.coverage.html">print(<i>&lt;coverage&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Print a coverage object</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="report.html">report()</a></code> </p>
-        </td>
-        <td><p>Display covr results using a standalone report</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="tally_coverage.html">tally_coverage()</a></code> </p>
-        </td>
-        <td><p>Tally coverage by line or expression</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="to_cobertura.html">to_cobertura()</a></code> </p>
-        </td>
-        <td><p>Create a Cobertura XML file</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="value.html">value()</a></code> </p>
-        </td>
-        <td><p>Retrieve the value from an object</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="zero_coverage.html">zero_coverage()</a></code> </p>
-        </td>
-        <td><p>Provide locations of zero coverage</p></td>
-      </tr>
-    </tbody>
+    <pre class="usage"><span class='fu'>gitlab</span>(<span class='no'>...</span>, <span class='kw'>coverage</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>file</span> <span class='kw'>=</span> <span class='st'>"public/coverage.html"</span>,
+  <span class='kw'>quiet</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>...</th>
+      <td><p>arguments passed to <code><a href='package_coverage.html'>package_coverage()</a></code></p></td>
+    </tr>
+    <tr>
+      <th>coverage</th>
+      <td><p>an existing coverage object to submit, if <code>NULL</code>,
+<code><a href='package_coverage.html'>package_coverage()</a></code> will be called with the arguments from
+<code>...</code></p></td>
+    </tr>
+    <tr>
+      <th>file</th>
+      <td><p>The report filename.</p></td>
+    </tr>
+    <tr>
+      <th>quiet</th>
+      <td><p>if <code>FALSE</code>, print the coverage before submission.</p></td>
+    </tr>
     </table>
-  </div>
+    
 
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
-    </ul>
+      <li><a href="#arguments">Arguments</a></li>
+                </ul>
+
   </div>
 </div>
 
