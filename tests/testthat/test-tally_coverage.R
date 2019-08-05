@@ -7,14 +7,4 @@ test_that("tally_coverage includes compiled code", {
   expect_equal(
     unique(tall$filename),
     c("R/TestCompiled.R", "src/simple-header.h", "src/simple.c"))
-
-  expect_equal(
-    unname(as.list(tall[3, ])),
-    list("src/simple-header.h", NA_character_, 9L, 4L)
-  )
-
-  expect_equal(
-    unname(as.list(tall[15, ])),
-    list("src/simple.c", NA_character_, 10L, 4L)
-  )
 })
