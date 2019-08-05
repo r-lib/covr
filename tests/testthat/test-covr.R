@@ -82,6 +82,6 @@ test_that("show_failures shows as much text as it can from the end", {
     )
 
     # Expect the error to contain the end of the file
-    expect_error(show_failures(td), "eleifend conubia pellentesque viverra.", fixed = TRUE)
+    expect_error(show_failures(td), "eleifend conubia pellentesque viverra.", fixed = TRUE, class = "covr_error")
   })
 })
