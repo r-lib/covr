@@ -1,5 +1,9 @@
 # Development
 
+* New `azure()` added to make it easy to use covr on [Azure
+  Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/)
+  (#370)
+
 * `per_line()` now does not track lines with only punctuation such as `}` or `{` (#387)
 
 * `codecov()` now includes support for the flags field (#365)
