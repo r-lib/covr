@@ -42,5 +42,5 @@ test_that("per_line removes blank lines and lines with only punctuation (#387)",
 
   line_cov <- per_line(cov)
 
-  expect_equal(line_cov[[1]]$coverage, c(NA, NA, NA, NA, 0, 0, 2, NA, 1, NA, 1, NA, NA, NA, NA, NA, NA))
+  expect_equal(line_cov[[1]]$coverage, c(NA, 0, 0, 2, NA, 1, NA, 1, NA, NA, NA, NA, NA, NA, NA, NA, NA))
 })
