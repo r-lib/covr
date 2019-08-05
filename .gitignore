@@ -10,3 +10,4 @@ vignettes/covr_performance.Rmd
 revdep/checks
 revdep/library
 docs/
+script.R

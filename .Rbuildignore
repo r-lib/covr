@@ -26,3 +26,4 @@ _dev\.R$
 ^docs$
 ^_pkgdown\.yml$
 ^pkgdown$
+^script.R$
