@@ -88,7 +88,7 @@ exclude <- function(coverage,
 
       !is.na(which_exclusion) &&
         (
-          excl[[which_exclusion]] == Inf ||
+          identical(excl[[which_exclusion]], Inf) ||
           all(seq(df[i, "first_line"], df[i, "last_line"]) %in% excl[[file]])
         )
     })
