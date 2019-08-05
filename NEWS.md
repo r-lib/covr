@@ -1,5 +1,7 @@
 # Development
 
+* `per_line()` now does not track lines with only punctuation such as `}` or `{` (#387)
+
 * `codecov()` now includes support for the flags field (#365)
 
 * `tally_coverage()` now includes compiled code, like it did previously (#384)
