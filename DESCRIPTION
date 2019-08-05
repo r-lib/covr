@@ -60,6 +60,7 @@ Suggests:
     htmltools,
     DT (>= 0.2),
     testthat,
+    rlang,
     rstudioapi (>= 0.2),
     xml2 (>= 1.0.0),
     parallel,

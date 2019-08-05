@@ -99,5 +99,21 @@ test_that("functions with NULL bodies are traced correctly", {
 })
 
 test_that("functions with curly curly syntax are traced correctly", {
-  #TODO: good tests for this
+  my_capture <- function(x) {
+    rlang::expr({{ x }})
+  }
+  expect_equal(my_capture(5 == 1), rlang::quo(5 == 1))
+
+  # behavior not changed by covr
+  my_capture2 <- trace_calls(my_capture)
+  expect_equal(my_capture2(5 == 1), rlang::quo(5 == 1))
+
+  # outer code traced traced with ({  })
+  expect_equal(as.character(body(my_capture2)[[2]][[1]]), "(")
+  expect_equal(as.character(body(my_capture2)[[2]][[2]][[1]]), "{")
+  expect_equal(as.character(body(my_capture2)[[2]][[2]][[2]][[1]]), c(":::", "covr", "count"))
+
+  # no trace in the internal {{  }}
+  expect_equal(as.character(body(my_capture2)[[2]][[2]][[3]][[2]][[1]]), "{")
+  expect_equal(as.character(body(my_capture2)[[2]][[2]][[3]][[2]][[2]][[1]]), "{")
 })
