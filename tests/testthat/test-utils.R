@@ -36,3 +36,11 @@ test_that("it works", {
   expect_identical(character(), getSrcFilename(x))
   expect_identical("", get_source_filename(x))
 })
+
+test_that("per_line removes blank lines and lines with only punctuation (#387)", {
+  cov <- package_coverage(test_path("testFunctional"))
+
+  line_cov <- per_line(cov)
+
+  expect_equal(line_cov[[1]]$coverage, c(NA, NA, NA, NA, 0, 0, 2, NA, 1, NA, 1, NA, NA, NA, NA, NA, NA))
+})

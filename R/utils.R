@@ -142,9 +142,15 @@ per_line <- function(coverage) {
 
   files <- traced_files(coverage)
 
+  # Lines with only spaces or only comments
   blank_lines <- lapply(files, function(file) {
     which(rex::re_matches(file$file_lines, rex::rex(start, any_spaces, maybe("#", anything), end)))
-    })
+  })
+
+  # lines with only })], or an else block
+  empty_lines <- lapply(files, function(file) {
+    which(rex::re_matches(file$file_lines, rex::rex(start, one_or_more(any_of(punct, space) %or% group("else")), end)))
+  })
 
   file_lengths <- lapply(files, function(file) {
     length(file$file_lines)
@@ -153,7 +159,7 @@ per_line <- function(coverage) {
   res <- lapply(file_lengths,
     function(x) {
       rep(NA_real_, length.out = x)
-    })
+  })
 
   # df is sorted by file and first line ascending, so we store the maximum
   # last_line seen to detect if the previous expression contains the current
@@ -165,8 +171,8 @@ per_line <- function(coverage) {
     filename <- df[i, "filename"]
     for (line in seq(df[i, "first_line"], df[i, "last_line"])) {
 
-      # if it is not a blank line
-      if (!line %in% blank_lines[[filename]]) {
+      # if it is not a blank line or empty line
+      if (!line %in% c(blank_lines[[filename]], empty_lines[[filename]])) {
 
         value <- df[i, "value"]
         # if current coverage is NA or last line < max last line
