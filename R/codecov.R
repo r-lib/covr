@@ -17,6 +17,8 @@
 #' @param branch explicitly set the branch this coverage result object
 #' corresponds to, this is looked up from the service or locally if it is
 #' `NULL`.
+#' @param flags A flag to use for this coverage upload see
+#'   <https://docs.codecov.io/docs/flags> for details.
 #' @export
 #' @examples
 #' \dontrun{
@@ -28,6 +30,7 @@ codecov <- function(...,
                     token = NULL,
                     commit = NULL,
                     branch = NULL,
+                    flags = NULL,
                     quiet = TRUE) {
 
   if (is.null(coverage)) {
@@ -154,6 +157,9 @@ codecov <- function(...,
     codecov_query <- list(branch = branch %||% local_branch(),
                           commit = commit %||% current_commit())
   }
+
+  # Add flags parameter
+  codecov_query$flags <- flags
 
   token <- token %||% Sys.getenv("CODECOV_TOKEN", extract_from_yaml(attr(coverage, "package")$path))
 

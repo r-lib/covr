@@ -1,5 +1,7 @@
 # Development
 
+* `codecov()` now includes support for the flags field (#365)
+
 * `tally_coverage()` now includes compiled code, like it did previously (#384)
 
 * Work around issues related to the new curly curly syntax in rlang (#379, #377, rlang#813)

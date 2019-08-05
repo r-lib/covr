@@ -49,7 +49,7 @@ ci_vars <- c(
   "WERCKER_GIT_REPOSITORY" = NA,
   "WERCKER_MAIN_PIPELINE_STARTED" = NA)
 
-cov <- package_coverage("TestS4")
+cov <- package_coverage(test_path("TestS4"))
 
 test_that("it generates a properly formatted json file", {
 
@@ -70,6 +70,21 @@ test_that("it generates a properly formatted json file", {
         ),
       expect_equal(json$uploader, "R")
       ))
+})
+
+test_that("it adds a flags argument to the query if specified", {
+
+  withr::with_envvar(ci_vars,
+    with_mock(
+      `httr::POST` = function(...) list(...),
+      `httr::content` = identity,
+      `covr:::local_branch` = function() "master",
+      `covr:::current_commit` = function() "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
+
+      res <- codecov(coverage = cov, flags = "R"),
+      expect_equal(res$query$flags, "R")
+    )
+  )
 })
 
 test_that("it works with local repos", {

@@ -5,7 +5,8 @@
 \title{Run covr on a package and upload the result to codecov.io}
 \usage{
 codecov(..., coverage = NULL, base_url = "https://codecov.io",
-  token = NULL, commit = NULL, branch = NULL, quiet = TRUE)
+  token = NULL, commit = NULL, branch = NULL, flags = NULL,
+  quiet = TRUE)
 }
 \arguments{
 \item{...}{arguments passed to \code{\link[=package_coverage]{package_coverage()}}}
@@ -32,6 +33,9 @@ corresponds to. Is looked up from the service or locally if it is
 \item{branch}{explicitly set the branch this coverage result object
 corresponds to, this is looked up from the service or locally if it is
 \code{NULL}.}
+
+\item{flags}{A flag to use for this coverage upload see
+\url{https://docs.codecov.io/docs/flags} for details.}
 
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }
