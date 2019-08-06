@@ -1,4 +1,6 @@
 test_that("tally_coverage includes compiled code", {
+  skip_on_cran()
+
   cov <- package_coverage(test_path("TestCompiled"))
   tall <- tally_coverage(cov)
 
