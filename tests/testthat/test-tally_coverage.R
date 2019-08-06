@@ -6,5 +6,5 @@ test_that("tally_coverage includes compiled code", {
 
   expect_equal(
     unique(tall$filename),
-    c("R/TestCompiled.R", "src/simple-header.h", "src/simple.c"))
+    c("R/TestCompiled.R", "src/simple-header.h", "src/simple.cc", "src/simple4.cc"))
 })

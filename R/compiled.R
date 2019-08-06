@@ -73,18 +73,17 @@ run_gcov <- function(path, quiet = TRUE,
   }
 
   gcov_inputs <- list.files(path, pattern = rex::rex(".gcno", end), recursive = TRUE, full.names = TRUE)
-  withr::with_dir(src_path, {
-    run_gcov <- function(src) {
-      system_check(gcov_path,
-        args = c(gcov_args, src, "-p", "-o", dirname(src[[1]])),
-        quiet = quiet, echo = !quiet)
-    }
-    tapply(gcov_inputs, dirname(gcov_inputs), run_gcov)
+  run_gcov_one <- function(src) {
+    system_check(gcov_path,
+      args = c(gcov_args, src, "-p", "-o", dirname(src)),
+      quiet = quiet, echo = !quiet)
     gcov_outputs <- list.files(path, pattern = rex::rex(".gcov", end), recursive = TRUE, full.names = TRUE)
-    structure(
-      as.list(unlist(recursive = FALSE,
-        lapply(gcov_outputs, parse_gcov, package_path = path))),
-      class = "coverage")
+    on.exit(unlink(gcov_outputs))
+    unlist(lapply(gcov_outputs, parse_gcov, package_path = path), recursive = FALSE)
+  }
+
+  withr::with_dir(src_path, {
+    compact(unlist(lapply(gcov_inputs, run_gcov_one), recursive = FALSE))
   })
 }
 

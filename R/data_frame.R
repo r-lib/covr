@@ -21,9 +21,22 @@ as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, sort =
   df <- data.frame(res, stringsAsFactors = FALSE, check.names = FALSE)
 
   if (sort) {
-    df <- df[order(df$filename, df$first_line, df$first_byte), ]
+    # if we are sorting we no longer need to preserve the order of the input and can merge values together
+    df <- merge_values(df)
+
+    df <- df[order(df$filename, df$first_line, df$first_byte, df$last_line, df$last_byte), ]
   }
 
   rownames(df) <- NULL
+
   df
+}
+
+merge_values <- function(x, sentinel = "___NA___") {
+  # We can't use aggregate directly, because it doesn't allow missing values in
+  # grouping variables...
+  x$functions[is.na(x$functions)] <- sentinel
+  res <- aggregate(value ~ ., x, sum)
+  res$functions[res$functions == sentinel] <- NA_character_
+  res
 }

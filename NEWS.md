@@ -8,6 +8,10 @@
 
 * Work around issues related to the new curly curly syntax in rlang (#379, #377, rlang#813)
 
+* Compiled code coverage has been improved, in particular C++ templates now
+  contain the merged coverage of all template instances, even if the instances
+  were defined in separate compilation units. (#390)
+
 ## Bugfixes and minor improvements
 
 * `codecov()` now includes support for the flags field (#365)
