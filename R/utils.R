@@ -149,7 +149,7 @@ per_line <- function(coverage) {
 
   # lines with only })], or an else block
   empty_lines <- lapply(files, function(file) {
-    which(rex::re_matches(file$file_lines, rex::rex(start, one_or_more(any_of(punct, space) %or% group("else")), end)))
+    which(rex::re_matches(file$file_lines, "^(?:[[:punct:][:space:]]|else)*$"))
   })
 
   file_lengths <- lapply(files, function(file) {
