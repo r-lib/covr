@@ -99,7 +99,6 @@ without needing `CODECOV_TOKEN`).
 - [Travis CI\*](https://travis-ci.com)
 - [Codeship](https://www.codeship.com)
 - [Circleci\*](https://circleci.com)
-- [Semaphore](https://semaphoreapp.com)
 - [AppVeyor\*](http://ci.appveyor.com)
 - [Wercker](http://wercker.com)
 - [GitLab-CI](https://about.gitlab.com/gitlab-ci/)
