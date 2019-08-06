@@ -4,7 +4,7 @@
 #include <R_ext/Error.h>
 #include "simple-header.h"
 
-SEXP simple_(SEXP x) {
+extern "C" SEXP simple_(SEXP x) {
   double *px, *pout;
 
   SEXP out = PROTECT(allocVector(REALSXP, 1));
@@ -23,4 +23,8 @@ SEXP simple_(SEXP x) {
   UNPROTECT(1);
 
   return out;
+}
+
+extern "C" SEXP simple3_(SEXP x) {
+  return simple2_<double, REALSXP>(x);
 }

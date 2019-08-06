@@ -1,15 +1,18 @@
+#pragma once
+
 #define USE_RINTERNALS
 #include <R.h>
 #include <Rdefines.h>
 #include <R_ext/Error.h>
 
+template <typename R, int R_SXP>
 SEXP simple2_(SEXP x) {
-  double *px, *pout;
+  R *px, *pout;
 
-  SEXP out = PROTECT(allocVector(REALSXP, 1));
+  SEXP out = PROTECT(allocVector(R_SXP, 1));
 
-  px = REAL(x);
-  pout = REAL(out);
+  px = (R *) DATAPTR(x);
+  pout = (R *) DATAPTR(out);
 
   if (px[0] >= 1) {
     pout[0] = 1;
