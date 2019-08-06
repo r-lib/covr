@@ -56,10 +56,10 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
       "branch-rate" = "0",
       complexity = "0")
 
-    # Add methods
+    # Add methods for all lines with functions
     methods <- xml2::xml_add_child(class, "methods")
 
-    for (fun_name in unique(df[df$filename == f, "functions"])) {
+    for (fun_name in unique(na.omit(df[df$filename == f, "functions"]))) {
       fun <- xml2::xml_add_child(methods, "method",
         name = fun_name,
         signature = "",
