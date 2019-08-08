@@ -109,11 +109,30 @@ test_that("functions with curly curly syntax are traced correctly", {
   expect_equal(my_capture2(5 == 1), rlang::quo(5 == 1))
 
   # outer code traced traced with ({  })
-  expect_equal(as.character(body(my_capture2)[[2]][[1]]), "(")
+  expect_equal(as.character(body(my_capture2)[[2]][[1]]), "identity")
   expect_equal(as.character(body(my_capture2)[[2]][[2]][[1]]), "{")
   expect_equal(as.character(body(my_capture2)[[2]][[2]][[2]][[1]]), c(":::", "covr", "count"))
 
   # no trace in the internal {{  }}
   expect_equal(as.character(body(my_capture2)[[2]][[2]][[3]][[2]][[1]]), "{")
   expect_equal(as.character(body(my_capture2)[[2]][[2]][[3]][[2]][[2]][[1]]), "{")
+})
+
+
+test_that("functions that rely on implicit invisibility work the same", {
+  f <- function(x) {
+    x <- 1
+  }
+
+  f2 <- trace_calls(f)
+
+  expect_equal(withVisible(f2(1)), withVisible(f(1)))
+
+  f3 <- function(x) {
+    x + 1
+  }
+
+  f4 <- trace_calls(f3)
+
+  expect_equal(withVisible(f3(1)), withVisible(f4(1)))
 })
