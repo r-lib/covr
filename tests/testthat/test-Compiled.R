@@ -4,15 +4,15 @@ test_that("Compiled code coverage is reported including code in headers", {
   cov <- as.data.frame(package_coverage("TestCompiled", relative_path = TRUE))
 
   simple_cc <- cov[cov$filename == "src/simple.cc", ]
-  expect_equal(simple_c[simple_cc$first_line == "10", "value"], 4)
+  expect_equal(simple_cc[simple_cc$first_line == "10", "value"], 4)
 
-  expect_equal(simple_c[simple_cc$first_line == "16", "value"], 3)
+  expect_equal(simple_cc[simple_cc$first_line == "16", "value"], 3)
 
-  expect_equal(simple_c[simple_cc$first_line == "19", "value"], 0)
+  expect_equal(simple_cc[simple_cc$first_line == "19", "value"], 0)
 
-  expect_equal(simple_c[simple_cc$first_line == "21", "value"], 1)
+  expect_equal(simple_cc[simple_cc$first_line == "21", "value"], 1)
 
-  expect_equal(simple_c[simple_cc$first_line == "23", "value"], 4)
+  expect_equal(simple_cc[simple_cc$first_line == "23", "value"], 4)
 
   # This header contains a C++ template, which requires you to run gcov for
   # each object file separately and merge the results together.
