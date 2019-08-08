@@ -1,9 +1,14 @@
 # covr <img src="man/figures/logo.png" align="right" />
 
+<!-- badges: start -->
+[![Azure pipelines build status](https://img.shields.io/azure-devops/build/r-lib/covr/2)](https://dev.azure.com/r-lib/covr/_build/latest?definitionId=2&branchName=master)
+[![Azure pipelines test status](https://img.shields.io/azure-devops/tests/r-lib/covr/2?color=brightgreen&compact_message)](https://dev.azure.com/r-lib/covr/_build/latest?definitionId=2&branchName=master)
+[![Azure pipelines coverage status](https://img.shields.io/azure-devops/coverage/r-lib/covr/2)](https://dev.azure.com/r-lib/covr/_build/latest?definitionId=2&branchName=master)
 [![Build Status](https://travis-ci.org/r-lib/covr.svg?branch=master)](https://travis-ci.org/r-lib/covr)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/r-lib/covr?branch=master&svg=true)](https://ci.appveyor.com/project/jimhester/covr)
 [![codecov.io](https://codecov.io/github/r-lib/covr/coverage.svg?branch=master)](https://codecov.io/github/r-lib/covr?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/covr)](https://cran.r-project.org/package=covr)
+<!-- badges: end -->
 
 Track test coverage for your R package and view reports locally or (optionally)
 upload the results to [codecov](https://codecov.io/) or [coveralls](https://coveralls.io/).

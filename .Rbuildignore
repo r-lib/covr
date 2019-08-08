@@ -27,3 +27,4 @@ _dev\.R$
 ^_pkgdown\.yml$
 ^pkgdown$
 ^script.R$
+^azure-pipelines\.yml$
