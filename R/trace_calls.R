@@ -13,10 +13,11 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
 
   # Construct the calls by hand to avoid a NOTE from R CMD check
   count <- function(key, val) {
-    call("identity",
+    call("if", TRUE,
       call("{",
         as.call(list(call(":::", as.symbol("covr"), as.symbol("count")), key)),
-        val)
+        val
+      )
     )
   }
 
