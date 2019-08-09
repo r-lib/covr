@@ -10,3 +10,5 @@ resources:
 
 jobs:
   - template: azure-tidyverse.yml@r-azure-pipelines
+    parameters:
+      coverage: false
