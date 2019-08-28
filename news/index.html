@@ -73,7 +73,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.3.1</span>
       </span>
     </div>
 
@@ -128,9 +128,17 @@
       <small>Source: <a href='https://github.com/r-lib/covr/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
+    <div id="covr-3-3-1" class="section level1">
+<h1 class="page-header">
+<a href="#covr-3-3-1" class="anchor"></a>covr 3.3.1<small> 2019-08-23 </small>
+</h1>
+<ul>
+<li>Fix inadvertent regression in return visibility when functions are covered. covr versions prior to 3.3.0 surrounded each statement in <code>{</code> blocks. covr 3.3.0 switched to using <code>({</code>, but this caused an inadvertent regression, as <code>(</code> will make the result visible it is the last expression in a function. Using <code>if (TRUE) {</code> restores the previous behavior. (<a href='https://github.com/r-lib/covr/issues/391'>#391</a>, <a href='https://github.com/r-lib/covr/issues/392'>#392</a>)</li>
+</ul>
+</div>
     <div id="covr-3-3-0" class="section level1">
 <h1 class="page-header">
-<a href="#covr-3-3-0" class="anchor"></a>covr 3.3.0<small> Unreleased </small>
+<a href="#covr-3-3-0" class="anchor"></a>covr 3.3.0<small> 2019-08-06 </small>
 </h1>
 <div id="new-features" class="section level2">
 <h2 class="hasAnchor">
@@ -138,6 +146,7 @@
 <ul>
 <li><p>New <code><a href="../reference/azure.html">azure()</a></code> function added to make it easy to use covr on <a href="https://azure.microsoft.com/en-us/services/devops/pipelines/">Azure Pipelines</a> (<a href='https://github.com/r-lib/covr/issues/370'>#370</a>)</p></li>
 <li><p>Work around issues related to the new curly curly syntax in rlang (<a href='https://github.com/r-lib/covr/issues/379'>#379</a>, <a href='https://github.com/r-lib/covr/issues/377'>#377</a>, rlang<a href='https://github.com/r-lib/covr/issues/813'>#813</a>)</p></li>
+<li><p>Compiled code coverage has been improved, in particular C++ templates now contain the merged coverage of all template instances, even if the instances were defined in separate compilation units. (<a href='https://github.com/r-lib/covr/issues/390'>#390</a>)</p></li>
 </ul>
 </div>
 <div id="bugfixes-and-minor-improvements" class="section level2">
@@ -164,6 +173,7 @@
     <div id="tocnav">
       <h2>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
+        <li><a href="#covr-3-3-1">3.3.1</a></li>
         <li><a href="#covr-3-3-0">3.3.0</a></li>
       </ul>
     </div>
