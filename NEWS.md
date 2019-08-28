@@ -1,3 +1,5 @@
+# covr (development version)
+
 # covr 3.3.1
 
 * Fix inadvertent regression in return visibility when functions are covered.
