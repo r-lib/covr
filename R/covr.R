@@ -194,7 +194,7 @@ environment_coverage <- function(
 #'
 #' #ifdef unix
 #' Parallelized code using \pkg{parallel}'s [mcparallel()] needs to
-#' be use a patched `parallel:::mcexit`. This is done automatically if the
+#' use a patched `parallel:::mcexit`. This is done automatically if the
 #' package depends on \pkg{parallel}, but can also be explicitly set using the
 #' environment variable `COVR_FIX_PARALLEL_MCEXIT` or the global option
 #' `covr.fix_parallel_mcexit`.
