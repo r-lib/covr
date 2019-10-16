@@ -28,3 +28,4 @@ _dev\.R$
 ^pkgdown$
 ^script.R$
 ^azure-pipelines\.yml$
+^[.]github$
