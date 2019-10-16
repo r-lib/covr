@@ -31,10 +31,15 @@ test_that("it works as expected", {
 
 context("get_source_filename")
 test_that("it works", {
+  # R 4.0.0 changes this behavior so `getSrcFilename()` will actually return
+  # "test-utils.R"
+
+  skip_if(getRversion() >= "4.0.0")
+
   x <- eval(bquote(function() 1))
 
-  expect_identical(character(), getSrcFilename(x))
-  expect_identical("", get_source_filename(x))
+  expect_identical(getSrcFilename(x), character())
+  expect_identical(get_source_filename(x), "")
 })
 
 test_that("per_line removes blank lines and lines with only punctuation (#387)", {
