@@ -5,9 +5,14 @@ name: Continuous integration
 jobs:
   macOS:
     runs-on: macOS-latest
+    strategy:
+      matrix:
+        r: ['3.x', 'devel']
     steps:
       - uses: actions/checkout@v1
       - uses: r-lib/actions/setup-r@master
+        with:
+          r-version: ${{ matrix.r }}
       - name: Install dependencies
         env:
           R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -19,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        r: ['3.2', '3.3', '3.4', '3.5', '3.6', 'devel']
+        r: ['3.2', '3.3', '3.4', '3.5', '3.6']
     container: rstudio/r-base:${{ matrix.r }}-xenial
     env:
       CRAN: 'https://demo.rstudiopm.com/all/__linux__/xenial/latest'
