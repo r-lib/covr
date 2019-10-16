@@ -1,4 +1,4 @@
-# covr (development version)
+# covr 3.3.2
 
 * Fix test failures in the development version of R (4.0.0) (#400)
 
