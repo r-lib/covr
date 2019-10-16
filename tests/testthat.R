@@ -6,11 +6,7 @@ library("covr")
 # to mimic the CRAN build environment
 if (!tolower(Sys.info()[["sysname"]]) == "sunos") {
   Sys.setenv("R_TESTS" = "")
-  if (requireNamespace("xml2")) {
-    test_check("covr", reporter = MultiReporter$new(reporters = list(JunitReporter$new(file = "test-results.xml"), CheckReporter$new())))
-  } else {
-    test_check("covr")
-  }
+  test_check("covr")
 }
 
 options(ops)
