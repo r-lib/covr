@@ -155,7 +155,7 @@ codecov <- function(...,
   } else if (nzchar(Sys.getenv("GITHUB_ACTION"))) {
     slug <- Sys.getenv("GITHUB_REPOSITORY")
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
-    codecov_query <- list(service = "github",
+    codecov_query <- list(#service = "github",
                           branch = branch %||% sub("^refs/heads/", "", Sys.getenv("GITHUB_REF")),
                           build = Sys.getenv("GITHUB_ACTION"),
                           slug = slug,
