@@ -148,8 +148,12 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>environment_coverage</span>(<span class='kw'>env</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>(), <span class='no'>test_files</span>,
-  <span class='kw'>line_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>function_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>environment_coverage</span>(
+  <span class='kw'>env</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>(),
+  <span class='no'>test_files</span>,
+  <span class='kw'>line_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>function_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
+)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -171,7 +175,7 @@ each file.</p></td>
     <tr>
       <th>function_exclusions</th>
       <td><p>a vector of regular expressions matching function
-names to exclude. Example <code>print\\.</code> to match print methods.</p></td>
+names to exclude. Example <code>print\\\.</code> to match print methods.</p></td>
     </tr>
     </table>
     

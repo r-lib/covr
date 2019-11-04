@@ -152,11 +152,20 @@ vignette and example code.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>package_coverage</span>(<span class='kw'>path</span> <span class='kw'>=</span> <span class='st'>"."</span>, <span class='kw'>type</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"tests"</span>, <span class='st'>"vignettes"</span>, <span class='st'>"examples"</span>,
-  <span class='st'>"all"</span>, <span class='st'>"none"</span>), <span class='kw'>combine_types</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>relative_path</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>quiet</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>clean</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>line_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>function_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>code</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/character.html'>character</a></span>(), <span class='no'>...</span>, <span class='no'>exclusions</span>,
-  <span class='kw'>pre_clean</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+    <pre class="usage"><span class='fu'>package_coverage</span>(
+  <span class='kw'>path</span> <span class='kw'>=</span> <span class='st'>"."</span>,
+  <span class='kw'>type</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"tests"</span>, <span class='st'>"vignettes"</span>, <span class='st'>"examples"</span>, <span class='st'>"all"</span>, <span class='st'>"none"</span>),
+  <span class='kw'>combine_types</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>relative_path</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>quiet</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>clean</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>line_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>function_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>code</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/character.html'>character</a></span>(),
+  <span class='no'>...</span>,
+  <span class='no'>exclusions</span>,
+  <span class='kw'>pre_clean</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
+)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -200,7 +209,7 @@ each file.</p></td>
     <tr>
       <th>function_exclusions</th>
       <td><p>a vector of regular expressions matching function
-names to exclude. Example <code>print\\.</code> to match print methods.</p></td>
+names to exclude. Example <code>print\\\.</code> to match print methods.</p></td>
     </tr>
     <tr>
       <th>code</th>

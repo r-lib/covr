@@ -148,8 +148,11 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>report</span>(<span class='kw'>x</span> <span class='kw'>=</span> <span class='fu'><a href='package_coverage.html'>package_coverage</a></span>(), <span class='kw'>file</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/file.path.html'>file.path</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/tempfile.html'>tempdir</a></span>(),
-  <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='fu'>get_package_name</span>(<span class='no'>x</span>), <span class='st'>"-report.html"</span>)), <span class='kw'>browse</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/interactive.html'>interactive</a></span>())</pre>
+    <pre class="usage"><span class='fu'>report</span>(
+  <span class='kw'>x</span> <span class='kw'>=</span> <span class='fu'><a href='package_coverage.html'>package_coverage</a></span>(),
+  <span class='kw'>file</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/file.path.html'>file.path</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/tempfile.html'>tempdir</a></span>(), <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='fu'>get_package_name</span>(<span class='no'>x</span>), <span class='st'>"-report.html"</span>)),
+  <span class='kw'>browse</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/interactive.html'>interactive</a></span>()
+)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">

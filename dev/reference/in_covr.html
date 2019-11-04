@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Calculate coverage of code directly — code_coverage • covr</title>
+<title>Determine if code is being run in covr — in_covr • covr</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -39,11 +39,11 @@
 
 
 
-<meta property="og:title" content="Calculate coverage of code directly — code_coverage" />
+<meta property="og:title" content="Determine if code is being run in covr — in_covr" />
 
-<meta property="og:description" content="This function is useful for testing, and is a thin wrapper around
-file_coverage() because parseData is not populated properly
-unless the functions are defined in a file." />
+<meta property="og:description" content="covr functions set the environment variable R_COVR when they are running.
+in_covr() returns TRUE if this environment variable is set and FALSE
+otherwise." />
 
 <meta property="og:image" content="http://covr.r-lib.org/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -139,61 +139,33 @@ unless the functions are defined in a file." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Calculate coverage of code directly</h1>
+    <h1>Determine if code is being run in covr</h1>
     <small class="dont-index">Source: <a href='https://github.com/r-lib/covr/blob/master/R/covr.R'><code>R/covr.R</code></a></small>
-    <div class="hidden name"><code>code_coverage.Rd</code></div>
+    <div class="hidden name"><code>in_covr.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>This function is useful for testing, and is a thin wrapper around
-<code><a href='file_coverage.html'>file_coverage()</a></code> because parseData is not populated properly
-unless the functions are defined in a file.</p>
+    <p>covr functions set the environment variable <code>R_COVR</code> when they are running.
+<code>in_covr()</code> returns <code>TRUE</code> if this environment variable is set and <code>FALSE</code>
+otherwise.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>code_coverage</span>(
-  <span class='no'>source_code</span>,
-  <span class='no'>test_code</span>,
-  <span class='kw'>line_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>function_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='no'>...</span>
-)</pre>
-    
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>source_code</th>
-      <td><p>A character vector of source code</p></td>
-    </tr>
-    <tr>
-      <th>test_code</th>
-      <td><p>A character vector of test code</p></td>
-    </tr>
-    <tr>
-      <th>line_exclusions</th>
-      <td><p>a named list of files with the lines to exclude from
-each file.</p></td>
-    </tr>
-    <tr>
-      <th>function_exclusions</th>
-      <td><p>a vector of regular expressions matching function
-names to exclude. Example <code>print\\\.</code> to match print methods.</p></td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td><p>Additional arguments passed to <code><a href='file_coverage.html'>file_coverage()</a></code></p></td>
-    </tr>
-    </table>
-    
+    <pre class="usage"><span class='fu'>in_covr</span>()</pre>
+        
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fu'><a href='https://rdrr.io/r/base/library.html'>require</a></span>(<span class='no'>testthat</span>)) {
+  <span class='kw pkg'>testthat</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/testthat/man/skip.html'>skip_if</a></span>(<span class='fu'>in_covr</span>())
+}</div><div class='output co'>#&gt; <span class='message'>Loading required package: testthat</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-                </ul>
+            
+      <li><a href="#examples">Examples</a></li>
+    </ul>
 
   </div>
 </div>
