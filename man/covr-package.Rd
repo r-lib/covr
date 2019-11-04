@@ -16,13 +16,14 @@ C/C++/FORTRAN code.
 }
 \details{
 A coverage report can be used to inspect coverage for each line in your
-package. Using \code{report()} requires the additional dependencies \code{DT} and \code{htmltools}.\preformatted{# If run with no arguments `report()` implicitly calls `package_coverage()`
+package. Using \code{report()} requires the additional dependencies \code{DT} and \code{htmltools}.\if{html}{\out{<div class="r">}}\preformatted{# If run with no arguments `report()` implicitly calls `package_coverage()`
 report()
-}
+}\if{html}{\out{</div>}}
 }
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://covr.r-lib.org}
   \item \url{https://github.com/r-lib/covr}
   \item Report bugs at \url{https://github.com/r-lib/covr/issues}
 }

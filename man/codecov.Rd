@@ -4,9 +4,16 @@
 \alias{codecov}
 \title{Run covr on a package and upload the result to codecov.io}
 \usage{
-codecov(..., coverage = NULL, base_url = "https://codecov.io",
-  token = NULL, commit = NULL, branch = NULL, flags = NULL,
-  quiet = TRUE)
+codecov(
+  ...,
+  coverage = NULL,
+  base_url = "https://codecov.io",
+  token = NULL,
+  commit = NULL,
+  branch = NULL,
+  flags = NULL,
+  quiet = TRUE
+)
 }
 \arguments{
 \item{...}{arguments passed to \code{\link[=package_coverage]{package_coverage()}}}

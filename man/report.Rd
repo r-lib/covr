@@ -4,8 +4,11 @@
 \alias{report}
 \title{Display covr results using a standalone report}
 \usage{
-report(x = package_coverage(), file = file.path(tempdir(),
-  paste0(get_package_name(x), "-report.html")), browse = interactive())
+report(
+  x = package_coverage(),
+  file = file.path(tempdir(), paste0(get_package_name(x), "-report.html")),
+  browse = interactive()
+)
 }
 \arguments{
 \item{x}{a coverage dataset, defaults to running \code{package_coverage()}.}

@@ -4,8 +4,12 @@
 \alias{environment_coverage}
 \title{Calculate coverage of an environment}
 \usage{
-environment_coverage(env = parent.frame(), test_files,
-  line_exclusions = NULL, function_exclusions = NULL)
+environment_coverage(
+  env = parent.frame(),
+  test_files,
+  line_exclusions = NULL,
+  function_exclusions = NULL
+)
 }
 \arguments{
 \item{env}{The environment to be instrumented.}
@@ -17,7 +21,7 @@ functions}
 each file.}
 
 \item{function_exclusions}{a vector of regular expressions matching function
-names to exclude. Example \code{print\\\.} to match print methods.}
+names to exclude. Example \verb{print\\\\\\.} to match print methods.}
 }
 \description{
 Calculate coverage of an environment
