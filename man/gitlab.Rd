@@ -4,8 +4,7 @@
 \alias{gitlab}
 \title{Run covr on package and create report for GitLab}
 \usage{
-gitlab(..., coverage = NULL, file = "public/coverage.html",
-  quiet = TRUE)
+gitlab(..., coverage = NULL, file = "public/coverage.html", quiet = TRUE)
 }
 \arguments{
 \item{...}{arguments passed to \code{\link[=package_coverage]{package_coverage()}}}

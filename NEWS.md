@@ -1,5 +1,9 @@
 # covr (development version)
 
+* New `in_covr()` function to return true if code is being run by covr (#407).
+* `file_coverage()`, `environment_coverage()` and `function_coverage()` now set
+  `R_COVR=true`, to be consistent with `package_coverage()` (#407)
+
 # covr 3.3.2
 
 * Fix test failures in the development version of R (4.0.0) (#400)

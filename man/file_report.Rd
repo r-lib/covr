@@ -4,9 +4,12 @@
 \alias{file_report}
 \title{A coverage report for a specific file}
 \usage{
-file_report(x = package_coverage(), file = NULL,
-  out_file = file.path(tempdir(), paste0(get_package_name(x),
-  "-file-report.html")), browse = interactive())
+file_report(
+  x = package_coverage(),
+  file = NULL,
+  out_file = file.path(tempdir(), paste0(get_package_name(x), "-file-report.html")),
+  browse = interactive()
+)
 }
 \arguments{
 \item{x}{a coverage dataset, defaults to running \code{package_coverage()}.}

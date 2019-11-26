@@ -4,8 +4,12 @@
 \alias{azure}
 \title{Run covr on a package and output the result so it is available on Azure Pipelines}
 \usage{
-azure(..., coverage = package_coverage(..., quiet = quiet),
-  filename = "coverage.xml", quiet = TRUE)
+azure(
+  ...,
+  coverage = package_coverage(..., quiet = quiet),
+  filename = "coverage.xml",
+  quiet = TRUE
+)
 }
 \arguments{
 \item{...}{arguments passed to \code{\link[=package_coverage]{package_coverage()}}}

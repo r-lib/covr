@@ -78,7 +78,11 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
   })
 
   replace(replacement)
-  eval(code, enc)
+
+  withr::with_envvar(c("R_COVR" = "true"),
+    eval(code, enc)
+  )
+
   structure(as.list(.counters), class = "coverage")
 }
 
@@ -114,8 +118,10 @@ file_coverage <- function(
     clear_counters()
   })
 
-  lapply(test_files,
-    sys.source, keep.source = TRUE, envir = env)
+  withr::with_envvar(c("R_COVR" = "true"),
+    lapply(test_files,
+      sys.source, keep.source = TRUE, envir = env)
+  )
 
   coverage <- structure(as.list(.counters), class = "coverage")
 
@@ -169,8 +175,10 @@ environment_coverage <- function(
     clear_counters()
   })
 
-  lapply(test_files,
-    sys.source, keep.source = TRUE, envir = exec_env)
+  withr::with_envvar(c("R_COVR" = "true"),
+    lapply(test_files,
+      sys.source, keep.source = TRUE, envir = exec_env)
+  )
 
   coverage <- structure(as.list(.counters), class = "coverage")
 
@@ -550,4 +558,18 @@ add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
 #' @export
 `[.coverage` <- function(x, ...) {
   structure(NextMethod(), class = "coverage")
+}
+
+#' Determine if code is being run in covr
+#'
+#' covr functions set the environment variable `R_COVR` when they are running.
+#' [in_covr()] returns `TRUE` if this environment variable is set and `FALSE`
+#' otherwise.
+#' @export
+#' @examples
+#' if (require(testthat)) {
+#'   testthat::skip_if(in_covr())
+#' }
+in_covr <- function() {
+  identical(Sys.getenv("R_COVR"), "true")
 }

@@ -4,11 +4,20 @@
 \alias{package_coverage}
 \title{Calculate test coverage for a package}
 \usage{
-package_coverage(path = ".", type = c("tests", "vignettes", "examples",
-  "all", "none"), combine_types = TRUE, relative_path = TRUE,
-  quiet = TRUE, clean = TRUE, line_exclusions = NULL,
-  function_exclusions = NULL, code = character(), ..., exclusions,
-  pre_clean = TRUE)
+package_coverage(
+  path = ".",
+  type = c("tests", "vignettes", "examples", "all", "none"),
+  combine_types = TRUE,
+  relative_path = TRUE,
+  quiet = TRUE,
+  clean = TRUE,
+  line_exclusions = NULL,
+  function_exclusions = NULL,
+  code = character(),
+  ...,
+  exclusions,
+  pre_clean = TRUE
+)
 }
 \arguments{
 \item{path}{file path to the package.}
@@ -34,7 +43,7 @@ useful for debugging errors.}
 each file.}
 
 \item{function_exclusions}{a vector of regular expressions matching function
-names to exclude. Example \code{print\\\.} to match print methods.}
+names to exclude. Example \verb{print\\\\\\.} to match print methods.}
 
 \item{code}{A character vector of additional test code to run.}
 
@@ -57,7 +66,7 @@ code, if you would like to test your package in another way you can set
 
 #ifdef unix
 Parallelized code using \pkg{parallel}'s \code{\link[=mcparallel]{mcparallel()}} needs to
-be use a patched \code{parallel:::mcexit}. This is done automatically if the
+use a patched \code{parallel:::mcexit}. This is done automatically if the
 package depends on \pkg{parallel}, but can also be explicitly set using the
 environment variable \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
 \code{covr.fix_parallel_mcexit}.

@@ -18,7 +18,7 @@ or named ranges to exclude.
 
 
 Alternatively \code{function_exclusions} can be used to exclude R functions
-based on regular expression(s). For example \code{print\\\.*} can be used to
+based on regular expression(s). For example \verb{print\\\\\\.*} can be used to
 exclude all the print methods defined in a package from coverage.
 }
 
