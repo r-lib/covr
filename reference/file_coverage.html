@@ -87,7 +87,7 @@ coverage and the files in test_files are sourced." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.3.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.4.0</span>
       </span>
     </div>
 
@@ -152,8 +152,13 @@ coverage and the files in <code>test_files</code> are sourced.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>file_coverage</span>(<span class='no'>source_files</span>, <span class='no'>test_files</span>, <span class='kw'>line_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>function_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>parent_env</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>())</pre>
+    <pre class="usage"><span class='fu'>file_coverage</span>(
+  <span class='no'>source_files</span>,
+  <span class='no'>test_files</span>,
+  <span class='kw'>line_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>function_exclusions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>parent_env</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sys.parent.html'>parent.frame</a></span>()
+)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -176,7 +181,7 @@ each file.</p></td>
     <tr>
       <th>function_exclusions</th>
       <td><p>a vector of regular expressions matching function
-names to exclude. Example <code>print\\.</code> to match print methods.</p></td>
+names to exclude. Example <code>print\\\.</code> to match print methods.</p></td>
     </tr>
     <tr>
       <th>parent_env</th>

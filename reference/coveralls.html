@@ -85,7 +85,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.3.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.4.0</span>
       </span>
     </div>
 
@@ -148,9 +148,13 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>coveralls</span>(<span class='no'>...</span>, <span class='kw'>coverage</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+    <pre class="usage"><span class='fu'>coveralls</span>(
+  <span class='no'>...</span>,
+  <span class='kw'>coverage</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>repo_token</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Sys.getenv.html'>Sys.getenv</a></span>(<span class='st'>"COVERALLS_TOKEN"</span>),
-  <span class='kw'>service_name</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Sys.getenv.html'>Sys.getenv</a></span>(<span class='st'>"CI_NAME"</span>, <span class='st'>"travis-ci"</span>), <span class='kw'>quiet</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+  <span class='kw'>service_name</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Sys.getenv.html'>Sys.getenv</a></span>(<span class='st'>"CI_NAME"</span>, <span class='st'>"travis-ci"</span>),
+  <span class='kw'>quiet</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
+)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">

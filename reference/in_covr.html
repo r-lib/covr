@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>trace each call with a srcref attribute — trace_calls • covr</title>
+<title>Determine if code is being run in covr — in_covr • covr</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -39,9 +39,11 @@
 
 
 
-<meta property="og:title" content="trace each call with a srcref attribute — trace_calls" />
+<meta property="og:title" content="Determine if code is being run in covr — in_covr" />
 
-<meta property="og:description" content="This function calls itself recursively so it can properly traverse the AST." />
+<meta property="og:description" content="covr functions set the environment variable R_COVR when they are running.
+in_covr() returns TRUE if this environment variable is set and FALSE
+otherwise." />
 
 <meta property="og:image" content="http://covr.r-lib.org/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -137,57 +139,33 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>trace each call with a srcref attribute</h1>
-    <small class="dont-index">Source: <a href='https://github.com/r-lib/covr/blob/master/R/trace_calls.R'><code>R/trace_calls.R</code></a></small>
-    <div class="hidden name"><code>trace_calls.Rd</code></div>
+    <h1>Determine if code is being run in covr</h1>
+    <small class="dont-index">Source: <a href='https://github.com/r-lib/covr/blob/master/R/covr.R'><code>R/covr.R</code></a></small>
+    <div class="hidden name"><code>in_covr.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>This function calls itself recursively so it can properly traverse the AST.</p>
+    <p>covr functions set the environment variable <code>R_COVR</code> when they are running.
+<code>in_covr()</code> returns <code>TRUE</code> if this environment variable is set and <code>FALSE</code>
+otherwise.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>trace_calls</span>(<span class='no'>x</span>, <span class='kw'>parent_functions</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>parent_ref</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
-    
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>x</th>
-      <td><p>the call</p></td>
-    </tr>
-    <tr>
-      <th>parent_functions</th>
-      <td><p>the functions which this call is a child of.</p></td>
-    </tr>
-    <tr>
-      <th>parent_ref</th>
-      <td><p>argument used to set the srcref of the current call during
-the recursion.</p></td>
-    </tr>
-    </table>
-    
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+    <pre class="usage"><span class='fu'>in_covr</span>()</pre>
+        
 
-    <p>a modified expression with count calls inserted before each previous
-call.</p>
-    
-    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
-
-    <div class='dont-index'><p><a href='http://adv-r.had.co.nz/Expressions.html'>http://adv-r.had.co.nz/Expressions.html</a></p></div>
-    
-
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fu'><a href='https://rdrr.io/r/base/library.html'>require</a></span>(<span class='no'>testthat</span>)) {
+  <span class='kw pkg'>testthat</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/testthat/man/skip.html'>skip_if</a></span>(<span class='fu'>in_covr</span>())
+}</div><div class='output co'>#&gt; <span class='message'>Loading required package: testthat</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      
-      <li><a href="#value">Value</a></li>
-
-      <li><a href="#see-also">See also</a></li>
-          </ul>
+            
+      <li><a href="#examples">Examples</a></li>
+    </ul>
 
   </div>
 </div>
