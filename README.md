@@ -29,8 +29,9 @@ usethis::use_coverage()
 
 # Usage #
 
-A coverage report can be used to inspect coverage for each line in your
-package. Using `report()` requires [shiny](https://github.com/rstudio/shiny).
+For local development a coverage report can be used to inspect coverage for
+each line in your package. *Note* requires the
+[DT](https://github.com/rstudio/DT) package to be installed.
 
 ```r
 library(covr)
@@ -40,14 +41,14 @@ report()
 ```
 
 covr also defines an [RStudio Addin](https://rstudio.github.io/rstudioaddins/),
-which runs `report()` on the active project. This can be used via the addin
+which runs `report()` on the active project. This can be used via the Addin
 menu or by binding the action to a
 [shortcut](https://rstudio.github.io/rstudioaddins/#keyboard-shorcuts), e.g.
 *Ctrl-Shift-C*.
 
 ## Interactively ##
 ```r
-# if `getwd()` is the package's directory.
+# If run with the working directory within the package source.
 package_coverage()
 
 # or a package in another directory
@@ -62,7 +63,7 @@ as.data.frame(cov)
 zero_coverage(cov)
 ```
 
-# Manual Installation
+# Automated reports
 
 ## Codecov ##
 If you are already using [Travis-CI](https://travis-ci.org) add the
@@ -70,15 +71,11 @@ following to your project's `.travis.yml` to track your coverage results
 over time with [Codecov](https://codecov.io).
 
 ```yml
-r_github_packages:
-  - r-lib/covr
-
 after_success:
   - Rscript -e 'covr::codecov()'
 ```
 
-If you are using [Appveyor CI](http://ci.appveyor.com), and are not using
-[Travis-CI](https://travis-ci.org) at the same time, then you can add the
+If you are using [Appveyor CI](http://ci.appveyor.com)  then you can add the
 lines below to your project's `appveyor.yml`:
 
 ```yml
@@ -86,37 +83,20 @@ on_success:
   - Rscript -e "covr::codecov()"
 ```
 
-Don't forget to add `covr` to the `Suggests:` field of your package's
-`DESCRIPTION` file; possibly also to `Remotes:` for `r-lib/covr`.
+You also need to install covr, either by adding it to the `Suggests:` field of
+your package's `DESCRIPTION` file or also to `Remotes: r-lib/covr` if you want
+to install the development version.
 
-For further details regarding [Appveyor CI](http://ci.appveyor.com) integration,
-also have a look at [r-appveyor](https://github.com/krlmlr/r-appveyor).
-
-To use a different CI service or call `codecov()` locally you can set the
-environment variable `CODECOV_TOKEN` to the token generated on codecov.io.
-
-Codecov currently has support for the following CI systems (\* denotes support
-without needing `CODECOV_TOKEN`).
-
-- [Jenkins](https://jenkins-ci.org)
-- [Travis CI\*](https://travis-ci.com)
-- [Codeship](https://www.codeship.com)
-- [Circleci\*](https://circleci.com)
-- [AppVeyor\*](http://ci.appveyor.com)
-- [Wercker](http://wercker.com)
-- [GitLab-CI](https://about.gitlab.com/gitlab-ci/)
-
-You will also need to enable the repository on [Codecov](https://codecov.io/).
+To use other CI services or if you want to upload a coverage report locally you
+can set environment variable `CODECOV_TOKEN` to the token generated on
+the settings page of <https://codecov.io>.
 
 ## Coveralls ##
 
 Alternatively you can upload your results to [Coveralls](https://coveralls.io/)
-using `coveralls()`.
+using `covr::coveralls()`.
 
 ```yml
-r_github_packages:
-  - r-lib/covr
-
 after_success:
   - Rscript -e 'covr::coveralls()'
 ```
@@ -200,7 +180,6 @@ The patterns used can be specified by setting the global options
 `covr.exclude_pattern`, `covr.exclude_start`, `covr.exclude_end`.
 
 NB: The same pattern applies to exclusions in the `src` folder, so skipped lines in, e.g., C code (where comments can start with `//`) should look like `// # nocov`.
-
 
 # FAQ #
 ## Will covr work with testthat, RUnit, etc... ##
