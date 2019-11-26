@@ -123,16 +123,16 @@
 <div id="usage" class="section level1">
 <h1 class="hasAnchor">
 <a href="#usage" class="anchor"></a>Usage</h1>
-<p>A coverage report can be used to inspect coverage for each line in your package. Using <code><a href="reference/report.html">report()</a></code> requires <a href="https://github.com/rstudio/shiny">shiny</a>.</p>
+<p>For local development a coverage report can be used to inspect coverage for each line in your package. <em>Note</em> requires the <a href="https://github.com/rstudio/DT">DT</a> package to be installed.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(covr)</a>
 <a class="sourceLine" id="cb3-2" data-line-number="2"></a>
 <a class="sourceLine" id="cb3-3" data-line-number="3"><span class="co"># If run with no arguments implicitly calls `package_coverage()`</span></a>
 <a class="sourceLine" id="cb3-4" data-line-number="4"><span class="kw"><a href="reference/report.html">report</a></span>()</a></code></pre></div>
-<p>covr also defines an <a href="https://rstudio.github.io/rstudioaddins/">RStudio Addin</a>, which runs <code><a href="reference/report.html">report()</a></code> on the active project. This can be used via the addin menu or by binding the action to a <a href="https://rstudio.github.io/rstudioaddins/#keyboard-shorcuts">shortcut</a>, e.g. <em>Ctrl-Shift-C</em>.</p>
+<p>covr also defines an <a href="https://rstudio.github.io/rstudioaddins/">RStudio Addin</a>, which runs <code><a href="reference/report.html">report()</a></code> on the active project. This can be used via the Addin menu or by binding the action to a <a href="https://rstudio.github.io/rstudioaddins/#keyboard-shorcuts">shortcut</a>, e.g. <em>Ctrl-Shift-C</em>.</p>
 <div id="interactively" class="section level2">
 <h2 class="hasAnchor">
 <a href="#interactively" class="anchor"></a>Interactively</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co"># if `getwd()` is the package's directory.</span></a>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co"># If run with the working directory within the package source.</span></a>
 <a class="sourceLine" id="cb4-2" data-line-number="2"><span class="kw"><a href="reference/package_coverage.html">package_coverage</a></span>()</a>
 <a class="sourceLine" id="cb4-3" data-line-number="3"></a>
 <a class="sourceLine" id="cb4-4" data-line-number="4"><span class="co"># or a package in another directory</span></a>
@@ -147,45 +147,27 @@
 <a class="sourceLine" id="cb4-13" data-line-number="13"><span class="kw"><a href="reference/zero_coverage.html">zero_coverage</a></span>(cov)</a></code></pre></div>
 </div>
 </div>
-<div id="manual-installation" class="section level1">
+<div id="automated-reports" class="section level1">
 <h1 class="hasAnchor">
-<a href="#manual-installation" class="anchor"></a>Manual Installation</h1>
+<a href="#automated-reports" class="anchor"></a>Automated reports</h1>
 <div id="codecov" class="section level2">
 <h2 class="hasAnchor">
 <a href="#codecov" class="anchor"></a>Codecov</h2>
 <p>If you are already using <a href="https://travis-ci.org">Travis-CI</a> add the following to your project’s <code>.travis.yml</code> to track your coverage results over time with <a href="https://codecov.io">Codecov</a>.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode yml"><code class="sourceCode yaml"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="fu">r_github_packages:</span></a>
-<a class="sourceLine" id="cb5-2" data-line-number="2">  <span class="kw"><a href="https://rdrr.io/r/base/Arithmetic.html">-</a></span> r-lib/covr</a>
-<a class="sourceLine" id="cb5-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="fu">after_success:</span></a>
-<a class="sourceLine" id="cb5-5" data-line-number="5">  <span class="kw"><a href="https://rdrr.io/r/base/Arithmetic.html">-</a></span> <span class="fu">Rscript -e 'covr:</span><span class="at">:codecov()'</span></a></code></pre></div>
-<p>If you are using <a href="http://ci.appveyor.com">Appveyor CI</a>, and are not using <a href="https://travis-ci.org">Travis-CI</a> at the same time, then you can add the lines below to your project’s <code>appveyor.yml</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yml"><code class="sourceCode yaml"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="fu">after_success:</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">  <span class="kw"><a href="https://rdrr.io/r/base/Arithmetic.html">-</a></span> <span class="fu">Rscript -e 'covr:</span><span class="at">:codecov()'</span></a></code></pre></div>
+<p>If you are using <a href="http://ci.appveyor.com">Appveyor CI</a> then you can add the lines below to your project’s <code>appveyor.yml</code>:</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode yml"><code class="sourceCode yaml"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="fu">on_success:</span></a>
 <a class="sourceLine" id="cb6-2" data-line-number="2">  <span class="kw"><a href="https://rdrr.io/r/base/Arithmetic.html">-</a></span> <span class="fu">Rscript -e "covr:</span><span class="at">:codecov()"</span></a></code></pre></div>
-<p>Don’t forget to add <code>covr</code> to the <code>Suggests:</code> field of your package’s <code>DESCRIPTION</code> file; possibly also to <code>Remotes:</code> for <code>r-lib/covr</code>.</p>
-<p>For further details regarding <a href="http://ci.appveyor.com">Appveyor CI</a> integration, also have a look at <a href="https://github.com/krlmlr/r-appveyor">r-appveyor</a>.</p>
-<p>To use a different CI service or call <code><a href="reference/codecov.html">codecov()</a></code> locally you can set the environment variable <code>CODECOV_TOKEN</code> to the token generated on codecov.io.</p>
-<p>Codecov currently has support for the following CI systems (* denotes support without needing <code>CODECOV_TOKEN</code>).</p>
-<ul>
-<li><a href="https://jenkins-ci.org">Jenkins</a></li>
-<li><a href="https://travis-ci.com">Travis CI*</a></li>
-<li><a href="https://www.codeship.com">Codeship</a></li>
-<li><a href="https://circleci.com">Circleci*</a></li>
-<li><a href="http://ci.appveyor.com">AppVeyor*</a></li>
-<li><a href="http://wercker.com">Wercker</a></li>
-<li><a href="https://about.gitlab.com/gitlab-ci/">GitLab-CI</a></li>
-</ul>
-<p>You will also need to enable the repository on <a href="https://codecov.io/">Codecov</a>.</p>
+<p>You also need to install covr, either by adding it to the <code>Suggests:</code> field of your package’s <code>DESCRIPTION</code> file or also to <code>Remotes: r-lib/covr</code> if you want to install the development version.</p>
+<p>To use other CI services or if you want to upload a coverage report locally you can set environment variable <code>CODECOV_TOKEN</code> to the token generated on the settings page of <a href="https://codecov.io" class="uri">https://codecov.io</a>.</p>
 </div>
 <div id="coveralls" class="section level2">
 <h2 class="hasAnchor">
 <a href="#coveralls" class="anchor"></a>Coveralls</h2>
-<p>Alternatively you can upload your results to <a href="https://coveralls.io/">Coveralls</a> using <code><a href="reference/coveralls.html">coveralls()</a></code>.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode yml"><code class="sourceCode yaml"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="fu">r_github_packages:</span></a>
-<a class="sourceLine" id="cb7-2" data-line-number="2">  <span class="kw"><a href="https://rdrr.io/r/base/Arithmetic.html">-</a></span> r-lib/covr</a>
-<a class="sourceLine" id="cb7-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="fu">after_success:</span></a>
-<a class="sourceLine" id="cb7-5" data-line-number="5">  <span class="kw"><a href="https://rdrr.io/r/base/Arithmetic.html">-</a></span> <span class="fu">Rscript -e 'covr:</span><span class="at">:coveralls()'</span></a></code></pre></div>
+<p>Alternatively you can upload your results to <a href="https://coveralls.io/">Coveralls</a> using <code><a href="reference/coveralls.html">covr::coveralls()</a></code>.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode yml"><code class="sourceCode yaml"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="fu">after_success:</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">  <span class="kw"><a href="https://rdrr.io/r/base/Arithmetic.html">-</a></span> <span class="fu">Rscript -e 'covr:</span><span class="at">:coveralls()'</span></a></code></pre></div>
 <p>For CI systems not supported by coveralls you need to set the <code>COVERALLS_TOKEN</code> environment variable. It is wise to use a <a href="http://docs.travis-ci.com/user/environment-variables/#Secure-Variables">Secure Variable</a> so that it is not revealed publicly.</p>
 <p>Also you will need to turn on coveralls for your project at <a href="https://coveralls.io/repos" class="uri">https://coveralls.io/repos</a>.</p>
 </div>
