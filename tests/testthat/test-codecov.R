@@ -31,6 +31,8 @@ ci_vars <- c(
   "DRONE_COMMIT" = NA,
   "GIT_BRANCH" = NA,
   "GIT_COMMIT" = NA,
+  "GITHUB_ACTION" = NA,
+  "GITHUB_REPOSTIORY" = NA,
   "JENKINS_URL" = NA,
   "REVISION" = NA,
   "SEMAPHORE" = NA,
