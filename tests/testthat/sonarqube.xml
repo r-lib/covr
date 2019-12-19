@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage version="1">
+  <file path="TestSummary/R/TestSummary.R">
+    <lineToCover lineNumber="5" covered="true"/>
+    <lineToCover lineNumber="6" covered="true"/>
+    <lineToCover lineNumber="8" covered="false"/>
+    <lineToCover lineNumber="13" covered="false"/>
+  </file>
+</coverage>
