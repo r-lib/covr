@@ -29,7 +29,6 @@ to_sonarqube <- function(cov, filename = "sonarqube.xml"){
         xml2::xml_add_child(file, "lineToCover", lineNumber = as.character(line$line),
           covered = tolower(as.character(line$value>0)))
       }
-
     }
   }
 
