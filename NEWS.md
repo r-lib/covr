@@ -1,5 +1,7 @@
 # covr (development version)
 
+* `to_sonarqube()` function added to support SonarQube generic XML format (@nibant, @Delfic, #413). 
+
 # covr 3.4.0
 
 * `codecov()` now supports GitHub Actions.
