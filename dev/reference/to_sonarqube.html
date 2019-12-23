@@ -6,7 +6,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Exclusions — exclusions • covr</title>
+<title>Create a SonarQube Generic XML file for test coverage according to
+https://docs.sonarqube.org/latest/analysis/generic-test/
+Based on cobertura.R — to_sonarqube • covr</title>
 
 <!-- favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
@@ -39,9 +41,11 @@
 
 
 
-<meta property="og:title" content="Exclusions — exclusions" />
+<meta property="og:title" content="Create a SonarQube Generic XML file for test coverage according to
+https://docs.sonarqube.org/latest/analysis/generic-test/
+Based on cobertura.R — to_sonarqube" />
 
-<meta property="og:description" content="covr supports a couple of different ways of excluding some or all of a file." />
+<meta property="og:description" content="This functionality requires the xml2 package be installed." />
 
 <meta property="og:image" content="http://covr.r-lib.org/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -137,86 +141,44 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Exclusions</h1>
-    <small class="dont-index">Source: <a href='https://github.com/r-lib/covr/blob/master/R/exclusions.R'><code>R/exclusions.R</code></a></small>
-    <div class="hidden name"><code>exclusions.Rd</code></div>
+    <h1>Create a SonarQube Generic XML file for test coverage according to
+https://docs.sonarqube.org/latest/analysis/generic-test/
+Based on cobertura.R</h1>
+    <small class="dont-index">Source: <a href='https://github.com/r-lib/covr/blob/master/R/sonarqube.R'><code>R/sonarqube.R</code></a></small>
+    <div class="hidden name"><code>to_sonarqube.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>covr supports a couple of different ways of excluding some or all of a file.</p>
+    <p>This functionality requires the xml2 package be installed.</p>
     
     </div>
 
-        
-    <h2 class="hasAnchor" id="line-exclusions"><a class="anchor" href="#line-exclusions"></a>Line Exclusions</h2>
-
+    <pre class="usage"><span class='fu'>to_sonarqube</span>(<span class='no'>cov</span>, <span class='kw'>filename</span> <span class='kw'>=</span> <span class='st'>"sonarqube.xml"</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>cov</th>
+      <td><p>the coverage object returned from <code><a href='package_coverage.html'>package_coverage()</a></code></p></td>
+    </tr>
+    <tr>
+      <th>filename</th>
+      <td><p>the name of the SonarQube Generic XML file</p></td>
+    </tr>
+    </table>
     
 
-
-<p>The <code>line_exclusions</code> argument to <code><a href='package_coverage.html'>package_coverage()</a></code> can be used
-to exclude some or all of a file.  This argument takes a list of filenames
-or named ranges to exclude.</p>
-    
-    <h2 class="hasAnchor" id="function-exclusions"><a class="anchor" href="#function-exclusions"></a>Function Exclusions</h2>
-
-    
-
-
-<p>Alternatively <code>function_exclusions</code> can be used to exclude R functions
-based on regular expression(s). For example <code>print\\\.*</code> can be used to
-exclude all the print methods defined in a package from coverage.</p>
-    
-    <h2 class="hasAnchor" id="exclusion-comments"><a class="anchor" href="#exclusion-comments"></a>Exclusion Comments</h2>
-
-    
-
-
-<p>In addition you can exclude lines from the coverage by putting special comments
-in your source code. This can be done per line or by specifying a range.
-The patterns used can be specified by the <code>exclude_pattern</code>, <code>exclude_start</code>,
-<code>exclude_end</code> arguments to <code><a href='package_coverage.html'>package_coverage()</a></code> or by setting the global
-options <code>covr.exclude_pattern</code>, <code>covr.exclude_start</code>, <code>covr.exclude_end</code>.</p>
-    
-
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
-<span class='co'># exclude whole file of R/test.R</span>
-<span class='fu'><a href='package_coverage.html'>package_coverage</a></span>(<span class='kw'>exclusions</span> <span class='kw'>=</span> <span class='st'>"R/test.R"</span>)
-
-<span class='co'># exclude lines 1 to 10 and 15 from R/test.R</span>
-<span class='fu'><a href='package_coverage.html'>package_coverage</a></span>(<span class='kw'>line_exclusions</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='st'>"R/test.R"</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>:<span class='fl'>10</span>, <span class='fl'>15</span>)))
-
-<span class='co'># exclude lines 1 to 10 from R/test.R, all of R/test2.R</span>
-<span class='fu'><a href='package_coverage.html'>package_coverage</a></span>(<span class='kw'>line_exclusions</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='st'>"R/test.R"</span> <span class='kw'>=</span> <span class='fl'>1</span>:<span class='fl'>10</span>, <span class='st'>"R/test2.R"</span>))
-
-<span class='co'># exclude all print and format methods from the package.</span>
-<span class='fu'><a href='package_coverage.html'>package_coverage</a></span>(<span class='kw'>function_exclusions</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"print\\."</span>, <span class='st'>"format\\."</span>))
-
-<span class='co'># single line exclusions</span>
-<span class='no'>f1</span> <span class='kw'>&lt;-</span> <span class='kw'>function</span>(<span class='no'>x</span>) {
-  <span class='no'>x</span> + <span class='fl'>1</span> <span class='co'># nocov</span>
-}
-
-<span class='co'># ranged exclusions</span>
-<span class='no'>f2</span> <span class='kw'>&lt;-</span> <span class='kw'>function</span>(<span class='no'>x</span>) { <span class='co'># nocov start</span>
-  <span class='no'>x</span> + <span class='fl'>2</span>
-} <span class='co'># nocov end</span>
-}</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      
-      <li><a href="#line-exclusions">Line Exclusions</a></li>
+      <li><a href="#arguments">Arguments</a></li>
+                </ul>
 
-      <li><a href="#function-exclusions">Function Exclusions</a></li>
-
-      <li><a href="#exclusion-comments">Exclusion Comments</a></li>
-      
-      <li><a href="#examples">Examples</a></li>
-    </ul>
-
+    <h2>Author</h2>
+    <p>Talkdesk Inc.</p>
   </div>
 </div>
 

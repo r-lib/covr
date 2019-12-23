@@ -82,6 +82,9 @@
     <loc>http://covr.r-lib.org/reference/to_cobertura.html</loc>
   </url>
   <url>
+    <loc>http://covr.r-lib.org/reference/to_sonarqube.html</loc>
+  </url>
+  <url>
     <loc>http://covr.r-lib.org/reference/trace_calls.html</loc>
   </url>
   <url>
