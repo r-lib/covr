@@ -69,5 +69,5 @@ Suggests:
 License: GPL-3
 LazyData: true
 VignetteBuilder: knitr
-RoxygenNote: 7.0.0
+RoxygenNote: 7.0.2
 Roxygen: list(markdown = TRUE)
