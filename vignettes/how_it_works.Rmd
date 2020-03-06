@@ -237,7 +237,7 @@ They both have JSON-based APIs to submit and report on coverage. The functions `
 ## Overview ##
 
 Prior to writing **covr**, there were a handful of coverage tools for R code.
-[**R-coverage**](http://r2d2.quartzbio.com/posts/r-coverage-docker.html) by Karl Forner and
+[**R-coverage**](https://web.archive.org/web/20160611114452/http://r2d2.quartzbio.com/posts/r-coverage-docker.html) by Karl Forner and
 [**testCoverage**](https://github.com/MangoTheCat/testCoverage) by Tom Taverner, Chris Campbell & Suchen Jin.
 
 ## R-coverage ##
