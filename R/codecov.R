@@ -17,6 +17,8 @@
 #' @param branch explicitly set the branch this coverage result object
 #' corresponds to, this is looked up from the service or locally if it is
 #' `NULL`.
+#' @param pr explicitly set the pr this coverage result object corresponds to,
+#'   this is looked up from the service if it is `NULL`.
 #' @param flags A flag to use for this coverage upload see
 #'   <https://docs.codecov.io/docs/flags> for details.
 #' @export
@@ -30,6 +32,7 @@ codecov <- function(...,
                     token = NULL,
                     commit = NULL,
                     branch = NULL,
+                    pr = NULL,
                     flags = NULL,
                     quiet = TRUE) {
 
@@ -61,7 +64,7 @@ codecov <- function(...,
     codecov_query <- list(branch = branch %||% Sys.getenv("TRAVIS_BRANCH"),
                           service = "travis",
                           build = Sys.getenv("TRAVIS_JOB_NUMBER"),
-                          pr = Sys.getenv("TRAVIS_PULL_REQUEST"),
+                          pr = pr %||% Sys.getenv("TRAVIS_PULL_REQUEST"),
                           job = Sys.getenv("TRAVIS_JOB_ID"),
                           slug = Sys.getenv("TRAVIS_REPO_SLUG"),
                           root = Sys.getenv("TRAVIS_BUILD_DIR"),
@@ -88,6 +91,7 @@ codecov <- function(...,
                           build = Sys.getenv("CIRCLE_BUILD_NUM"),
                           owner = Sys.getenv("CIRCLE_PROJECT_USERNAME"),
                           repo = Sys.getenv("CIRCLE_PROJECT_REPONAME"),
+                          pr = pr %||% Sys.getenv("CIRCLE_PR_NUMBER"),
                           commit = commit %||% Sys.getenv("CIRCLE_SHA1"))
   # ---------
   # Semaphore
@@ -112,6 +116,7 @@ codecov <- function(...,
                           branch = branch %||% Sys.getenv("DRONE_BRANCH"),
                           build = Sys.getenv("DRONE_BUILD_NUMBER"),
                           build_url = Sys.getenv("DRONE_BUILD_URL"),
+                          pr = pr %||% Sys.getenv("DRONE_PULL_REQUEST"),
                           commit = commit %||% Sys.getenv("DRONE_COMMIT"))
   # --------
   # AppVeyor
@@ -123,6 +128,7 @@ codecov <- function(...,
                           branch = branch %||% Sys.getenv("APPVEYOR_REPO_BRANCH"),
                           job = paste(Sys.getenv("APPVEYOR_ACCOUNT_NAME"), Sys.getenv("APPVEYOR_PROJECT_SLUG"), Sys.getenv("APPVEYOR_BUILD_VERSION"), sep = "/"),
                           build = Sys.getenv("APPVEYOR_JOB_ID"),
+                          pr = pr %||% Sys.getenv("APPVEYOR_PULL_REQUEST_NUMBER"),
                           slug = Sys.getenv("APPVEYOR_REPO_NAME"),
                           commit = commit %||% Sys.getenv("APPVEYOR_REPO_COMMIT"))
   # -------

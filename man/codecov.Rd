@@ -11,6 +11,7 @@ codecov(
   token = NULL,
   commit = NULL,
   branch = NULL,
+  pr = NULL,
   flags = NULL,
   quiet = TRUE
 )
@@ -40,6 +41,9 @@ corresponds to. Is looked up from the service or locally if it is
 \item{branch}{explicitly set the branch this coverage result object
 corresponds to, this is looked up from the service or locally if it is
 \code{NULL}.}
+
+\item{pr}{explicitly set the pr this coverage result object corresponds to,
+this is looked up from the service if it is \code{NULL}.}
 
 \item{flags}{A flag to use for this coverage upload see
 \url{https://docs.codecov.io/docs/flags} for details.}
