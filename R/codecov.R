@@ -54,7 +54,7 @@ codecov <- function(...,
                           branch = branch %||% Sys.getenv("GIT_BRANCH"),
                           commit = commit %||% Sys.getenv("GIT_COMMIT"),
                           build = Sys.getenv("BUILD_NUMBER"),
-                          build_url = Sys.getenv("BUILD_URL"))
+                          build_url = URLencode(Sys.getenv("BUILD_URL")))
   # ---------
   # Travis CI
   # ---------
@@ -78,7 +78,7 @@ codecov <- function(...,
     codecov_query <- list(service = "codeship",
                           branch = branch %||% Sys.getenv("CI_BRANCH"),
                           build = Sys.getenv("CI_BUILD_NUMBER"),
-                          build_url = Sys.getenv("CI_BUILD_URL"),
+                          build_url = URLencode(Sys.getenv("CI_BUILD_URL")),
                           commit = commit %||% Sys.getenv("CI_COMMIT_ID"))
   # ---------
   # Circle CI
@@ -115,7 +115,7 @@ codecov <- function(...,
     codecov_query <- list(service = "drone.io",
                           branch = branch %||% Sys.getenv("DRONE_BRANCH"),
                           build = Sys.getenv("DRONE_BUILD_NUMBER"),
-                          build_url = Sys.getenv("DRONE_BUILD_URL"),
+                          build_url = URLencode(Sys.getenv("DRONE_BUILD_URL")),
                           pr = pr %||% Sys.getenv("DRONE_PULL_REQUEST"),
                           commit = commit %||% Sys.getenv("DRONE_COMMIT"))
   # --------
@@ -178,7 +178,8 @@ codecov <- function(...,
     codecov_query <- list(service = "github-actions",
                           branch = branch,
                           build = github_run_id,
-                          build_url = sprintf("http://github.com/%s/actions/runs/%s", slug, github_run_id),
+                          build_url = URLencode(sprintf("http://github.com/%s/actions/runs/%s", slug, github_run_id)),
+                          pr = pr,
                           slug = slug,
                           commit = commit %||% Sys.getenv("GITHUB_SHA"))
   # ---------
