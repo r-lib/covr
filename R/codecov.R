@@ -168,11 +168,10 @@ codecov <- function(...,
 
     is_fork_pr <- nzchar(github_head_ref)
     if (is_fork_pr) {
-      pr <- pr %||% sub("^refs/heads/(.*)/merge", "\\1", github_ref)
+      pr <- pr %||% sub("^refs/pull/(.*)/merge", "\\1", github_ref)
       branch <- branch %||% github_head_ref
     } else {
       branch <- branch %||% sub("^refs/heads/", "", github_ref)
-      pr = "null"
     }
 
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
