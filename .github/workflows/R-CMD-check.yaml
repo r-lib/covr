@@ -82,5 +82,8 @@ jobs:
 
       - name: Test coverage
         if: matrix.config.os == 'macOS-latest' && matrix.config.r == '3.6'
-        run: covr::codecov()
-        shell: Rscript {0}
+        run: |
+          R CMD INSTALL .
+          source shim_package.sh
+          Rscript -e 'covr::codecov()'
+          source unshim_package.sh
