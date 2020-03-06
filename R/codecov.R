@@ -153,11 +153,26 @@ codecov <- function(...,
   # GitHub Actions
   # ---------
   } else if (nzchar(Sys.getenv("GITHUB_ACTION"))) {
+    # Adapted from
+    # https://github.com/codecov/codecov-bash/blob/3316b21c8fe0ca7ada543fb8473ac616822ce27a/codecov#L763-L783
     slug <- Sys.getenv("GITHUB_REPOSITORY")
+    github_ref <- Sys.getenv("GITHUB_REF")
+    github_head_ref <- Sys.getenv("GITHUB_HEAD_REF")
+    github_run_id <- Sys.getenv("GITHUB_RUN_ID")
+
+    is_fork_pr <- nzchar(github_head_ref)
+    if (is_fork_pr) {
+      pr <- pr %||% sub("^refs/heads/(.*)/merge", "\\1", github_ref)
+      branch <- branch %||% github_head_ref
+    } else {
+      branch <- branch %||% sub("^refs/heads/", "", github_ref)
+    }
+
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
-    codecov_query <- list(#service = "github",
-                          branch = branch %||% sub("^refs/heads/", "", Sys.getenv("GITHUB_REF")),
-                          build = Sys.getenv("GITHUB_ACTION"),
+    codecov_query <- list(service = "github-actions",
+                          branch = branch,
+                          build = github_run_id,
+                          build_url = sprintf("http://github.com/%s/actions/runs/%s", slug, github_run_id),
                           slug = slug,
                           commit = commit %||% Sys.getenv("GITHUB_SHA"))
   # ---------
