@@ -1,4 +1,3 @@
-.*
 *.o
 *.so
 inst/doc

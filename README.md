@@ -1,10 +1,8 @@
 # covr <img src="man/figures/logo.png" align="right" />
 
 <!-- badges: start -->
-[![GitHub Actions status](https://github.com/r-lib/covr/workflows/Continuous%20integration/badge.svg)](https://github.com/r-lib/covr)
-[![Build Status](https://travis-ci.org/r-lib/covr.svg?branch=master)](https://travis-ci.org/r-lib/covr)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/r-lib/covr?branch=master&svg=true)](https://ci.appveyor.com/project/jimhester/covr)
-[![codecov.io](https://codecov.io/github/r-lib/covr/coverage.svg?branch=master)](https://codecov.io/github/r-lib/covr?branch=master)
+[![R build status](https://github.com/r-lib/covr/workflows/R-CMD-check/badge.svg)](https://github.com/r-lib/covr/actions)
+[![Codecov test coverage](https://codecov.io/gh/r-lib/covr/branch/master/graph/badge.svg)](https://codecov.io/gh/r-lib/covr?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/covr)](https://cran.r-project.org/package=covr)
 <!-- badges: end -->
 

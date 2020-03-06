@@ -29,3 +29,4 @@ _dev\.R$
 ^script.R$
 ^azure-pipelines\.yml$
 ^[.]github$
+^codecov\.yml$
