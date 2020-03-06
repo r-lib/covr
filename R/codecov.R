@@ -172,6 +172,7 @@ codecov <- function(...,
       branch <- branch %||% github_head_ref
     } else {
       branch <- branch %||% sub("^refs/heads/", "", github_ref)
+      pr = "null"
     }
 
     codecov_url <- paste0(base_url, "/upload/v2") # nolint
