@@ -220,4 +220,4 @@ higher optimization levels).
 
 # Alternative Coverage Tools #
 - <https://github.com/MangoTheCat/testCoverage> (no longer supported)
-- <http://r2d2.quartzbio.com/posts/r-coverage-docker.html> (no longer supported)
+- [**R-coverage**](https://web.archive.org/web/20160611114452/http://r2d2.quartzbio.com/posts/r-coverage-docker.html) (no longer supported)
