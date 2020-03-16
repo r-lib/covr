@@ -202,7 +202,12 @@ codecov <- function(...,
 
   coverage_json <- to_codecov(coverage)
 
-  httr::content(httr::POST(url = codecov_url, query = codecov_query, body = coverage_json, encode = "json"))
+  httr::content(httr::POST(url = codecov_url, query = codecov_query, body = coverage_json, encode = "json", httr::config(http_version = curl_http_1_1())))
+}
+
+curl_http_1_1 <- function() {
+  symbols <- curl::curl_symbols()
+  symbols$value[symbols$name == "CURL_HTTP_VERSION_1_1"]
 }
 
 extract_from_yaml <- function(path){

@@ -55,6 +55,7 @@ Imports:
     yaml
 Suggests:
     R6,
+    curl,
     knitr,
     rmarkdown,
     htmltools,
