@@ -1,3 +1,5 @@
+# covr (development version)
+
 # covr 3.5.0
 
 * `codecov()` now supports GitHub Actions for public repositories without having to specify a token.
