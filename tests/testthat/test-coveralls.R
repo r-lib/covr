@@ -55,7 +55,7 @@ test_that("coveralls generates a properly formatted json file", {
 
   withr::with_envvar(c(ci_vars, "CI_NAME" = "FAKECI"),
     with_mock(
-      `httr:::POST` = function(...) list(...),
+      `httr:::RETRY` = function(...) list(...),
       `httr::content` = identity,
       `httr::upload_file` = function(file) readChar(file, file.info(file)$size),
 
@@ -78,7 +78,7 @@ test_that("coveralls can spawn a job using repo_token", {
 
   withr::with_envvar(c(ci_vars, "CI_NAME" = "DRONE"),
     with_mock(
-      `httr:::POST` = function(...) list(...),
+      `httr:::RETRY` = function(...) list(...),
       `httr::content` = identity,
       `httr::upload_file` = function(file) readChar(file, file.info(file)$size),
       `covr::system_output` = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n"),
@@ -126,7 +126,7 @@ test_that("coveralls can spawn a job using repo_token - travis-pro #285", {
 
   withr::with_envvar(c(ci_vars, "CI_NAME" = "travis-pro"),
     with_mock(
-      `httr:::POST` = function(...) list(...),
+      `httr:::RETRY` = function(...) list(...),
       `httr::content` = identity,
       `httr::upload_file` = function(file) readChar(file, file.info(file)$size),
       `covr::system_output` = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n"),
