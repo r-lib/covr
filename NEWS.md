@@ -1,5 +1,7 @@
 # covr (development version)
 
+* `codecov()` and `coveralls()` now retry failed requests before raising an error (#428, @jameslamb)
+
 # covr 3.5.0
 
 * `codecov()` now supports GitHub Actions for public repositories without having to specify a token.
