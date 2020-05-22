@@ -22,7 +22,7 @@
 #' @importFrom utils capture.output getSrcFilename relist str head
 NULL
 
-rex::register_shortcuts("covr")
+#rex::register_shortcuts("covr")
 
 the <- new.env(parent = emptyenv())
 
@@ -374,7 +374,7 @@ package_coverage <- function(path = ".",
   trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
   coverage <- merge_coverage(trace_files)
   if (!uses_icc()) {
-    res <- run_gcov(pkg$path, quiet = quiet)
+    res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
   } else {
     res <- run_icov(pkg$path, quiet = quiet)
   }
@@ -388,7 +388,9 @@ package_coverage <- function(path = ".",
     attr(coverage, "library") <- tmp_lib
   }
 
-  coverage <- filter_non_package_files(coverage)
+  if (getOption("covr.filter_non_package", TRUE)) {
+    coverage <- filter_non_package_files(coverage)
+  }
 
   # Exclude both RcppExports to avoid redundant coverage information
   line_exclusions <- c("src/RcppExports.cpp", "R/RcppExports.R", line_exclusions, parse_covr_ignore())

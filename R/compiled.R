@@ -11,7 +11,7 @@ parse_gcov <- function(file, package_path = "") {
   source_file <- normalize_path(source_file)
 
   # If the source file does not start with the package path or does not exist ignore it.
-  if (!file.exists(source_file) || !grepl(rex::rex(start, package_path), source_file)) {
+  if (!file.exists(source_file) || !grepl(rex::rex(start, rex::regex(paste0(package_path, collapse = "|"))), source_file)) {
     return(NULL)
   }
 
@@ -60,7 +60,7 @@ clean_gcov <- function(path) {
   unlink(gcov_files)
 }
 
-run_gcov <- function(path, quiet = TRUE,
+run_gcov <- function(path, quiet = TRUE, clean = TRUE,
                       gcov_path = getOption("covr.gcov", ""),
                       gcov_args = getOption("covr.gcov_args", NULL)) {
   if (!nzchar(gcov_path)) {
@@ -78,8 +78,10 @@ run_gcov <- function(path, quiet = TRUE,
       args = c(gcov_args, src, "-p", "-o", dirname(src)),
       quiet = quiet, echo = !quiet)
     gcov_outputs <- list.files(path, pattern = rex::rex(".gcov", end), recursive = TRUE, full.names = TRUE)
-    on.exit(unlink(gcov_outputs))
-    unlist(lapply(gcov_outputs, parse_gcov, package_path = path), recursive = FALSE)
+    if (clean) {
+      on.exit(unlink(gcov_outputs))
+    }
+    unlist(lapply(gcov_outputs, parse_gcov, package_path = c(path, getOption("covr.gcov_additional_paths", NULL))), recursive = FALSE)
   }
 
   withr::with_dir(src_path, {
