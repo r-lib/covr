@@ -392,8 +392,15 @@ package_coverage <- function(path = ".",
     coverage <- filter_non_package_files(coverage)
   }
 
-  # Exclude both RcppExports to avoid redundant coverage information
-  line_exclusions <- c("src/RcppExports.cpp", "R/RcppExports.R", line_exclusions, parse_covr_ignore())
+  # Exclude generated files from Rcpp and cpp11 to avoid redundant coverage information
+  line_exclusions <- c(
+    "src/RcppExports.cpp",
+    "R/RcppExports.R",
+    "src/cpp11.cpp",
+    "R/cpp11.R",
+    line_exclusions,
+    parse_covr_ignore()
+  )
 
   exclude(coverage,
     line_exclusions = line_exclusions,
