@@ -1,4 +1,4 @@
-# covr (development version)
+# covr 3.5.1
 
 * Generated files from [cpp11](https://cpp11.r-lib.org/) are now ignored (#437)
 
