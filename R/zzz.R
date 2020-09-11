@@ -1,4 +1,5 @@
 .onLoad <- function(libname, pkgname) { # nolint
+  rex::register_shortcuts("covr")
   op <- options()
   op_covr <- list(
     covr.covrignore = Sys.getenv("COVR_COVRIGNORE", ".covrignore"),

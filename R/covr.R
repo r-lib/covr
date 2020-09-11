@@ -22,8 +22,6 @@
 #' @importFrom utils capture.output getSrcFilename relist str head
 NULL
 
-#rex::register_shortcuts("covr")
-
 the <- new.env(parent = emptyenv())
 
 the$replacements <- list()
