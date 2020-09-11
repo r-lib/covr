@@ -1,6 +1,6 @@
 # covr (development version)
 
-* Generated files from [cpp11](https://cpp11.r-lib.org/) are now ignored (#437, @jimhester)
+* Generated files from [cpp11](https://cpp11.r-lib.org/) are now ignored (#437)
 
 * `codecov()` and `coveralls()` now retry failed requests before raising an error (#428, @jameslamb)
 
