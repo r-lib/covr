@@ -1,3 +1,5 @@
+This is a resubmission
+
 ## Test environments
 * OS X El Capitan, R 3.6.1
 * ubuntu 14.04 (on travis-ci), R 3.6.1, 3.4.5, R-devel
@@ -14,7 +16,7 @@ There were no NOTEs, ERRORs or WARNINGs.
 ## Reverse dependencies
 
 covr is tool used only in package development. It is generally not actually run
-by any downstream dependencies. Nonetheless I have run R CMD check on the 6
+by any downstream dependencies. Nonetheless I have run R CMD check on the
 hard downstream dependencies.
 
 I did not see any errors that were relevant to covr changes.
