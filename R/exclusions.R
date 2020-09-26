@@ -114,7 +114,7 @@ parse_exclusions <- function(lines,
     if (length(starts) != length(ends)) {
       starts_msg <- sprintf(ngettext(length(starts), "%d range start", "%d range starts"), length(starts))
       ends_msg <- sprintf(ngettext(length(ends), "%d range end", "%d range ends"), length(ends))
-      stop(file, " has ", starts_msg, " but only ", ends_msg, " for exclusion from code coverage!")
+      stop(starts_msg, " but only ", ends_msg, " for exclusion from code coverage!")
     }
 
     for (i in seq_along(starts)) {
