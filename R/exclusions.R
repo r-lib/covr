@@ -112,7 +112,9 @@ parse_exclusions <- function(lines,
 
   if (length(starts) > 0) {
     if (length(starts) != length(ends)) {
-      stop(length(starts), " starts but only ", length(ends), " ends!")
+      starts_msg <- sprintf(ngettext(length(starts), "%d range start", "%d range starts"), length(starts))
+      ends_msg <- sprintf(ngettext(length(ends), "%d range end", "%d range ends"), length(ends))
+      stop(starts_msg, " but only ", ends_msg, " for exclusion from code coverage!")
     }
 
     for (i in seq_along(starts)) {
