@@ -335,6 +335,29 @@ get_source_filename <- function(x, full.names = FALSE, unique = TRUE) {
   res
 }
 
+get_source_absolute_filepath <- function(x) {
+  path <- get_source_filename(x, full.names = TRUE)
+  wd <- attr(getSrcref(x), "srcfile")$wd
+  if (!is.null(wd) && !startsWith(path, wd)) path <- file.path(wd, path)
+  normalize_path(path)
+}
+
+find_first_srcref_nframe <- function(start = 1L, rootpath = "/") {
+  calls <- sys.calls()
+  
+  if (start > length(calls)) calls_i <- integer()
+  else calls_i <- seq.int(start, length(calls)) 
+
+  for (i in calls_i) {
+    srcref <- attr(calls[[i]], "srcref")
+    if (!is.null(srcref) && startsWith(get_source_absolute_filepath(srcref), rootpath)) {
+      return(i)
+    }
+  }
+
+  NULL
+}
+
 vcapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = character(1))
 vdapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = numeric(1))
 viapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = integer(1))
