@@ -130,9 +130,9 @@ new_counter <- function(src_ref, parent_functions) {
 #'
 #' @param key generated with [key()]
 #' @keywords internal
-count <- function(key, log_test = FALSE) {
+count <- function(key) {
   .counters[[key]]$value <- .counters[[key]]$value + 1L
-  if (log_test) count_test(key)
+  count_test(key)
 }
 
 #' append a testref to a counter
