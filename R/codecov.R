@@ -211,6 +211,10 @@ curl_http_1_1 <- function() {
 }
 
 extract_from_yaml <- function(path){
+  if (is.null(path)) {
+    return("")
+  }
+
   path_to_yaml <- file.path(path, "codecov.yml")
   if (file.exists(path_to_yaml)) {
     yaml::read_yaml(path_to_yaml)[["codecov"]][["token"]] %||% ""
