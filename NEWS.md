@@ -2,6 +2,8 @@
 
 * `codecov()` is now more robust when `coverage` is not the output from `package_coverage()` and `token` is not provided (#456)
 
+* Fix `parse_gcov` bug when package is stored in directory with regex special characters, see #459
+
 # covr 3.5.1
 
 * Generated files from [cpp11](https://cpp11.r-lib.org/) are now ignored (#437)
