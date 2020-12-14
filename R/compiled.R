@@ -11,7 +11,7 @@ parse_gcov <- function(file, package_path = "") {
   source_file <- normalize_path(source_file)
 
   # If the source file does not start with the package path or does not exist ignore it.
-  if (!file.exists(source_file) || !grepl(rex::rex(start, rex::regex(paste0(package_path, collapse = "|"))), source_file)) {
+  if (!file.exists(source_file) || !grepl(rex::rex(start, rex::regex(paste0(rex::escape(package_path), collapse = "|"))), source_file)) {
     return(NULL)
   }
 
