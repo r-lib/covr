@@ -33,6 +33,9 @@ as.data.frame.coverage <- function(x, row.names = NULL, optional = FALSE, sort =
 }
 
 merge_values <- function(x, sentinel = "___NA___") {
+  if (NROW(x) == 0) {
+    return(x)
+  }
   # We can't use aggregate directly, because it doesn't allow missing values in
   # grouping variables...
   x$functions[is.na(x$functions)] <- sentinel

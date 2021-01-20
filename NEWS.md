@@ -1,6 +1,7 @@
 # covr (development version)
 
 * `codecov()` is now more robust when `coverage` is not the output from `package_coverage()` and `token` is not provided (#456)
+* `as.data.frame()` now returns an 0 row data frame when there are no functions in a package (#427)
 
 * Fix `parse_gcov` bug when package is stored in directory with regex special characters, see #459
 
