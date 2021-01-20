@@ -221,3 +221,7 @@ higher optimization levels).
 # Alternative Coverage Tools #
 - <https://github.com/MangoTheCat/testCoverage> (no longer supported)
 - [**R-coverage**](https://web.archive.org/web/20160611114452/http://r2d2.quartzbio.com/posts/r-coverage-docker.html) (no longer supported)
+
+## Code of Conduct
+
+Please note that the covr project is released with a [Contributor Code of Conduct](http://covr.r-lib.org/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.

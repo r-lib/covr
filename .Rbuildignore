@@ -30,3 +30,4 @@ _dev\.R$
 ^azure-pipelines\.yml$
 ^[.]github$
 ^codecov\.yml$
+^CODE_OF_CONDUCT\.md$
