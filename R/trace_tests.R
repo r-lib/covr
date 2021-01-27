@@ -37,7 +37,13 @@ update_current_test <- function(key) {
 
   # build data for current test and append to .counters$tests
   .current_test$trace <- syscalls[exec_frames]
-  .current_test$frame <- tail(test_frames, 1L)
+  .current_test$frame <- if (length(test_frames)) {
+    # use test directory source code if available
+    tail(test_frames, 1L)  
+  } else { 
+    # otherwise use outer frame (ie for `code_coverage`)
+    tail(exec_frames, 1L)  #
+  }
   .current_test$srcref <- getSrcref(syscalls[[.current_test$frame]])
 
   # build test data to store within .counters

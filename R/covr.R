@@ -104,6 +104,26 @@ save_trace <- function(directory) {
   saveRDS(.counters, file = tmp_file)
 }
 
+#' Convert a counters object to a coverage object
+#' 
+#' @param counters An environment of covr trace results to convert to a coverage
+#'   object. If `counters` is not provided, the `covr` namespace value
+#'   `.counters` is used. 
+#' @param ... Additional attributes to include with the coverage object.
+#'
+as_coverage <- function(counters = NULL, ...) {
+  if (missing(counters))
+    counters <- .counters
+
+  counters <- as.list(counters)
+
+  # extract optional tests 
+  tests <- counters$tests
+  counters$tests <- NULL
+
+  structure(counters, tests = tests, ..., class = "coverage")
+}
+
 #' Calculate test coverage for a specific function.
 #'
 #' @param fun name of the function.
@@ -138,7 +158,7 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
     eval(code, enc)
   )
 
-  structure(as.list(.counters), class = "coverage")
+  as_coverage(as.list(.counters))
 }
 
 #' Calculate test coverage for sets of files
@@ -178,7 +198,7 @@ file_coverage <- function(
       sys.source, keep.source = TRUE, envir = env)
   )
 
-  coverage <- structure(as.list(.counters), class = "coverage")
+  coverage <- as_coverage(.counters)
 
   exclude(coverage,
     line_exclusions = line_exclusions,
@@ -235,7 +255,7 @@ environment_coverage <- function(
       sys.source, keep.source = TRUE, envir = exec_env)
   )
 
-  coverage <- structure(as.list(.counters), class = "coverage")
+  coverage <- as_coverage(.counters)
 
   exclude(coverage,
     line_exclusions = line_exclusions,
@@ -434,15 +454,11 @@ package_coverage <- function(path = ".",
     res <- run_icov(pkg$path, quiet = quiet)
   }
 
-  # extract coverage$tests - list of evaluated tests
-  tests <- coverage$tests
-  coverage$tests <- NULL
-
-  coverage <- structure(c(coverage, res),
-      class = "coverage",
-      package = pkg,
-      tests = tests,
-      relative = relative_path)
+  coverage <- as_coverage(
+    c(coverage, res),
+    package = pkg,
+    relative = relative_path
+  )
 
   if (!clean) {
     attr(coverage, "library") <- tmp_lib
