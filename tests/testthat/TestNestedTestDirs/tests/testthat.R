@@ -1,4 +1,4 @@
 library(testthat)
-library("TestRecordTests")
+library("TestNestedTestDirs")
 
-test_check("TestRecordTests")
+test_check("TestNestedTestDirs")
