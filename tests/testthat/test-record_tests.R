@@ -1,11 +1,11 @@
 context("record_tests")
 
 cov_func <- withr::with_options(
-  c(covr.record_tests = TRUE),
+  list(covr.record_tests = TRUE),
   package_coverage(test_path("testFunctional")))
 
 cov_tests_not_recorded <- withr::with_options(
-  c(covr.record_tests = NULL),
+  list(covr.record_tests = NULL),
   package_coverage(test_path("testFunctional")))
 
 

@@ -89,7 +89,7 @@ update_current_test <- function(key) {
 
   # build data for current test and append to .counters$tests
   .current_test$trace <- syscalls[exec_frames]
-  .current_test$frame <- tail(exec_frames, 1L)
+  .current_test$frame <- exec_frames[[Position(has_srcref, .current_test$trace, right = TRUE)]]
   .current_test$srcref <- getSrcref(syscalls[[.current_test$frame]])
 
   # build test data to store within .counters
@@ -109,6 +109,10 @@ is_current_test_finished <- function() {
   !identical(.current_test$srcref, getSrcref(syscalls[[.current_test$frame]]))
 }
 
+has_srcref <- function(expr) {
+  !is.null(getSrcref(expr))
+}
+
 is_covr_count_call <- function(expr) {
-  expr[[1]] == quote(covr:::count)
+  identical(expr[[1]], quote(covr:::count))
 }

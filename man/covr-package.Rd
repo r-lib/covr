@@ -73,7 +73,8 @@ when using \code{zero_coverage}.
 
 \item \code{covr.record_tests}: If \code{TRUE} (default \code{NULL}), record a listing of
 top level test expressions and associate tests with \code{covr} traces
-evaluated during the test's execution.
+evaluated during the test's execution. For more details, see
+\code{?covr.record_tests}.
 
 \item \code{covr.showCfunctions}:
 }

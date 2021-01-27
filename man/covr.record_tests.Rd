@@ -48,7 +48,7 @@ attr(cov, "tests")
 cov[[3]][c("srcref", "tests")]
 # $srcref
 # TRUE
-# 
+#
 # $tests
 #      test depth
 # [1,]    1     1
