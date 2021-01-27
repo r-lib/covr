@@ -51,7 +51,9 @@ of files outside the target package are filtered from coverage output.
 
 \item \code{covr.flags}:
 
-\item \code{covr.gcov}:
+\item \code{covr.gcov}: If the appropriate gcov version is not on your path you
+can use this option to set the appropriate location. If set to "" it will
+turn off coverage of compiled code.
 
 \item \code{covr.gcov_additional_paths}:
 

@@ -46,7 +46,9 @@
 #'
 #'   \item `covr.flags`:
 #'
-#'   \item `covr.gcov`:
+#'   \item `covr.gcov`: If the appropriate gcov version is not on your path you
+#'     can use this option to set the appropriate location. If set to "" it will
+#'     turn off coverage of compiled code.
 #'
 #'   \item `covr.gcov_additional_paths`:
 #'
