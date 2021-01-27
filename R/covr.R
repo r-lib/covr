@@ -15,6 +15,63 @@
 #' # If run with no arguments `report()` implicitly calls `package_coverage()`
 #' report()
 #' ```
+#'
+#' @section Package options:
+#'
+#' `covr` uses the following [options()] to configure behaviour:
+#'
+#' \itemize{
+#'   \item `covr.covrignore`: A filename to use as an ignore file,
+#'     listing glob-style wildcarded paths of files to ignore for coverage
+#'     calculations. Defaults to the value of environment variable
+#'     `COVR_COVRIGNORE`, or `".covrignore"`  if the neither the option nor the
+#'     environment variable are set.
+#'
+#'   \item `covr.exclude_end`: Used along with `covr.exclude_start`, an optional
+#'     regular expression which ends a line-exclusion region. For more
+#'     details, see `?exclusions`.
+#'
+#'   \item `covr.exclude_pattern`: An optional line-exclusion pattern. Lines
+#'     which match the pattern will be excluded from coverage. For more details,
+#'     see `?exclusions`.
+#'
+#'   \item `covr.exclude_start`: Used along with `covr.exclude_end`, an optional
+#'     regular expression which starts a line-exclusion region. For more
+#'     details, see `?exclusions`.
+#'
+#'   \item `covr.filter_non_package`: If `TRUE` (the default behavior), coverage
+#'     of files outside the target package are filtered from coverage output.
+#'
+#'   \item `covr.fix_parallel_mcexit`:
+#'
+#'   \item `covr.flags`:
+#'
+#'   \item `covr.gcov`:
+#'
+#'   \item `covr.gcov_additional_paths`:
+#'
+#'   \item `covr.gcov_args`:
+#'
+#'   \item `covr.icov`:
+#'
+#'   \item `covr.icov_args`:
+#'
+#'   \item `covr.icov_flags`:
+#'
+#'   \item `covr.icov_prof`:
+#'
+#'   \item `covr.rstudio_source_markers`: A logical value. If `TRUE` (the
+#'     default behavior), source markers are displayed within the RStudio IDE
+#'     when using `zero_coverage`.
+#'
+#'   \item `covr.record_tests`: If `TRUE` (default `NULL`), record a listing of
+#'     top level test expressions and associate tests with `covr` traces
+#'     evaluated during the test's execution.
+#'
+#'   \item `covr.showCfunctions`:
+#' }
+#'
+#'
 "_PACKAGE"
 
 #' @import methods
@@ -377,9 +434,14 @@ package_coverage <- function(path = ".",
     res <- run_icov(pkg$path, quiet = quiet)
   }
 
+  # extract coverage$tests - list of evaluated tests
+  tests <- coverage$tests
+  coverage$tests <- NULL
+
   coverage <- structure(c(coverage, res),
       class = "coverage",
       package = pkg,
+      tests = tests,
       relative = relative_path)
 
   if (!clean) {
@@ -449,29 +511,46 @@ show_failures <- function(dir) {
 # merge multiple coverage files together. Assumes the order of coverage lines
 # is the same in each object, this should always be the case if the objects are
 # from the same initial library.
-merge_coverage <- function(files) {
-  nfiles <- length(files)
-  if (nfiles == 0) {
+merge_coverage <- function(x) {
+  UseMethod("merge_coverage")
+}
+
+merge_coverage.character <- function(files) {
+  coverage_objs <- lapply(files, function(f) {
+    as.list(suppressWarnings(readRDS(f)))
+  })
+  merge_coverage(coverage_objs)
+}
+
+merge_coverage.list <- function(coverage_objs) {
+  if (length(coverage_objs) == 0) {
     return()
   }
 
-  x <- suppressWarnings(readRDS(files[1]))
-  x <- as.list(x)
-  if (nfiles == 1) {
-    return(x)
-  }
-
+  x <- coverage_objs[[1]]
   names <- names(x)
-  for (i in 2:nfiles) {
-    y <- suppressWarnings(readRDS(files[i]))
+
+  for (y in tail(coverage_objs, -1L)) {
+    # align tests from coverage objects
+    test_idx <- match(names(y$tests), names(x$tests))
+    new_test_idx <- which(is.na(test_idx))
+    test_idx[new_test_idx] <- length(x$tests) + seq_along(new_test_idx)
+
+    # append any tests that we haven't encountered in previous objects
+    x$tests <- append(x$tests, y$tests[new_test_idx])
+    y$tests <- NULL
+
     for (name in intersect(names, names(y))) {
       x[[name]]$value <- x[[name]]$value + y[[name]]$value
+      y[[name]]$tests[,1] <- test_idx[y[[name]]$tests[,1]]
+      x[[name]]$tests <- rbind(x[[name]]$tests, y[[name]]$tests)
     }
+
     for (name in setdiff(names(y), names)) {
       x[[name]] <- y[[name]]
     }
+
     names <- union(names, names(y))
-    y <- NULL
   }
 
   x
@@ -545,13 +624,16 @@ run_commands <- function(pkg, lib, commands) {
 # @param pkg_name name of the package to add hooks to
 # @param lib the library path to look in
 # @param fix_mcexit whether to add the fix for mcparallel:::mcexit
-add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
+add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE,
+  record_tests = isTRUE(getOption("covr.record_tests", FALSE))) {
+
   trace_dir <- paste0("Sys.getenv(\"COVERAGE_DIR\", \"", lib, "\")")
 
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
   lines <- readLines(file.path(lib, pkg_name, "R", pkg_name))
   lines <- append(lines,
-    c("setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
+    c(paste0("setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.record_tests = ", record_tests, "))"),
+      "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
       paste0("reg.finalizer(ns, function(...) { covr:::save_trace(", trace_dir, ") }, onexit = TRUE)")),
     length(lines) - 1L)
 

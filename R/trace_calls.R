@@ -5,26 +5,20 @@
 #' @param parent_functions the functions which this call is a child of.
 #' @param parent_ref argument used to set the srcref of the current call during
 #'   the recursion.
-#' @param traces
 #' @seealso <http://adv-r.had.co.nz/Expressions.html>
 #' @return a modified expression with count calls inserted before each previous
 #' call.
 #' @keywords internal
-trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL, traces = as.environment(list(n = 0L))) {
+trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
 
   # Construct the calls by hand to avoid a NOTE from R CMD check
   count <- function(key, val, is_first_trace = FALSE) {
     covr_call <- call(
       "{",
-      as.call(list(call(":::", as.symbol("covr"), as.symbol("set_current_test")), key)),
       as.call(list(call(":::", as.symbol("covr"), as.symbol("count")), key)),
       val
     )
 
-    traces$n <- traces$n + 1L
-
-    # omit test trace if no parent ref or explicitly disabled
-    if (traces$n > 1L) covr_call <- covr_call[-2]
     call("if", TRUE, covr_call)
   }
 
@@ -33,7 +27,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL, traces =
   }
 
   recurse <- function(y) {
-    lapply(y, trace_calls, parent_functions = parent_functions, traces = traces)
+    lapply(y, trace_calls, parent_functions = parent_functions)
   }
 
   if (is.atomic(x) || is.name(x)) {
@@ -60,7 +54,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL, traces =
     if (identical(x[[1]], as.name("{")) && length(x) == 2 && is.call(x[[2]]) && identical(x[[2]][[1]], as.name("{"))) {
       as.call(x)
     } else if (!is.null(src_ref)) {
-      as.call(Map(trace_calls, x, src_ref, MoreArgs = list(parent_functions = parent_functions, traces = traces)))
+      as.call(Map(trace_calls, x, src_ref, MoreArgs = list(parent_functions = parent_functions)))
     } else if (!is.null(parent_ref)) {
       key <- new_counter(parent_ref, parent_functions)
       count(key, as.call(recurse(x)))
@@ -81,12 +75,12 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL, traces =
        (is.symbol(fun_body) || !identical(fun_body[[1]], as.name("{")))) {
       src_ref <- attr(x, "srcref")
       key <- new_counter(src_ref, parent_functions)
-      fun_body <- count(key, trace_calls(fun_body, parent_functions, traces = traces))
+      fun_body <- count(key, trace_calls(fun_body, parent_functions))
     } else {
-      fun_body <- trace_calls(fun_body, parent_functions, traces = traces)
+      fun_body <- trace_calls(fun_body, parent_functions)
     }
 
-    new_formals <- trace_calls(formals(x), parent_functions, traces = traces)
+    new_formals <- trace_calls(formals(x), parent_functions)
     if (is.null(new_formals)) new_formals <- list()
     formals(x) <- new_formals
     body(x) <- fun_body
@@ -108,8 +102,8 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL, traces =
   }
 }
 
-.current_test <- new.env(parent = emptyenv())
 .counters <- new.env(parent = emptyenv())
+.current_test <- new.env(parent = emptyenv())
 
 #' initialize a new counter
 #'
@@ -121,8 +115,14 @@ new_counter <- function(src_ref, parent_functions) {
   .counters[[key]]$value <- 0
   .counters[[key]]$srcref <- src_ref
   .counters[[key]]$functions <- parent_functions
-  # # substantial (~15% faster) speedup if this _isnt_ instantiated
-  # .counters[[key]]$testrefs <- list()    
+
+  if (isTRUE(getOption("covr.record_tests", FALSE))) {
+    .counters[[key]]$tests <- matrix(
+      numeric(0L),
+      ncol = 2,
+      dimnames = list(c(), c("test", "depth")))
+  }
+
   key
 }
 
@@ -132,50 +132,14 @@ new_counter <- function(src_ref, parent_functions) {
 #' @keywords internal
 count <- function(key) {
   .counters[[key]]$value <- .counters[[key]]$value + 1L
-  count_test(key)
+  if (isTRUE(getOption("covr.record_tests"))) count_test(key)
 }
-
-#' append a testref to a counter
-#'
-#' @param key generated with [key()]
-#' @keywords internal
-count_test <- function(key) {
-  .counters[[key]]$testrefs <- append(
-    .counters[[key]]$testrefs, 
-    list(.current_test$srcref)
-  )
-}
-
-#' set the current 
-#'
-#' @param key generated with [key()]
-#' @keywords internal
-set_current_test <- function(key) {
-  # only execute once per set of counters
-  if (is.null(.current_test$nframe)) {
-    .current_test$nframe <- find_first_srcref_nframe(rootpath = getwd())
-  }
-  if (is.null(.current_test$nframe)) {
-    .current_test$srcref <- NULL
-  } else {
-    .current_test$srcref <- getSrcref(sys.call(which = .current_test$nframe))
-  }
-}
-
 
 #' clear all previous counters
 #'
 #' @keywords internal
 clear_counters <- function() {
   rm(envir = .counters, list = ls(envir = .counters))
-  clear_current_test()
-}
-
-
-#' clear all current test data
-#'
-#' @keywords internal
-clear_current_test <- function() {
   rm(envir = .current_test, list = ls(envir = .current_test))
 }
 
