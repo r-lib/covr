@@ -3,21 +3,21 @@
 #' By setting `options(covr.record_tests = TRUE)`, the result of covr coverage
 #' collection functions will include additional data pertaining to the tests
 #' which are executed and an index of which tests, at what stack depth, trigger
-#' the execution of each trace. 
+#' the execution of each trace.
 #'
 #' @section Additional fields:
-#' 
+#'
 #' Within the `covr` result, you can explore this information in two places:
 #'
 #' \itemize{
 #'   \item `attr(,"tests")`: A list of call stacks, which results in target code
-#'     execution. 
+#'     execution.
 #'
 #'   \item `$<srcref>$tests`: For each srcref count in the coverage object, a
 #'     `$tests` field is now included which contains a matrix with two columns,
 #'     "test" and "depth" which specify the test number (corresponding to the
 #'     index of the test in `attr(,"tests")` and the stack depth into the target
-#'     code where the trace was executed.  
+#'     code where the trace was executed.
 #' }
 #'
 #' @examples
@@ -42,7 +42,7 @@
 #' cov[[3]][c("srcref", "tests")]
 #' # $srcref
 #' # TRUE
-#' # 
+#' #
 #' # $tests
 #' #      test depth
 #' # [1,]    1     1
@@ -50,7 +50,7 @@
 #' @name covr.record_tests
 NULL
 
-#' Append a test trace to a counter, updating global current test 
+#' Append a test trace to a counter, updating global current test
 #'
 #' @param key generated with [key()]
 #' @keywords internal
@@ -58,7 +58,7 @@ NULL
 count_test <- function(key) {
   n_calls_into_covr <- 2L
 
-  if (is_current_test_finished()) 
+  if (is_current_test_finished())
     update_current_test(key)
 
   depth_into_pkg <- length(sys.calls()) - .current_test$frame - n_calls_into_covr + 1L
