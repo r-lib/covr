@@ -68,7 +68,8 @@
 #'
 #'   \item `covr.record_tests`: If `TRUE` (default `NULL`), record a listing of
 #'     top level test expressions and associate tests with `covr` traces
-#'     evaluated during the test's execution.
+#'     evaluated during the test's execution. For more details, see
+#'     `?covr.record_tests`.
 #'
 #'   \item `covr.showCfunctions`:
 #' }

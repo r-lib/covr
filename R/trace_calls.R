@@ -12,20 +12,18 @@
 trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
 
   # Construct the calls by hand to avoid a NOTE from R CMD check
-  count <- function(key, val, is_first_trace = FALSE) {
-    covr_call <- call(
-      "{",
-      as.call(list(call(":::", as.symbol("covr"), as.symbol("count")), key)),
-      val
+  count <- function(key, val) {
+    call("if", TRUE,
+      call("{",
+        as.call(list(call(":::", as.symbol("covr"), as.symbol("count")), key)),
+        val
+      )
     )
-
-    call("if", TRUE, covr_call)
   }
 
   if (is.null(parent_functions)) {
     parent_functions <- deparse(substitute(x))
   }
-
   recurse <- function(y) {
     lapply(y, trace_calls, parent_functions = parent_functions)
   }

@@ -1,3 +1,55 @@
+#' Record Test Traces During Coverage Execution
+#'
+#' By setting `options(covr.record_tests = TRUE)`, the result of covr coverage
+#' collection functions will include additional data pertaining to the tests
+#' which are executed and an index of which tests, at what stack depth, trigger
+#' the execution of each trace. 
+#'
+#' @section Additional fields:
+#' 
+#' Within the `covr` result, you can explore this information in two places:
+#'
+#' \itemize{
+#'   \item `attr(,"tests")`: A list of call stacks, which results in target code
+#'     execution. 
+#'
+#'   \item `$<srcref>$tests`: For each srcref count in the coverage object, a
+#'     `$tests` field is now included which contains a matrix with two columns,
+#'     "test" and "depth" which specify the test number (corresponding to the
+#'     index of the test in `attr(,"tests")` and the stack depth into the target
+#'     code where the trace was executed.  
+#' }
+#'
+#' @examples
+#' fcode <- '
+#' f <- function(x) {
+#'   if (x)
+#'     TRUE
+#'   else
+#'     FALSE
+#' }'
+#'
+#' options(covr.record_tests = TRUE)
+#' cov <- code_coverage(fcode, "f(TRUE)")
+#'
+#' # extract executed tests traces
+#' attr(cov, "tests")
+#' # $`/tmp/test.R:1:1:1:7:1:7:1:1`
+#' # $`/tmp/test.R:1:1:1:7:1:7:1:1`[[1]]
+#' # f(TRUE)
+#'
+#' # extract test itemization per trace
+#' cov[[3]][c("srcref", "tests")]
+#' # $srcref
+#' # TRUE
+#' # 
+#' # $tests
+#' #      test depth
+#' # [1,]    1     1
+#'
+#' @name covr.record_tests
+NULL
+
 #' Append a test trace to a counter, updating global current test 
 #'
 #' @param key generated with [key()]
@@ -9,7 +61,7 @@ count_test <- function(key) {
   if (is_current_test_finished()) 
     update_current_test(key)
 
-  depth_into_pkg <- length(sys.calls()) - .current_test$frame - n_calls_into_covr
+  depth_into_pkg <- length(sys.calls()) - .current_test$frame - n_calls_into_covr + 1L
   .counters[[key]]$tests <- rbind(
     .counters[[key]]$tests,
     c(length(.counters$tests), depth_into_pkg)
@@ -37,13 +89,7 @@ update_current_test <- function(key) {
 
   # build data for current test and append to .counters$tests
   .current_test$trace <- syscalls[exec_frames]
-  .current_test$frame <- if (length(test_frames)) {
-    # use test directory source code if available
-    tail(test_frames, 1L)  
-  } else { 
-    # otherwise use outer frame (ie for `code_coverage`)
-    tail(exec_frames, 1L)  #
-  }
+  .current_test$frame <- tail(exec_frames, 1L)
   .current_test$srcref <- getSrcref(syscalls[[.current_test$frame]])
 
   # build test data to store within .counters

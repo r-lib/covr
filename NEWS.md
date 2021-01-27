@@ -1,5 +1,10 @@
 # covr (development version)
 
+* Added `covr.record_tests` option. When `TRUE`, this enables the recording of
+  the trace of the tests being executed and adds an itemization of which tests
+  result in the exeuction of each trace. For more details see
+  `?covr.record_tests`
+
 * `codecov()` is now more robust when `coverage` is not the output from `package_coverage()` and `token` is not provided (#456)
 * `as.data.frame()` now returns an 0 row data frame when there are no functions in a package (#427)
 
