@@ -77,6 +77,8 @@ count_test <- function(key) {
 #' @param key generated with [key()]
 #' @keywords internal
 #'
+#' @importFrom utils getSrcDirectory
+#'
 update_current_test <- function(key) {
   syscalls <- sys.calls()
   syscall_srcref_dirs <- lapply(syscalls, getSrcDirectory)
@@ -109,7 +111,7 @@ update_current_test <- function(key) {
 
   # only name if srcrefs can be determined
   if (!is.null(.current_test$srcref)) {
-    names(test) <- file.path(getSrcDirectory(.current_test$srcref), key(.current_test$srcref))
+    names(test) <- file.path(utils::getSrcDirectory(.current_test$srcref), key(.current_test$srcref))
   }
 
   .counters$tests <- append(.counters$tests, test)
@@ -130,5 +132,6 @@ has_srcref <- function(expr) {
 }
 
 is_covr_count_call <- function(expr) {
-  identical(expr[[1]], quote(covr:::count))
+  count_call <- call(":::", as.symbol("covr"), as.symbol("count"))
+  identical(expr[[1]], count_call)
 }

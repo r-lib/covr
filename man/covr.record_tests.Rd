@@ -9,6 +9,11 @@ collection functions will include additional data pertaining to the tests
 which are executed and an index of which tests, at what stack depth, trigger
 the execution of each trace.
 }
+\details{
+This functionality requires that the package code and tests are installed and
+sourced with the source. For more details, refer to R options, \code{keep.source},
+\code{keep.source.pkgs} and \code{keep.parse.data.pkgs}.
+}
 \section{Additional fields}{
 
 
