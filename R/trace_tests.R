@@ -5,6 +5,10 @@
 #' which are executed and an index of which tests, at what stack depth, trigger
 #' the execution of each trace.
 #'
+#' This functionality requires that the package code and tests are installed and
+#' sourced with the source. For more details, refer to R options, `keep.source`,
+#' `keep.source.pkgs` and `keep.parse.data.pkgs`.
+#'
 #' @section Additional fields:
 #'
 #' Within the `covr` result, you can explore this information in two places:
@@ -76,9 +80,11 @@ count_test <- function(key) {
 update_current_test <- function(key) {
   syscalls <- sys.calls()
   syscall_srcref_dirs <- lapply(syscalls, getSrcDirectory)
+  names(syscalls) <- syscall_srcref_dirs
   syscall_first_count <- Position(is_covr_count_call, syscalls)
 
   # find frames with relative srcref; ie src within /tests directory
+  # this holds for `testthat`, `RUnit` test srcrefs are ambiguous
   has_srcdir <- vapply(syscall_srcref_dirs, length, integer(1L)) > 0L
   test_frames <- logical(length(syscall_srcref_dirs))
   test_frames[has_srcdir] <- startsWith(as.character(syscall_srcref_dirs[has_srcdir]), ".")
@@ -89,12 +95,22 @@ update_current_test <- function(key) {
 
   # build data for current test and append to .counters$tests
   .current_test$trace <- syscalls[exec_frames]
-  .current_test$frame <- exec_frames[[Position(has_srcref, .current_test$trace, right = TRUE)]]
+  .current_test$frame <- exec_frames[[Position(
+    has_srcref, 
+    .current_test$trace, 
+    right = TRUE, 
+    nomatch = length(exec_frames))]]
+
+  # might be NULL if srcrefs aren't kept during building / sourcing
   .current_test$srcref <- getSrcref(syscalls[[.current_test$frame]])
 
   # build test data to store within .counters
   test <- list(.current_test$trace)
-  names(test) <- file.path(getSrcDirectory(.current_test$srcref), key(.current_test$srcref))
+
+  # only name if srcrefs can be determined
+  if (!is.null(.current_test$srcref)) {
+    names(test) <- file.path(getSrcDirectory(.current_test$srcref), key(.current_test$srcref))
+  }
 
   .counters$tests <- append(.counters$tests, test)
 }
@@ -104,7 +120,7 @@ update_current_test <- function(key) {
 is_current_test_finished <- function() {
   syscalls <- sys.calls()
 
-  is.null(.current_test$trace) ||
+  is.null(.current_test$srcref) ||
   .current_test$frame > length(syscalls) ||
   !identical(.current_test$srcref, getSrcref(syscalls[[.current_test$frame]]))
 }
