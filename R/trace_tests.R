@@ -82,7 +82,6 @@ count_test <- function(key) {
 update_current_test <- function(key) {
   syscalls <- sys.calls()
   syscall_srcref_dirs <- lapply(syscalls, getSrcDirectory)
-  names(syscalls) <- syscall_srcref_dirs
   syscall_first_count <- Position(is_covr_count_call, syscalls)
 
   # find frames with relative srcref; ie src within /tests directory
