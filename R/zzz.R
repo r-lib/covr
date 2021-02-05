@@ -19,6 +19,7 @@
 
                  FFLAGS = "-O0 --coverage",
                  FCFLAGS = "-O0 --coverage",
+                 FLIBS = "-lgcov",
 
                  # LDFLAGS is ignored on windows and visa versa
                  LDFLAGS = if (!is_windows()) "--coverage" else NULL,
