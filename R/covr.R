@@ -551,8 +551,8 @@ merge_coverage.list <- function(coverage_objs) {
 
   for (y in tail(coverage_objs, -1L)) {
     # align tests from coverage objects
-    test_idx <- match(names(y$tests), names(x$tests))
-    new_test_idx <- which(is.na(test_idx))
+    test_idx <- match(names(y$tests), Filter(nchar, names(x$tests)))
+    new_test_idx <- if (!length(test_idx)) seq_along(y$tests) else which(is.na(test_idx))
     test_idx[new_test_idx] <- length(x$tests) + seq_along(new_test_idx)
 
     # append any tests that we haven't encountered in previous objects
