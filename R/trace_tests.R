@@ -103,21 +103,25 @@ count_test <- function(key) {
 #'
 update_current_test <- function(key) {
   syscalls <- sys.calls()
-  syscall_srcref_dirs <- lapply(syscalls, getSrcDirectory)
+  syscall_srcref_dirs <- as.character(lapply(syscalls, getSrcDirectory))
   syscall_first_count <- Position(is_covr_count_call, syscalls)
 
   # find frames with relative srcref; ie src within /tests directory
   # this holds for `testthat`, `RUnit` test srcrefs are ambiguous
   has_srcdir <- vapply(syscall_srcref_dirs, length, integer(1L)) > 0L
-  srcdir_rel <- logical(length(has_srcdir))
-  srcdir_rel[has_srcdir] <- startsWith(as.character(syscall_srcref_dirs[has_srcdir]), ".")
+  srcdir_tmp <- srcdir_rel <- logical(length(has_srcdir))
+  srcdir_rel[has_srcdir] <- startsWith(syscall_srcref_dirs[has_srcdir], ".")
+  srcdir_tmp[has_srcdir] <- startsWith(syscall_srcref_dirs[has_srcdir], normalizePath(.libPaths()[[1]]))
   test_frames <- logical(length(syscall_srcref_dirs))
 
   if (any(srcdir_rel)) { 
     # if tests are relative (likely testthat), take relative srcfiles
     test_frames <- which(srcdir_rel)
+  } else if (any(srcdir_tmp)) {
+    # otherwise (likely RUnit), try to take any frames within the temporary test directory
+    test_frames <- which(srcdir_tmp)
   } else {
-    # otherwise (likely RUnit, custom), capture call stack to trace counter
+    # otherwise (likely custom), capture call stack to trace counter
     test_frames <- seq_len(syscall_first_count - 1L)
   }
 
