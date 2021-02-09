@@ -199,11 +199,20 @@ is_current_test_finished <- function() {
 }
 
 #' Is the source bound to the expression
+#'
+#' @param expr A language object which may have a `srcref` attribute
+#' @return A logical value indicating whether the language object has source
+#'
 has_srcref <- function(expr) {
   !is.null(getSrcref(expr))
 }
 
 #' Is the expression a call to covr:::count
+#'
+#' @param expr A language object
+#' @return A logical value indicating whether the object is a call to
+#'   `covr:::count`.
+#' 
 is_covr_count_call <- function(expr) {
   count_call <- call(":::", as.symbol("covr"), as.symbol("count"))
   identical(expr[[1]], count_call)

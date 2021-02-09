@@ -6,6 +6,12 @@
 \usage{
 has_srcref(expr)
 }
+\arguments{
+\item{expr}{A language object which may have a \code{srcref} attribute}
+}
+\value{
+A logical value indicating whether the language object has source
+}
 \description{
 Is the source bound to the expression
 }

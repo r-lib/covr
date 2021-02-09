@@ -6,6 +6,13 @@
 \usage{
 is_covr_count_call(expr)
 }
+\arguments{
+\item{expr}{A language object}
+}
+\value{
+A logical value indicating whether the object is a call to
+\code{covr:::count}.
+}
 \description{
 Is the expression a call to covr:::count
 }
