@@ -128,20 +128,14 @@ update_current_test <- function(key) {
 
   has_srcfile <- viapply(syscall_srcfile, length) > 0L
   srcfile_tmp <- logical(length(has_srcfile))
-  # srcfile_rel[has_srcfile] <- startsWith(syscall_srcfile[has_srcfile], ".")
   srcfile_tmp[has_srcfile] <- startsWith(syscall_srcfile[has_srcfile], normalizePath(.libPaths()[[1]]))
-  test_frames <- logical(length(syscall_srcfile))
 
-  # if (any(srcdir_rel)) { 
-  #   # if tests are relative (likely testthat), take relative srcfiles
-  #   test_frames <- which(srcdir_rel)
-  # } else 
-  if (any(srcfile_tmp)) {
-    # otherwise (likely RUnit), try to take any frames within the temporary test directory
-    test_frames <- which(srcfile_tmp)
+  test_frames <- if (any(srcfile_tmp)) {
+    # if possible, try to take any frames within the temporary library
+    which(srcfile_tmp)
   } else {
-    # otherwise (likely custom), capture call stack to trace counter
-    test_frames <- seq_len(syscall_first_count - 1L)
+    # otherwise, default to taking all syscalls up until covr:::count
+    seq_len(syscall_first_count - 1L)
   }
 
   # add in outer frame, which may call intermediate .Internal or .External
