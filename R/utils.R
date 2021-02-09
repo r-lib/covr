@@ -327,10 +327,13 @@ get_package_name <- function(x) {
    attr(x, "package")$package %||% "coverage"
 }
 
-get_source_filename <- function(x, full.names = FALSE, unique = TRUE) {
+get_source_filename <- function(x, full.names = FALSE, unique = TRUE, normalize = FALSE) {
   res <- getSrcFilename(x, full.names, unique)
   if (length(res) == 0) {
     return("")
+  }
+  if (normalize) {
+    return(normalize_path(res))
   }
   res
 }
