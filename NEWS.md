@@ -9,6 +9,7 @@
 * `as.data.frame()` now returns an 0 row data frame when there are no functions in a package (#427)
 
 * Fix `parse_gcov` bug when package is stored in directory with regex special characters, see #459
+* Error/warning thrown for, respectively, missing gcov or empty parsed gcov output (@stephematician, #448)
 
 # covr 3.5.1
 
