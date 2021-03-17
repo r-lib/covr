@@ -59,3 +59,19 @@ test_that("Compiled code coverage is reported under non-standard char's", {
 
   expect_equal(cov[cov$first_line == "22", "value"], 4)
 })
+
+test_that("Error thrown for missing gcov", {
+  skip_on_cran()
+  withr::with_options(c(covr.gcov=''),
+    expect_error(package_coverage("TestCompiled", relative_path=TRUE),
+                 "gcov not found")
+  )
+})
+
+test_that("Warning thrown for empty gcov output", {
+  skip_on_cran()
+  withr::with_options(c(covr.gcov_args='-n'),
+    expect_warning(package_coverage("TestCompiled", relative_path=TRUE),
+                   "parsed gcov output was empty")
+  )
+})

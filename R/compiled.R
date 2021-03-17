@@ -63,16 +63,16 @@ clean_gcov <- function(path) {
 run_gcov <- function(path, quiet = TRUE, clean = TRUE,
                       gcov_path = getOption("covr.gcov", ""),
                       gcov_args = getOption("covr.gcov_args", NULL)) {
-  if (!nzchar(gcov_path)) {
-    return()
-  }
-
   src_path <- normalize_path(file.path(path, "src"))
   if (!file.exists(src_path)) {
      return()
   }
 
   gcov_inputs <- list.files(path, pattern = rex::rex(".gcno", end), recursive = TRUE, full.names = TRUE)
+  if (!nzchar(gcov_path)) {
+    if (length(gcov_inputs)) stop('gcov not found')
+    return()
+  }
   run_gcov_one <- function(src) {
     system_check(gcov_path,
       args = c(gcov_args, src, "-p", "-o", dirname(src)),
@@ -84,9 +84,12 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
     unlist(lapply(gcov_outputs, parse_gcov, package_path = c(path, getOption("covr.gcov_additional_paths", NULL))), recursive = FALSE)
   }
 
-  withr::with_dir(src_path, {
-    compact(unlist(lapply(gcov_inputs, run_gcov_one), recursive = FALSE))
-  })
+  res <- withr::with_dir(src_path, {
+           compact(unlist(lapply(gcov_inputs, run_gcov_one), recursive = FALSE))
+         })
+  if (!length(res) & length(gcov_inputs))
+    warning('parsed gcov output was empty')
+  res
 }
 
 line_coverages <- function(source_file, matches, values, functions) {
