@@ -70,7 +70,7 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
 
   gcov_inputs <- list.files(path, pattern = rex::rex(".gcno", end), recursive = TRUE, full.names = TRUE)
   if (!nzchar(gcov_path)) {
-    if (length(gcov_inputs)) warning('gcov not found')
+    if (length(gcov_inputs)) stop('gcov not found')
     return()
   }
   run_gcov_one <- function(src) {
