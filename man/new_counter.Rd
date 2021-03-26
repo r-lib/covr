@@ -7,7 +7,7 @@
 new_counter(src_ref, parent_functions)
 }
 \arguments{
-\item{src_ref}{a \code{\link[base:srcref]{base::srcref()}}}
+\item{src_ref}{a \code{\link[base:srcfile]{base::srcref()}}}
 
 \item{parent_functions}{the functions that this srcref is contained in.}
 }
