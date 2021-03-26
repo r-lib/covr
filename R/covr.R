@@ -307,6 +307,10 @@ environment_coverage <- function(
 #' @param ... Additional arguments passed to [tools::testInstalledPackage()].
 #' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
 #' @param pre_clean whether to delete all objects present in the src directory before recompiling
+#' @param install_path The path the instrumented package will be installed to
+#'   and tests run in. By default it is a path in the R sessions temporary
+#'   directory. It can sometimes be useful to set this (along with `clean =
+#'   FALSE`) to help debug test failures.
 #' @seealso [exclusions()] For details on excluding parts of the
 #' package from the coverage calculations.
 #' @export
@@ -319,6 +323,7 @@ package_coverage <- function(path = ".",
                              line_exclusions = NULL,
                              function_exclusions = NULL,
                              code = character(),
+                             install_path = temp_file("R_LIBS"),
                              ...,
                              exclusions, pre_clean=TRUE) {
 
@@ -355,8 +360,7 @@ package_coverage <- function(path = ".",
     return(res)
   }
 
-  tmp_lib <- temp_file("R_LIBS")
-  dir.create(tmp_lib)
+  dir.create(install_path)
 
   flags <- getOption("covr.flags")
 
@@ -380,7 +384,7 @@ package_coverage <- function(path = ".",
       clean_objects(pkg$path)
       clean_gcov(pkg$path)
       clean_parse_data()
-      unlink(tmp_lib, recursive = TRUE)
+      unlink(install_path, recursive = TRUE)
     }, add = TRUE)
   }
 
@@ -390,7 +394,7 @@ package_coverage <- function(path = ".",
   # install the package in a temporary directory
   withr::with_makevars(flags, assignment = "+=",
     utils::install.packages(repos = NULL,
-                            lib = tmp_lib,
+                            lib = install_path,
                             pkg$path,
                             type = "source",
                             INSTALL_opts = c("--example",
@@ -402,10 +406,10 @@ package_coverage <- function(path = ".",
                             quiet = quiet))
 
   # add hooks to the package startup
-  add_hooks(pkg$package, tmp_lib,
+  add_hooks(pkg$package, install_path,
     fix_mcexit = should_enable_parallel_mcexit_fix(pkg))
 
-  libs <- env_path(tmp_lib, .libPaths())
+  libs <- env_path(install_path, .libPaths())
 
   withr::with_envvar(
     c(R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
@@ -418,23 +422,23 @@ package_coverage <- function(path = ".",
     withCallingHandlers({
       if ("vignettes" %in% type) {
         type <- type[type != "vignettes"]
-        run_vignettes(pkg, tmp_lib)
+        run_vignettes(pkg, install_path)
       }
 
-      out_dir <- file.path(tmp_lib, pkg$package)
+      out_dir <- file.path(install_path, pkg$package)
       if ("examples" %in% type) {
         type <- type[type != "examples"]
         # testInstalledPackage explicitly sets R_LIBS="" on windows, and does
         # not restore it after, so we need to reset it ourselves.
         withr::with_envvar(c(R_LIBS = Sys.getenv("R_LIBS")), {
-          result <- tools::testInstalledPackage(pkg$package, outDir = out_dir, types = "examples", lib.loc = tmp_lib, ...)
+          result <- tools::testInstalledPackage(pkg$package, outDir = out_dir, types = "examples", lib.loc = install_path, ...)
           if (result != 0L) {
             show_failures(out_dir)
           }
         })
       }
       if ("tests" %in% type) {
-        result <- tools::testInstalledPackage(pkg$package, outDir = out_dir, types = "tests", lib.loc = tmp_lib, ...)
+        result <- tools::testInstalledPackage(pkg$package, outDir = out_dir, types = "tests", lib.loc = install_path, ...)
         if (result != 0L) {
           show_failures(out_dir)
         }
@@ -442,14 +446,14 @@ package_coverage <- function(path = ".",
 
       # We always run the commands file (even if empty) to load the package and
       # initialize all the counters to 0.
-      run_commands(pkg, tmp_lib, code)
+      run_commands(pkg, install_path, code)
     },
     message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
     warning = function(e) if (quiet) invokeRestart("muffleWarning") else e)
     })
 
   # read tracing files
-  trace_files <- list.files(path = tmp_lib, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
+  trace_files <- list.files(path = install_path, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
   coverage <- merge_coverage(trace_files)
   if (!uses_icc()) {
     res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
@@ -464,7 +468,7 @@ package_coverage <- function(path = ".",
   )
 
   if (!clean) {
-    attr(coverage, "library") <- tmp_lib
+    attr(coverage, "library") <- install_path
   }
 
   if (getOption("covr.filter_non_package", TRUE)) {

@@ -14,6 +14,7 @@ package_coverage(
   line_exclusions = NULL,
   function_exclusions = NULL,
   code = character(),
+  install_path = temp_file("R_LIBS"),
   ...,
   exclusions,
   pre_clean = TRUE
@@ -46,6 +47,10 @@ each file.}
 names to exclude. Example \verb{print\\\\\\.} to match print methods.}
 
 \item{code}{A character vector of additional test code to run.}
+
+\item{install_path}{The path the instrumented package will be installed to
+and tests run in. By default it is a path in the R sessions temporary
+directory. It can sometimes be useful to set this (along with \code{clean = FALSE}) to help debug test failures.}
 
 \item{...}{Additional arguments passed to \code{\link[tools:testInstalledPackage]{tools::testInstalledPackage()}}.}
 
