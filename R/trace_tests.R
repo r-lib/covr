@@ -111,7 +111,6 @@ count_test <- function(key) {
 #'     their execution, in which case the entire test call stack is kept. 
 #' }
 #'
-#'
 #' checks to see if the current call stack has the same
 #' `srcref` (or expression, if no source is available) at the same frame prior 
 #' to entering into a package where `covr:::count` is called. 
