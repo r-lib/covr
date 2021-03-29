@@ -31,3 +31,4 @@ _dev\.R$
 ^[.]github$
 ^codecov\.yml$
 ^CODE_OF_CONDUCT\.md$
+^\.github$
