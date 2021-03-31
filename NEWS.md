@@ -1,5 +1,7 @@
 # covr (development version)
 
+* `package_coverage()` now sets the environment variable `R_TESTS` to the tests-startup.R file like R CMD check does (#420)
+
 * `codecov()` is now more robust when `coverage` is not the output from `package_coverage()` and `token` is not provided (#456)
 * `as.data.frame()` now returns an 0 row data frame when there are no functions in a package (#427)
 
