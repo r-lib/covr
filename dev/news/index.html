@@ -149,6 +149,7 @@
 <a href="#covr-development-version" class="anchor"></a>covr (development version)<small> Unreleased </small>
 </h1>
 <ul>
+<li><p><code><a href="../reference/package_coverage.html">package_coverage()</a></code> now sets the environment variable <code>R_TESTS</code> to the tests-startup.R file like R CMD check does (<a href='https://github.com/r-lib/covr/issues/420'>#420</a>)</p></li>
 <li><p><code><a href="../reference/codecov.html">codecov()</a></code> is now more robust when <code>coverage</code> is not the output from <code><a href="../reference/package_coverage.html">package_coverage()</a></code> and <code>token</code> is not provided (<a href='https://github.com/r-lib/covr/issues/456'>#456</a>)</p></li>
 <li><p><code><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame()</a></code> now returns an 0 row data frame when there are no functions in a package (<a href='https://github.com/r-lib/covr/issues/427'>#427</a>)</p></li>
 <li><p>Fix <code>parse_gcov</code> bug when package is stored in directory with regex special characters, see <a href='https://github.com/r-lib/covr/issues/459'>#459</a></p></li>
