@@ -416,7 +416,8 @@ package_coverage <- function(path = ".",
       R_LIBS = libs,
       R_LIBS_USER = libs,
       R_LIBS_SITE = libs,
-      R_COVR = "true"), {
+      R_COVR = "true",
+      R_TESTS = file.path(R.home("share"), "R", "tests-startup.R")), {
 
 
     withCallingHandlers({
