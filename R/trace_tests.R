@@ -96,7 +96,7 @@ count_test <- function(key) {
 #'
 #' Updating a test logs some metadata regarding the current call stack, noteably
 #' trying to capture information about the call stack prior to the covr::count
-#' call being traced. 
+#' call being traced.
 #'
 #' There are a couple patterns of behavior, which try to accommodate a variety
 #' of testing suites:
@@ -105,15 +105,15 @@ count_test <- function(key) {
 #'   \item `testthat`: During execution of `testthat`'s `test_*` functions,
 #'     files are sourced and the working directory is temporarily changed to the
 #'     package `/tests` directory. Knowing this, calls in the call stack which
-#'     are relative to this directory are extracted and recorded. 
-#'   \item `RUnit`: 
+#'     are relative to this directory are extracted and recorded.
+#'   \item `RUnit`:
 #'   \item `custom`: Any other custom test suites may not have source kept with
-#'     their execution, in which case the entire test call stack is kept. 
+#'     their execution, in which case the entire test call stack is kept.
 #' }
 #'
 #' checks to see if the current call stack has the same
-#' `srcref` (or expression, if no source is available) at the same frame prior 
-#' to entering into a package where `covr:::count` is called. 
+#' `srcref` (or expression, if no source is available) at the same frame prior
+#' to entering into a package where `covr:::count` is called.
 #'
 #' @param key generated with [key()]
 #' @keywords internal
@@ -145,13 +145,13 @@ update_current_test <- function(key) {
   .current_test$trace <- syscalls[exec_frames]
   .current_test$frames <- exec_frames
   .current_test$last_frame <- exec_frames[[Position(
-    has_srcref, 
-    .current_test$trace, 
-    right = TRUE, 
+    has_srcref,
+    .current_test$trace,
+    right = TRUE,
     nomatch = length(exec_frames))]]
 
   # might be NULL if srcrefs aren't kept during building / sourcing
-  .current_test$src <- getSrcref(syscalls[[.current_test$last_frame]]) %||% 
+  .current_test$src <- getSrcref(syscalls[[.current_test$last_frame]]) %||%
     syscalls[[.current_test$last_frame]]
 
   # build test data to store within .counters
@@ -173,7 +173,7 @@ update_current_test <- function(key) {
 #' we're still in the last test, check if the same srcref (or call, if source is
 #' not kept) exists at the last recorded calling frame prior to entering a covr
 #' trace. If this has changed, do a more comprehensive test to see if any of the
-#' test call stack has changed, in which case we are onto a new test. 
+#' test call stack has changed, in which case we are onto a new test.
 #'
 is_current_test_finished <- function() {
   syscalls <- sys.calls()
@@ -181,7 +181,7 @@ is_current_test_finished <- function() {
   is.null(.current_test$src) ||
   .current_test$last_frame > length(syscalls) ||
   !identical(
-    .current_test$src, 
+    .current_test$src,
     getSrcref(syscalls[[.current_test$last_frame]]) %||% syscalls[[.current_test$last_frame]]
   ) ||
   !identical(
@@ -204,7 +204,7 @@ has_srcref <- function(expr) {
 #' @param expr A language object
 #' @return A logical value indicating whether the object is a call to
 #'   `covr:::count`.
-#' 
+#'
 is_covr_count_call <- function(expr) {
   count_call <- call(":::", as.symbol("covr"), as.symbol("count"))
   identical(expr[[1]], count_call)
