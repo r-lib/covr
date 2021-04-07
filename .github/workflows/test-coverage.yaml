@@ -56,4 +56,3 @@ jobs:
           R CMD INSTALL .
           source shim_package.sh
           Rscript -e 'covr::codecov()'
-        shell: Rscript {0}
