@@ -122,9 +122,10 @@ count_test <- function(key) {
 #'
 update_current_test <- function(key) {
   syscalls <- sys.calls()
+  syscall_first_count <- Position(is_covr_count_call, syscalls, nomatch = -1L)
+  if (syscall_first_count < 2L) return()  # skip if nothing before covr::count
   syscall_srcfile <- vcapply(syscalls, get_source_filename, normalize = TRUE)
-  syscall_first_count <- Position(is_covr_count_call, syscalls)
-
+  
   has_srcfile <- viapply(syscall_srcfile, length) > 0L
   srcfile_tmp <- logical(length(has_srcfile))
   srcfile_tmp[has_srcfile] <- startsWith(syscall_srcfile[has_srcfile], normalizePath(.libPaths()[[1]]))
