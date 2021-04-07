@@ -5,7 +5,7 @@
   result in the exeuction of each trace. For more details see
   `?covr.record_tests`
   `?covr.record_tests` (@dgkf, #463)
-  
+
 * `package_coverage()` now sets the environment variable `R_TESTS` to the tests-startup.R file like R CMD check does (#420)
 
 * `codecov()` is now more robust when `coverage` is not the output from `package_coverage()` and `token` is not provided (#456)
