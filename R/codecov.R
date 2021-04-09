@@ -205,11 +205,10 @@ codecov <- function(...,
       build_url = build_url,
       name = name,
       pr = pr,
-      slug = Sys.getenv("GCB_REPO_NAME"),
       commit = commit %||% Sys.getenv("GCB_COMMIT_SHA")
     )
 
-        # ---------
+  # ---------
   # Local GIT
   # ---------
   } else {
