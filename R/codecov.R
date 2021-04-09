@@ -233,7 +233,6 @@ codecov <- function(...,
                             query = codecov_query,
                             body = coverage_json,
                             encode = "json",
-                            httr::verbose(), # to test
                             httr::config(http_version = curl_http_1_1())))
 }
 
