@@ -468,7 +468,13 @@ merge_coverage <- function(files) {
 
   names <- names(x)
   for (i in 2:nfiles) {
-    y <- suppressWarnings(readRDS(files[i]))
+    # Avoid rare corrupted rds files from R processes that crash while
+    # writing coverage reports.
+    y <- tryCatch(suppressWarnings(readRDS(files[i])),
+                  error = function(e) NULL)
+    if (is.null(y)) {
+      next
+    }
     for (name in intersect(names, names(y))) {
       x[[name]]$value <- x[[name]]$value + y[[name]]$value
     }
