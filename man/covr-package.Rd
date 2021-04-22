@@ -20,6 +20,66 @@ package. Using \code{report()} requires the additional dependencies \code{DT} an
 report()
 }\if{html}{\out{</div>}}
 }
+\section{Package options}{
+
+
+\code{covr} uses the following \code{\link[=options]{options()}} to configure behaviour:
+
+\itemize{
+\item \code{covr.covrignore}: A filename to use as an ignore file,
+listing glob-style wildcarded paths of files to ignore for coverage
+calculations. Defaults to the value of environment variable
+\code{COVR_COVRIGNORE}, or \code{".covrignore"}  if the neither the option nor the
+environment variable are set.
+
+\item \code{covr.exclude_end}: Used along with \code{covr.exclude_start}, an optional
+regular expression which ends a line-exclusion region. For more
+details, see \code{?exclusions}.
+
+\item \code{covr.exclude_pattern}: An optional line-exclusion pattern. Lines
+which match the pattern will be excluded from coverage. For more details,
+see \code{?exclusions}.
+
+\item \code{covr.exclude_start}: Used along with \code{covr.exclude_end}, an optional
+regular expression which starts a line-exclusion region. For more
+details, see \code{?exclusions}.
+
+\item \code{covr.filter_non_package}: If \code{TRUE} (the default behavior), coverage
+of files outside the target package are filtered from coverage output.
+
+\item \code{covr.fix_parallel_mcexit}:
+
+\item \code{covr.flags}:
+
+\item \code{covr.gcov}: If the appropriate gcov version is not on your path you
+can use this option to set the appropriate location. If set to "" it will
+turn off coverage of compiled code.
+
+\item \code{covr.gcov_additional_paths}:
+
+\item \code{covr.gcov_args}:
+
+\item \code{covr.icov}:
+
+\item \code{covr.icov_args}:
+
+\item \code{covr.icov_flags}:
+
+\item \code{covr.icov_prof}:
+
+\item \code{covr.rstudio_source_markers}: A logical value. If \code{TRUE} (the
+default behavior), source markers are displayed within the RStudio IDE
+when using \code{zero_coverage}.
+
+\item \code{covr.record_tests}: If \code{TRUE} (default \code{NULL}), record a listing of
+top level test expressions and associate tests with \code{covr} traces
+evaluated during the test's execution. For more details, see
+\code{?covr.record_tests}.
+
+\item \code{covr.showCfunctions}:
+}
+}
+
 \seealso{
 Useful links:
 \itemize{
