@@ -4,6 +4,9 @@
     <loc>http://covr.r-lib.org/index.html</loc>
   </url>
   <url>
+    <loc>http://covr.r-lib.org/reference/as_coverage.html</loc>
+  </url>
+  <url>
     <loc>http://covr.r-lib.org/reference/azure.html</loc>
   </url>
   <url>
@@ -19,6 +22,9 @@
     <loc>http://covr.r-lib.org/reference/count.html</loc>
   </url>
   <url>
+    <loc>http://covr.r-lib.org/reference/count_test.html</loc>
+  </url>
+  <url>
     <loc>http://covr.r-lib.org/reference/coverage_to_list.html</loc>
   </url>
   <url>
@@ -26,6 +32,9 @@
   </url>
   <url>
     <loc>http://covr.r-lib.org/reference/covr-package.html</loc>
+  </url>
+  <url>
+    <loc>http://covr.r-lib.org/reference/covr.record_tests.html</loc>
   </url>
   <url>
     <loc>http://covr.r-lib.org/reference/display_name.html</loc>
@@ -49,7 +58,16 @@
     <loc>http://covr.r-lib.org/reference/gitlab.html</loc>
   </url>
   <url>
+    <loc>http://covr.r-lib.org/reference/has_srcref.html</loc>
+  </url>
+  <url>
     <loc>http://covr.r-lib.org/reference/in_covr.html</loc>
+  </url>
+  <url>
+    <loc>http://covr.r-lib.org/reference/is_covr_count_call.html</loc>
+  </url>
+  <url>
+    <loc>http://covr.r-lib.org/reference/is_current_test_finished.html</loc>
   </url>
   <url>
     <loc>http://covr.r-lib.org/reference/key.html</loc>
@@ -86,6 +104,9 @@
   </url>
   <url>
     <loc>http://covr.r-lib.org/reference/trace_calls.html</loc>
+  </url>
+  <url>
+    <loc>http://covr.r-lib.org/reference/update_current_test.html</loc>
   </url>
   <url>
     <loc>http://covr.r-lib.org/reference/value.html</loc>

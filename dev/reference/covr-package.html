@@ -96,7 +96,7 @@ C/C++/FORTRAN code." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covr</a>
-        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">3.5.1.9000</span>
+        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">3.5.1.9001</span>
       </span>
     </div>
 
@@ -170,6 +170,50 @@ C/C++/FORTRAN code.</p>
 package. Using <code><a href='report.html'>report()</a></code> requires the additional dependencies <code>DT</code> and <code>htmltools</code>.<div class="r"></p><pre><span class='co'># If run with no arguments `report()` implicitly calls `package_coverage()`</span>
 <span class='fu'><a href='report.html'>report</a></span><span class='op'>(</span><span class='op'>)</span>
 </pre><p></div></p>
+    <h2 class="hasAnchor" id="package-options"><a class="anchor" href="#package-options"></a>Package options</h2>
+
+    
+
+
+<p><code>covr</code> uses the following <code><a href='https://rdrr.io/r/base/options.html'>options()</a></code> to configure behaviour:</p>
+<ul>
+<li><p><code>covr.covrignore</code>: A filename to use as an ignore file,
+listing glob-style wildcarded paths of files to ignore for coverage
+calculations. Defaults to the value of environment variable
+<code>COVR_COVRIGNORE</code>, or <code>".covrignore"</code>  if the neither the option nor the
+environment variable are set.</p></li>
+<li><p><code>covr.exclude_end</code>: Used along with <code>covr.exclude_start</code>, an optional
+regular expression which ends a line-exclusion region. For more
+details, see <code><a href='exclusions.html'>?exclusions</a></code>.</p></li>
+<li><p><code>covr.exclude_pattern</code>: An optional line-exclusion pattern. Lines
+which match the pattern will be excluded from coverage. For more details,
+see <code><a href='exclusions.html'>?exclusions</a></code>.</p></li>
+<li><p><code>covr.exclude_start</code>: Used along with <code>covr.exclude_end</code>, an optional
+regular expression which starts a line-exclusion region. For more
+details, see <code><a href='exclusions.html'>?exclusions</a></code>.</p></li>
+<li><p><code>covr.filter_non_package</code>: If <code>TRUE</code> (the default behavior), coverage
+of files outside the target package are filtered from coverage output.</p></li>
+<li><p><code>covr.fix_parallel_mcexit</code>:</p></li>
+<li><p><code>covr.flags</code>:</p></li>
+<li><p><code>covr.gcov</code>: If the appropriate gcov version is not on your path you
+can use this option to set the appropriate location. If set to "" it will
+turn off coverage of compiled code.</p></li>
+<li><p><code>covr.gcov_additional_paths</code>:</p></li>
+<li><p><code>covr.gcov_args</code>:</p></li>
+<li><p><code>covr.icov</code>:</p></li>
+<li><p><code>covr.icov_args</code>:</p></li>
+<li><p><code>covr.icov_flags</code>:</p></li>
+<li><p><code>covr.icov_prof</code>:</p></li>
+<li><p><code>covr.rstudio_source_markers</code>: A logical value. If <code>TRUE</code> (the
+default behavior), source markers are displayed within the RStudio IDE
+when using <code>zero_coverage</code>.</p></li>
+<li><p><code>covr.record_tests</code>: If <code>TRUE</code> (default <code>NULL</code>), record a listing of
+top level test expressions and associate tests with <code>covr</code> traces
+evaluated during the test's execution. For more details, see
+<code><a href='covr.record_tests.html'>?covr.record_tests</a></code>.</p></li>
+<li><p><code>covr.showCfunctions</code>:</p></li>
+</ul>
+
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p>Useful links:</p><ul>
