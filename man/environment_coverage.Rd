@@ -26,3 +26,9 @@ names to exclude. Example \verb{print\\\\\\.} to match print methods.}
 \description{
 Calculate coverage of an environment
 }
+\examples{
+my_env <-  new.env()
+my_env$add <- function(x, y) { x + y }
+cat("add(1, 2) == 3", file="add_test.R")
+environment_coverage(my_env, test_files = "add_test.R")
+}

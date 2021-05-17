@@ -133,6 +133,10 @@ as_coverage <- function(counters = NULL, ...) {
 #' @param code expressions to run.
 #' @param env environment the function is defined in.
 #' @param enc the enclosing environment which to run the expressions.
+#' @examples
+#' add <- function(x, y) { x + y }
+#' function_coverage(fun = add, code = NULL) # 0% coverage
+#' function_coverage(fun = add, code = add(1, 2) == 3) # 100% coverage
 #' @export
 function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()) {
   if (is.function(fun)) {
@@ -175,6 +179,12 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
 #'   functions
 #' @param parent_env The parent environment to use when sourcing the files.
 #' @inheritParams package_coverage
+#' @examples
+#' # For the purpose of this example, save code containing code and tests to files
+#' cat("add <- function(x, y) { x + y }", file="add.R")
+#' cat("add(1, 2) == 3", file="add_test.R")
+#' # Use file_coverage() to calculate test coverage
+#' file_coverage(source_files = "add.R", test_files = "add_test.R")
 #' @export
 file_coverage <- function(
   source_files,
@@ -218,6 +228,10 @@ file_coverage <- function(
 #' @param test_code A character vector of test code
 #' @inheritParams file_coverage
 #' @param ... Additional arguments passed to [file_coverage()]
+#' @examples
+#' source <- "add <- function(x, y) { x + y }"
+#' test <- "add(1, 2) == 3"
+#' code_coverage(source, test)
 #' @export
 code_coverage <- function(
    source_code,
@@ -238,6 +252,11 @@ code_coverage <- function(
 #'
 #' @param env The environment to be instrumented.
 #' @inheritParams file_coverage
+#' @examples
+#' my_env <-  new.env()
+#' my_env$add <- function(x, y) { x + y }
+#' cat("add(1, 2) == 3", file="add_test.R")
+#' environment_coverage(my_env, test_files = "add_test.R")
 #' @export
 environment_coverage <- function(
   env = parent.frame(),

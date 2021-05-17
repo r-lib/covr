@@ -30,3 +30,8 @@ This function is useful for testing, and is a thin wrapper around
 \code{\link[=file_coverage]{file_coverage()}} because parseData is not populated properly
 unless the functions are defined in a file.
 }
+\examples{
+source <- "add <- function(x, y) { x + y }"
+test <- "add(1, 2) == 3"
+code_coverage(source, test)
+}

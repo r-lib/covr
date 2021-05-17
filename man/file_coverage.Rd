@@ -32,3 +32,10 @@ The files in \code{source_files} are first sourced into a new environment
 to define functions to be checked. Then they are instrumented to track
 coverage and the files in \code{test_files} are sourced.
 }
+\examples{
+# For the purpose of this example, save code containing code and tests to files
+cat("add <- function(x, y) { x + y }", file="add.R")
+cat("add(1, 2) == 3", file="add_test.R")
+# Use file_coverage() to calculate test coverage
+file_coverage(source_files = "add.R", test_files = "add_test.R")
+}
