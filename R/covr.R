@@ -252,11 +252,6 @@ code_coverage <- function(
 #'
 #' @param env The environment to be instrumented.
 #' @inheritParams file_coverage
-#' @examples
-#' my_env <-  new.env()
-#' my_env$add <- function(x, y) { x + y }
-#' cat("add(1, 2) == 3", file="add_test.R")
-#' environment_coverage(my_env, test_files = "add_test.R")
 #' @export
 environment_coverage <- function(
   env = parent.frame(),
