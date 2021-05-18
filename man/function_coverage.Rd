@@ -18,3 +18,8 @@ function_coverage(fun, code = NULL, env = NULL, enc = parent.frame())
 \description{
 Calculate test coverage for a specific function.
 }
+\examples{
+add <- function(x, y) { x + y }
+function_coverage(fun = add, code = NULL) # 0\% coverage
+function_coverage(fun = add, code = add(1, 2) == 3) # 100\% coverage
+}
