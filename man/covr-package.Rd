@@ -115,6 +115,7 @@ Other contributors:
   \item Chris Campbell [contributor]
   \item David Hugh-Jones [contributor]
   \item Qin Wang [contributor]
+  \item Doug Kelkhoff [contributor]
   \item Ivan Sagalaev (highlight.js library) [contributor, copyright holder]
   \item Mark Otto (Bootstrap library) [contributor]
   \item Jacob Thornton (Bootstrap library) [contributor]
