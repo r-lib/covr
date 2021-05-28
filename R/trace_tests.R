@@ -85,6 +85,9 @@ count_test <- function(key) {
   if (is_current_test_finished())
     update_current_test(key)
 
+  # ignore if .counter was not created with record_tests (nested coverage calls)
+  if (is.null(.counters[[key]]$tests)) return()
+
   depth_into_pkg <- length(sys.calls()) - .current_test$frame - n_calls_into_covr + 1L
   .counters[[key]]$tests <- rbind(
     .counters[[key]]$tests,
