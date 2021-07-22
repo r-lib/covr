@@ -18,10 +18,11 @@
 #'     execution.
 #'
 #'   \item `$<srcref>$tests`: For each srcref count in the coverage object, a
-#'     `$tests` field is now included which contains a matrix with two columns,
-#'     "test" and "depth" which specify the test number (corresponding to the
-#'     index of the test in `attr(,"tests")` and the stack depth into the target
-#'     code where the trace was executed.
+#'     `$tests` field is now included which contains a matrix with three columns,
+#'     "test", "depth" and "i" which specify the test number (corresponding to the
+#'     index of the test in `attr(,"tests")`, the stack depth into the target
+#'     code where the trace was executed, and the order of execution for each
+#'     test.
 #' }
 #'
 #' @section Test traces:
