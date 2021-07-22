@@ -48,7 +48,7 @@
 #' fcode <- '
 #' f <- function(x) {
 #'   if (x)
-#'     TRUE
+#'     f(!x)
 #'   else
 #'     FALSE
 #' }'
@@ -56,20 +56,34 @@
 #' options(covr.record_tests = TRUE)
 #' cov <- code_coverage(fcode, "f(TRUE)")
 #'
-#' # extract executed tests traces
-#' attr(cov, "tests")
-#' # $`/tmp/test.R:1:1:1:7:1:7:1:1`
-#' # $`/tmp/test.R:1:1:1:7:1:7:1:1`[[1]]
+#' # extract executed test code for the first test
+#' tail(attr(cov, "tests")[[1L]], 1L)
+#' # [[1]]
 #' # f(TRUE)
 #'
 #' # extract test itemization per trace
 #' cov[[3]][c("srcref", "tests")]
 #' # $srcref
-#' # TRUE
+#' # f(!x)
 #' #
 #' # $tests
-#' #      test depth
-#' # [1,]    1     1
+#' #      test depth i
+#' # [1,]    1     2 4
+#'
+#' # reconstruct the code path of a test by ordering test traces by [,"i"]
+#' lapply(cov, `[[`, "tests")
+#' # $`source.Ref2326138c55:4:6:4:10:6:10:4:4`
+#' #      test depth i
+#' # [1,]    1     1 2
+#' # 
+#' # $`source.Ref2326138c55:3:8:3:8:8:8:3:3`
+#' #      test depth i
+#' # [1,]    1     1 1
+#' # [2,]    1     2 3
+#' # 
+#' # $`source.Ref2326138c55:6:6:6:10:6:10:6:6`
+#' #      test depth i
+#' # [1,]    1     2 4
 #'
 #' @name covr.record_tests
 NULL
@@ -88,10 +102,11 @@ count_test <- function(key) {
   # ignore if .counter was not created with record_tests (nested coverage calls)
   if (is.null(.counters[[key]]$tests)) return()
 
-  depth_into_pkg <- length(sys.calls()) - .current_test$frame - n_calls_into_covr + 1L
+  depth_into_pkg <- length(sys.calls()) - length(.current_test$frames) - n_calls_into_covr + 1L
+  .current_test$i <- .current_test$i + 1L
   .counters[[key]]$tests <- rbind(
     .counters[[key]]$tests,
-    c(length(.counters$tests), depth_into_pkg)
+    c(length(.counters$tests), depth_into_pkg, .current_test$i)
   )
 }
 
@@ -146,6 +161,7 @@ update_current_test <- function(key) {
 
   # build updated current test data, isolating relevant frames
   .current_test$trace <- syscalls[exec_frames]
+  .current_test$i <- 0L
   .current_test$frames <- exec_frames
   .current_test$last_frame <- exec_frames[[Position(
     has_srcref,

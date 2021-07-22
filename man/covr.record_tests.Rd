@@ -58,7 +58,7 @@ the call stack prior to a call to \code{count}.
 fcode <- '
 f <- function(x) {
   if (x)
-    TRUE
+    f(!x)
   else
     FALSE
 }'
@@ -66,16 +66,15 @@ f <- function(x) {
 options(covr.record_tests = TRUE)
 cov <- code_coverage(fcode, "f(TRUE)")
 
-# extract executed tests traces
-attr(cov, "tests")
-# $`/tmp/test.R:1:1:1:7:1:7:1:1`
-# $`/tmp/test.R:1:1:1:7:1:7:1:1`[[1]]
+# extract executed test code for the first test
+tail(attr(cov, "tests")[[1L]], 1L)
+# [[1]]
 # f(TRUE)
 
 # extract test itemization per trace
 cov[[3]][c("srcref", "tests")]
 # $srcref
-# TRUE
+# f(!x)
 #
 # $tests
 #      test depth
