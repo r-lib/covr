@@ -93,7 +93,7 @@ the execution of each trace." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covr</a>
-        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">3.5.1.9002</span>
+        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">3.5.1.9003</span>
       </span>
     </div>
 
@@ -173,10 +173,11 @@ sourced with the source. For more details, refer to R options, <code>keep.source
 <li><p><code><a href='https://rdrr.io/r/base/attr.html'>attr(,"tests")</a></code>: A list of call stacks, which results in target code
 execution.</p></li>
 <li><p><code>$&lt;srcref&gt;$tests</code>: For each srcref count in the coverage object, a
-<code>$tests</code> field is now included which contains a matrix with two columns,
-"test" and "depth" which specify the test number (corresponding to the
-index of the test in <code><a href='https://rdrr.io/r/base/attr.html'>attr(,"tests")</a></code> and the stack depth into the target
-code where the trace was executed.</p></li>
+<code>$tests</code> field is now included which contains a matrix with three columns,
+"test", "depth" and "i" which specify the test number (corresponding to the
+index of the test in <code><a href='https://rdrr.io/r/base/attr.html'>attr(,"tests")</a></code>, the stack depth into the target
+code where the trace was executed, and the order of execution for each
+test.</p></li>
 </ul>
 
     <h2 class="hasAnchor" id="test-traces"><a class="anchor" href="#test-traces"></a>Test traces</h2>
@@ -205,7 +206,7 @@ the call stack prior to a call to <code>count</code>.</p>
     <pre class="examples"><div class='input'><span class='va'>fcode</span> <span class='op'>&lt;-</span> <span class='st'>'
 f &lt;- function(x) {
   if (x)
-    TRUE
+    f(!x)
   else
     FALSE
 }'</span>
@@ -213,171 +214,54 @@ f &lt;- function(x) {
 <span class='fu'><a href='https://rdrr.io/r/base/options.html'>options</a></span><span class='op'>(</span>covr.record_tests <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
 <span class='va'>cov</span> <span class='op'>&lt;-</span> <span class='fu'><a href='code_coverage.html'>code_coverage</a></span><span class='op'>(</span><span class='va'>fcode</span>, <span class='st'>"f(TRUE)"</span><span class='op'>)</span>
 
-<span class='co'># extract executed tests traces</span>
-<span class='fu'><a href='https://rdrr.io/r/base/attr.html'>attr</a></span><span class='op'>(</span><span class='va'>cov</span>, <span class='st'>"tests"</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[1]]
-#&gt; pkgdown::deploy_to_branch(new_process = FALSE)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[2]]
-#&gt; build_site(pkg, devel = FALSE, preview = FALSE, install = FALSE, 
-#&gt;     ...)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[3]]
-#&gt; build_site_local(pkg = pkg, examples = examples, run_dont_run = run_dont_run, 
-#&gt;     seed = seed, lazy = lazy, override = override, preview = preview, 
-#&gt;     devel = devel)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[4]]
-#&gt; build_reference(pkg, lazy = lazy, examples = examples, run_dont_run = run_dont_run, 
-#&gt;     seed = seed, override = override, preview = FALSE, devel = devel)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[5]]
-#&gt; purrr::map(topics, build_reference_topic, pkg = pkg, lazy = lazy, 
-#&gt;     examples = examples, run_dont_run = run_dont_run)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[6]]
-#&gt; .f(.x[[i]], ...)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[7]]
-#&gt; withCallingHandlers(data_reference_topic(topic, pkg, examples = examples, 
-#&gt;     run_dont_run = run_dont_run), error = function(err) {
-#&gt;     msg &lt;- c(paste0("Failed to parse Rd in ", topic$file_in), 
-#&gt;         i = err$message)
-#&gt;     abort(msg, parent = err)
-#&gt; })
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[8]]
-#&gt; data_reference_topic(topic, pkg, examples = examples, run_dont_run = run_dont_run)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[9]]
-#&gt; run_examples(tags$tag_examples[[1]], env = new.env(parent = globalenv()), 
-#&gt;     topic = tools::file_path_sans_ext(topic$file_in), run_examples = examples, 
-#&gt;     run_dont_run = run_dont_run)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[10]]
-#&gt; highlight_examples(code, topic, env = env)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[11]]
-#&gt; downlit::evaluate_and_highlight(code, fig_save = fig_save_topic, 
-#&gt;     env = child_env(env))
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[12]]
-#&gt; evaluate::evaluate(code, child_env(env), new_device = TRUE)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[13]]
-#&gt; evaluate_call(expr, parsed$src[[i]], envir = envir, enclos = enclos, 
-#&gt;     debug = debug, last = i == length(out), use_try = stop_on_error != 
-#&gt;         2L, keep_warning = keep_warning, keep_message = keep_message, 
-#&gt;     output_handler = output_handler, include_timing = include_timing)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[14]]
-#&gt; timing_fn(handle(ev &lt;- withCallingHandlers(withVisible(eval(expr, 
-#&gt;     envir, enclos)), warning = wHandler, error = eHandler, message = mHandler)))
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[15]]
-#&gt; handle(ev &lt;- withCallingHandlers(withVisible(eval(expr, envir, 
-#&gt;     enclos)), warning = wHandler, error = eHandler, message = mHandler))
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[16]]
-#&gt; try(f, silent = TRUE)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[17]]
-#&gt; tryCatch(expr, error = function(e) {
-#&gt;     call &lt;- conditionCall(e)
-#&gt;     if (!is.null(call)) {
-#&gt;         if (identical(call[[1L]], quote(doTryCatch))) 
-#&gt;             call &lt;- sys.call(-4L)
-#&gt;         dcall &lt;- deparse(call)[1L]
-#&gt;         prefix &lt;- paste("Error in", dcall, ": ")
-#&gt;         LONG &lt;- 75L
-#&gt;         sm &lt;- strsplit(conditionMessage(e), "\n")[[1L]]
-#&gt;         w &lt;- 14L + nchar(dcall, type = "w") + nchar(sm[1L], type = "w")
-#&gt;         if (is.na(w)) 
-#&gt;             w &lt;- 14L + nchar(dcall, type = "b") + nchar(sm[1L], 
-#&gt;                 type = "b")
-#&gt;         if (w &gt; LONG) 
-#&gt;             prefix &lt;- paste0(prefix, "\n  ")
-#&gt;     }
-#&gt;     else prefix &lt;- "Error : "
-#&gt;     msg &lt;- paste0(prefix, conditionMessage(e), "\n")
-#&gt;     .Internal(seterrmessage(msg[1L]))
-#&gt;     if (!silent &amp;&amp; isTRUE(getOption("show.error.messages"))) {
-#&gt;         cat(msg, file = outFile)
-#&gt;         .Internal(printDeferredWarnings())
-#&gt;     }
-#&gt;     invisible(structure(msg, class = "try-error", condition = e))
-#&gt; })
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[18]]
-#&gt; tryCatchList(expr, classes, parentenv, handlers)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[19]]
-#&gt; tryCatchOne(expr, names, parentenv, handlers[[1L]])
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[20]]
-#&gt; doTryCatch(return(expr), name, parentenv, handler)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[21]]
-#&gt; withCallingHandlers(withVisible(eval(expr, envir, enclos)), warning = wHandler, 
-#&gt;     error = eHandler, message = mHandler)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[22]]
-#&gt; withVisible(eval(expr, envir, enclos))
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[23]]
-#&gt; eval(expr, envir, enclos)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[24]]
-#&gt; eval(expr, envir, enclos)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[25]]
-#&gt; code_coverage(fcode, "f(TRUE)")
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[26]]
-#&gt; file_coverage(src, test, line_exclusions = line_exclusions, function_exclusions = function_exclusions, 
-#&gt;     ...)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[27]]
-#&gt; withr::with_envvar(c(R_COVR = "true"), lapply(test_files, sys.source, 
-#&gt;     keep.source = TRUE, envir = env))
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[28]]
-#&gt; force(code)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[29]]
-#&gt; lapply(test_files, sys.source, keep.source = TRUE, envir = env)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[30]]
-#&gt; FUN(X[[i]], ...)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[31]]
-#&gt; eval(exprs[i], envir)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[32]]
-#&gt; eval(exprs[i], envir)
-#&gt; 
-#&gt; $`./test.R2d69527805b2:1:1:1:7:1:7:1:1`[[33]]
+<span class='co'># extract executed test code for the first test</span>
+<span class='fu'><a href='https://rdrr.io/r/utils/head.html'>tail</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/attr.html'>attr</a></span><span class='op'>(</span><span class='va'>cov</span>, <span class='st'>"tests"</span><span class='op'>)</span><span class='op'>[[</span><span class='fl'>1L</span><span class='op'>]</span><span class='op'>]</span>, <span class='fl'>1L</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [[1]]
 #&gt; f(TRUE)
-#&gt; 
-#&gt; </div><div class='input'><span class='co'># $`/tmp/test.R:1:1:1:7:1:7:1:1`</span>
-<span class='co'># $`/tmp/test.R:1:1:1:7:1:7:1:1`[[1]]</span>
+#&gt; </div><div class='input'><span class='co'># [[1]]</span>
 <span class='co'># f(TRUE)</span>
 
 <span class='co'># extract test itemization per trace</span>
 <span class='va'>cov</span><span class='op'>[[</span><span class='fl'>3</span><span class='op'>]</span><span class='op'>]</span><span class='op'>[</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"srcref"</span>, <span class='st'>"tests"</span><span class='op'>)</span><span class='op'>]</span>
 </div><div class='output co'>#&gt; $srcref
-#&gt; x
+#&gt; f(!x)
 #&gt; 
 #&gt; $tests
-#&gt;      test depth
-#&gt; [1,]    1     1
+#&gt;      test depth i
+#&gt; [1,]    1     1 2
 #&gt; </div><div class='input'><span class='co'># $srcref</span>
-<span class='co'># TRUE</span>
+<span class='co'># f(!x)</span>
 <span class='co'>#</span>
 <span class='co'># $tests</span>
-<span class='co'>#      test depth</span>
-<span class='co'># [1,]    1     1</span>
+<span class='co'>#      test depth i</span>
+<span class='co'># [1,]    1     2 4</span>
+
+<span class='co'># reconstruct the code path of a test by ordering test traces by [,"i"]</span>
+<span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span><span class='op'>(</span><span class='va'>cov</span>, <span class='va'>`[[`</span>, <span class='st'>"tests"</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; $`source.R2df917df9011:6:5:6:9:5:9:6:6`
+#&gt;      test depth i
+#&gt; [1,]    1     2 4
+#&gt; 
+#&gt; $`source.R2df917df9011:3:7:3:7:7:7:3:3`
+#&gt;      test depth i
+#&gt; [1,]    1     1 1
+#&gt; [2,]    1     2 3
+#&gt; 
+#&gt; $`source.R2df917df9011:4:5:4:9:5:9:4:4`
+#&gt;      test depth i
+#&gt; [1,]    1     1 2
+#&gt; </div><div class='input'><span class='co'># $`source.Ref2326138c55:4:6:4:10:6:10:4:4`</span>
+<span class='co'>#      test depth i</span>
+<span class='co'># [1,]    1     1 2</span>
+<span class='co'># </span>
+<span class='co'># $`source.Ref2326138c55:3:8:3:8:8:8:3:3`</span>
+<span class='co'>#      test depth i</span>
+<span class='co'># [1,]    1     1 1</span>
+<span class='co'># [2,]    1     2 3</span>
+<span class='co'># </span>
+<span class='co'># $`source.Ref2326138c55:6:6:6:10:6:10:6:6`</span>
+<span class='co'>#      test depth i</span>
+<span class='co'># [1,]    1     2 4</span>
 
 </div></pre>
   </div>

@@ -89,7 +89,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covr</a>
-        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">3.5.1.9002</span>
+        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">3.5.1.9003</span>
       </span>
     </div>
 
@@ -149,7 +149,7 @@
 <a href="#covr-development-version" class="anchor"></a>covr (development version)<small> Unreleased </small>
 </h1>
 <ul>
-<li><p>Added <code>covr.record_tests</code> option. When <code>TRUE</code>, this enables the recording of the trace of the tests being executed and adds an itemization of which tests result in the exeuction of each trace. For more details see <code><a href="../reference/covr.record_tests.html">?covr.record_tests</a></code> <code><a href="../reference/covr.record_tests.html">?covr.record_tests</a></code> (<a href='https://github.com/dgkf'>@dgkf</a>, <a href='https://github.com/r-lib/covr/issues/463'>#463</a>)</p></li>
+<li><p>Added <code>covr.record_tests</code> option. When <code>TRUE</code>, this enables the recording of the trace of the tests being executed and adds an itemization of which tests result in the execution of each trace. For more details see <code><a href="../reference/covr.record_tests.html">?covr.record_tests</a></code> (<a href='https://github.com/dgkf'>@dgkf</a>, <a href='https://github.com/r-lib/covr/issues/463'>#463</a>, <a href='https://github.com/r-lib/covr/issues/485'>#485</a>)</p></li>
 <li><p><code><a href="../reference/package_coverage.html">package_coverage()</a></code> now sets the environment variable <code>R_TESTS</code> to the tests-startup.R file like R CMD check does (<a href='https://github.com/r-lib/covr/issues/420'>#420</a>)</p></li>
 <li><p><code><a href="../reference/codecov.html">codecov()</a></code> is now more robust when <code>coverage</code> is not the output from <code><a href="../reference/package_coverage.html">package_coverage()</a></code> and <code>token</code> is not provided (<a href='https://github.com/r-lib/covr/issues/456'>#456</a>)</p></li>
 <li><p><code><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame()</a></code> now returns an 0 row data frame when there are no functions in a package (<a href='https://github.com/r-lib/covr/issues/427'>#427</a>)</p></li>
