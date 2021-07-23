@@ -117,8 +117,9 @@ new_counter <- function(src_ref, parent_functions) {
   if (isTRUE(getOption("covr.record_tests", FALSE))) {
     .counters[[key]]$tests <- matrix(
       numeric(0L),
-      ncol = 2,
-      dimnames = list(c(), c("test", "depth")))
+      ncol = 3L,
+      # test index; call stack depth of covr:::count; execution order index
+      dimnames = list(c(), c("test", "depth", "i")))
   }
 
   key

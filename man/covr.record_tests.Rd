@@ -24,10 +24,11 @@ Within the \code{covr} result, you can explore this information in two places:
 execution.
 
 \item \verb{$<srcref>$tests}: For each srcref count in the coverage object, a
-\verb{$tests} field is now included which contains a matrix with two columns,
-"test" and "depth" which specify the test number (corresponding to the
-index of the test in \code{attr(,"tests")} and the stack depth into the target
-code where the trace was executed.
+\verb{$tests} field is now included which contains a matrix with three columns,
+"test", "depth" and "i" which specify the test number (corresponding to the
+index of the test in \code{attr(,"tests")}, the stack depth into the target
+code where the trace was executed, and the order of execution for each
+test.
 }
 }
 
@@ -58,7 +59,7 @@ the call stack prior to a call to \code{count}.
 fcode <- '
 f <- function(x) {
   if (x)
-    TRUE
+    f(!x)
   else
     FALSE
 }'
@@ -66,19 +67,33 @@ f <- function(x) {
 options(covr.record_tests = TRUE)
 cov <- code_coverage(fcode, "f(TRUE)")
 
-# extract executed tests traces
-attr(cov, "tests")
-# $`/tmp/test.R:1:1:1:7:1:7:1:1`
-# $`/tmp/test.R:1:1:1:7:1:7:1:1`[[1]]
+# extract executed test code for the first test
+tail(attr(cov, "tests")[[1L]], 1L)
+# [[1]]
 # f(TRUE)
 
 # extract test itemization per trace
 cov[[3]][c("srcref", "tests")]
 # $srcref
-# TRUE
+# f(!x)
 #
 # $tests
-#      test depth
-# [1,]    1     1
+#      test depth i
+# [1,]    1     2 4
+
+# reconstruct the code path of a test by ordering test traces by [,"i"]
+lapply(cov, `[[`, "tests")
+# $`source.Ref2326138c55:4:6:4:10:6:10:4:4`
+#      test depth i
+# [1,]    1     1 2
+# 
+# $`source.Ref2326138c55:3:8:3:8:8:8:3:3`
+#      test depth i
+# [1,]    1     1 1
+# [2,]    1     2 3
+# 
+# $`source.Ref2326138c55:6:6:6:10:6:10:6:6`
+#      test depth i
+# [1,]    1     2 4
 
 }

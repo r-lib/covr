@@ -16,8 +16,8 @@ test_that("covr.record_tests causes test traces to be recorded", {
 
 
 test_that("covr.record_tests records test indices and depth for each trace", {
-  expect_equal(ncol(cov_func[[1]]$tests), 2L)
-  expect_equal(colnames(cov_func[[1]]$tests), c("test", "depth"))
+  expect_equal(ncol(cov_func[[1]]$tests), 3L)
+  expect_equal(colnames(cov_func[[1]]$tests), c("test", "depth", "i"))
 })
 
 
@@ -63,11 +63,11 @@ test_that("covr.record_tests: merging coverage objects appends tests", {
     ),
     `a:1:2:3:4:5:6:7:8` = list(
       value = 2L,
-      tests = cbind(test = c(1, 2), depth = c(0, 1))
+      tests = cbind(test = c(1, 2), depth = c(0, 1), i = c(1, 3))
     ),
     `b:1:2:3:4:5:6:7:8` = list(
       value = 2L,
-      tests = cbind(test = c(2), depth = c(0))
+      tests = cbind(test = c(2), depth = c(0), i = c(2))
     )
   )
 
@@ -86,11 +86,11 @@ test_that("covr.record_tests: merging coverage objects appends tests", {
     ),
     `a:1:2:3:4:5:6:7:8` = list(
       value = 2L,
-      tests = cbind(test = c(2), depth = c(0))
+      tests = cbind(test = c(2), depth = c(0), i = c(1))
     ),
     `c:1:2:3:4:5:6:7:8` = list(
       value = 2L,
-      tests = cbind(test = c(2), depth = c(0))
+      tests = cbind(test = c(2), depth = c(0), i = c(2))
     )
   )
 
@@ -120,4 +120,29 @@ test_that("covr.record_tests: merging coverage test objects doesn't break defaul
 
   expect_silent(cov_merged <- merge_coverage(list(.counter_1, .counter_2)))
   expect_equal(cov_merged$`a:1:2:3:4:5:6:7:8`$value, 4L)
+})
+
+
+test_that("covr.record_tests: test that coverage objects contain expected test data", {
+  fcode <- '
+  f <- function(x) {
+    if (x)
+      f(!x)
+    else
+      FALSE
+  }'
+
+  withr::with_options(c("covr.record_tests" = TRUE), cov <- code_coverage(fcode, "f(TRUE)"))
+
+  # expect 4 covr traces due to test
+  expect_equal(sum(unlist(lapply(cov, function(i) nrow(i[["tests"]])))), 4L)
+
+  # expect that all tests have the same index
+  expect_equal(unique(unlist(lapply(cov, function(i) i[["tests"]][,"test"]))), 1L)
+
+  # expect execution order index to be the same length as the number of traces
+  expect_equal(length(unique(unlist(lapply(cov, function(i) i[["tests"]][,"i"])))), 4L)
+
+  # expect that there are two distinct stack depths (`if (x)` (@1), `TRUE` (@2), `FALSE` (@2))
+  expect_equal(length(unique(unlist(lapply(cov, function(i) i[["tests"]][,"depth"])))), 2L)
 })
