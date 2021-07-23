@@ -144,5 +144,5 @@ test_that("covr.record_tests: test that coverage objects contain expected test d
   expect_equal(length(unique(unlist(lapply(cov, function(i) i[["tests"]][,"i"])))), 4L)
 
   # expect that there are two distinct stack depths (`if (x)` (@1), `TRUE` (@2), `FALSE` (@2))
-  expect_true(all(unique(unlist(lapply(cov, function(i) i[["tests"]][,"depth"]))) %in% 1:2))
+  expect_true(length(unique(unlist(lapply(cov, function(i) i[["tests"]][,"depth"])))), 2L)
 })
