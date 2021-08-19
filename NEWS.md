@@ -4,6 +4,7 @@
   the trace of the tests being executed and adds an itemization of which tests
   result in the execution of each trace. For more details see
   `?covr.record_tests` (@dgkf, #463, #485)
+* `package_coverage()` now handles packages with install or render time examples (#488)
 
 * `package_coverage()` now sets the environment variable `R_TESTS` to the tests-startup.R file like R CMD check does (#420)
 

@@ -425,6 +425,11 @@ package_coverage <- function(path = ".",
 
   libs <- env_path(install_path, .libPaths())
 
+  # We need to set the libpaths in the current R session for examples with
+  # install or runtime Sexpr blocks, which may implicitly load the package in
+  # the current R session.
+  withr::with_libpaths(install_path, action = "prefix", {
+
   withr::with_envvar(
     c(R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
       R_LIBS = libs,
@@ -465,6 +470,7 @@ package_coverage <- function(path = ".",
     },
     message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
     warning = function(e) if (quiet) invokeRestart("muffleWarning") else e)
+    })
     })
 
   # read tracing files
