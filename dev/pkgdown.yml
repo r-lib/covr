@@ -3,7 +3,7 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   how_it_works: how_it_works.html
-last_built: 2021-07-23T16:12Z
+last_built: 2021-08-19T15:45Z
 urls:
   reference: http://covr.r-lib.org/reference
   article: http://covr.r-lib.org/articles
