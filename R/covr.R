@@ -342,10 +342,11 @@ package_coverage <- function(path = ".",
                              exclusions, pre_clean=TRUE) {
 
   if (!missing(exclusions)) {
-    warning(paste0("`exclusions` is deprecated and will be removed in an upcoming
-      release. ", "Please use `line_exclusions` instead."), call. = FALSE,
-      domain = NA)
-      line_exclusions <- exclusions
+    warning(
+      "`exclusions` is deprecated and will be removed in an upcoming release. Please use `line_exclusions` instead.",
+      call. = FALSE, domain = NA
+    )
+    line_exclusions <- exclusions
   }
 
   pkg <- as_package(path)
