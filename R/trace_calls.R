@@ -101,6 +101,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
 }
 
 .counters <- new.env(parent = emptyenv())
+.current_test <- new.env(parent = emptyenv())
 
 #' initialize a new counter
 #'
@@ -112,6 +113,15 @@ new_counter <- function(src_ref, parent_functions) {
   .counters[[key]]$value <- 0
   .counters[[key]]$srcref <- src_ref
   .counters[[key]]$functions <- parent_functions
+
+  if (isTRUE(getOption("covr.record_tests", FALSE))) {
+    .counters[[key]]$tests <- matrix(
+      numeric(0L),
+      ncol = 3L,
+      # test index; call stack depth of covr:::count; execution order index
+      dimnames = list(c(), c("test", "depth", "i")))
+  }
+
   key
 }
 
@@ -120,7 +130,8 @@ new_counter <- function(src_ref, parent_functions) {
 #' @param key generated with [key()]
 #' @keywords internal
 count <- function(key) {
-  .counters[[key]]$value <- .counters[[key]]$value + 1
+  .counters[[key]]$value <- .counters[[key]]$value + 1L
+  if (isTRUE(getOption("covr.record_tests"))) count_test(key)
 }
 
 #' clear all previous counters
@@ -128,6 +139,7 @@ count <- function(key) {
 #' @keywords internal
 clear_counters <- function() {
   rm(envir = .counters, list = ls(envir = .counters))
+  rm(envir = .current_test, list = ls(envir = .current_test))
 }
 
 #' Generate a key for a  call

@@ -15,6 +15,66 @@
 #' # If run with no arguments `report()` implicitly calls `package_coverage()`
 #' report()
 #' ```
+#'
+#' @section Package options:
+#'
+#' `covr` uses the following [options()] to configure behaviour:
+#'
+#' \itemize{
+#'   \item `covr.covrignore`: A filename to use as an ignore file,
+#'     listing glob-style wildcarded paths of files to ignore for coverage
+#'     calculations. Defaults to the value of environment variable
+#'     `COVR_COVRIGNORE`, or `".covrignore"`  if the neither the option nor the
+#'     environment variable are set.
+#'
+#'   \item `covr.exclude_end`: Used along with `covr.exclude_start`, an optional
+#'     regular expression which ends a line-exclusion region. For more
+#'     details, see `?exclusions`.
+#'
+#'   \item `covr.exclude_pattern`: An optional line-exclusion pattern. Lines
+#'     which match the pattern will be excluded from coverage. For more details,
+#'     see `?exclusions`.
+#'
+#'   \item `covr.exclude_start`: Used along with `covr.exclude_end`, an optional
+#'     regular expression which starts a line-exclusion region. For more
+#'     details, see `?exclusions`.
+#'
+#'   \item `covr.filter_non_package`: If `TRUE` (the default behavior), coverage
+#'     of files outside the target package are filtered from coverage output.
+#'
+#'   \item `covr.fix_parallel_mcexit`:
+#'
+#'   \item `covr.flags`:
+#'
+#'   \item `covr.gcov`: If the appropriate gcov version is not on your path you
+#'     can use this option to set the appropriate location. If set to "" it will
+#'     turn off coverage of compiled code.
+#'
+#'   \item `covr.gcov_additional_paths`:
+#'
+#'   \item `covr.gcov_args`:
+#'
+#'   \item `covr.icov`:
+#'
+#'   \item `covr.icov_args`:
+#'
+#'   \item `covr.icov_flags`:
+#'
+#'   \item `covr.icov_prof`:
+#'
+#'   \item `covr.rstudio_source_markers`: A logical value. If `TRUE` (the
+#'     default behavior), source markers are displayed within the RStudio IDE
+#'     when using `zero_coverage`.
+#'
+#'   \item `covr.record_tests`: If `TRUE` (default `NULL`), record a listing of
+#'     top level test expressions and associate tests with `covr` traces
+#'     evaluated during the test's execution. For more details, see
+#'     `?covr.record_tests`.
+#'
+#'   \item `covr.showCfunctions`:
+#' }
+#'
+#'
 "_PACKAGE"
 
 #' @import methods
@@ -47,12 +107,36 @@ save_trace <- function(directory) {
   saveRDS(.counters, file = tmp_file)
 }
 
+#' Convert a counters object to a coverage object
+#' 
+#' @param counters An environment of covr trace results to convert to a coverage
+#'   object. If `counters` is not provided, the `covr` namespace value
+#'   `.counters` is used. 
+#' @param ... Additional attributes to include with the coverage object.
+#'
+as_coverage <- function(counters = NULL, ...) {
+  if (missing(counters))
+    counters <- .counters
+
+  counters <- as.list(counters)
+
+  # extract optional tests 
+  tests <- counters$tests
+  counters$tests <- NULL
+
+  structure(counters, tests = tests, ..., class = "coverage")
+}
+
 #' Calculate test coverage for a specific function.
 #'
 #' @param fun name of the function.
 #' @param code expressions to run.
 #' @param env environment the function is defined in.
 #' @param enc the enclosing environment which to run the expressions.
+#' @examples
+#' add <- function(x, y) { x + y }
+#' function_coverage(fun = add, code = NULL) # 0% coverage
+#' function_coverage(fun = add, code = add(1, 2) == 3) # 100% coverage
 #' @export
 function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()) {
   if (is.function(fun)) {
@@ -81,7 +165,7 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
     eval(code, enc)
   )
 
-  structure(as.list(.counters), class = "coverage")
+  as_coverage(as.list(.counters))
 }
 
 #' Calculate test coverage for sets of files
@@ -95,6 +179,12 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
 #'   functions
 #' @param parent_env The parent environment to use when sourcing the files.
 #' @inheritParams package_coverage
+#' @examples
+#' # For the purpose of this example, save code containing code and tests to files
+#' cat("add <- function(x, y) { x + y }", file="add.R")
+#' cat("add(1, 2) == 3", file="add_test.R")
+#' # Use file_coverage() to calculate test coverage
+#' file_coverage(source_files = "add.R", test_files = "add_test.R")
 #' @export
 file_coverage <- function(
   source_files,
@@ -121,7 +211,7 @@ file_coverage <- function(
       sys.source, keep.source = TRUE, envir = env)
   )
 
-  coverage <- structure(as.list(.counters), class = "coverage")
+  coverage <- as_coverage(.counters)
 
   exclude(coverage,
     line_exclusions = line_exclusions,
@@ -138,6 +228,10 @@ file_coverage <- function(
 #' @param test_code A character vector of test code
 #' @inheritParams file_coverage
 #' @param ... Additional arguments passed to [file_coverage()]
+#' @examples
+#' source <- "add <- function(x, y) { x + y }"
+#' test <- "add(1, 2) == 3"
+#' code_coverage(source, test)
 #' @export
 code_coverage <- function(
    source_code,
@@ -178,7 +272,7 @@ environment_coverage <- function(
       sys.source, keep.source = TRUE, envir = exec_env)
   )
 
-  coverage <- structure(as.list(.counters), class = "coverage")
+  coverage <- as_coverage(.counters)
 
   exclude(coverage,
     line_exclusions = line_exclusions,
@@ -331,6 +425,11 @@ package_coverage <- function(path = ".",
 
   libs <- env_path(install_path, .libPaths())
 
+  # We need to set the libpaths in the current R session for examples with
+  # install or runtime Sexpr blocks, which may implicitly load the package in
+  # the current R session.
+  withr::with_libpaths(install_path, action = "prefix", {
+
   withr::with_envvar(
     c(R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
       R_LIBS = libs,
@@ -372,6 +471,7 @@ package_coverage <- function(path = ".",
     message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
     warning = function(e) if (quiet) invokeRestart("muffleWarning") else e)
     })
+    })
 
   # read tracing files
   trace_files <- list.files(path = install_path, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
@@ -382,10 +482,11 @@ package_coverage <- function(path = ".",
     res <- run_icov(pkg$path, quiet = quiet)
   }
 
-  coverage <- structure(c(coverage, res),
-      class = "coverage",
-      package = pkg,
-      relative = relative_path)
+  coverage <- as_coverage(
+    c(coverage, res),
+    package = pkg,
+    relative = relative_path
+  )
 
   if (!clean) {
     attr(coverage, "library") <- install_path
@@ -454,29 +555,46 @@ show_failures <- function(dir) {
 # merge multiple coverage files together. Assumes the order of coverage lines
 # is the same in each object, this should always be the case if the objects are
 # from the same initial library.
-merge_coverage <- function(files) {
-  nfiles <- length(files)
-  if (nfiles == 0) {
+merge_coverage <- function(x) {
+  UseMethod("merge_coverage")
+}
+
+merge_coverage.character <- function(files) {
+  coverage_objs <- lapply(files, function(f) {
+    as.list(suppressWarnings(readRDS(f)))
+  })
+  merge_coverage(coverage_objs)
+}
+
+merge_coverage.list <- function(coverage_objs) {
+  if (length(coverage_objs) == 0) {
     return()
   }
 
-  x <- suppressWarnings(readRDS(files[1]))
-  x <- as.list(x)
-  if (nfiles == 1) {
-    return(x)
-  }
-
+  x <- coverage_objs[[1]]
   names <- names(x)
-  for (i in 2:nfiles) {
-    y <- suppressWarnings(readRDS(files[i]))
+
+  for (y in tail(coverage_objs, -1L)) {
+    # align tests from coverage objects
+    test_idx <- match(names(y$tests), Filter(nchar, names(x$tests)))
+    new_test_idx <- if (!length(test_idx)) seq_along(y$tests) else which(is.na(test_idx))
+    test_idx[new_test_idx] <- length(x$tests) + seq_along(new_test_idx)
+
+    # append any tests that we haven't encountered in previous objects
+    x$tests <- append(x$tests, y$tests[new_test_idx])
+    y$tests <- NULL
+
     for (name in intersect(names, names(y))) {
       x[[name]]$value <- x[[name]]$value + y[[name]]$value
+      y[[name]]$tests[,1] <- test_idx[y[[name]]$tests[,1]]
+      x[[name]]$tests <- rbind(x[[name]]$tests, y[[name]]$tests)
     }
+
     for (name in setdiff(names(y), names)) {
       x[[name]] <- y[[name]]
     }
+
     names <- union(names, names(y))
-    y <- NULL
   }
 
   x
@@ -550,13 +668,16 @@ run_commands <- function(pkg, lib, commands) {
 # @param pkg_name name of the package to add hooks to
 # @param lib the library path to look in
 # @param fix_mcexit whether to add the fix for mcparallel:::mcexit
-add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE) {
+add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE,
+  record_tests = isTRUE(getOption("covr.record_tests", FALSE))) {
+
   trace_dir <- paste0("Sys.getenv(\"COVERAGE_DIR\", \"", lib, "\")")
 
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
   lines <- readLines(file.path(lib, pkg_name, "R", pkg_name))
   lines <- append(lines,
-    c("setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
+    c(paste0("setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.record_tests = ", record_tests, "))"),
+      "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
       paste0("reg.finalizer(ns, function(...) { covr:::save_trace(", trace_dir, ") }, onexit = TRUE)")),
     length(lines) - 1L)
 

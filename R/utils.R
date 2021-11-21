@@ -103,32 +103,34 @@ traced_files <- function(x) {
   for (i in seq_along(x)) {
     src_file <- attr(x[[i]]$srcref, "srcfile")
     filename <- filenames[[i]]
-    if (is.null(res[[filename]])) {
-      lines <- getSrcLines(src_file, 1, Inf)
-      matches <- rex::re_matches(lines,
-        rex::rex(start, any_spaces, "#line", spaces,
-          capture(name = "line_number", digit), spaces,
-          quotes, capture(name = "filename", anything), quotes))
 
-      matches <- na.omit(matches)
+    if (filename == "") next
+    if (!is.null(res[[filename]])) next
 
-      filename_match <- which(matches$filename == src_file$filename)
+    lines <- getSrcLines(src_file, 1, Inf)
+    matches <- rex::re_matches(lines,
+      rex::rex(start, any_spaces, "#line", spaces,
+        capture(name = "line_number", digit), spaces,
+        quotes, capture(name = "filename", anything), quotes))
 
-      if (length(filename_match) == 1) {
-        start <- as.numeric(rownames(matches)[filename_match]) + 1
-        end <- if (!is.na(rownames(matches)[filename_match + 1])) {
-          as.numeric(rownames(matches)[filename_match + 1]) - 1
-        } else {
-          length(lines)
-        }
+    matches <- na.omit(matches)
+
+    filename_match <- which(matches$filename == src_file$filename)
+
+    if (length(filename_match) == 1) {
+      start <- as.numeric(rownames(matches)[filename_match]) + 1
+      end <- if (!is.na(rownames(matches)[filename_match + 1])) {
+        as.numeric(rownames(matches)[filename_match + 1]) - 1
       } else {
-        start <- 1
-        end <- length(lines)
+        length(lines)
       }
-      src_file$file_lines <- lines[seq(start, end)]
-
-      res[[filename]] <- src_file
+    } else {
+      start <- 1
+      end <- length(lines)
     }
+    src_file$file_lines <- lines[seq(start, end)]
+
+    res[[filename]] <- src_file
   }
   res
 }
@@ -327,10 +329,13 @@ get_package_name <- function(x) {
    attr(x, "package")$package %||% "coverage"
 }
 
-get_source_filename <- function(x, full.names = FALSE, unique = TRUE) {
+get_source_filename <- function(x, full.names = FALSE, unique = TRUE, normalize = FALSE) {
   res <- getSrcFilename(x, full.names, unique)
   if (length(res) == 0) {
     return("")
+  }
+  if (normalize) {
+    return(normalize_path(res))
   }
   res
 }
