@@ -191,10 +191,12 @@ names to exclude. Example <code>print\\\.</code> to match print methods.</p></td
 
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='va'>source</span> <span class='op'>&lt;-</span> <span class='st'>"add &lt;- function(x, y) { x + y }"</span>
-<span class='va'>test</span> <span class='op'>&lt;-</span> <span class='st'>"add(1, 2) == 3"</span>
-<span class='fu'>code_coverage</span><span class='op'>(</span><span class='va'>source</span>, <span class='va'>test</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'><span style='font-weight: bold;'>Coverage: </span><span style='color: #00BB00;'>100.00%</span></span></div><div class='output co'>#&gt; <span class='message'><span style='font-weight: bold;'>/tmp/RtmpcHY9BK/source.R2dd46f49c346: </span><span style='color: #00BB00;'>100.00%</span></span></div></pre>
+    <pre class="examples"><span class='r-in'><span class='va'>source</span> <span class='op'>&lt;-</span> <span class='st'>"add &lt;- function(x, y) { x + y }"</span></span>
+<span class='r-in'><span class='va'>test</span> <span class='op'>&lt;-</span> <span class='st'>"add(1, 2) == 3"</span></span>
+<span class='r-in'><span class='fu'>code_coverage</span><span class='op'>(</span><span class='va'>source</span>, <span class='va'>test</span><span class='op'>)</span></span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> <span style='font-weight: bold;'>Coverage: </span><span style='color: #00BB00;'>100.00%</span></span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> <span style='font-weight: bold;'>/tmp/RtmpsCnKnx/source.R2cf450eb2aa9: </span><span style='color: #00BB00;'>100.00%</span></span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

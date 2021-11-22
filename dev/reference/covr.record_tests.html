@@ -150,7 +150,7 @@ the execution of each trace." />
     </div>
 
     <div class="ref-description">
-    <p>By setting <code><a href='https://rdrr.io/r/base/options.html'>options(covr.record_tests = TRUE)</a></code>, the result of covr coverage
+    <p>By setting <code>options(covr.record_tests = TRUE)</code>, the result of covr coverage
 collection functions will include additional data pertaining to the tests
 which are executed and an index of which tests, at what stack depth, trigger
 the execution of each trace.</p>
@@ -170,12 +170,12 @@ sourced with the source. For more details, refer to R options, <code>keep.source
 
 <p>Within the <code>covr</code> result, you can explore this information in two places:</p>
 <ul>
-<li><p><code><a href='https://rdrr.io/r/base/attr.html'>attr(,"tests")</a></code>: A list of call stacks, which results in target code
+<li><p><code>attr(,"tests")</code>: A list of call stacks, which results in target code
 execution.</p></li>
 <li><p><code>$&lt;srcref&gt;$tests</code>: For each srcref count in the coverage object, a
 <code>$tests</code> field is now included which contains a matrix with three columns,
 "test", "depth" and "i" which specify the test number (corresponding to the
-index of the test in <code><a href='https://rdrr.io/r/base/attr.html'>attr(,"tests")</a></code>, the stack depth into the target
+index of the test in <code>attr(,"tests")</code>, the stack depth into the target
 code where the trace was executed, and the order of execution for each
 test.</p></li>
 </ul>
@@ -203,67 +203,71 @@ directory, the entire call stack is collected.</p></li>
 the call stack prior to a call to <code>count</code>.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='va'>fcode</span> <span class='op'>&lt;-</span> <span class='st'>'
-f &lt;- function(x) {
-  if (x)
-    f(!x)
-  else
-    FALSE
-}'</span>
-
-<span class='fu'><a href='https://rdrr.io/r/base/options.html'>options</a></span><span class='op'>(</span>covr.record_tests <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
-<span class='va'>cov</span> <span class='op'>&lt;-</span> <span class='fu'><a href='code_coverage.html'>code_coverage</a></span><span class='op'>(</span><span class='va'>fcode</span>, <span class='st'>"f(TRUE)"</span><span class='op'>)</span>
-
-<span class='co'># extract executed test code for the first test</span>
-<span class='fu'><a href='https://rdrr.io/r/utils/head.html'>tail</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/attr.html'>attr</a></span><span class='op'>(</span><span class='va'>cov</span>, <span class='st'>"tests"</span><span class='op'>)</span><span class='op'>[[</span><span class='fl'>1L</span><span class='op'>]</span><span class='op'>]</span>, <span class='fl'>1L</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; [[1]]
-#&gt; f(TRUE)
-#&gt; </div><div class='input'><span class='co'># [[1]]</span>
-<span class='co'># f(TRUE)</span>
-
-<span class='co'># extract test itemization per trace</span>
-<span class='va'>cov</span><span class='op'>[[</span><span class='fl'>3</span><span class='op'>]</span><span class='op'>]</span><span class='op'>[</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"srcref"</span>, <span class='st'>"tests"</span><span class='op'>)</span><span class='op'>]</span>
-</div><div class='output co'>#&gt; $srcref
-#&gt; f(!x)
-#&gt; 
-#&gt; $tests
-#&gt;      test depth i
-#&gt; [1,]    1     1 2
-#&gt; </div><div class='input'><span class='co'># $srcref</span>
-<span class='co'># f(!x)</span>
-<span class='co'>#</span>
-<span class='co'># $tests</span>
-<span class='co'>#      test depth i</span>
-<span class='co'># [1,]    1     2 4</span>
-
-<span class='co'># reconstruct the code path of a test by ordering test traces by [,"i"]</span>
-<span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span><span class='op'>(</span><span class='va'>cov</span>, <span class='va'>`[[`</span>, <span class='st'>"tests"</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; $`source.R2dd43673bba5:3:7:3:7:7:7:3:3`
-#&gt;      test depth i
-#&gt; [1,]    1     1 1
-#&gt; [2,]    1     2 3
-#&gt; 
-#&gt; $`source.R2dd43673bba5:6:5:6:9:5:9:6:6`
-#&gt;      test depth i
-#&gt; [1,]    1     2 4
-#&gt; 
-#&gt; $`source.R2dd43673bba5:4:5:4:9:5:9:4:4`
-#&gt;      test depth i
-#&gt; [1,]    1     1 2
-#&gt; </div><div class='input'><span class='co'># $`source.Ref2326138c55:4:6:4:10:6:10:4:4`</span>
-<span class='co'>#      test depth i</span>
-<span class='co'># [1,]    1     1 2</span>
-<span class='co'># </span>
-<span class='co'># $`source.Ref2326138c55:3:8:3:8:8:8:3:3`</span>
-<span class='co'>#      test depth i</span>
-<span class='co'># [1,]    1     1 1</span>
-<span class='co'># [2,]    1     2 3</span>
-<span class='co'># </span>
-<span class='co'># $`source.Ref2326138c55:6:6:6:10:6:10:6:6`</span>
-<span class='co'>#      test depth i</span>
-<span class='co'># [1,]    1     2 4</span>
-
-</div></pre>
+    <pre class="examples"><span class='r-in'><span class='va'>fcode</span> <span class='op'>&lt;-</span> <span class='st'>'</span>
+<span class='r-in'>f &lt;- function(x) {</span>
+<span class='r-in'>  if (x)</span>
+<span class='r-in'>    f(!x)</span>
+<span class='r-in'>  else</span>
+<span class='r-in'>    FALSE</span>
+<span class='r-in'>}'</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/options.html'>options</a></span><span class='op'>(</span>covr.record_tests <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></span>
+<span class='r-in'><span class='va'>cov</span> <span class='op'>&lt;-</span> <span class='fu'><a href='code_coverage.html'>code_coverage</a></span><span class='op'>(</span><span class='va'>fcode</span>, <span class='st'>"f(TRUE)"</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'># extract executed test code for the first test</span></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/utils/head.html'>tail</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/attr.html'>attr</a></span><span class='op'>(</span><span class='va'>cov</span>, <span class='st'>"tests"</span><span class='op'>)</span><span class='op'>[[</span><span class='fl'>1L</span><span class='op'>]</span><span class='op'>]</span>, <span class='fl'>1L</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [[1]]</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> f(TRUE)</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-in'><span class='co'># [[1]]</span></span>
+<span class='r-in'><span class='co'># f(TRUE)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'># extract test itemization per trace</span></span>
+<span class='r-in'><span class='va'>cov</span><span class='op'>[[</span><span class='fl'>3</span><span class='op'>]</span><span class='op'>]</span><span class='op'>[</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"srcref"</span>, <span class='st'>"tests"</span><span class='op'>)</span><span class='op'>]</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $srcref</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> x</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $tests</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>      test depth i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1,]    1     1 1</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [2,]    1     2 3</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-in'><span class='co'># $srcref</span></span>
+<span class='r-in'><span class='co'># f(!x)</span></span>
+<span class='r-in'><span class='co'>#</span></span>
+<span class='r-in'><span class='co'># $tests</span></span>
+<span class='r-in'><span class='co'>#      test depth i</span></span>
+<span class='r-in'><span class='co'># [1,]    1     2 4</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'># reconstruct the code path of a test by ordering test traces by [,"i"]</span></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span><span class='op'>(</span><span class='va'>cov</span>, <span class='va'>`[[`</span>, <span class='st'>"tests"</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $`source.R2cf475afdc7c:4:5:4:9:5:9:4:4`</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>      test depth i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1,]    1     1 2</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $`source.R2cf475afdc7c:6:5:6:9:5:9:6:6`</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>      test depth i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1,]    1     2 4</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> $`source.R2cf475afdc7c:3:7:3:7:7:7:3:3`</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>      test depth i</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1,]    1     1 1</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [2,]    1     2 3</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-in'><span class='co'># $`source.Ref2326138c55:4:6:4:10:6:10:4:4`</span></span>
+<span class='r-in'><span class='co'>#      test depth i</span></span>
+<span class='r-in'><span class='co'># [1,]    1     1 2</span></span>
+<span class='r-in'><span class='co'># </span></span>
+<span class='r-in'><span class='co'># $`source.Ref2326138c55:3:8:3:8:8:8:3:3`</span></span>
+<span class='r-in'><span class='co'>#      test depth i</span></span>
+<span class='r-in'><span class='co'># [1,]    1     1 1</span></span>
+<span class='r-in'><span class='co'># [2,]    1     2 3</span></span>
+<span class='r-in'><span class='co'># </span></span>
+<span class='r-in'><span class='co'># $`source.Ref2326138c55:6:6:6:10:6:10:6:6`</span></span>
+<span class='r-in'><span class='co'>#      test depth i</span></span>
+<span class='r-in'><span class='co'># [1,]    1     2 4</span></span>
+<span class='r-in'></span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

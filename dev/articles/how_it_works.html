@@ -99,7 +99,7 @@
       <h1 data-toc-skip>How does covr work anyway?</h1>
                         <h4 class="author">Jim Hester</h4>
             
-            <h4 class="date">2021-08-19</h4>
+            <h4 class="date">2021-11-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd"><code>vignettes/how_it_works.Rmd</code></a></small>
       <div class="hidden name"><code>how_it_works.Rmd</code></div>
@@ -139,14 +139,14 @@
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/identical.html">identical</a></span><span class="op">(</span>x <span class="op">=</span> <span class="op">{</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">2</span>; <span class="fl">3</span> <span class="op">+</span> <span class="fl">4</span> <span class="op">}</span>,
     y <span class="op">=</span> <span class="fu">`{`</span><span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="fl">2</span>, <span class="fl">3</span> <span class="op">+</span> <span class="fl">4</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 <pre><code>## [1] TRUE</code></pre>
-<p>Remembering that braces always return the value of the last evaluated expression, we can call a counting function followed by the previous function substituting <code><a href="https://rdrr.io/r/base/call.html">as.call(recurse(x))</a></code> in our function above with.</p>
+<p>Remembering that braces always return the value of the last evaluated expression, we can call a counting function followed by the previous function substituting <code>as.call(recurse(x))</code> in our function above with.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">`{`</span><span class="op">(</span><span class="fu"><a href="../reference/count.html">count</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu">recurse</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="source-references" class="section level2">
 <h2 class="hasAnchor">
 <a href="#source-references" class="anchor"></a>Source References</h2>
-<p>Now that we have a way to add a counting function to any call in the Abstract Syntax Tree without changing the output we need a way to determine where in the code source that function came from. Luckily R has a built-in method to provide this information in the form of source references. When <code><a href="https://rdrr.io/r/base/options.html">option(keep.source = TRUE)</a></code> (the default for interactive sessions), a reference to the source code for functions is stored along with the function definition. This reference is used to provide the original formatting and comments for the given function source. In particular each call in a function contains a <code>srcref</code> attribute, which can then be used as a key to count just that call.</p>
+<p>Now that we have a way to add a counting function to any call in the Abstract Syntax Tree without changing the output we need a way to determine where in the code source that function came from. Luckily R has a built-in method to provide this information in the form of source references. When <code>option(keep.source = TRUE)</code> (the default for interactive sessions), a reference to the source code for functions is stored along with the function definition. This reference is used to provide the original formatting and comments for the given function source. In particular each call in a function contains a <code>srcref</code> attribute, which can then be used as a key to count just that call.</p>
 <p>The actual source for <code>trace_calls</code> is slightly more complicated because we want to initialize the counter for each call while we are walking the Abstract Syntax Tree and there are a few non-calls we also want to count.</p>
 </div>
 <div id="refining-source-references" class="section level2">
