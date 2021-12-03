@@ -57,7 +57,7 @@ report <- function(x = package_coverage(),
   table <- DT::datatable(
     data$file_stats,
     escape = FALSE,
-    fillContainer = TRUE,
+    fillContainer = FALSE,
     options = list(
       searching = FALSE,
       dom = "t",
