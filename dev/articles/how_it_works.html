@@ -33,6 +33,8 @@
 </script>
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -51,12 +53,6 @@
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
@@ -78,7 +74,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/r-lib/covr/">
+  <a href="https://github.com/r-lib/covr/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -97,20 +93,20 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>How does covr work anyway?</h1>
-                        <h4 class="author">Jim Hester</h4>
+                        <h4 data-toc-skip class="author">Jim Hester</h4>
             
-            <h4 class="date">2021-11-22</h4>
+            <h4 data-toc-skip class="date">2021-12-03</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd"><code>vignettes/how_it_works.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/r-lib/covr/blob/HEAD/vignettes/how_it_works.Rmd" class="external-link"><code>vignettes/how_it_works.Rmd</code></a></small>
       <div class="hidden name"><code>how_it_works.Rmd</code></div>
 
     </div>
 
     
     
-<div id="introduction" class="section level1">
-<h1 class="hasAnchor">
-<a href="#introduction" class="anchor"></a>Introduction</h1>
+<div class="section level1">
+<h1 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h1>
 <p>The <strong>covr</strong> package provides a framework for measuring unit test coverage. Unit testing is one of the cornerstones of software development. Any piece of R code can be thought of as a software application with a certain set of behaviors. Unit testing means creating examples of how the code should behave <em>with a definition of the expected output</em>. This could include normal use, edge cases, and expected error cases. Unit testing is commonly facilitated by frameworks such as <strong>testthat</strong> and <strong>RUnit</strong>. Test <em>coverage</em> is the <em>proportion</em> of the source code that is executed when running these tests. Code coverage consists of:</p>
 <ul>
 <li>instrumenting the source code so that it reports when it is run,</li>
@@ -127,106 +123,106 @@
 </ul>
 <p>In addition to providing an objective metric of test suite extensiveness, it is often advantageous for developers to have a code level view of their unit tests. An interface for visually marking code with test coverage results allows a clear box view of the unit test suite. The clear box view can be accessed using online tools or a local report can be generated using <code><a href="../reference/report.html">report()</a></code>.</p>
 </div>
-<div id="instrumenting-r-source-code" class="section level1">
-<h1 class="hasAnchor">
-<a href="#instrumenting-r-source-code" class="anchor"></a>Instrumenting R Source Code</h1>
-<div id="modifying-the-call-tree" class="section level2">
-<h2 class="hasAnchor">
-<a href="#modifying-the-call-tree" class="anchor"></a>Modifying the call tree</h2>
-<p>The core function in <strong>covr</strong> is <code><a href="../reference/trace_calls.html">trace_calls()</a></code>. This function was adapted from ideas in <a href="http://adv-r.had.co.nz/Expressions.html#ast-funs"><em>Advanced R - Walking the Abstract Syntax Tree with recursive functions</em></a>. This recursive function modifies each of the leaves (atomic or name objects) of an R expression by applying a given function to them. If the expression is not a leaf the walker function calls itself recursively on elements of the expression instead.</p>
+<div class="section level1">
+<h1 id="instrumenting-r-source-code">Instrumenting R Source Code<a class="anchor" aria-label="anchor" href="#instrumenting-r-source-code"></a>
+</h1>
+<div class="section level2">
+<h2 id="modifying-the-call-tree">Modifying the call tree<a class="anchor" aria-label="anchor" href="#modifying-the-call-tree"></a>
+</h2>
+<p>The core function in <strong>covr</strong> is <code><a href="../reference/trace_calls.html">trace_calls()</a></code>. This function was adapted from ideas in <a href="http://adv-r.had.co.nz/Expressions.html#ast-funs" class="external-link"><em>Advanced R - Walking the Abstract Syntax Tree with recursive functions</em></a>. This recursive function modifies each of the leaves (atomic or name objects) of an R expression by applying a given function to them. If the expression is not a leaf the walker function calls itself recursively on elements of the expression instead.</p>
 <p>We can use this same framework to instead insert a trace statement before each call by replacing each call with a call to a counting function followed by the previous call. Braces (<code>{</code>) in R may seem like language syntax, but they are actually a Primitive function and you can call them like any other function.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/identical.html">identical</a></span><span class="op">(</span>x <span class="op">=</span> <span class="op">{</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">2</span>; <span class="fl">3</span> <span class="op">+</span> <span class="fl">4</span> <span class="op">}</span>,
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span>x <span class="op">=</span> <span class="op">{</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">2</span>; <span class="fl">3</span> <span class="op">+</span> <span class="fl">4</span> <span class="op">}</span>,
     y <span class="op">=</span> <span class="fu">`{`</span><span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="fl">2</span>, <span class="fl">3</span> <span class="op">+</span> <span class="fl">4</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code>## [1] TRUE</code></pre>
+<pre><code><span class="co">## [1] TRUE</span></code></pre>
 <p>Remembering that braces always return the value of the last evaluated expression, we can call a counting function followed by the previous function substituting <code>as.call(recurse(x))</code> in our function above with.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">`{`</span><span class="op">(</span><span class="fu"><a href="../reference/count.html">count</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu">recurse</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu">`{`</span><span class="op">(</span><span class="fu"><a href="../reference/count.html">count</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/call.html" class="external-link">as.call</a></span><span class="op">(</span><span class="fu">recurse</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
 </div>
-<div id="source-references" class="section level2">
-<h2 class="hasAnchor">
-<a href="#source-references" class="anchor"></a>Source References</h2>
+<div class="section level2">
+<h2 id="source-references">Source References<a class="anchor" aria-label="anchor" href="#source-references"></a>
+</h2>
 <p>Now that we have a way to add a counting function to any call in the Abstract Syntax Tree without changing the output we need a way to determine where in the code source that function came from. Luckily R has a built-in method to provide this information in the form of source references. When <code>option(keep.source = TRUE)</code> (the default for interactive sessions), a reference to the source code for functions is stored along with the function definition. This reference is used to provide the original formatting and comments for the given function source. In particular each call in a function contains a <code>srcref</code> attribute, which can then be used as a key to count just that call.</p>
 <p>The actual source for <code>trace_calls</code> is slightly more complicated because we want to initialize the counter for each call while we are walking the Abstract Syntax Tree and there are a few non-calls we also want to count.</p>
 </div>
-<div id="refining-source-references" class="section level2">
-<h2 class="hasAnchor">
-<a href="#refining-source-references" class="anchor"></a>Refining Source References</h2>
+<div class="section level2">
+<h2 id="refining-source-references">Refining Source References<a class="anchor" aria-label="anchor" href="#refining-source-references"></a>
+</h2>
 <p>Each statement comes with a source reference. Unfortunately, the following is counted as one statement:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw">if</span> <span class="op">(</span><span class="va">x</span><span class="op">)</span>
  <span class="fu">y</span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p>To work around this, detailed parse data (obtained from a refined version of <code>getParseData</code>) is analyzed to impute source references at sub-statement level for <code>if</code>, <code>for</code>, <code>while</code> and <code>switch</code> constructs.</p>
 </div>
-<div id="replacing-source-in-place" class="section level2">
-<h2 class="hasAnchor">
-<a href="#replacing-source-in-place" class="anchor"></a>Replacing Source In Place</h2>
+<div class="section level2">
+<h2 id="replacing-source-in-place">Replacing Source In Place<a class="anchor" aria-label="anchor" href="#replacing-source-in-place"></a>
+</h2>
 <p>After we have our modified function definition, how do we re-define the function to use the updated definition, and ensure that all other functions which call the old function also use the new definition? You might try redefining the function directly.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">1</span>
 
 <span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">2</span>
 <span class="fu">f1</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="fl">2</span></code></pre></div>
-<pre><code>## [1] TRUE</code></pre>
+<pre><code><span class="co">## [1] TRUE</span></code></pre>
 <p>While this does work for the simple case of calling the new function in the same environment, it fails if another function calls a function in a different environment.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html">new.env</a></span><span class="op">(</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">new.env</a></span><span class="op">(</span><span class="op">)</span>
 <span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">1</span>
 <span class="va">env</span><span class="op">$</span><span class="va">f2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fu">f1</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span>
 
 <span class="va">env</span><span class="op">$</span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">2</span>
 
 <span class="va">env</span><span class="op">$</span><span class="fu">f2</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="fl">3</span></code></pre></div>
-<pre><code>## [1] FALSE</code></pre>
-<p>As modifying external environments and correctly restoring them can be tricky to get correct, we use the C function <a href="https://github.com/r-lib/covr/blob/9753e0e257b053059b85be90ef6eb614a5af9bba/src/reassign.c#L7-L20"><code>reassign_function</code></a>, which is also used in <code><a href="https://testthat.r-lib.org/reference/with_mock.html">testthat::with_mock</a></code>. This function takes a function name, environment, old definition, new definition and copies the formals, body, attributes and environment from the old function to the new function. This allows you to do an in-place replacement of a given function with a new function and ensure that all references to the old function will use the new definition.</p>
+<pre><code><span class="co">## [1] FALSE</span></code></pre>
+<p>As modifying external environments and correctly restoring them can be tricky to get correct, we use the C function <a href="https://github.com/r-lib/covr/blob/9753e0e257b053059b85be90ef6eb614a5af9bba/src/reassign.c#L7-L20" class="external-link"><code>reassign_function</code></a>, which is also used in <code><a href="https://testthat.r-lib.org/reference/with_mock.html" class="external-link">testthat::with_mock</a></code>. This function takes a function name, environment, old definition, new definition and copies the formals, body, attributes and environment from the old function to the new function. This allows you to do an in-place replacement of a given function with a new function and ensure that all references to the old function will use the new definition.</p>
 </div>
 </div>
-<div id="object-orientation" class="section level1">
-<h1 class="hasAnchor">
-<a href="#object-orientation" class="anchor"></a>Object Orientation</h1>
-<div id="s3-classes" class="section level2">
-<h2 class="hasAnchor">
-<a href="#s3-classes" class="anchor"></a>S3 Classes</h2>
+<div class="section level1">
+<h1 id="object-orientation">Object Orientation<a class="anchor" aria-label="anchor" href="#object-orientation"></a>
+</h1>
+<div class="section level2">
+<h2 id="s3-classes">S3 Classes<a class="anchor" aria-label="anchor" href="#s3-classes"></a>
+</h2>
 <p>R’s S3 object oriented classes simply define functions directly in the packages namespace, so they can be treated the same as any other function.</p>
 </div>
-<div id="s4-classes" class="section level2">
-<h2 class="hasAnchor">
-<a href="#s4-classes" class="anchor"></a>S4 Classes</h2>
+<div class="section level2">
+<h2 id="s4-classes">S4 Classes<a class="anchor" aria-label="anchor" href="#s4-classes"></a>
+</h2>
 <p>S4 methods have a more complicated implementation than S3 classes. The function definitions are placed in an enclosing environment based on the generic method they implement. This makes getting the function definition more complicated.</p>
 <p><code>replacements_S4</code> first gets all the generic functions for the package environment. Then for each generic function if finds the mangled meta package name and gets the corresponding environment from the base environment. All of the functions within this environment are then traced.</p>
 </div>
-<div id="reference-classes" class="section level2">
-<h2 class="hasAnchor">
-<a href="#reference-classes" class="anchor"></a>Reference Classes</h2>
+<div class="section level2">
+<h2 id="reference-classes">Reference Classes<a class="anchor" aria-label="anchor" href="#reference-classes"></a>
+</h2>
 <p>Similarly to S4 classes reference classes (RC) define their methods in a special environment. A similar method is used to add the tracing calls to the class definition. These calls are then copied to the object methods when the generator function is run.</p>
 </div>
 </div>
-<div id="compiled-code" class="section level1">
-<h1 class="hasAnchor">
-<a href="#compiled-code" class="anchor"></a>Compiled code</h1>
-<div id="gcov" class="section level2">
-<h2 class="hasAnchor">
-<a href="#gcov" class="anchor"></a>Gcov</h2>
-<p>Test coverage of compiled code uses a completely different mechanism than that of R code. Fortunately we can take advantage of <a href="https://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Gcov.html#Gcov">Gcov</a>, the built-in coverage tool for <a href="https://gcc.gnu.org/">gcc</a> and compatible reports from <a href="http://clang.llvm.org/">clang</a> versions 3.5 and greater.</p>
+<div class="section level1">
+<h1 id="compiled-code">Compiled code<a class="anchor" aria-label="anchor" href="#compiled-code"></a>
+</h1>
+<div class="section level2">
+<h2 id="gcov">Gcov<a class="anchor" aria-label="anchor" href="#gcov"></a>
+</h2>
+<p>Test coverage of compiled code uses a completely different mechanism than that of R code. Fortunately we can take advantage of <a href="https://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Gcov.html#Gcov" class="external-link">Gcov</a>, the built-in coverage tool for <a href="https://gcc.gnu.org/" class="external-link">gcc</a> and compatible reports from <a href="http://clang.llvm.org/" class="external-link">clang</a> versions 3.5 and greater.</p>
 <p>Both of these compilers track execution coverage when given the <code>--coverage</code> flag. In addition it is necessary to turn off compiler optimization <code>-O0</code>, otherwise the coverage output is difficult or impossible to interpret as multiple lines can be optimized into one, functions can be inlined, etc.</p>
 </div>
-<div id="makevars" class="section level2">
-<h2 class="hasAnchor">
-<a href="#makevars" class="anchor"></a>Makevars</h2>
+<div class="section level2">
+<h2 id="makevars">Makevars<a class="anchor" aria-label="anchor" href="#makevars"></a>
+</h2>
 <p>R passes flags defined in <code>PKG_CFLAGS</code> to the compiler, however it also has default flags including <code>-02</code> (defined in <code>$R_HOME/etc/Makeconf</code>), which need to be overridden. Unfortunately it is not possible to override the default flags with environment variables (as the new flags are added to the left of the defaults rather than the right). However if Make variables are defined in <code>~/.R/Makevars</code> they <em>are</em> used in place of the defaults.</p>
 <p>Therefore, we need to temporarily add <code>-O0 --coverage</code> to the Makevars file, then restore the previous state after the coverage is run.</p>
 </div>
-<div id="subprocess" class="section level2">
-<h2 class="hasAnchor">
-<a href="#subprocess" class="anchor"></a>Subprocess</h2>
+<div class="section level2">
+<h2 id="subprocess">Subprocess<a class="anchor" aria-label="anchor" href="#subprocess"></a>
+</h2>
 <p>The last hurdle to getting compiled code coverage working properly is that the coverage output is only produced when the running process ends. Therefore you cannot run the tests and get the results in the same R process. <strong>covr</strong> runs a separate R process when running tests. However we need to modify the package code first before running the tests.</p>
 <p><strong>covr</strong> installs the package to be tested in a temporary directory. Next, calls are made to the lazy loading code which installs a user hook to modify the code when it is loaded. We also register a finalizer which prints the coverage counts when the namespace is unloaded or the R process exits. These output files are then aggregated together to determine the coverage.</p>
 <p>This procedure works regardless of the number of child R processes used, so therefore also works with parallel code.</p>
 </div>
 </div>
-<div id="output-formats" class="section level1">
-<h1 class="hasAnchor">
-<a href="#output-formats" class="anchor"></a>Output Formats</h1>
+<div class="section level1">
+<h1 id="output-formats">Output Formats<a class="anchor" aria-label="anchor" href="#output-formats"></a>
+</h1>
 <p>The output format returned by <strong>covr</strong> is an R object of class “coverage” containing the information gathered when executing the test suite. It consists of a named list, where the names are colon-delimited information from the source references (the file, line and columns the traced call is from). The value is the number of times that given expression was called and the source ref of the original call.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># an object to analyze</span>
@@ -234,50 +230,50 @@
 <span class="co"># get results with no unit tests</span>
 <span class="va">c1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/function_coverage.html">function_coverage</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f1</span>, code <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>
 <span class="va">c1</span></code></pre></div>
-<pre><code>## Coverage: 0.00%</code></pre>
-<pre><code>## &lt;text&gt;: 0.00%</code></pre>
+<pre><code><span class="co">## <span style="font-weight: bold;">Coverage: </span><span style="color: #BB0000;">0.00%</span></span></code></pre>
+<pre><code><span class="co">## <span style="font-weight: bold;">&lt;text&gt;: </span><span style="color: #BB0000;">0.00%</span></span></code></pre>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># get results with unit tests</span>
 <span class="va">c2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/function_coverage.html">function_coverage</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f1</span>, code <span class="op">=</span> <span class="fu">f1</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span>
 <span class="va">c2</span></code></pre></div>
-<pre><code>## Coverage: 100.00%</code></pre>
-<pre><code>## &lt;text&gt;: 100.00%</code></pre>
+<pre><code><span class="co">## <span style="font-weight: bold;">Coverage: </span><span style="color: #00BB00;">100.00%</span></span></code></pre>
+<pre><code><span class="co">## <span style="font-weight: bold;">&lt;text&gt;: </span><span style="color: #00BB00;">100.00%</span></span></code></pre>
 <p>An <code>as.data.frame</code> method is available to make subsetting by various features easy to do.</p>
 <p>While <strong>covr</strong> tracks coverage by expression, typically users expect coverage to be reported by line, so there are functions to convert to line oriented coverage.</p>
 </div>
-<div id="codecov-io-and-coveralls-io" class="section level1">
-<h1 class="hasAnchor">
-<a href="#codecov-io-and-coveralls-io" class="anchor"></a>Codecov.io and Coveralls.io</h1>
-<p><a href="https://codecov.io/">Codecov</a> and <a href="https://coveralls.io/">Coveralls</a> are a web services to help you track your code coverage over time, and ensure that all new code is appropriately covered.</p>
+<div class="section level1">
+<h1 id="codecov-io-and-coveralls-io">Codecov.io and Coveralls.io<a class="anchor" aria-label="anchor" href="#codecov-io-and-coveralls-io"></a>
+</h1>
+<p><a href="https://codecov.io/" class="external-link">Codecov</a> and <a href="https://coveralls.io/" class="external-link">Coveralls</a> are a web services to help you track your code coverage over time, and ensure that all new code is appropriately covered.</p>
 <p>They both have JSON-based APIs to submit and report on coverage. The functions <code>codecov</code> and <code>coveralls</code> create outputs that can be consumed by these services.</p>
 </div>
-<div id="prior-art" class="section level1">
-<h1 class="hasAnchor">
-<a href="#prior-art" class="anchor"></a>Prior Art</h1>
-<div id="overview" class="section level2">
-<h2 class="hasAnchor">
-<a href="#overview" class="anchor"></a>Overview</h2>
-<p>Prior to writing <strong>covr</strong>, there were a handful of coverage tools for R code. <a href="https://web.archive.org/web/20160611114452/http://r2d2.quartzbio.com/posts/r-coverage-docker.html"><strong>R-coverage</strong></a> by Karl Forner and <a href="https://github.com/MangoTheCat/testCoverage"><strong>testCoverage</strong></a> by Tom Taverner, Chris Campbell &amp; Suchen Jin.</p>
+<div class="section level1">
+<h1 id="prior-art">Prior Art<a class="anchor" aria-label="anchor" href="#prior-art"></a>
+</h1>
+<div class="section level2">
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
+<p>Prior to writing <strong>covr</strong>, there were a handful of coverage tools for R code. <a href="https://web.archive.org/web/20160611114452/http://r2d2.quartzbio.com/posts/r-coverage-docker.html" class="external-link"><strong>R-coverage</strong></a> by Karl Forner and <a href="https://github.com/MangoTheCat/testCoverage" class="external-link"><strong>testCoverage</strong></a> by Tom Taverner, Chris Campbell &amp; Suchen Jin.</p>
 </div>
-<div id="r-coverage" class="section level2">
-<h2 class="hasAnchor">
-<a href="#r-coverage" class="anchor"></a>R-coverage</h2>
+<div class="section level2">
+<h2 id="r-coverage">R-coverage<a class="anchor" aria-label="anchor" href="#r-coverage"></a>
+</h2>
 <p><strong>R-coverage</strong> provides a very robust solution by modifying the R source code to instrument the code for each call. Unfortunately this requires you to patch the source of the R application itself. Getting the changes incorporated into the core R distribution would likely be challenging.</p>
 </div>
-<div id="test-coverage" class="section level2">
-<h2 class="hasAnchor">
-<a href="#test-coverage" class="anchor"></a>Test Coverage</h2>
+<div class="section level2">
+<h2 id="test-coverage">Test Coverage<a class="anchor" aria-label="anchor" href="#test-coverage"></a>
+</h2>
 <p><strong>testCoverage</strong> uses <code>getParseData</code>, R’s alternate parser (from 3.0) to analyse the R source code. The package replaces symbols in the code to be tested with a unique identifier. This is then injected into a tracing function that will report each time the symbol is called. The first symbol at each level of the expression tree is traced, allowing the coverage of code branches to be checked. This is a complicated implementation I do not fully understand, which is one of the reasons I decided to write <strong>covr</strong>.</p>
 </div>
-<div id="covr" class="section level2">
-<h2 class="hasAnchor">
-<a href="#covr" class="anchor"></a>Covr</h2>
+<div class="section level2">
+<h2 id="covr">Covr<a class="anchor" aria-label="anchor" href="#covr"></a>
+</h2>
 <p><strong>covr</strong> takes an approach in-between the two previous tools. Function definitions are modified by parsing the abstract syntax tree and inserting trace statements. These modified definitions are then transparently replaced in-place using C. This allows us to correctly instrument every call and function in a package without having to resort to alternate parsing or changes to the R source.</p>
 </div>
 </div>
-<div id="conclusion" class="section level1">
-<h1 class="hasAnchor">
-<a href="#conclusion" class="anchor"></a>Conclusion</h1>
+<div class="section level1">
+<h1 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
+</h1>
 <p><strong>covr</strong> provides an accessible framework which will ease the communication of R unit test suites. <strong>covr</strong> can be integrated with continuous integration services where R developers are working on larger projects, or as part of multi-disciplinary teams. <strong>covr</strong> aims to be simple to use to make writing high quality code part of every R user’s routine.</p>
 </div>
   </div>
@@ -293,11 +289,13 @@
 
 
       <footer><div class="copyright">
-  <p>Developed by <a href="http://jimhester.com">Jim Hester</a>.</p>
+  <p></p>
+<p>Developed by <a href="http://jimhester.com" class="external-link">Jim Hester</a>.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
 </div>
 
       </footer>
@@ -305,6 +303,8 @@
 
   
 
+
+  
 
   </body>
 </html>
