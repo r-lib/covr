@@ -14,6 +14,7 @@ _dev\.R$
 ^\.Rproj\.user$
 ^tests/testthat/.*/.*(o|sl|so|dylib|a|dll|def)$
 ^covr.*$
+^LICENSE\.md$
 ^cran_comments\.md$
 ^revdep/
 ^cran-comments\.md$
@@ -32,4 +33,3 @@ _dev\.R$
 ^codecov\.yml$
 ^CODE_OF_CONDUCT\.md$
 ^\.github$
-^LICENSE\.md$
