@@ -108,10 +108,10 @@ save_trace <- function(directory) {
 }
 
 #' Convert a counters object to a coverage object
-#' 
+#'
 #' @param counters An environment of covr trace results to convert to a coverage
 #'   object. If `counters` is not provided, the `covr` namespace value
-#'   `.counters` is used. 
+#'   `.counters` is used.
 #' @param ... Additional attributes to include with the coverage object.
 #'
 as_coverage <- function(counters = NULL, ...) {
@@ -120,7 +120,7 @@ as_coverage <- function(counters = NULL, ...) {
 
   counters <- as.list(counters)
 
-  # extract optional tests 
+  # extract optional tests
   tests <- counters$tests
   counters$tests <- NULL
 
@@ -308,7 +308,8 @@ environment_coverage <- function(
 #' is simply summed into one coverage object. If `FALSE` separate objects
 #' are used for each type of coverage.
 #' @param relative_path whether to output the paths as relative or absolute
-#' paths.
+#'   paths. If a string, it is interpreted as a root path and all paths will be
+#'   relative to that root.
 #' @param quiet whether to load and compile the package quietly, useful for
 #' debugging errors.
 #' @param clean whether to clean temporary output files after running, mainly
@@ -373,6 +374,15 @@ package_coverage <- function(path = ".",
     attr(res, "package") <- pkg
     class(res) <- "coverages"
     return(res)
+  }
+
+  if (is.character(relative_path)) {
+    stopifnot(length(relative_path) == 1)
+    root <- normalize_path(relative_path)
+  } else if (isTRUE(relative_path)) {
+    root <- pkg$path
+  } else {
+    root <- NULL
   }
 
   dir.create(install_path)
@@ -486,7 +496,7 @@ package_coverage <- function(path = ".",
   coverage <- as_coverage(
     c(coverage, res),
     package = pkg,
-    relative = relative_path
+    root = root
   )
 
   if (!clean) {
@@ -510,7 +520,7 @@ package_coverage <- function(path = ".",
   exclude(coverage,
     line_exclusions = line_exclusions,
     function_exclusions = function_exclusions,
-    path = if (isTRUE(relative_path)) pkg$path else NULL)
+    path = root)
 }
 
 #' Convert a coverage dataset to a list

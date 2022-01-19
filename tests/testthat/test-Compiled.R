@@ -30,7 +30,19 @@ test_that("Compiled code coverage is reported including code in headers", {
   expect_true(all(unique(cov$filename) %in% c("R/TestCompiled.R", "src/simple-header.h", "src/simple.cc", "src/simple4.cc")))
 })
 
-  test_that("Source code subdirectories are found", {
+test_that("Can pass path to relative_path argument", {
+  skip_on_cran()
+  cov <- as.data.frame(package_coverage("TestCompiled", relative_path = "."))
+
+  expect_true(all(unique(cov$filename) %in% c(
+    "TestCompiled/R/TestCompiled.R",
+    "TestCompiled/src/simple-header.h",
+    "TestCompiled/src/simple.cc",
+    "TestCompiled/src/simple4.cc"
+  )))
+})
+
+test_that("Source code subdirectories are found", {
   skip_on_cran()
   cov <- as.data.frame(package_coverage("TestCompiledSubdir", relative_path = TRUE))
 
