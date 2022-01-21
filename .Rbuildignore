@@ -1,6 +1,7 @@
 ^covr\.Rproj$
 \.tar\.gz$
 ^travis-tool\.sh$
+^LICENSE\.md$
 ^covr\.Rcheck$
 ^\.travis\.yml$
 ^shim_package\.sh$
@@ -14,7 +15,6 @@ _dev\.R$
 ^\.Rproj\.user$
 ^tests/testthat/.*/.*(o|sl|so|dylib|a|dll|def)$
 ^covr.*$
-^LICENSE\.md$
 ^cran_comments\.md$
 ^revdep/
 ^cran-comments\.md$
