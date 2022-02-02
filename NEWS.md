@@ -1,5 +1,7 @@
 # covr (development version)
 
+* `report()` now provides a more detailed error message if the `DT` and `htmltools` dependencies are not installed (#500).
+
 * Added `covr.record_tests` option. When `TRUE`, this enables the recording of
   the trace of the tests being executed and adds an itemization of which tests
   result in the execution of each trace. For more details see
