@@ -16,6 +16,8 @@
 * Fix `parse_gcov` bug when package is stored in directory with regex special characters, see #459
 * Error/warning thrown for, respectively, missing gcov or empty parsed gcov output (@stephematician, #448)
 
+* covr is now licensed as MIT (#454)
+
 # covr 3.5.1
 
 * Generated files from [cpp11](https://cpp11.r-lib.org/) are now ignored (#437)
