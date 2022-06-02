@@ -34,9 +34,9 @@ test_that("covr.record_tests=NULL does not record tests", {
 
 test_that("covr.record_tests traces to tests nested within test directory", {
   cov_top_level <- withr::with_envvar(
-    list(COVR_TEST_NESTED = "FALSE"), 
+    list(COVR_TEST_NESTED = "FALSE"),
     package_coverage(test_path("TestNestedTestDirs")))
-  
+
   cov_nested <- withr::with_envvar(
     list(COVR_TEST_NESTED = "TRUE"),
     cov_nested <- package_coverage(test_path("TestNestedTestDirs")))
@@ -51,13 +51,13 @@ test_that("covr.record_tests: merging coverage objects appends tests", {
   .counter_1 <- list(
     tests = list(
       `./test1:1:2:3:4:5:6:7:8` = list(
-        quote(test_that("test1", { expect_true(a()) })), 
-        quote(expect_true(a())), 
+        quote(test_that("test1", { expect_true(a()) })),
+        quote(expect_true(a())),
         quote(a())
       ),
       `./test2:1:2:3:4:5:6:7:8` = list(
-        quote(test_that("test2", { expect_true(a()) })), 
-        quote(expect_true(a())), 
+        quote(test_that("test2", { expect_true(a()) })),
+        quote(expect_true(a())),
         quote(a())
       )
     ),
@@ -74,13 +74,13 @@ test_that("covr.record_tests: merging coverage objects appends tests", {
   .counter_2 <- list(
     tests = list(
       `./test1:1:2:3:4:5:6:7:8` = list(
-        quote(test_that("test1", { expect_true(a()) })), 
-        quote(expect_true(a())), 
+        quote(test_that("test1", { expect_true(a()) })),
+        quote(expect_true(a())),
         quote(a())
       ),
       `./test3:1:2:3:4:5:6:7:8` = list(
-        quote(test_that("test3", { expect_true(a()) })), 
-        quote(expect_true(a())), 
+        quote(test_that("test3", { expect_true(a()) })),
+        quote(expect_true(a())),
         quote(a())
       )
     ),
@@ -98,7 +98,7 @@ test_that("covr.record_tests: merging coverage objects appends tests", {
   expect_equal({
     nrow(cov_merged$`a:1:2:3:4:5:6:7:8`$tests)
   }, {
-    nrow(.counter_1$`a:1:2:3:4:5:6:7:8`$tests) + 
+    nrow(.counter_1$`a:1:2:3:4:5:6:7:8`$tests) +
     nrow(.counter_2$`a:1:2:3:4:5:6:7:8`$tests)
   })
   expect_equal(length(cov_merged$tests), 3L)
@@ -145,4 +145,45 @@ test_that("covr.record_tests: test that coverage objects contain expected test d
 
   # expect that there are two distinct stack depths (`if (x)` (@1), `TRUE` (@2), `FALSE` (@2))
   expect_equal(length(unique(unlist(lapply(cov, function(i) i[["tests"]][,"depth"])))), 2L)
+})
+
+test_that("covr.record_tests: safely handles extremely large calls", {
+  fcode <- 'f <- function(...) { sum(...) }'
+
+  expect_warning(
+    withr::with_options(c("covr.record_tests" = TRUE), {
+      cov <- code_coverage(fcode, "do.call('f', as.list(rep_len(1L, 1e6)))")
+    }),
+    "large call .* truncated"
+  )
+
+  # expect that all calls in recorded test call stacks are under call length limit
+  expect_true(all(vapply(attr(cov, "tests")[[1L]], length, numeric(1L)) < 1e5))
+
+  # if this test ever fails, it means the deserialization of Rds files has been
+  # updated in R and the workaround can be conditionally applied only on older
+  # versions. (see "NOTE: r-bugs 18348")
+  suppressWarnings({
+    code <- deparse(quote({
+      x <- as.call(c(list("f"), as.list(rep_len(1L, 1e6))))
+      f <- tempfile("test_rds", fileext = ".Rds")
+      saveRDS(x, f)
+      readRDS(f)
+    }))
+
+    r_script <- tempfile("test_rds_script", fileext = ".R")
+    writeLines(code, r_script)
+    res <- system2("R", list("-q", "-s", "--vanilla", "-f", r_script), stdout = TRUE, stderr = TRUE)
+  })
+
+  if (attr(res, "status") == 0L) {
+    warning(paste0(collapse = "\n", strwrap(paste0(
+      "Looks like R was updated and the work-around for Rds ",
+      "deserialization segfaults can now be made to apply conditionally to only ",
+      "legacy R versions. Search for 'NOTE: r-bugs 18348' in the covr ",
+      "codebase to find and add necessary R version condition to the affected ",
+      "code"
+    ))))
+  }
+
 })
