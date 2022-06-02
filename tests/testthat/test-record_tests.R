@@ -160,9 +160,8 @@ test_that("covr.record_tests: safely handles extremely large calls", {
   # expect that all calls in recorded test call stacks are under call length limit
   expect_true(all(vapply(attr(cov, "tests")[[1L]], length, numeric(1L)) < 1e5))
 
-  # if this test ever fails, it means the deserialization of Rds files has been
-  # updated in R and the workaround can be conditionally applied only on older
-  # versions. (see "NOTE: r-bugs 18348")
+  # add a canary to test for R updates that handle large call deserialization
+  # more gracefully
   suppressWarnings({
     code <- deparse(quote({
       x <- as.call(c(list("f"), as.list(rep_len(1L, 1e6))))
