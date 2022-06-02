@@ -190,7 +190,7 @@ update_current_test <- function(key) {
   max_call_len <- 1e4
   call_lengths <- vapply(test[[1L]], length, numeric(1L))
   if (any(call_lengths > max_call_len)) {
-    test[[1L]] <- lapply(test[[1L]], truncate_long_call, limit = max_call_len)
+    test[[1L]] <- lapply(test[[1L]], truncate_call, limit = max_call_len)
     warning("A large call was captured as part of a test and will be truncated.")
   }
 
@@ -199,7 +199,17 @@ update_current_test <- function(key) {
 
 
 
-truncate_long_call <- function(call_obj, limit = 1e4) {
+#' Truncate call objects to limit the number of arguments
+#'
+#' A helper to circumvent R errors when deserializing large call objects from
+#' Rds. Trims the number of arguments in a call object, and replaces the last
+#' argument with a `<truncated>` symbol.
+#'
+#' @param call_obj A (possibly large) \code{call} object
+#' @param limit A \code{call} length limit to impose
+#' @return The \code{call_obj} with arguments trimmed
+#'
+truncate_call <- function(call_obj, limit = 1e4) {
   if (length(call_obj) < limit) return(call_obj)
   call_obj <- head(call_obj, limit)
   call_obj[[length(call_obj)]] <- quote(`<truncated>`)
