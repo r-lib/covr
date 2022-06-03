@@ -133,6 +133,9 @@
     <loc>http://covr.r-lib.org/reference/trace_calls.html</loc>
   </url>
   <url>
+    <loc>http://covr.r-lib.org/reference/truncate_call.html</loc>
+  </url>
+  <url>
     <loc>http://covr.r-lib.org/reference/update_current_test.html</loc>
   </url>
   <url>
