@@ -43,7 +43,7 @@
 #'
 #' These calls are subsequently subset for only those up until the call to
 #' [covr]'s internal `count` function, and will always include the last call in
-#' the call stack prior to a call to `count`. 
+#' the call stack prior to a call to `count`.
 #'
 #' @examples
 #' fcode <- '
@@ -76,12 +76,12 @@
 #' # $`source.Ref2326138c55:4:6:4:10:6:10:4:4`
 #' #      test depth i
 #' # [1,]    1     1 2
-#' # 
+#' #
 #' # $`source.Ref2326138c55:3:8:3:8:8:8:3:3`
 #' #      test depth i
 #' # [1,]    1     1 1
 #' # [2,]    1     2 3
-#' # 
+#' #
 #' # $`source.Ref2326138c55:6:6:6:10:6:10:6:6`
 #' #      test depth i
 #' # [1,]    1     2 4
@@ -144,7 +144,7 @@ update_current_test <- function(key) {
   syscall_first_count <- Position(is_covr_count_call, syscalls, nomatch = -1L)
   if (syscall_first_count < 2L) return()  # skip if nothing before covr::count
   syscall_srcfile <- vcapply(syscalls, get_source_filename, normalize = TRUE)
-  
+
   has_srcfile <- viapply(syscall_srcfile, length) > 0L
   srcfile_tmp <- logical(length(has_srcfile))
   srcfile_tmp[has_srcfile] <- startsWith(syscall_srcfile[has_srcfile], normalizePath(.libPaths()[[1]]))
@@ -184,8 +184,39 @@ update_current_test <- function(key) {
       key(.current_test$src))
   }
 
+  # NOTE: r-bugs 18348
+  # restrict test call lengths to avoid R Rds deserialization limit
+  # https://bugs.r-project.org/show_bug.cgi?id=18348
+  max_call_len <- 1e4
+  call_lengths <- vapply(test[[1L]], length, numeric(1L))
+  if (any(call_lengths > max_call_len)) {
+    test[[1L]] <- lapply(test[[1L]], truncate_call, limit = max_call_len)
+    warning("A large call was captured as part of a test and will be truncated.")
+  }
+
   .counters$tests <- append(.counters$tests, test)
 }
+
+
+
+#' Truncate call objects to limit the number of arguments
+#'
+#' A helper to circumvent R errors when deserializing large call objects from
+#' Rds. Trims the number of arguments in a call object, and replaces the last
+#' argument with a `<truncated>` symbol.
+#'
+#' @param call_obj A (possibly large) \code{call} object
+#' @param limit A \code{call} length limit to impose
+#' @return The \code{call_obj} with arguments trimmed
+#'
+truncate_call <- function(call_obj, limit = 1e4) {
+  if (length(call_obj) < limit) return(call_obj)
+  call_obj <- head(call_obj, limit)
+  call_obj[[length(call_obj)]] <- quote(`<truncated>`)
+  call_obj
+}
+
+
 
 #' Returns TRUE if we've moved on from test reflected in .current_test
 #'
