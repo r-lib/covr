@@ -22,7 +22,6 @@ _dev\.R$
 ^data.Rmd$
 ^covr_performance.Rmd$
 ^revdep$
-^LICENSE$
 ^CRAN-RELEASE$
 ^docs$
 ^_pkgdown\.yml$
@@ -33,3 +32,4 @@ _dev\.R$
 ^codecov\.yml$
 ^CODE_OF_CONDUCT\.md$
 ^\.github$
+^SECURITY\.md$
