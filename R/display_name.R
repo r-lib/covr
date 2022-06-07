@@ -10,14 +10,13 @@ display_name <- function(x) {
   }
 
   filenames <- vcapply(x, function(x) get_source_filename(x$srcref, full.names = TRUE))
-  if (isTRUE(attr(x, "relative"))) {
-    to_relative_path(filenames, attr(x, "package")$path)
-  } else {
-    filenames
-  }
+  to_relative_path(filenames, attr(x, "root"))
 }
 
 to_relative_path <- function(path, base) {
+  if (is.null(base)) {
+    return(path)
+  }
   rex::re_substitutes(path, rex::rex(base, "/"), "")
 }
 

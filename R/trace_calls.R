@@ -149,10 +149,3 @@ clear_counters <- function() {
 key <- function(x) {
   paste(collapse = ":", c(get_source_filename(x), x))
 }
-
-f1 <- function() {
-  f2 <- function() {
-    2
-  }
-  f2()
-}

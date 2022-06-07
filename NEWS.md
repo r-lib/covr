@@ -1,9 +1,12 @@
 # covr (development version)
 
+* `report()` now provides a more detailed error message if the `DT` and `htmltools` dependencies are not installed (#500).
+
 * Added `covr.record_tests` option. When `TRUE`, this enables the recording of
   the trace of the tests being executed and adds an itemization of which tests
   result in the execution of each trace. For more details see
-  `?covr.record_tests` (@dgkf, #463, #485)
+  `?covr.record_tests` (@dgkf, #463, #485, #503)
+
 * `package_coverage()` now handles packages with install or render time examples (#488)
 
 * `package_coverage()` now sets the environment variable `R_TESTS` to the tests-startup.R file like R CMD check does (#420)
@@ -15,6 +18,8 @@
 * Error/warning thrown for, respectively, missing gcov or empty parsed gcov output (@stephematician, #448)
 
 * Support Google Cloud Build uploading reports to Codecov.io (@MarkEdmondson1234 #469)
+
+* covr is now licensed as MIT (#454)
 
 # covr 3.5.1
 
