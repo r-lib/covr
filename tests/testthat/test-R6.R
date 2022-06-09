@@ -1,6 +1,8 @@
 context("R6")
 
 test_that("R6 methods coverage is reported", {
+  local_edition(3)
+
   cov <- as.data.frame(package_coverage("TestR6"))
 
   expect_equal(cov$value, c(5, 2, 3, 1, 1, 0))
