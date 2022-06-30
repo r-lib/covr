@@ -97,17 +97,60 @@ NULL
 count_test <- function(key) {
   n_calls_into_covr <- 2L
 
-  if (is_current_test_finished())
-    update_current_test(key)
+  if (is_current_test_finished()) {
+    update_current_test()
+  }
 
   # ignore if .counter was not created with record_tests (nested coverage calls)
   if (is.null(.counters[[key]]$tests)) return()
 
-  depth_into_pkg <- length(sys.calls()) - length(.current_test$frames) - n_calls_into_covr + 1L
   .current_test$i <- .current_test$i + 1L
-  .counters[[key]]$tests <- rbind(
-    .counters[[key]]$tests,
-    c(length(.counters$tests), depth_into_pkg, .current_test$i)
+
+  # expand infrequently as new tests are added, doubling matrix size as needed
+  tests <- .counters[[key]]$tests
+  n <- NROW(tests$tally)
+  if (.counters[[key]]$value > n) {
+    tests$tally <- rbind(tests$tally, matrix(NA_integer_, ncol = 3L, nrow = n))
+  }
+
+  # test number
+  tests$.data[[1L]] <- length(.counters$tests)
+
+  # call stack depth when trace is hit
+  tests$.data[[2L]] <- sys.nframe() - length(.current_test$frames) - n_calls_into_covr + 1L
+
+  # number of traces hit by the test so far
+  tests$.data[[3L]] <- .current_test$i
+
+  tests$.value <- .counters[[key]]$value
+  with(tests, tally[.value,] <- .data)
+}
+
+#' Initialize a new test counter for a coverage trace
+#'
+#' Initialize a test counter, a matrix used to tally tests, their stack depth
+#' and the execution order as the trace associated with \code{key} is hit. Each
+#' test trace is an environment, which allows assignment into a pre-allocated
+#' \code{tests} matrix with minimall reallocation.
+#'
+#' The \code{tests} matrix has columns \code{tests}, \code{depth} and \code{i},
+#' corresponding to the test index (the index of the associated test in
+#' \code{.counters$tests}), the stack depth when the trace is evaluated and the
+#' number of traces that have been hit so far during test evaluation.
+#'
+#' @inheritParams count
+#'
+new_test_counter <- function(key) {
+  .counters[[key]]$tests <- new.env(parent = baseenv())
+  .counters[[key]]$tests$.data <- vector("integer", 3L)
+  .counters[[key]]$tests$.value <- integer(1L)
+  .counters[[key]]$tests$tally <- matrix(
+    0L,
+    ncol = 3L,
+    # initialize with 4 empty rows, only expanded once populated
+    nrow = 4L,
+    # cols: test index; call stack depth of covr:::count; execution order index
+    dimnames = list(c(), c("test", "depth", "i"))
   )
 }
 
@@ -139,7 +182,7 @@ count_test <- function(key) {
 #'
 #' @importFrom utils getSrcDirectory
 #'
-update_current_test <- function(key) {
+update_current_test <- function() {
   syscalls <- sys.calls()
   syscall_first_count <- Position(is_covr_count_call, syscalls, nomatch = -1L)
   if (syscall_first_count < 2L) return()  # skip if nothing before covr::count
@@ -171,8 +214,10 @@ update_current_test <- function(key) {
     nomatch = length(exec_frames))]]
 
   # might be NULL if srcrefs aren't kept during building / sourcing
-  .current_test$src <- getSrcref(syscalls[[.current_test$last_frame]]) %||%
-    syscalls[[.current_test$last_frame]]
+  .current_test$src_env <- sys.frame(which = .current_test$last_frame)
+  .current_test$src_call <- syscalls[[.current_test$last_frame]]
+  .current_test$srcref <- getSrcref(.current_test$src_call)
+  .current_test$src <- .current_test$srcref %||% .current_test$src_call
 
   # build test data to store within .counters
   test <- list(.current_test$trace)
@@ -227,18 +272,10 @@ truncate_call <- function(call_obj, limit = 1e4) {
 #' test call stack has changed, in which case we are onto a new test.
 #'
 is_current_test_finished <- function() {
-  syscalls <- sys.calls()
-
   is.null(.current_test$src) ||
-  .current_test$last_frame > length(syscalls) ||
-  !identical(
-    .current_test$src,
-    getSrcref(syscalls[[.current_test$last_frame]]) %||% syscalls[[.current_test$last_frame]]
-  ) ||
-  !identical(
-    .current_test$trace,
-    syscalls[.current_test$frames]
-  )
+  .current_test$last_frame > sys.nframe() ||
+  !identical(.current_test$src_call, sys.call(which = .current_test$last_frame)) ||
+  !identical(.current_test$src_env, sys.frame(which = .current_test$last_frame))
 }
 
 #' Is the source bound to the expression
