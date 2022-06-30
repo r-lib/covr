@@ -4,7 +4,7 @@
 \alias{update_current_test}
 \title{Update current test if unit test expression has progressed}
 \usage{
-update_current_test(key)
+update_current_test()
 }
 \arguments{
 \item{key}{generated with \code{\link[=key]{key()}}}

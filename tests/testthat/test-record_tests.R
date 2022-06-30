@@ -28,7 +28,7 @@ test_that("covr.record_tests test traces list uses srcref key names", {
 
 test_that("covr.record_tests=NULL does not record tests", {
   expect_null(attr(cov_tests_not_recorded, "tests"))
-  expect_null(cov_tests_not_recorded[[1]]$tests)
+  expect_null(cov_tests_not_recorded[[1]]$tests$tally)
 })
 
 
@@ -63,11 +63,11 @@ test_that("covr.record_tests: merging coverage objects appends tests", {
     ),
     `a:1:2:3:4:5:6:7:8` = list(
       value = 2L,
-      tests = cbind(test = c(1, 2), depth = c(0, 1), i = c(1, 3))
+      tests = as.environment(list(tally = cbind(test = c(1, 2), depth = c(0, 1), i = c(1, 3))))
     ),
     `b:1:2:3:4:5:6:7:8` = list(
-      value = 2L,
-      tests = cbind(test = c(2), depth = c(0), i = c(2))
+      value = 1L,
+      tests = as.environment(list(tally = cbind(test = c(2), depth = c(0), i = c(2))))
     )
   )
 
@@ -85,24 +85,25 @@ test_that("covr.record_tests: merging coverage objects appends tests", {
       )
     ),
     `a:1:2:3:4:5:6:7:8` = list(
-      value = 2L,
-      tests = cbind(test = c(2), depth = c(0), i = c(1))
+      value = 1L,
+      tests = as.environment(list(tally = cbind(test = c(2), depth = c(0), i = c(1))))
     ),
     `c:1:2:3:4:5:6:7:8` = list(
-      value = 2L,
-      tests = cbind(test = c(2), depth = c(0), i = c(2))
+      value = 1L,
+      tests = as.environment(list(tally = cbind(test = c(2), depth = c(0), i = c(2))))
     )
   )
 
-  expect_silent(cov_merged <- merge_coverage(list(.counter_1, .counter_2)))
-  expect_equal({
-    nrow(cov_merged$`a:1:2:3:4:5:6:7:8`$tests)
-  }, {
-    nrow(.counter_1$`a:1:2:3:4:5:6:7:8`$tests) +
-    nrow(.counter_2$`a:1:2:3:4:5:6:7:8`$tests)
-  })
+  # store sum total of individual counters. store before merge, as the first
+  # will be modified in-place during merging.
+  counter_total <-
+    nrow(.counter_1$`a:1:2:3:4:5:6:7:8`$tests$tally) +
+    nrow(.counter_2$`a:1:2:3:4:5:6:7:8`$tests$tally)
+
+  expect_silent(cov_merged <- merge_coverage.list(list(.counter_1, .counter_2)))
+  expect_equal(nrow(cov_merged$`a:1:2:3:4:5:6:7:8`$tests$tally), counter_total)
   expect_equal(length(cov_merged$tests), 3L)
-  expect_equal(cov_merged$`a:1:2:3:4:5:6:7:8`$tests[[3L,1L]], 3L)
+  expect_equal(cov_merged$`a:1:2:3:4:5:6:7:8`$tests$tally[[3L,1L]], 3L)
 })
 
 

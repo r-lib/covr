@@ -86,12 +86,12 @@ lapply(cov, `[[`, "tests")
 # $`source.Ref2326138c55:4:6:4:10:6:10:4:4`
 #      test depth i
 # [1,]    1     1 2
-# 
+#
 # $`source.Ref2326138c55:3:8:3:8:8:8:3:3`
 #      test depth i
 # [1,]    1     1 1
 # [2,]    1     2 3
-# 
+#
 # $`source.Ref2326138c55:6:6:6:10:6:10:6:6`
 #      test depth i
 # [1,]    1     2 4
