@@ -73,38 +73,47 @@ unless the functions are defined in a file.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">code_coverage</span><span class="op">(</span>
-  <span class="va">source_code</span>,
-  <span class="va">test_code</span>,
-  line_exclusions <span class="op">=</span> <span class="cn">NULL</span>,
-  function_exclusions <span class="op">=</span> <span class="cn">NULL</span>,
-  <span class="va">...</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">code_coverage</span><span class="op">(</span></span>
+<span>  <span class="va">source_code</span>,</span>
+<span>  <span class="va">test_code</span>,</span>
+<span>  line_exclusions <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  function_exclusions <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>source_code</dt>
 <dd><p>A character vector of source code</p></dd>
+
+
 <dt>test_code</dt>
 <dd><p>A character vector of test code</p></dd>
+
+
 <dt>line_exclusions</dt>
 <dd><p>a named list of files with the lines to exclude from
 each file.</p></dd>
+
+
 <dt>function_exclusions</dt>
 <dd><p>a vector of regular expressions matching function
 names to exclude. Example <code>print\\\.</code> to match print methods.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>Additional arguments passed to <code><a href="file_coverage.html">file_coverage()</a></code></p></dd>
+
 </dl></div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="va">source</span> <span class="op">&lt;-</span> <span class="st">"add &lt;- function(x, y) { x + y }"</span></span>
-<span class="r-in"><span class="va">test</span> <span class="op">&lt;-</span> <span class="st">"add(1, 2) == 3"</span></span>
-<span class="r-in"><span class="fu">code_coverage</span><span class="op">(</span><span class="va">source</span>, <span class="va">test</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">source</span> <span class="op">&lt;-</span> <span class="st">"add &lt;- function(x, y) { x + y }"</span></span></span>
+<span class="r-in"><span><span class="va">test</span> <span class="op">&lt;-</span> <span class="st">"add(1, 2) == 3"</span></span></span>
+<span class="r-in"><span><span class="fu">code_coverage</span><span class="op">(</span><span class="va">source</span>, <span class="va">test</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Coverage: </span><span style="color: #00BB00;">100.00%</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">/tmp/Rtmp8Sbnlf/source.R2e3e46c63ed8: </span><span style="color: #00BB00;">100.00%</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">/tmp/RtmpMXlfCc/source.R339f393d6587: </span><span style="color: #00BB00;">100.00%</span></span>
 </code></pre></div>
     </div>
   </div>
@@ -119,7 +128,7 @@ names to exclude. Example <code>print\\\.</code> to match print methods.</p></dd
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

@@ -101,29 +101,29 @@ options <code>covr.exclude_pattern</code>, <code>covr.exclude_start</code>, <cod
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span>
-<span class="r-in"><span class="co"># exclude whole file of R/test.R</span></span>
-<span class="r-in"><span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span>exclusions <span class="op">=</span> <span class="st">"R/test.R"</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># exclude lines 1 to 10 and 15 from R/test.R</span></span>
-<span class="r-in"><span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"R/test.R"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># exclude lines 1 to 10 from R/test.R, all of R/test2.R</span></span>
-<span class="r-in"><span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"R/test.R"</span> <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="st">"R/test2.R"</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># exclude all print and format methods from the package.</span></span>
-<span class="r-in"><span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span>function_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"print\\."</span>, <span class="st">"format\\."</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># single line exclusions</span></span>
-<span class="r-in"><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
-<span class="r-in">  <span class="va">x</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># nocov</span></span>
-<span class="r-in"><span class="op">}</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># ranged exclusions</span></span>
-<span class="r-in"><span class="va">f2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="co"># nocov start</span></span>
-<span class="r-in">  <span class="va">x</span> <span class="op">+</span> <span class="fl">2</span></span>
-<span class="r-in"><span class="op">}</span> <span class="co"># nocov end</span></span>
-<span class="r-in"><span class="op">}</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="co"># exclude whole file of R/test.R</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span>exclusions <span class="op">=</span> <span class="st">"R/test.R"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># exclude lines 1 to 10 and 15 from R/test.R</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"R/test.R"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># exclude lines 1 to 10 from R/test.R, all of R/test2.R</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"R/test.R"</span> <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="st">"R/test2.R"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># exclude all print and format methods from the package.</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span>function_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"print\\."</span>, <span class="st">"format\\."</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># single line exclusions</span></span></span>
+<span class="r-in"><span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># nocov</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># ranged exclusions</span></span></span>
+<span class="r-in"><span><span class="va">f2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="co"># nocov start</span></span></span>
+<span class="r-in"><span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">2</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># nocov end</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -138,7 +138,7 @@ options <code>covr.exclude_pattern</code>, <code>covr.exclude_start</code>, <cod
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

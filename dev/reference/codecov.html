@@ -69,29 +69,35 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">codecov</span><span class="op">(</span>
-  <span class="va">...</span>,
-  coverage <span class="op">=</span> <span class="cn">NULL</span>,
-  base_url <span class="op">=</span> <span class="st">"https://codecov.io"</span>,
-  token <span class="op">=</span> <span class="cn">NULL</span>,
-  commit <span class="op">=</span> <span class="cn">NULL</span>,
-  branch <span class="op">=</span> <span class="cn">NULL</span>,
-  pr <span class="op">=</span> <span class="cn">NULL</span>,
-  flags <span class="op">=</span> <span class="cn">NULL</span>,
-  quiet <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">codecov</span><span class="op">(</span></span>
+<span>  <span class="va">...</span>,</span>
+<span>  coverage <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  base_url <span class="op">=</span> <span class="st">"https://codecov.io"</span>,</span>
+<span>  token <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  commit <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  branch <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  pr <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  flags <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  quiet <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>...</dt>
 <dd><p>arguments passed to <code><a href="package_coverage.html">package_coverage()</a></code></p></dd>
+
+
 <dt>coverage</dt>
 <dd><p>an existing coverage object to submit, if <code>NULL</code>,
 <code><a href="package_coverage.html">package_coverage()</a></code> will be called with the arguments from
 <code>...</code></p></dd>
+
+
 <dt>base_url</dt>
 <dd><p>Codecov url (change for Enterprise)</p></dd>
+
+
 <dt>token</dt>
 <dd><p>a codecov upload token, if <code>NULL</code> then following external
 sources will be checked in this order:</p><ol><li><p>the environment variable ‘CODECOV_TOKEN’. If it is empty, then</p></li>
@@ -99,29 +105,40 @@ sources will be checked in this order:</p><ol><li><p>the environment variable �
 File must have <code>codecov</code> section where field <code>token</code> is set to a token that
 will be used.</p></li>
 </ol></dd>
+
+
 <dt>commit</dt>
 <dd><p>explicitly set the commit this coverage result object
 corresponds to. Is looked up from the service or locally if it is
 <code>NULL</code>.</p></dd>
+
+
 <dt>branch</dt>
 <dd><p>explicitly set the branch this coverage result object
 corresponds to, this is looked up from the service or locally if it is
 <code>NULL</code>.</p></dd>
+
+
 <dt>pr</dt>
 <dd><p>explicitly set the pr this coverage result object corresponds to,
 this is looked up from the service if it is <code>NULL</code>.</p></dd>
+
+
 <dt>flags</dt>
 <dd><p>A flag to use for this coverage upload see
 <a href="https://docs.codecov.io/docs/flags" class="external-link">https://docs.codecov.io/docs/flags</a> for details.</p></dd>
+
+
 <dt>quiet</dt>
 <dd><p>if <code>FALSE</code>, print the coverage before submission.</p></dd>
+
 </dl></div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span>
-<span class="r-in"><span class="fu">codecov</span><span class="op">(</span>path <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span>
-<span class="r-in"><span class="op">}</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="fu">codecov</span><span class="op">(</span>path <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -136,7 +153,7 @@ this is looked up from the service if it is <code>NULL</code>.</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

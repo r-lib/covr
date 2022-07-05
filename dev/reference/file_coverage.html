@@ -73,13 +73,13 @@ coverage and the files in <code>test_files</code> are sourced.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">file_coverage</span><span class="op">(</span>
-  <span class="va">source_files</span>,
-  <span class="va">test_files</span>,
-  line_exclusions <span class="op">=</span> <span class="cn">NULL</span>,
-  function_exclusions <span class="op">=</span> <span class="cn">NULL</span>,
-  parent_env <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">parent.frame</a></span><span class="op">(</span><span class="op">)</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">file_coverage</span><span class="op">(</span></span>
+<span>  <span class="va">source_files</span>,</span>
+<span>  <span class="va">test_files</span>,</span>
+<span>  line_exclusions <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  function_exclusions <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  parent_env <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">parent.frame</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -87,26 +87,35 @@ coverage and the files in <code>test_files</code> are sourced.</p>
     <dl><dt>source_files</dt>
 <dd><p>Character vector of source files with function
 definitions to measure coverage</p></dd>
+
+
 <dt>test_files</dt>
 <dd><p>Character vector of test files with code to test the
 functions</p></dd>
+
+
 <dt>line_exclusions</dt>
 <dd><p>a named list of files with the lines to exclude from
 each file.</p></dd>
+
+
 <dt>function_exclusions</dt>
 <dd><p>a vector of regular expressions matching function
 names to exclude. Example <code>print\\\.</code> to match print methods.</p></dd>
+
+
 <dt>parent_env</dt>
 <dd><p>The parent environment to use when sourcing the files.</p></dd>
+
 </dl></div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="co"># For the purpose of this example, save code containing code and tests to files</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"add &lt;- function(x, y) { x + y }"</span>, file<span class="op">=</span><span class="st">"add.R"</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"add(1, 2) == 3"</span>, file<span class="op">=</span><span class="st">"add_test.R"</span><span class="op">)</span></span>
-<span class="r-in"><span class="co"># Use file_coverage() to calculate test coverage</span></span>
-<span class="r-in"><span class="fu">file_coverage</span><span class="op">(</span>source_files <span class="op">=</span> <span class="st">"add.R"</span>, test_files <span class="op">=</span> <span class="st">"add_test.R"</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># For the purpose of this example, save code containing code and tests to files</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"add &lt;- function(x, y) { x + y }"</span>, file<span class="op">=</span><span class="st">"add.R"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"add(1, 2) == 3"</span>, file<span class="op">=</span><span class="st">"add_test.R"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Use file_coverage() to calculate test coverage</span></span></span>
+<span class="r-in"><span><span class="fu">file_coverage</span><span class="op">(</span>source_files <span class="op">=</span> <span class="st">"add.R"</span>, test_files <span class="op">=</span> <span class="st">"add_test.R"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Coverage: </span><span style="color: #00BB00;">100.00%</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">add.R: </span><span style="color: #00BB00;">100.00%</span></span>
 </code></pre></div>
@@ -123,7 +132,7 @@ names to exclude. Example <code>print\\\.</code> to match print methods.</p></dd
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

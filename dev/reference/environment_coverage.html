@@ -69,27 +69,34 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">environment_coverage</span><span class="op">(</span>
-  env <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">parent.frame</a></span><span class="op">(</span><span class="op">)</span>,
-  <span class="va">test_files</span>,
-  line_exclusions <span class="op">=</span> <span class="cn">NULL</span>,
-  function_exclusions <span class="op">=</span> <span class="cn">NULL</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">environment_coverage</span><span class="op">(</span></span>
+<span>  env <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">parent.frame</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="va">test_files</span>,</span>
+<span>  line_exclusions <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  function_exclusions <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>env</dt>
 <dd><p>The environment to be instrumented.</p></dd>
+
+
 <dt>test_files</dt>
 <dd><p>Character vector of test files with code to test the
 functions</p></dd>
+
+
 <dt>line_exclusions</dt>
 <dd><p>a named list of files with the lines to exclude from
 each file.</p></dd>
+
+
 <dt>function_exclusions</dt>
 <dd><p>a vector of regular expressions matching function
 names to exclude. Example <code>print\\\.</code> to match print methods.</p></dd>
+
 </dl></div>
 
   </div>
@@ -104,7 +111,7 @@ names to exclude. Example <code>print\\\.</code> to match print methods.</p></dd
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

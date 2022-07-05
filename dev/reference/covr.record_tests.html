@@ -118,27 +118,27 @@ the call stack prior to a call to <code>count</code>.</p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="va">fcode</span> <span class="op">&lt;-</span> <span class="st">'</span>
-<span class="r-in">f &lt;- function(x) {</span>
-<span class="r-in">  if (x)</span>
-<span class="r-in">    f(!x)</span>
-<span class="r-in">  else</span>
-<span class="r-in">    FALSE</span>
-<span class="r-in">}'</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.record_tests <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="code_coverage.html">code_coverage</a></span><span class="op">(</span><span class="va">fcode</span>, <span class="st">"f(TRUE)"</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># extract executed test code for the first test</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cov</span>, <span class="st">"tests"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1L</span><span class="op">]</span><span class="op">]</span>, <span class="fl">1L</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fcode</span> <span class="op">&lt;-</span> <span class="st">'</span></span></span>
+<span class="r-in"><span><span class="st">f &lt;- function(x) {</span></span></span>
+<span class="r-in"><span><span class="st">  if (x)</span></span></span>
+<span class="r-in"><span><span class="st">    f(!x)</span></span></span>
+<span class="r-in"><span><span class="st">  else</span></span></span>
+<span class="r-in"><span><span class="st">    FALSE</span></span></span>
+<span class="r-in"><span><span class="st">}'</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.record_tests <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="code_coverage.html">code_coverage</a></span><span class="op">(</span><span class="va">fcode</span>, <span class="st">"f(TRUE)"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># extract executed test code for the first test</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cov</span>, <span class="st">"tests"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1L</span><span class="op">]</span><span class="op">]</span>, <span class="fl">1L</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> f(TRUE)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span class="co"># [[1]]</span></span>
-<span class="r-in"><span class="co"># f(TRUE)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># extract test itemization per trace</span></span>
-<span class="r-in"><span class="va">cov</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"srcref"</span>, <span class="st">"tests"</span><span class="op">)</span><span class="op">]</span></span>
+<span class="r-in"><span><span class="co"># [[1]]</span></span></span>
+<span class="r-in"><span><span class="co"># f(TRUE)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># extract test itemization per trace</span></span></span>
+<span class="r-in"><span><span class="va">cov</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"srcref"</span>, <span class="st">"tests"</span><span class="op">)</span><span class="op">]</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $srcref</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> f(!x)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -146,41 +146,41 @@ the call stack prior to a call to <code>count</code>.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      test depth i</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1     1 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span class="co"># $srcref</span></span>
-<span class="r-in"><span class="co"># f(!x)</span></span>
-<span class="r-in"><span class="co">#</span></span>
-<span class="r-in"><span class="co"># $tests</span></span>
-<span class="r-in"><span class="co">#      test depth i</span></span>
-<span class="r-in"><span class="co"># [1,]    1     2 4</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># reconstruct the code path of a test by ordering test traces by [,"i"]</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">cov</span>, <span class="va">`[[`</span>, <span class="st">"tests"</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R2e3eadd088a:6:5:6:9:5:9:6:6`</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      test depth i</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1     2 4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R2e3eadd088a:3:7:3:7:7:7:3:3`</span>
+<span class="r-in"><span><span class="co"># $srcref</span></span></span>
+<span class="r-in"><span><span class="co"># f(!x)</span></span></span>
+<span class="r-in"><span><span class="co">#</span></span></span>
+<span class="r-in"><span><span class="co"># $tests</span></span></span>
+<span class="r-in"><span><span class="co">#      test depth i</span></span></span>
+<span class="r-in"><span><span class="co"># [1,]    1     2 4</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># reconstruct the code path of a test by ordering test traces by [,"i"]</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">cov</span>, <span class="va">`[[`</span>, <span class="st">"tests"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R339f5c335b12:3:7:3:7:7:7:3:3`</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      test depth i</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1     1 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [2,]    1     2 3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R2e3eadd088a:4:5:4:9:5:9:4:4`</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R339f5c335b12:6:5:6:9:5:9:6:6`</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      test depth i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1     2 4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R339f5c335b12:4:5:4:9:5:9:4:4`</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      test depth i</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1     1 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span class="co"># $`source.Ref2326138c55:4:6:4:10:6:10:4:4`</span></span>
-<span class="r-in"><span class="co">#      test depth i</span></span>
-<span class="r-in"><span class="co"># [1,]    1     1 2</span></span>
-<span class="r-in"><span class="co"># </span></span>
-<span class="r-in"><span class="co"># $`source.Ref2326138c55:3:8:3:8:8:8:3:3`</span></span>
-<span class="r-in"><span class="co">#      test depth i</span></span>
-<span class="r-in"><span class="co"># [1,]    1     1 1</span></span>
-<span class="r-in"><span class="co"># [2,]    1     2 3</span></span>
-<span class="r-in"><span class="co"># </span></span>
-<span class="r-in"><span class="co"># $`source.Ref2326138c55:6:6:6:10:6:10:6:6`</span></span>
-<span class="r-in"><span class="co">#      test depth i</span></span>
-<span class="r-in"><span class="co"># [1,]    1     2 4</span></span>
-<span class="r-in"></span>
+<span class="r-in"><span><span class="co"># $`source.Ref2326138c55:4:6:4:10:6:10:4:4`</span></span></span>
+<span class="r-in"><span><span class="co">#      test depth i</span></span></span>
+<span class="r-in"><span><span class="co"># [1,]    1     1 2</span></span></span>
+<span class="r-in"><span><span class="co">#</span></span></span>
+<span class="r-in"><span><span class="co"># $`source.Ref2326138c55:3:8:3:8:8:8:3:3`</span></span></span>
+<span class="r-in"><span><span class="co">#      test depth i</span></span></span>
+<span class="r-in"><span><span class="co"># [1,]    1     1 1</span></span></span>
+<span class="r-in"><span><span class="co"># [2,]    1     2 3</span></span></span>
+<span class="r-in"><span><span class="co">#</span></span></span>
+<span class="r-in"><span><span class="co"># $`source.Ref2326138c55:6:6:6:10:6:10:6:6`</span></span></span>
+<span class="r-in"><span><span class="co">#      test depth i</span></span></span>
+<span class="r-in"><span><span class="co"># [1,]    1     2 4</span></span></span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -195,7 +195,7 @@ the call stack prior to a call to <code>count</code>.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

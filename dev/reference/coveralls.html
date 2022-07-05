@@ -69,33 +69,42 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">coveralls</span><span class="op">(</span>
-  <span class="va">...</span>,
-  coverage <span class="op">=</span> <span class="cn">NULL</span>,
-  repo_token <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"COVERALLS_TOKEN"</span><span class="op">)</span>,
-  service_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CI_NAME"</span>, <span class="st">"travis-ci"</span><span class="op">)</span>,
-  quiet <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">coveralls</span><span class="op">(</span></span>
+<span>  <span class="va">...</span>,</span>
+<span>  coverage <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  repo_token <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"COVERALLS_TOKEN"</span><span class="op">)</span>,</span>
+<span>  service_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CI_NAME"</span>, <span class="st">"travis-ci"</span><span class="op">)</span>,</span>
+<span>  quiet <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>...</dt>
 <dd><p>arguments passed to <code><a href="package_coverage.html">package_coverage()</a></code></p></dd>
+
+
 <dt>coverage</dt>
 <dd><p>an existing coverage object to submit, if <code>NULL</code>,
 <code><a href="package_coverage.html">package_coverage()</a></code> will be called with the arguments from
 <code>...</code></p></dd>
+
+
 <dt>repo_token</dt>
 <dd><p>The secret repo token for your repository,
 found at the bottom of your repository's page on Coveralls. This is useful
 if your job is running on a service Coveralls doesn't support out-of-the-box.
 If set to NULL, it is assumed that the job is running on travis-ci</p></dd>
+
+
 <dt>service_name</dt>
 <dd><p>the CI service to use, if environment variable
 ‘CI_NAME’ is set that is used, otherwise ‘travis-ci’ is used.</p></dd>
+
+
 <dt>quiet</dt>
 <dd><p>if <code>FALSE</code>, print the coverage before submission.</p></dd>
+
 </dl></div>
 
   </div>
@@ -110,7 +119,7 @@ If set to NULL, it is assumed that the job is running on travis-ci</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

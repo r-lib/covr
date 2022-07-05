@@ -95,7 +95,7 @@
       <h1 data-toc-skip>How does covr work anyway?</h1>
                         <h4 data-toc-skip class="author">Jim Hester</h4>
             
-            <h4 data-toc-skip class="date">2022-06-07</h4>
+            <h4 data-toc-skip class="date">2022-07-05</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/r-lib/covr/blob/HEAD/vignettes/how_it_works.Rmd" class="external-link"><code>vignettes/how_it_works.Rmd</code></a></small>
       <div class="hidden name"><code>how_it_works.Rmd</code></div>
@@ -132,12 +132,12 @@
 <p>The core function in <strong>covr</strong> is <code><a href="../reference/trace_calls.html">trace_calls()</a></code>. This function was adapted from ideas in <a href="http://adv-r.had.co.nz/Expressions.html#ast-funs" class="external-link"><em>Advanced R - Walking the Abstract Syntax Tree with recursive functions</em></a>. This recursive function modifies each of the leaves (atomic or name objects) of an R expression by applying a given function to them. If the expression is not a leaf the walker function calls itself recursively on elements of the expression instead.</p>
 <p>We can use this same framework to instead insert a trace statement before each call by replacing each call with a call to a counting function followed by the previous call. Braces (<code>{</code>) in R may seem like language syntax, but they are actually a Primitive function and you can call them like any other function.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span>x <span class="op">=</span> <span class="op">{</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">2</span>; <span class="fl">3</span> <span class="op">+</span> <span class="fl">4</span> <span class="op">}</span>,
-    y <span class="op">=</span> <span class="fu">`{`</span><span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="fl">2</span>, <span class="fl">3</span> <span class="op">+</span> <span class="fl">4</span><span class="op">)</span><span class="op">)</span></code></pre></div>
-<pre><code><span class="co">## [1] TRUE</span></code></pre>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span>x <span class="op">=</span> <span class="op">{</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">2</span>; <span class="fl">3</span> <span class="op">+</span> <span class="fl">4</span> <span class="op">}</span>,</span>
+<span>    y <span class="op">=</span> <span class="fu">`{`</span><span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="fl">2</span>, <span class="fl">3</span> <span class="op">+</span> <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] TRUE</span></span></code></pre>
 <p>Remembering that braces always return the value of the last evaluated expression, we can call a counting function followed by the previous function substituting <code>as.call(recurse(x))</code> in our function above with.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">`{`</span><span class="op">(</span><span class="fu"><a href="../reference/count.html">count</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/call.html" class="external-link">as.call</a></span><span class="op">(</span><span class="fu">recurse</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">`{`</span><span class="op">(</span><span class="fu"><a href="../reference/count.html">count</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/call.html" class="external-link">as.call</a></span><span class="op">(</span><span class="fu">recurse</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="source-references">Source References<a class="anchor" aria-label="anchor" href="#source-references"></a>
@@ -150,8 +150,8 @@
 </h3>
 <p>Each statement comes with a source reference. Unfortunately, the following is counted as one statement:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw">if</span> <span class="op">(</span><span class="va">x</span><span class="op">)</span>
- <span class="fu">y</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span> <span class="fu">y</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>To work around this, detailed parse data (obtained from a refined version of <code>getParseData</code>) is analyzed to impute source references at sub-statement level for <code>if</code>, <code>for</code>, <code>while</code> and <code>switch</code> constructs.</p>
 </div>
 <div class="section level3">
@@ -159,21 +159,21 @@
 </h3>
 <p>After we have our modified function definition, how do we re-define the function to use the updated definition, and ensure that all other functions which call the old function also use the new definition? You might try redefining the function directly.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">1</span>
-
-<span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">2</span>
-<span class="fu">f1</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="fl">2</span></code></pre></div>
-<pre><code><span class="co">## [1] TRUE</span></code></pre>
+<code class="sourceCode R"><span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">2</span></span>
+<span><span class="fu">f1</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="fl">2</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] TRUE</span></span></code></pre>
 <p>While this does work for the simple case of calling the new function in the same environment, it fails if another function calls a function in a different environment.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">new.env</a></span><span class="op">(</span><span class="op">)</span>
-<span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">1</span>
-<span class="va">env</span><span class="op">$</span><span class="va">f2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fu">f1</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span>
-
-<span class="va">env</span><span class="op">$</span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">2</span>
-
-<span class="va">env</span><span class="op">$</span><span class="fu">f2</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="fl">3</span></code></pre></div>
-<pre><code><span class="co">## [1] FALSE</span></code></pre>
+<code class="sourceCode R"><span><span class="va">env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">new.env</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">1</span></span>
+<span><span class="va">env</span><span class="op">$</span><span class="va">f2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fu">f1</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span></span>
+<span></span>
+<span><span class="va">env</span><span class="op">$</span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="fl">2</span></span>
+<span></span>
+<span><span class="va">env</span><span class="op">$</span><span class="fu">f2</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="fl">3</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] FALSE</span></span></code></pre>
 <p>As modifying external environments and correctly restoring them can be tricky to get correct, we use the C function <a href="https://github.com/r-lib/covr/blob/9753e0e257b053059b85be90ef6eb614a5af9bba/src/reassign.c#L7-L20" class="external-link"><code>reassign_function</code></a>, which is also used in <code><a href="https://testthat.r-lib.org/reference/with_mock.html" class="external-link">testthat::with_mock</a></code>. This function takes a function name, environment, old definition, new definition and copies the formals, body, attributes and environment from the old function to the new function. This allows you to do an in-place replacement of a given function with a new function and ensure that all references to the old function will use the new definition.</p>
 </div>
 </div>
@@ -225,19 +225,19 @@
 </h2>
 <p>The output format returned by <strong>covr</strong> is an R object of class “coverage” containing the information gathered when executing the test suite. It consists of a named list, where the names are colon-delimited information from the source references (the file, line and columns the traced call is from). The value is the number of times that given expression was called and the source ref of the original call.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># an object to analyze</span>
-<span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="va">x</span> <span class="op">+</span> <span class="fl">1</span> <span class="op">}</span>
-<span class="co"># get results with no unit tests</span>
-<span class="va">c1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/function_coverage.html">function_coverage</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f1</span>, code <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>
-<span class="va">c1</span></code></pre></div>
-<pre><code><span class="co">## <span style="font-weight: bold;">Coverage: </span><span style="color: #BB0000;">0.00%</span></span></code></pre>
-<pre><code><span class="co">## <span style="font-weight: bold;">&lt;text&gt;: </span><span style="color: #BB0000;">0.00%</span></span></code></pre>
+<code class="sourceCode R"><span><span class="co"># an object to analyze</span></span>
+<span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="va">x</span> <span class="op">+</span> <span class="fl">1</span> <span class="op">}</span></span>
+<span><span class="co"># get results with no unit tests</span></span>
+<span><span class="va">c1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/function_coverage.html">function_coverage</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f1</span>, code <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="va">c1</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="font-weight: bold;">Coverage: </span><span style="color: #BB0000;">0.00%</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="font-weight: bold;">&lt;text&gt;: </span><span style="color: #BB0000;">0.00%</span></span></span></code></pre>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># get results with unit tests</span>
-<span class="va">c2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/function_coverage.html">function_coverage</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f1</span>, code <span class="op">=</span> <span class="fu">f1</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span>
-<span class="va">c2</span></code></pre></div>
-<pre><code><span class="co">## <span style="font-weight: bold;">Coverage: </span><span style="color: #00BB00;">100.00%</span></span></code></pre>
-<pre><code><span class="co">## <span style="font-weight: bold;">&lt;text&gt;: </span><span style="color: #00BB00;">100.00%</span></span></code></pre>
+<code class="sourceCode R"><span><span class="co"># get results with unit tests</span></span>
+<span><span class="va">c2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/function_coverage.html">function_coverage</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f1</span>, code <span class="op">=</span> <span class="fu">f1</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">c2</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="font-weight: bold;">Coverage: </span><span style="color: #00BB00;">100.00%</span></span></span></code></pre>
+<pre><code><span><span class="co">## <span style="font-weight: bold;">&lt;text&gt;: </span><span style="color: #00BB00;">100.00%</span></span></span></code></pre>
 <p>An <code>as.data.frame</code> method is available to make subsetting by various features easy to do.</p>
 <p>While <strong>covr</strong> tracks coverage by expression, typically users expect coverage to be reported by line, so there are functions to convert to line oriented coverage.</p>
 </div>
@@ -295,7 +295,7 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer>

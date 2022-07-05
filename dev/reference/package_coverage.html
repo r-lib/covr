@@ -73,63 +73,88 @@ vignette and example code.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">package_coverage</span><span class="op">(</span>
-  path <span class="op">=</span> <span class="st">"."</span>,
-  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tests"</span>, <span class="st">"vignettes"</span>, <span class="st">"examples"</span>, <span class="st">"all"</span>, <span class="st">"none"</span><span class="op">)</span>,
-  combine_types <span class="op">=</span> <span class="cn">TRUE</span>,
-  relative_path <span class="op">=</span> <span class="cn">TRUE</span>,
-  quiet <span class="op">=</span> <span class="cn">TRUE</span>,
-  clean <span class="op">=</span> <span class="cn">TRUE</span>,
-  line_exclusions <span class="op">=</span> <span class="cn">NULL</span>,
-  function_exclusions <span class="op">=</span> <span class="cn">NULL</span>,
-  code <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,
-  install_path <span class="op">=</span> <span class="fu">temp_file</span><span class="op">(</span><span class="st">"R_LIBS"</span><span class="op">)</span>,
-  <span class="va">...</span>,
-  <span class="va">exclusions</span>,
-  pre_clean <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">package_coverage</span><span class="op">(</span></span>
+<span>  path <span class="op">=</span> <span class="st">"."</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tests"</span>, <span class="st">"vignettes"</span>, <span class="st">"examples"</span>, <span class="st">"all"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  combine_types <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  relative_path <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  clean <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  line_exclusions <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  function_exclusions <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  code <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  install_path <span class="op">=</span> <span class="fu">temp_file</span><span class="op">(</span><span class="st">"R_LIBS"</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span>,</span>
+<span>  <span class="va">exclusions</span>,</span>
+<span>  pre_clean <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>path</dt>
 <dd><p>file path to the package.</p></dd>
+
+
 <dt>type</dt>
 <dd><p>run the package ‘tests’, ‘vignettes’,
 ‘examples’, ‘all’, or ‘none’. The default is
 ‘tests’.</p></dd>
+
+
 <dt>combine_types</dt>
 <dd><p>If <code>TRUE</code> (the default) the coverage for all types
 is simply summed into one coverage object. If <code>FALSE</code> separate objects
 are used for each type of coverage.</p></dd>
+
+
 <dt>relative_path</dt>
 <dd><p>whether to output the paths as relative or absolute
 paths. If a string, it is interpreted as a root path and all paths will be
 relative to that root.</p></dd>
+
+
 <dt>quiet</dt>
 <dd><p>whether to load and compile the package quietly, useful for
 debugging errors.</p></dd>
+
+
 <dt>clean</dt>
 <dd><p>whether to clean temporary output files after running, mainly
 useful for debugging errors.</p></dd>
+
+
 <dt>line_exclusions</dt>
 <dd><p>a named list of files with the lines to exclude from
 each file.</p></dd>
+
+
 <dt>function_exclusions</dt>
 <dd><p>a vector of regular expressions matching function
 names to exclude. Example <code>print\\\.</code> to match print methods.</p></dd>
+
+
 <dt>code</dt>
 <dd><p>A character vector of additional test code to run.</p></dd>
+
+
 <dt>install_path</dt>
 <dd><p>The path the instrumented package will be installed to
 and tests run in. By default it is a path in the R sessions temporary
 directory. It can sometimes be useful to set this (along with <code>clean = FALSE</code>) to help debug test failures.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>Additional arguments passed to <code><a href="https://rdrr.io/r/tools/testInstalledPackage.html" class="external-link">tools::testInstalledPackage()</a></code>.</p></dd>
+
+
 <dt>exclusions</dt>
 <dd><p>‘Deprecated’, please use ‘line_exclusions’ instead.</p></dd>
+
+
 <dt>pre_clean</dt>
 <dd><p>whether to delete all objects present in the src directory before recompiling</p></dd>
+
 </dl></div>
     <div id="details">
     <h2>Details</h2>
@@ -161,7 +186,7 @@ package from the coverage calculations.</p></div>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

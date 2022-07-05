@@ -31,6 +31,9 @@
     <loc>http://covr.r-lib.org/reference/as_coverage.html</loc>
   </url>
   <url>
+    <loc>http://covr.r-lib.org/reference/as_coverage_with_tests.html</loc>
+  </url>
+  <url>
     <loc>http://covr.r-lib.org/reference/azure.html</loc>
   </url>
   <url>
@@ -101,6 +104,9 @@
   </url>
   <url>
     <loc>http://covr.r-lib.org/reference/new_counter.html</loc>
+  </url>
+  <url>
+    <loc>http://covr.r-lib.org/reference/new_test_counter.html</loc>
   </url>
   <url>
     <loc>http://covr.r-lib.org/reference/package_coverage.html</loc>

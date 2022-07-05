@@ -69,28 +69,35 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">function_coverage</span><span class="op">(</span><span class="va">fun</span>, code <span class="op">=</span> <span class="cn">NULL</span>, env <span class="op">=</span> <span class="cn">NULL</span>, enc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">parent.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">function_coverage</span><span class="op">(</span><span class="va">fun</span>, code <span class="op">=</span> <span class="cn">NULL</span>, env <span class="op">=</span> <span class="cn">NULL</span>, enc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sys.parent.html" class="external-link">parent.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>fun</dt>
 <dd><p>name of the function.</p></dd>
+
+
 <dt>code</dt>
 <dd><p>expressions to run.</p></dd>
+
+
 <dt>env</dt>
 <dd><p>environment the function is defined in.</p></dd>
+
+
 <dt>enc</dt>
 <dd><p>the enclosing environment which to run the expressions.</p></dd>
+
 </dl></div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="va">add</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span> <span class="va">x</span> <span class="op">+</span> <span class="va">y</span> <span class="op">}</span></span>
-<span class="r-in"><span class="fu">function_coverage</span><span class="op">(</span>fun <span class="op">=</span> <span class="va">add</span>, code <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="co"># 0% coverage</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">add</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span> <span class="va">x</span> <span class="op">+</span> <span class="va">y</span> <span class="op">}</span></span></span>
+<span class="r-in"><span><span class="fu">function_coverage</span><span class="op">(</span>fun <span class="op">=</span> <span class="va">add</span>, code <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="co"># 0% coverage</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Coverage: </span><span style="color: #BB0000;">0.00%</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">&lt;text&gt;: </span><span style="color: #BB0000;">0.00%</span></span>
-<span class="r-in"><span class="fu">function_coverage</span><span class="op">(</span>fun <span class="op">=</span> <span class="va">add</span>, code <span class="op">=</span> <span class="fu">add</span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span> <span class="op">==</span> <span class="fl">3</span><span class="op">)</span> <span class="co"># 100% coverage</span></span>
+<span class="r-in"><span><span class="fu">function_coverage</span><span class="op">(</span>fun <span class="op">=</span> <span class="va">add</span>, code <span class="op">=</span> <span class="fu">add</span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span> <span class="op">==</span> <span class="fl">3</span><span class="op">)</span> <span class="co"># 100% coverage</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Coverage: </span><span style="color: #00BB00;">100.00%</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">&lt;text&gt;: </span><span style="color: #00BB00;">100.00%</span></span>
 </code></pre></div>
@@ -107,7 +114,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

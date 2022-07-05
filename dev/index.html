@@ -108,41 +108,41 @@
 <h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h1>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"covr"</span><span class="op">)</span>
-
-<span class="co"># For devel version</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"r-lib/covr"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"covr"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># For devel version</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"r-lib/covr"</span><span class="op">)</span></span></code></pre></div>
 <p>The easiest way to setup covr on <a href="https://travis-ci.org" class="external-link">Travis-CI</a> is with <a href="https://github.com/r-lib/usethis" class="external-link">usethis</a>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">usethis</span><span class="fu">::</span><span class="fu">use_coverage</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu">use_coverage</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level1">
 <h1 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h1>
 <p>For local development a coverage report can be used to inspect coverage for each line in your package. <em>Note</em> requires the <a href="https://github.com/rstudio/DT" class="external-link">DT</a> package to be installed.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://covr.r-lib.org" class="external-link">covr</a></span><span class="op">)</span>
-
-<span class="co"># If run with no arguments implicitly calls `package_coverage()`</span>
-<span class="fu"><a href="reference/report.html">report</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://covr.r-lib.org" class="external-link">covr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># If run with no arguments implicitly calls `package_coverage()`</span></span>
+<span><span class="fu"><a href="reference/report.html">report</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>covr also defines an <a href="https://rstudio.github.io/rstudioaddins/" class="external-link">RStudio Addin</a>, which runs <code><a href="reference/report.html">report()</a></code> on the active project. This can be used via the Addin menu or by binding the action to a <a href="https://rstudio.github.io/rstudioaddins/#keyboard-shorcuts" class="external-link">shortcut</a>, e.g. <em>Ctrl-Shift-C</em>.</p>
 <div class="section level2">
 <h2 id="interactively">Interactively<a class="anchor" aria-label="anchor" href="#interactively"></a>
 </h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># If run with the working directory within the package source.</span>
-<span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span><span class="op">)</span>
-
-<span class="co"># or a package in another directory</span>
-<span class="va">cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span><span class="st">"/dir/lintr"</span><span class="op">)</span>
-
-<span class="co"># view results as a data.frame</span>
-<span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">cov</span><span class="op">)</span>
-
-<span class="co"># zero_coverage() shows only uncovered lines.</span>
-<span class="co"># If run within RStudio, `zero_coverage()` will open a marker pane with the</span>
-<span class="co"># uncovered lines.</span>
-<span class="fu"><a href="reference/zero_coverage.html">zero_coverage</a></span><span class="op">(</span><span class="va">cov</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># If run with the working directory within the package source.</span></span>
+<span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># or a package in another directory</span></span>
+<span><span class="va">cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span><span class="st">"/dir/lintr"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># view results as a data.frame</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">cov</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># zero_coverage() shows only uncovered lines.</span></span>
+<span><span class="co"># If run within RStudio, `zero_coverage()` will open a marker pane with the</span></span>
+<span><span class="co"># uncovered lines.</span></span>
+<span><span class="fu"><a href="reference/zero_coverage.html">zero_coverage</a></span><span class="op">(</span><span class="va">cov</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level1">
@@ -187,25 +187,25 @@
 </h2>
 <p>The <code>function_exclusions</code> argument to <code><a href="reference/package_coverage.html">package_coverage()</a></code> can be used to exclude functions by name. This argument takes a vector of regular expressions matching functions to exclude.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># exclude print functions</span>
-<span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>function_exclusions <span class="op">=</span> <span class="st">"print\\."</span><span class="op">)</span>
-
-<span class="co"># exclude `.onLoad` function</span>
-<span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>function_exclusions <span class="op">=</span> <span class="st">"\\.onLoad"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># exclude print functions</span></span>
+<span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>function_exclusions <span class="op">=</span> <span class="st">"print\\."</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># exclude `.onLoad` function</span></span>
+<span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>function_exclusions <span class="op">=</span> <span class="st">"\\.onLoad"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="line-exclusions">Line Exclusions<a class="anchor" aria-label="anchor" href="#line-exclusions"></a>
 </h2>
 <p>The <code>line_exclusions</code> argument to <code><a href="reference/package_coverage.html">package_coverage()</a></code> can be used to exclude some or all of a file. This argument takes a list of filenames or named ranges to exclude.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># exclude whole file of R/test.R</span>
-<span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="st">"R/test.R"</span><span class="op">)</span>
-
-<span class="co"># exclude lines 1 to 10 and 15 from R/test.R</span>
-<span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"R/test.R"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
-
-<span class="co"># exclude lines 1 to 10 from R/test.R, all of R/test2.R</span>
-<span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"R/test.R"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="st">"R/test2.R"</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># exclude whole file of R/test.R</span></span>
+<span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="st">"R/test.R"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># exclude lines 1 to 10 and 15 from R/test.R</span></span>
+<span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"R/test.R"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># exclude lines 1 to 10 from R/test.R, all of R/test2.R</span></span>
+<span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"R/test.R"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="st">"R/test2.R"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="exclusion-comments">Exclusion Comments<a class="anchor" aria-label="anchor" href="#exclusion-comments"></a>
@@ -213,14 +213,14 @@
 <p>In addition you can exclude lines from the coverage by putting special comments in your source code.</p>
 <p>This can be done per line.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
-  <span class="va">x</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># nocov</span>
-<span class="op">}</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># nocov</span></span>
+<span><span class="op">}</span></span></code></pre></div>
 <p>Or by specifying a range with a start and end.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">f2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="co"># nocov start</span>
-  <span class="va">x</span> <span class="op">+</span> <span class="fl">2</span>
-<span class="op">}</span> <span class="co"># nocov end</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">f2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="co"># nocov start</span></span>
+<span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">2</span></span>
+<span><span class="op">}</span> <span class="co"># nocov end</span></span></code></pre></div>
 <p>The patterns used can be specified by setting the global options <code>covr.exclude_pattern</code>, <code>covr.exclude_start</code>, <code>covr.exclude_end</code>.</p>
 <p>NB: The same pattern applies to exclusions in the <code>src</code> folder, so skipped lines in, e.g., C code (where comments can start with <code>//</code>) should look like <code>// # nocov</code>.</p>
 </div>
@@ -240,7 +240,7 @@
 <p>Covr is known to work with clang versions <code>3.5+</code> and gcc version <code>4.2+</code>.</p>
 <p>If the appropriate gcov version is not on your path you can set the appropriate location with the <code>covr.gcov</code> options. If you set this path to "" it will turn <em>off</em> coverage of compiled code.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.gcov <span class="op">=</span> <span class="st">"path/to/gcov"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.gcov <span class="op">=</span> <span class="st">"path/to/gcov"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="how-does-covr-work">How does covr work?<a class="anchor" aria-label="anchor" href="#how-does-covr-work"></a>
@@ -249,7 +249,7 @@
 <p>The vignette <a href="https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd" class="external-link">vignettes/how_it_works.Rmd</a> contains a detailed explanation of the technique and the rationale behind it.</p>
 <p>You can view the vignette from within <code>R</code> using</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"how_it_works"</span>, package <span class="op">=</span> <span class="st">"covr"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"how_it_works"</span>, package <span class="op">=</span> <span class="st">"covr"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="why-cant-covr-run-during-r-cmd-check">Why can’t covr run during R CMD check<a class="anchor" aria-label="anchor" href="#why-cant-covr-run-during-r-cmd-check"></a>
@@ -336,7 +336,7 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer>
