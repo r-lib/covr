@@ -145,7 +145,7 @@ new_test_counter <- function(key) {
   .counters[[key]]$tests$.data <- vector("integer", 3L)
   .counters[[key]]$tests$.value <- integer(1L)
   .counters[[key]]$tests$tally <- matrix(
-    0L,
+    NA_integer_,
     ncol = 3L,
     # initialize with 4 empty rows, only expanded once populated
     nrow = 4L,
