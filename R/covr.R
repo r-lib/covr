@@ -642,7 +642,8 @@ merge_coverage.list <- function(coverage_objs) {
 #   may have been allocated, but not entirely populated.
 #
 clean_coverage_tests <- function(obj) {
-  if (is.null(obj$tests)) return()
+  counter_has_tests_tally <- function(counter) !is.null(counter$tests)
+  if (is.na(Position(counter_has_tests_tally, obj))) return()
 
   for (i in seq_along(obj)) {
     if (is.null(val <- obj[[i]]$value)) next
