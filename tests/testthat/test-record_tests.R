@@ -107,6 +107,21 @@ test_that("covr.record_tests: merging coverage objects appends tests", {
 })
 
 
+test_that("covr.record_tests: tests tally is pruned even when no tests are hit", {
+  # "test" a function, but no code is executed and therefore no tests are logged
+  fcode <- 'f <- function(x) { if (x) f(!x) else FALSE }'
+  withr::with_options(c("covr.record_tests" = TRUE), cov <- code_coverage(fcode, "{ }"))
+
+  # expect that no tests were recorded, as no expressions evaluated f
+  expect_null(attr(cov, "tests"))
+
+  # expect that a matrix was still produced by a counter and pruned to 0 rows
+  expect_true(is.matrix(cov[[1L]]$tests))
+  expect_equal(cov[[1L]]$value, 0L)
+  expect_equal(nrow(cov[[1L]]$tests), 0L)
+})
+
+
 test_that("covr.record_tests: merging coverage test objects doesn't break default tests", {
   # recreate some ".counters" objects for testing
   .counter_1 <- list(
