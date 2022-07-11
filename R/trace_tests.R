@@ -190,7 +190,10 @@ update_current_test <- function() {
 
   has_srcfile <- viapply(syscall_srcfile, length) > 0L
   srcfile_tmp <- logical(length(has_srcfile))
-  srcfile_tmp[has_srcfile] <- startsWith(syscall_srcfile[has_srcfile], normalizePath(.libPaths()[[1]]))
+  srcfile_tmp[has_srcfile] <- startsWith(
+    syscall_srcfile[has_srcfile],
+    normalizePath(.libPaths()[[1]], mustWork = FALSE)
+  )
 
   test_frames <- if (any(srcfile_tmp)) {
     # if possible, try to take any frames within the temporary library
