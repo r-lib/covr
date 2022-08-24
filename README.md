@@ -1,7 +1,7 @@
 # covr <img src="man/figures/logo.png" align="right" />
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/r-lib/covr/workflows/R-CMD-check/badge.svg)](https://github.com/r-lib/covr/actions)
+[![R-CMD-check](https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/r-lib/covr/branch/master/graph/badge.svg)](https://codecov.io/gh/r-lib/covr?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/covr)](https://cran.r-project.org/package=covr)
 <!-- badges: end -->
