@@ -231,4 +231,5 @@
 * Move devtools dependency to suggests, only needed on windows
 * move htmltools to suggests
 
-# Initial Release #
+# 1.0.0 #
+* Initial Release
