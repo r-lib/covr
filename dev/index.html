@@ -19,7 +19,7 @@
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="Test Coverage for Packages">
 <meta property="og:description" content="Track and report code coverage for your package and (optionally)
-    upload the results to a coverage service like Codecov &lt;https://codecov.io&gt; or
+    upload the results to a coverage service like Codecov &lt;https://about.codecov.io&gt; or
     Coveralls &lt;https://coveralls.io&gt;. Code coverage is a measure of the amount of
     code being exercised by a set of tests. It is an indirect measure of test
     quality and completeness. This package is compatible with any testing
@@ -102,7 +102,7 @@
 <div class="page-header"><h1 id="covr-">covr <img src="reference/figures/logo.png" align="right"><a class="anchor" aria-label="anchor" href="#covr-"></a>
 </h1></div>
 <!-- badges: start -->
-<p>Track test coverage for your R package and view reports locally or (optionally) upload the results to <a href="https://codecov.io/" class="external-link">codecov</a> or <a href="https://coveralls.io/" class="external-link">coveralls</a>.</p>
+<p>Track test coverage for your R package and view reports locally or (optionally) upload the results to <a href="https://about.codecov.io/" class="external-link">codecov</a> or <a href="https://coveralls.io/" class="external-link">coveralls</a>.</p>
 </div>
 <div class="section level1">
 <h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -112,9 +112,9 @@
 <span></span>
 <span><span class="co"># For devel version</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"r-lib/covr"</span><span class="op">)</span></span></code></pre></div>
-<p>The easiest way to setup covr on <a href="https://travis-ci.org" class="external-link">Travis-CI</a> is with <a href="https://github.com/r-lib/usethis" class="external-link">usethis</a>.</p>
+<p>The easiest way to setup covr on <a href="https://github.com/r-lib/actions/tree/v2-branch/examples#test-coverage-workflow" class="external-link">Github Actions</a> is with <a href="https://github.com/r-lib/usethis" class="external-link">usethis</a>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu">use_coverage</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu">use_github_action</span><span class="op">(</span><span class="st">"test-coverage"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level1">
 <h1 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
@@ -146,31 +146,6 @@
 </div>
 </div>
 <div class="section level1">
-<h1 id="automated-reports">Automated reports<a class="anchor" aria-label="anchor" href="#automated-reports"></a>
-</h1>
-<div class="section level2">
-<h2 id="codecov">Codecov<a class="anchor" aria-label="anchor" href="#codecov"></a>
-</h2>
-<p>If you are already using <a href="https://travis-ci.org" class="external-link">Travis-CI</a> add the following to your project’s <code>.travis.yml</code> to track your coverage results over time with <a href="https://codecov.io" class="external-link">Codecov</a>.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">after_success</span><span class="kw">:</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> Rscript -e 'covr::codecov()'</span></span></code></pre></div>
-<p>If you are using <a href="http://ci.appveyor.com" class="external-link">Appveyor CI</a> then you can add the lines below to your project’s <code>appveyor.yml</code>:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">on_success</span><span class="kw">:</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> Rscript -e "covr::codecov()"</span></span></code></pre></div>
-<p>You also need to install covr, either by adding it to the <code>Suggests:</code> field of your package’s <code>DESCRIPTION</code> file or also to <code>Remotes: r-lib/covr</code> if you want to install the development version.</p>
-<p>To use other CI services or if you want to upload a coverage report locally you can set environment variable <code>CODECOV_TOKEN</code> to the token generated on the settings page of <a href="https://codecov.io" class="external-link uri">https://codecov.io</a>.</p>
-</div>
-<div class="section level2">
-<h2 id="coveralls">Coveralls<a class="anchor" aria-label="anchor" href="#coveralls"></a>
-</h2>
-<p>Alternatively you can upload your results to <a href="https://coveralls.io/" class="external-link">Coveralls</a> using <code><a href="reference/coveralls.html">covr::coveralls()</a></code>.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">after_success</span><span class="kw">:</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> Rscript -e 'covr::coveralls()'</span></span></code></pre></div>
-<p>For CI systems not supported by coveralls you need to set the <code>COVERALLS_TOKEN</code> environment variable. It is wise to use a <a href="http://docs.travis-ci.com/user/environment-variables/#Secure-Variables" class="external-link">Secure Variable</a> so that it is not revealed publicly.</p>
-<p>Also you will need to turn on coveralls for your project at <a href="https://coveralls.io/repos" class="external-link uri">https://coveralls.io/repos</a>.</p>
-</div>
-</div>
-<div class="section level1">
 <h1 id="exclusions">Exclusions<a class="anchor" aria-label="anchor" href="#exclusions"></a>
 </h1>
 <p><code>covr</code> supports a few of different ways of excluding some or all of a file.</p>
@@ -186,7 +161,7 @@
 <h2 id="function-exclusions">Function Exclusions<a class="anchor" aria-label="anchor" href="#function-exclusions"></a>
 </h2>
 <p>The <code>function_exclusions</code> argument to <code><a href="reference/package_coverage.html">package_coverage()</a></code> can be used to exclude functions by name. This argument takes a vector of regular expressions matching functions to exclude.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># exclude print functions</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>function_exclusions <span class="op">=</span> <span class="st">"print\\."</span><span class="op">)</span></span>
 <span></span>
@@ -197,7 +172,7 @@
 <h2 id="line-exclusions">Line Exclusions<a class="anchor" aria-label="anchor" href="#line-exclusions"></a>
 </h2>
 <p>The <code>line_exclusions</code> argument to <code><a href="reference/package_coverage.html">package_coverage()</a></code> can be used to exclude some or all of a file. This argument takes a list of filenames or named ranges to exclude.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># exclude whole file of R/test.R</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="st">"R/test.R"</span><span class="op">)</span></span>
 <span></span>
@@ -212,12 +187,12 @@
 </h2>
 <p>In addition you can exclude lines from the coverage by putting special comments in your source code.</p>
 <p>This can be done per line.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># nocov</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Or by specifying a range with a start and end.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="co"># nocov start</span></span>
 <span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">2</span></span>
 <span><span class="op">}</span> <span class="co"># nocov end</span></span></code></pre></div>
@@ -239,7 +214,7 @@
 <p>Covr now supports Intel’s <code>icc</code> compiler, thanks to work contributed by Qin Wang at Oracle.</p>
 <p>Covr is known to work with clang versions <code>3.5+</code> and gcc version <code>4.2+</code>.</p>
 <p>If the appropriate gcov version is not on your path you can set the appropriate location with the <code>covr.gcov</code> options. If you set this path to “” it will turn <em>off</em> coverage of compiled code.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.gcov <span class="op">=</span> <span class="st">"path/to/gcov"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -248,7 +223,7 @@
 <p><code>covr</code> tracks test coverage by modifying a package’s code to add tracking calls to each call.</p>
 <p>The vignette <a href="https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd" class="external-link">vignettes/how_it_works.Rmd</a> contains a detailed explanation of the technique and the rationale behind it.</p>
 <p>You can view the vignette from within <code>R</code> using</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"how_it_works"</span>, package <span class="op">=</span> <span class="st">"covr"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -269,7 +244,7 @@
 <div class="section level2">
 <h2 id="code-of-conduct">Code of Conduct<a class="anchor" aria-label="anchor" href="#code-of-conduct"></a>
 </h2>
-<p>Please note that the covr project is released with a <a href="http://covr.r-lib.org/CODE_OF_CONDUCT.html">Contributor Code of Conduct</a>. By contributing to this project, you agree to abide by its terms.</p>
+<p>Please note that the covr project is released with a <a href="https://github.com/r-lib/covr/blob/main/CODE_OF_CONDUCT.md" class="external-link">Contributor Code of Conduct</a>. By contributing to this project, you agree to abide by its terms.</p>
 </div>
 </div>
 
@@ -320,7 +295,7 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
-<li><a href="https://codecov.io/gh/r-lib/covr?branch=master" class="external-link"><img src="https://codecov.io/gh/r-lib/covr/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
+<li><a href="https://app.codecov.io/gh/r-lib/covr?branch=master" class="external-link"><img src="https://about.codecov.io/gh/r-lib/covr/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
 <li><a href="https://cran.r-project.org/package=covr" class="external-link"><img src="http://www.r-pkg.org/badges/version/covr" alt="CRAN version"></a></li>
 </ul>
 </div>
