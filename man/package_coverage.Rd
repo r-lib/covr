@@ -32,7 +32,8 @@ is simply summed into one coverage object. If \code{FALSE} separate objects
 are used for each type of coverage.}
 
 \item{relative_path}{whether to output the paths as relative or absolute
-paths.}
+paths. If a string, it is interpreted as a root path and all paths will be
+relative to that root.}
 
 \item{quiet}{whether to load and compile the package quietly, useful for
 debugging errors.}

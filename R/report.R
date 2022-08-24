@@ -21,8 +21,9 @@ report <- function(x = package_coverage(),
   # Paths need to be absolute for save_html to work properly
   file <- file.path(normalizePath(dirname(file), mustWork = TRUE), basename(file))
 
-  loadNamespace("htmltools")
-  loadNamespace("DT")
+  if (!(requireNamespace("htmltools", quietly = TRUE) && requireNamespace("DT", quietly = TRUE))) {
+    stop("The `DT` and `htmltools` packages must be installed to use `covr::report()`", call. = FALSE)
+  }
 
   data <- to_report_data(x)
 
@@ -57,7 +58,7 @@ report <- function(x = package_coverage(),
   table <- DT::datatable(
     data$file_stats,
     escape = FALSE,
-    fillContainer = TRUE,
+    fillContainer = FALSE,
     options = list(
       searching = FALSE,
       dom = "t",

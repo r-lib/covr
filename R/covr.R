@@ -108,10 +108,10 @@ save_trace <- function(directory) {
 }
 
 #' Convert a counters object to a coverage object
-#' 
+#'
 #' @param counters An environment of covr trace results to convert to a coverage
 #'   object. If `counters` is not provided, the `covr` namespace value
-#'   `.counters` is used. 
+#'   `.counters` is used.
 #' @param ... Additional attributes to include with the coverage object.
 #'
 as_coverage <- function(counters = NULL, ...) {
@@ -119,12 +119,31 @@ as_coverage <- function(counters = NULL, ...) {
     counters <- .counters
 
   counters <- as.list(counters)
+  counters <- as_coverage_with_tests(counters)
 
-  # extract optional tests 
+  structure(counters, ..., class = "coverage")
+}
+
+#' Clean and restructure counter tests for a coverage object
+#'
+#' For tests produced with `options(covr.record_tests)`, prune any unused
+#' records in the $tests$tally matrices of each trace and get rid of the
+#' wrapping $tests environment (reassigning with value of $tests$tally)
+#'
+#' @inheritParams as_coverage
+#'
+as_coverage_with_tests <- function(counters) {
+  clean_coverage_tests(counters)
+
+  # unnest environment-wrapped $tests$tally as more accessible $tests
+  for (i in seq_along(counters)) {
+    if (!is.environment(counters[[i]]$tests)) next
+    counters[[i]]$tests <- counters[[i]]$tests$tally
+  }
+
   tests <- counters$tests
   counters$tests <- NULL
-
-  structure(counters, tests = tests, ..., class = "coverage")
+  structure(counters, tests = tests, class = "coverage")
 }
 
 #' Calculate test coverage for a specific function.
@@ -183,8 +202,12 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
 #' # For the purpose of this example, save code containing code and tests to files
 #' cat("add <- function(x, y) { x + y }", file="add.R")
 #' cat("add(1, 2) == 3", file="add_test.R")
+#'
 #' # Use file_coverage() to calculate test coverage
 #' file_coverage(source_files = "add.R", test_files = "add_test.R")
+#'
+#' # cleanup
+#' file.remove(c("add.R", "add_test.R"))
 #' @export
 file_coverage <- function(
   source_files,
@@ -308,7 +331,8 @@ environment_coverage <- function(
 #' is simply summed into one coverage object. If `FALSE` separate objects
 #' are used for each type of coverage.
 #' @param relative_path whether to output the paths as relative or absolute
-#' paths.
+#'   paths. If a string, it is interpreted as a root path and all paths will be
+#'   relative to that root.
 #' @param quiet whether to load and compile the package quietly, useful for
 #' debugging errors.
 #' @param clean whether to clean temporary output files after running, mainly
@@ -342,10 +366,11 @@ package_coverage <- function(path = ".",
                              exclusions, pre_clean=TRUE) {
 
   if (!missing(exclusions)) {
-    warning(paste0("`exclusions` is deprecated and will be removed in an upcoming
-      release. ", "Please use `line_exclusions` instead."), call. = FALSE,
-      domain = NA)
-      line_exclusions <- exclusions
+    warning(
+      "`exclusions` is deprecated and will be removed in an upcoming release. Please use `line_exclusions` instead.",
+      call. = FALSE, domain = NA
+    )
+    line_exclusions <- exclusions
   }
 
   pkg <- as_package(path)
@@ -372,6 +397,15 @@ package_coverage <- function(path = ".",
     attr(res, "package") <- pkg
     class(res) <- "coverages"
     return(res)
+  }
+
+  if (is.character(relative_path)) {
+    stopifnot(length(relative_path) == 1)
+    root <- normalize_path(relative_path)
+  } else if (isTRUE(relative_path)) {
+    root <- pkg$path
+  } else {
+    root <- NULL
   }
 
   dir.create(install_path)
@@ -425,6 +459,11 @@ package_coverage <- function(path = ".",
 
   libs <- env_path(install_path, .libPaths())
 
+  # We need to set the libpaths in the current R session for examples with
+  # install or runtime Sexpr blocks, which may implicitly load the package in
+  # the current R session.
+  withr::with_libpaths(install_path, action = "prefix", {
+
   withr::with_envvar(
     c(R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
       R_LIBS = libs,
@@ -466,6 +505,7 @@ package_coverage <- function(path = ".",
     message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
     warning = function(e) if (quiet) invokeRestart("muffleWarning") else e)
     })
+    })
 
   # read tracing files
   trace_files <- list.files(path = install_path, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
@@ -479,7 +519,7 @@ package_coverage <- function(path = ".",
   coverage <- as_coverage(
     c(coverage, res),
     package = pkg,
-    relative = relative_path
+    root = root
   )
 
   if (!clean) {
@@ -503,7 +543,7 @@ package_coverage <- function(path = ".",
   exclude(coverage,
     line_exclusions = line_exclusions,
     function_exclusions = function_exclusions,
-    path = if (isTRUE(relative_path)) pkg$path else NULL)
+    path = root)
 }
 
 #' Convert a coverage dataset to a list
@@ -567,21 +607,17 @@ merge_coverage.list <- function(coverage_objs) {
 
   x <- coverage_objs[[1]]
   names <- names(x)
+  clean_coverage_tests(x)  # x[[key]]$tests environments modified in-place
 
   for (y in tail(coverage_objs, -1L)) {
-    # align tests from coverage objects
-    test_idx <- match(names(y$tests), Filter(nchar, names(x$tests)))
-    new_test_idx <- if (!length(test_idx)) seq_along(y$tests) else which(is.na(test_idx))
-    test_idx[new_test_idx] <- length(x$tests) + seq_along(new_test_idx)
 
-    # append any tests that we haven't encountered in previous objects
-    x$tests <- append(x$tests, y$tests[new_test_idx])
-    y$tests <- NULL
+    # only affects coverage produced with options(covr.record_tests = TRUE)
+    clean_coverage_tests(y)
+    x <- merge_coverage_tests(from = y, into = x)
 
     for (name in intersect(names, names(y))) {
+      if (name == "tests") next
       x[[name]]$value <- x[[name]]$value + y[[name]]$value
-      y[[name]]$tests[,1] <- test_idx[y[[name]]$tests[,1]]
-      x[[name]]$tests <- rbind(x[[name]]$tests, y[[name]]$tests)
     }
 
     for (name in setdiff(names(y), names)) {
@@ -592,6 +628,68 @@ merge_coverage.list <- function(coverage_objs) {
   }
 
   x
+}
+
+# Strip allocated, but unused test records from coverage test matrix
+#
+# The tally of tests that hit each trace is held in a pre-allocated matrix
+# which may be padded with unused rows. Start by stripping unused rows:
+#
+# If tests were not recorded (that is, if `options(covr.record_tests)` was not
+# `TRUE` when the coverage was calculated, this function will have no effect.
+#
+# @param obj A coverage counter environment, within which a $tests$tally matrix
+#   may have been allocated, but not entirely populated.
+#
+clean_coverage_tests <- function(obj) {
+  counter_has_tests_tally <- function(counter) !is.null(counter$tests)
+  if (is.na(Position(counter_has_tests_tally, obj))) return()
+
+  for (i in seq_along(obj)) {
+    if (is.null(val <- obj[[i]]$value)) next
+    if (is.null(n <- nrow(obj[[i]]$tests$tally)) || n < val) next
+    obj[[i]]$tests$tally <- obj[[i]]$tests$tally[seq_len(val),,drop = FALSE]
+  }
+}
+
+# Merge recorded tests from one coverage object into another. Because coverage
+# objects are environments, these environments will be modified by-reference as
+# a side-effect of calling this function.
+#
+# If tests were not recorded (that is, if `options(covr.record_tests)` was not
+# `TRUE` when the coverage was calculated, this function will have no effect.
+#
+# @param from A coverage counter environment whose tests should be merged into
+#   \code{into}
+# @param into A coverage counter environment to add tests into
+#
+merge_coverage_tests <- function(from, into = NULL) {
+  if (is.null(from$tests)) return(into)
+
+  # TODO: The x[[name]]$tests$tally matrices are re-allocated with each rbind of
+  # additional test hits as each object is merged. This could be avoided by
+  # first calculating the total rows needed to store all the merged tests and
+  # then allocating a matrix of the appropriate size from the start. In most
+  # cases, this amounts to neglegable overhead but is an opportunity for
+  # improvement.
+
+  # align tests from coverage objects
+  test_idx <- match(names(from$tests), Filter(nchar, names(into$tests)))
+  new_test_idx <- if (!length(test_idx)) seq_along(from$tests) else which(is.na(test_idx))
+  test_idx[new_test_idx] <- length(into$tests) + seq_along(new_test_idx)
+
+  # append any tests that we haven't encountered in previous objects
+  into$tests <- append(into$tests, from$tests[new_test_idx])
+  from$tests <- NULL
+
+  # modify trace test tallies
+  for (name in intersect(names(into), names(from))) {
+    if (name == "tests") next
+    from[[name]]$tests$tally[,1L] <- test_idx[from[[name]]$tests$tally[,1L]]
+    into[[name]]$tests$tally <- rbind(into[[name]]$tests$tally, from[[name]]$tests$tally)
+  }
+
+  into
 }
 
 parse_type <- function(type) {

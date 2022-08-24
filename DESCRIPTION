@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Package: covr
 Title: Test Coverage for Packages
-Version: 3.5.1.9002
+Version: 3.5.1.9004
 Authors@R: c(
     person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre")),
     person("Willem", "Ligtenberg", role = "ctb"),
@@ -69,8 +69,7 @@ Suggests:
     memoise,
     mockery,
     covr
-License: GPL-3
-LazyData: true
+License: MIT + file LICENSE
 VignetteBuilder: knitr
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1
 Roxygen: list(markdown = TRUE)

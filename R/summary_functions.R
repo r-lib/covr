@@ -60,9 +60,7 @@ tally_coverage <- function(x, by = c("line", "expression")) {
 
              srcfile_names <- vcapply(srcfiles, `[[`, "filename")
 
-             if (isTRUE(attr(x, "relative"))) {
-               srcfile_names <- to_relative_path(srcfile_names, attr(x, "package")$path)
-             }
+             srcfile_names <- to_relative_path(srcfile_names, attr(x, "root"))
 
              blank_lines <- compact(
                setNames(lapply(srcfiles, function(srcfile) attr(srcfile_lines(srcfile), "blanks")),

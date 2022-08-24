@@ -23,7 +23,7 @@ to_sonarqube <- function(cov, filename = "sonarqube.xml"){
     file <- xml2::xml_add_child(top, "file", path = paste(attr(cov, "package")$package, "/", as.character(f), sep=""))
 
     for (fun_name in unique(na.omit(df[df$filename == f, "functions"]))) {
-      fun_lines <- which(df$functions == fun_name)
+      fun_lines <- which(df$functions == fun_name & df$filename == f)
       for (i in fun_lines){
         line <- df[i, ]
         xml2::xml_add_child(file, "lineToCover", lineNumber = as.character(line$line),
