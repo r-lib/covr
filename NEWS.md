@@ -1,4 +1,4 @@
-# covr (development version)
+# covr 3.6.0
 
 * Added `covr.record_tests` option. When `TRUE`, this enables the recording of the trace of the tests being executed and adds an itemization of which tests result in the execution of each trace.
   For more details see `?covr.record_tests` (@dgkf, #463, #485, #503)
