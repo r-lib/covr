@@ -20,7 +20,7 @@
 #' @param pr explicitly set the pr this coverage result object corresponds to,
 #'   this is looked up from the service if it is `NULL`.
 #' @param flags A flag to use for this coverage upload see
-#'   <https://docs.codecov.io/docs/flags> for details.
+#'   <https://docs.codecov.com/docs/flags> for details.
 #' @export
 #' @examples
 #' \dontrun{

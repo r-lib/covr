@@ -7,7 +7,7 @@
 \title{covr: Test coverage for packages}
 \description{
 covr tracks and reports code coverage for your package and (optionally)
-upload the results to a coverage service like 'Codecov' \url{https://codecov.io} or
+upload the results to a coverage service like 'Codecov' \url{https://about.codecov.io} or
 'Coveralls' \url{https://coveralls.io}. Code coverage is a measure of the amount of
 code being exercised by a set of tests. It is an indirect measure of test
 quality and completeness. This package is compatible with any testing

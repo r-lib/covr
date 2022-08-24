@@ -46,7 +46,7 @@ corresponds to, this is looked up from the service or locally if it is
 this is looked up from the service if it is \code{NULL}.}
 
 \item{flags}{A flag to use for this coverage upload see
-\url{https://docs.codecov.io/docs/flags} for details.}
+\url{https://docs.codecov.com/docs/flags} for details.}
 
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }

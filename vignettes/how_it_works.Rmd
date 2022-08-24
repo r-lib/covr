@@ -227,7 +227,7 @@ coverage.
 
 # Codecov.io and Coveralls.io #
 
-[Codecov](https://codecov.io/) and [Coveralls](https://coveralls.io/) are a web services to help you track your code coverage
+[Codecov](https://about.codecov.io/) and [Coveralls](https://coveralls.io/) are a web services to help you track your code coverage
 over time, and ensure that all new code is appropriately covered.
 
 They both have JSON-based APIs to submit and report on coverage. The functions `codecov` and `coveralls` create outputs that can be consumed by these services.
