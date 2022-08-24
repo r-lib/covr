@@ -1,9 +1,9 @@
-pandoc: 2.7.3
+pandoc: 2.14.2
 pkgdown: 2.0.6
 pkgdown_sha: ~
 articles:
   how_it_works: how_it_works.html
-last_built: 2022-08-24T12:31Z
+last_built: 2022-08-24T12:54Z
 urls:
   reference: http://covr.r-lib.org/reference
   article: http://covr.r-lib.org/articles

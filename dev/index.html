@@ -152,11 +152,11 @@
 <h2 id="codecov">Codecov<a class="anchor" aria-label="anchor" href="#codecov"></a>
 </h2>
 <p>If you are already using <a href="https://travis-ci.org" class="external-link">Travis-CI</a> add the following to your project’s <code>.travis.yml</code> to track your coverage results over time with <a href="https://codecov.io" class="external-link">Codecov</a>.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">after_success</span><span class="kw">:</span></span>
-<span id="cb5-2"><a href="#cb5-2"></a><span class="at">  </span><span class="kw">-</span><span class="at"> Rscript -e 'covr::codecov()'</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">after_success</span><span class="kw">:</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> Rscript -e 'covr::codecov()'</span></span></code></pre></div>
 <p>If you are using <a href="http://ci.appveyor.com" class="external-link">Appveyor CI</a> then you can add the lines below to your project’s <code>appveyor.yml</code>:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">on_success</span><span class="kw">:</span></span>
-<span id="cb6-2"><a href="#cb6-2"></a><span class="at">  </span><span class="kw">-</span><span class="at"> Rscript -e "covr::codecov()"</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">on_success</span><span class="kw">:</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> Rscript -e "covr::codecov()"</span></span></code></pre></div>
 <p>You also need to install covr, either by adding it to the <code>Suggests:</code> field of your package’s <code>DESCRIPTION</code> file or also to <code>Remotes: r-lib/covr</code> if you want to install the development version.</p>
 <p>To use other CI services or if you want to upload a coverage report locally you can set environment variable <code>CODECOV_TOKEN</code> to the token generated on the settings page of <a href="https://codecov.io" class="external-link uri">https://codecov.io</a>.</p>
 </div>
@@ -164,8 +164,8 @@
 <h2 id="coveralls">Coveralls<a class="anchor" aria-label="anchor" href="#coveralls"></a>
 </h2>
 <p>Alternatively you can upload your results to <a href="https://coveralls.io/" class="external-link">Coveralls</a> using <code><a href="reference/coveralls.html">covr::coveralls()</a></code>.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">after_success</span><span class="kw">:</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a><span class="at">  </span><span class="kw">-</span><span class="at"> Rscript -e 'covr::coveralls()'</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">after_success</span><span class="kw">:</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> Rscript -e 'covr::coveralls()'</span></span></code></pre></div>
 <p>For CI systems not supported by coveralls you need to set the <code>COVERALLS_TOKEN</code> environment variable. It is wise to use a <a href="http://docs.travis-ci.com/user/environment-variables/#Secure-Variables" class="external-link">Secure Variable</a> so that it is not revealed publicly.</p>
 <p>Also you will need to turn on coveralls for your project at <a href="https://coveralls.io/repos" class="external-link uri">https://coveralls.io/repos</a>.</p>
 </div>
@@ -238,7 +238,7 @@
 </h2>
 <p>Covr now supports Intel’s <code>icc</code> compiler, thanks to work contributed by Qin Wang at Oracle.</p>
 <p>Covr is known to work with clang versions <code>3.5+</code> and gcc version <code>4.2+</code>.</p>
-<p>If the appropriate gcov version is not on your path you can set the appropriate location with the <code>covr.gcov</code> options. If you set this path to "" it will turn <em>off</em> coverage of compiled code.</p>
+<p>If the appropriate gcov version is not on your path you can set the appropriate location with the <code>covr.gcov</code> options. If you set this path to “” it will turn <em>off</em> coverage of compiled code.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.gcov <span class="op">=</span> <span class="st">"path/to/gcov"</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -319,7 +319,7 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/r-lib/covr/actions" class="external-link"><img src="https://github.com/r-lib/covr/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://codecov.io/gh/r-lib/covr?branch=master" class="external-link"><img src="https://codecov.io/gh/r-lib/covr/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
 <li><a href="https://cran.r-project.org/package=covr" class="external-link"><img src="http://www.r-pkg.org/badges/version/covr" alt="CRAN version"></a></li>
 </ul>
