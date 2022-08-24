@@ -1,5 +1,7 @@
 # covr (development version)
 
+* `package_coverage(code = )` now accepts character vectors of length greater than 1 (@bastistician, #481)
+
 * Added `covr.record_tests` option. When `TRUE`, this enables the recording of
   the trace of the tests being executed and adds an itemization of which tests
   result in the exeuction of each trace. For more details see
