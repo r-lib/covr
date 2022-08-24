@@ -1,5 +1,7 @@
 # covr (development version)
 
+* `package_coverage(code = )` now accepts character vectors of length greater than 1 (@bastistician, #481)
+
 * `report()` now provides a more detailed error message if the `DT` and `htmltools` dependencies are not installed (#500).
 
 * Added `covr.record_tests` option. When `TRUE`, this enables the recording of

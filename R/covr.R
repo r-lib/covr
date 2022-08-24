@@ -734,9 +734,9 @@ run_vignettes <- function(pkg, lib) {
 run_commands <- function(pkg, lib, commands) {
   outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
   failfile <- paste(outfile, "fail", sep = "." )
-  cat(
-    "library('", pkg$package, "')\n",
-    commands, "\n", file = outfile, sep = "")
+  writeLines(c(
+    paste0("library('", pkg$package, "')"),
+    commands), con = outfile)
   cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                "CMD BATCH --vanilla --no-timing",
                shQuote(outfile), shQuote(failfile))

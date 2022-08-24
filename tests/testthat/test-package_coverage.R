@@ -29,3 +29,9 @@ test_that("package_coverage with type == 'none' runs no test code", {
 
   expect_equal(percent_coverage(cov), 0.00)
 })
+
+test_that("package_coverage runs additional test code", {
+  cov <- package_coverage("TestS4", type = "none", code = c("a(1)", "a(2)"))
+
+  expect_gt(percent_coverage(cov), 0.00)
+})
