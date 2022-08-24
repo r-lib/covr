@@ -224,4 +224,4 @@ higher optimization levels).
 
 ## Code of Conduct
 
-Please note that the covr project is released with a [Contributor Code of Conduct](http://covr.r-lib.org/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
+Please note that the covr project is released with a [Contributor Code of Conduct](https://github.com/r-lib/covr/blob/main/CODE_OF_CONDUCT.md). By contributing to this project, you agree to abide by its terms.
