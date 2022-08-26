@@ -45,7 +45,7 @@ test_that("it works", {
 test_that("per_line removes blank lines and lines with only punctuation (#387)", {
   skip_on_cran()
 
-  cov <- package_coverage(test_path("testFunctional"))
+  cov <- package_coverage(test_path("TestFunctional"))
 
   line_cov <- per_line(cov)
 
