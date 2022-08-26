@@ -593,6 +593,7 @@ merge_coverage <- function(x) {
   UseMethod("merge_coverage")
 }
 
+#' @export
 merge_coverage.character <- function(files) {
   coverage_objs <- lapply(files, function(f) {
     as.list(suppressWarnings(readRDS(f)))
@@ -600,6 +601,7 @@ merge_coverage.character <- function(files) {
   merge_coverage(coverage_objs)
 }
 
+#' @export
 merge_coverage.list <- function(coverage_objs) {
   if (length(coverage_objs) == 0) {
     return()

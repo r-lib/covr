@@ -2,6 +2,8 @@
 
 S3method("[",coverage)
 S3method(as.data.frame,coverage)
+S3method(merge_coverage,character)
+S3method(merge_coverage,list)
 S3method(print,coverage)
 S3method(print,coverages)
 S3method(value,coverage)
