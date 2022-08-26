@@ -33,3 +33,4 @@ _dev\.R$
 ^CODE_OF_CONDUCT\.md$
 ^\.github$
 ^SECURITY\.md$
+^CRAN-SUBMISSION$
