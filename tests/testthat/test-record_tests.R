@@ -2,11 +2,11 @@ context("record_tests")
 
 cov_func <- withr::with_options(
   list(covr.record_tests = TRUE),
-  package_coverage(test_path("testFunctional")))
+  package_coverage(test_path("TestFunctional")))
 
 cov_tests_not_recorded <- withr::with_options(
   list(covr.record_tests = NULL),
-  package_coverage(test_path("testFunctional")))
+  package_coverage(test_path("TestFunctional")))
 
 
 test_that("covr.record_tests causes test traces to be recorded", {
@@ -188,7 +188,7 @@ test_that("covr.record_tests: safely handles extremely large calls", {
 
     r_script <- tempfile("test_rds_script", fileext = ".R")
     writeLines(code, r_script)
-    res <- system2("R", list("-q", "-s", "--vanilla", "-f", r_script), stdout = TRUE, stderr = TRUE)
+    res <- system2(file.path(R.home("bin"), "R"), list("-q", "-s", "--vanilla", "-f", r_script), stdout = TRUE, stderr = TRUE)
   })
 
   if (attr(res, "status") == 0L) {
