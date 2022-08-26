@@ -63,7 +63,11 @@
       <small>Source: <a href="https://github.com/r-lib/covr/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
-    <div class="section level2"><h2 class="page-header" data-toc-text="development version" id="covr-development-version">covr (development version)<a class="anchor" aria-label="anchor" href="#covr-development-version"></a></h2></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="development version" id="covr-development-version">covr (development version)<a class="anchor" aria-label="anchor" href="#covr-development-version"></a></h2>
+<ul><li><p>The internal generic <code>merge_coverage()</code> now correctly registers the S3 methods.</p></li>
+<li><p>The internal test for recording large calls no longer assumes R is on the system PATH.</p></li>
+</ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="3.6.0" id="covr-360">covr 3.6.0<small>2022-08-24</small><a class="anchor" aria-label="anchor" href="#covr-360"></a></h2>
 <ul><li><p>Added <code>covr.record_tests</code> option. When <code>TRUE</code>, this enables the recording of the trace of the tests being executed and adds an itemization of which tests result in the execution of each trace. For more details see <code><a href="../reference/covr.record_tests.html">?covr.record_tests</a></code> (<a href="https://github.com/dgkf" class="external-link">@dgkf</a>, <a href="https://github.com/r-lib/covr/issues/463" class="external-link">#463</a>, <a href="https://github.com/r-lib/covr/issues/485" class="external-link">#485</a>, <a href="https://github.com/r-lib/covr/issues/503" class="external-link">#503</a>)</p></li>
