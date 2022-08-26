@@ -1,5 +1,9 @@
 # covr (development version)
 
+* The internal generic `merge_coverage()` now correctly registers the S3 methods.
+
+* The internal test for recording large calls no longer assumes R is on the system PATH.
+
 # covr 3.6.0
 
 * Added `covr.record_tests` option. When `TRUE`, this enables the recording of the trace of the tests being executed and adds an itemization of which tests result in the execution of each trace.
