@@ -8,3 +8,7 @@ a <- function(x) {
     2
   }
 }
+
+private_function <- function(x) {
+  x ^ 2
+}
