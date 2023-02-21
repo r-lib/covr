@@ -68,7 +68,8 @@ Suggests:
     parallel,
     memoise,
     mockery,
-    covr
+    covr,
+    box
 License: MIT + file LICENSE
 VignetteBuilder: knitr
 RoxygenNote: 7.2.1
