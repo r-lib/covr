@@ -1,5 +1,7 @@
 options(box.path = file.path(getwd()))
-rm(list = ls(box:::loaded_mods), envir = box:::loaded_mods)
+# remove box cache
+loaded_mods <- loadNamespace("box")$loaded_mods
+rm(list = ls(loaded_mods), envir = loaded_mods)
 
 library(testthat)
 
