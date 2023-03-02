@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE coverage SYSTEM 'https://raw.githubusercontent.com/cobertura/cobertura/master/cobertura/src/site/htdocs/xml/coverage-04.dtd'>
 <coverage line-rate="0.5" branch-rate="0" lines-covered="2" lines-valid="4" branches-covered="0" branches-valid="0" complexity="0" version="3.2.1.9000" timestamp="2019-08-05 05:26:36">
-  <sources/>
+  <sources>
+    <source>/dummy/directory</source>
+  </sources>
   <packages>
     <package name="TestSummary" line-rate="0.5" branch-rate="0" complexity="0">
       <classes>
         <class name="TestSummary.R" filename="R/TestSummary.R" line-rate="0.5" branch-rate="0" complexity="0">
           <methods>
-            <method name="test_me" signature="" line-rate="0.666666666666667" branch-rate="0">
+            <method name="test_me" signature="" line-rate="0.666666666666667" branch-rate="0" complexity="0">
               <lines>
                 <line number="5" hits="1" branch="false"/>
                 <line number="6" hits="1" branch="false"/>
                 <line number="8" hits="0" branch="false"/>
               </lines>
             </method>
-            <method name="dont_test_me" signature="" line-rate="0" branch-rate="0">
+            <method name="dont_test_me" signature="" line-rate="0" branch-rate="0" complexity="0">
               <lines>
                 <line number="13" hits="0" branch="false"/>
               </lines>

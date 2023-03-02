@@ -1,6 +1,13 @@
 #' Create a Cobertura XML file
 #'
-#' This functionality requires the xml2 package be installed.
+#' Create a cobertura-compliant XML report following [this
+#' DTD](https://github.com/cobertura/cobertura/blob/master/cobertura/src/site/htdocs/xml/coverage-04.dtd).
+#' Because there are _two_ DTDs called `coverage-04.dtd` and some tools do not seem to
+#' adhere to either of them, the parser you're using may balk at the file. Please see
+#' [this github discussion](https://github.com/cobertura/cobertura/issues/425) for
+#' context. Where `covr` doesn't provide a coverage metric (branch coverage,
+#' complexity), a zero is reported.
+#'
 #' @param cov the coverage object returned from [package_coverage()]
 #' @param filename the name of the Cobertura XML file
 #' @author Willem Ligtenberg
@@ -18,6 +25,13 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
                                  
   d <- xml2::xml_new_document()
 
+  xml2::xml_add_child(d, xml2::xml_dtd(
+    name = "coverage",
+    system_id = paste0(
+      "https://raw.githubusercontent.com/cobertura/cobertura/master/",
+      "cobertura/src/site/htdocs/xml/coverage-04.dtd"
+    )
+  ))
   top <- xml2::xml_add_child(d,
     "coverage",
     "line-rate" = as.character(percent_overall),
@@ -32,6 +46,8 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
 
   # Add sources
   sources <- xml2::xml_add_child(top, "sources")
+  xml2::xml_add_child(sources, "source", xml2::xml_cdata(getwd()))
+
   files <- unique(df$filename)
   #for (f in files){
     #xml2::xml_add_child(sources, "source", f)
@@ -64,7 +80,8 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
         name = fun_name,
         signature = "",
         "line-rate" = as.character(percent_per_function[fun_name]),
-        "branch-rate" = "0")
+        "branch-rate" = "0",
+        "complexity" = "0")
 
       # Add lines
       lines <- xml2::xml_add_child(fun, "lines")
