@@ -1,6 +1,7 @@
 #' Create a Cobertura XML file
 #'
-#' Create a cobertura-compliant XML report following [this
+#' This functionality requires the xml2 package be installed. Create a
+#' cobertura-compliant XML report following [this
 #' DTD](https://github.com/cobertura/cobertura/blob/master/cobertura/src/site/htdocs/xml/coverage-04.dtd).
 #' Because there are _two_ DTDs called `coverage-04.dtd` and some tools do not seem to
 #' adhere to either of them, the parser you're using may balk at the file. Please see
@@ -27,10 +28,7 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
 
   xml2::xml_add_child(d, xml2::xml_dtd(
     name = "coverage",
-    system_id = paste0(
-      "https://raw.githubusercontent.com/cobertura/cobertura/master/",
-      "cobertura/src/site/htdocs/xml/coverage-04.dtd"
-    )
+    system_id = "https://raw.githubusercontent.com/cobertura/cobertura/master/cobertura/src/site/htdocs/xml/coverage-04.dtd"
   ))
   top <- xml2::xml_add_child(d,
     "coverage",
@@ -46,7 +44,10 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
 
   # Add sources
   sources <- xml2::xml_add_child(top, "sources")
-  xml2::xml_add_child(sources, "source", xml2::xml_cdata(getwd()))
+  source_pth <- attr(cov, "package")$path %||% attr(cov, "root")
+  if (!is.null(source_pth)) {
+    xml2::xml_add_child(sources, "source", xml2::xml_cdata(source_pth))
+  }
 
   files <- unique(df$filename)
   #for (f in files){
