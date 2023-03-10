@@ -65,7 +65,8 @@
 
     <div class="section level2">
 <h2 class="page-header" data-toc-text="development version" id="covr-development-version">covr (development version)<a class="anchor" aria-label="anchor" href="#covr-development-version"></a></h2>
-<ul><li><p>The internal generic <code>merge_coverage()</code> now correctly registers the S3 methods.</p></li>
+<ul><li><p><code><a href="../reference/to_cobertura.html">to_cobertura()</a></code> is now explicit about the doctype of the resulting XML. It also sets a source path if recorded. (<a href="https://github.com/mmyrte" class="external-link">@mmyrte</a>, <a href="https://github.com/r-lib/covr/issues/524" class="external-link">#524</a>)</p></li>
+<li><p>The internal generic <code>merge_coverage()</code> now correctly registers the S3 methods.</p></li>
 <li><p>The internal test for recording large calls no longer assumes R is on the system PATH.</p></li>
 </ul></div>
     <div class="section level2">
@@ -100,10 +101,12 @@
 </ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="3.3.2" id="covr-332">covr 3.3.2<small>2019-10-16</small><a class="anchor" aria-label="anchor" href="#covr-332"></a></h2>
-<ul><li>Fix test failures in the development version of R (4.0.0) (<a href="https://github.com/r-lib/covr/issues/400" class="external-link">#400</a>)</li></ul></div>
+<ul><li>Fix test failures in the development version of R (4.0.0) (<a href="https://github.com/r-lib/covr/issues/400" class="external-link">#400</a>)</li>
+</ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="3.3.1" id="covr-331">covr 3.3.1<small>2019-08-23</small><a class="anchor" aria-label="anchor" href="#covr-331"></a></h2>
-<ul><li>Fix inadvertent regression in return visibility when functions are covered. covr versions prior to 3.3.0 surrounded each statement in <code>{</code> blocks. covr 3.3.0 switched to using <code>({</code>, but this caused an inadvertent regression, as <code>(</code> will make the result visible it is the last expression in a function. Using <code>if (TRUE) {</code> restores the previous behavior. (<a href="https://github.com/r-lib/covr/issues/391" class="external-link">#391</a>, <a href="https://github.com/r-lib/covr/issues/392" class="external-link">#392</a>)</li></ul></div>
+<ul><li>Fix inadvertent regression in return visibility when functions are covered. covr versions prior to 3.3.0 surrounded each statement in <code>{</code> blocks. covr 3.3.0 switched to using <code>({</code>, but this caused an inadvertent regression, as <code>(</code> will make the result visible it is the last expression in a function. Using <code>if (TRUE) {</code> restores the previous behavior. (<a href="https://github.com/r-lib/covr/issues/391" class="external-link">#391</a>, <a href="https://github.com/r-lib/covr/issues/392" class="external-link">#392</a>)</li>
+</ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="3.3.0" id="covr-330">covr 3.3.0<small>2019-08-06</small><a class="anchor" aria-label="anchor" href="#covr-330"></a></h2>
 <div class="section level3">
@@ -138,7 +141,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>
