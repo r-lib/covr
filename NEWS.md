@@ -1,5 +1,7 @@
 # covr (development version)
 
+* `to_cobertura()` is now explicit about the doctype of the resulting XML. It also sets a source path if recorded. (@mmyrte, #524)
+
 * The internal generic `merge_coverage()` now correctly registers the S3 methods.
 
 * The internal test for recording large calls no longer assumes R is on the system PATH.
