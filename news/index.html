@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.6.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">3.6.1</span>
       </span>
     </div>
 
@@ -64,6 +64,12 @@
     </div>
 
     <div class="section level2">
+<h2 class="page-header" data-toc-text="3.6.1" id="covr-361">covr 3.6.1<small>2022-08-26</small><a class="anchor" aria-label="anchor" href="#covr-361"></a></h2>
+<ul><li><p><code><a href="../reference/to_cobertura.html">to_cobertura()</a></code> is now explicit about the doctype of the resulting XML. It also sets a source path if recorded. (<a href="https://github.com/mmyrte" class="external-link">@mmyrte</a>, <a href="https://github.com/r-lib/covr/issues/524" class="external-link">#524</a>)</p></li>
+<li><p>The internal generic <code>merge_coverage()</code> now correctly registers the S3 methods.</p></li>
+<li><p>The internal test for recording large calls no longer assumes R is on the system PATH.</p></li>
+</ul></div>
+    <div class="section level2">
 <h2 class="page-header" data-toc-text="3.6.0" id="covr-360">covr 3.6.0<small>2022-08-24</small><a class="anchor" aria-label="anchor" href="#covr-360"></a></h2>
 <ul><li><p>Added <code>covr.record_tests</code> option. When <code>TRUE</code>, this enables the recording of the trace of the tests being executed and adds an itemization of which tests result in the execution of each trace. For more details see <code><a href="../reference/covr.record_tests.html">?covr.record_tests</a></code> (<a href="https://github.com/dgkf" class="external-link">@dgkf</a>, <a href="https://github.com/r-lib/covr/issues/463" class="external-link">#463</a>, <a href="https://github.com/r-lib/covr/issues/485" class="external-link">#485</a>, <a href="https://github.com/r-lib/covr/issues/503" class="external-link">#503</a>)</p></li>
 <li><p><code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> now returns an 0 row data frame when there are no functions in a package (<a href="https://github.com/r-lib/covr/issues/427" class="external-link">#427</a>)</p></li>
@@ -95,10 +101,12 @@
 </ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="3.3.2" id="covr-332">covr 3.3.2<small>2019-10-16</small><a class="anchor" aria-label="anchor" href="#covr-332"></a></h2>
-<ul><li>Fix test failures in the development version of R (4.0.0) (<a href="https://github.com/r-lib/covr/issues/400" class="external-link">#400</a>)</li></ul></div>
+<ul><li>Fix test failures in the development version of R (4.0.0) (<a href="https://github.com/r-lib/covr/issues/400" class="external-link">#400</a>)</li>
+</ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="3.3.1" id="covr-331">covr 3.3.1<small>2019-08-23</small><a class="anchor" aria-label="anchor" href="#covr-331"></a></h2>
-<ul><li>Fix inadvertent regression in return visibility when functions are covered. covr versions prior to 3.3.0 surrounded each statement in <code>{</code> blocks. covr 3.3.0 switched to using <code>({</code>, but this caused an inadvertent regression, as <code>(</code> will make the result visible it is the last expression in a function. Using <code>if (TRUE) {</code> restores the previous behavior. (<a href="https://github.com/r-lib/covr/issues/391" class="external-link">#391</a>, <a href="https://github.com/r-lib/covr/issues/392" class="external-link">#392</a>)</li></ul></div>
+<ul><li>Fix inadvertent regression in return visibility when functions are covered. covr versions prior to 3.3.0 surrounded each statement in <code>{</code> blocks. covr 3.3.0 switched to using <code>({</code>, but this caused an inadvertent regression, as <code>(</code> will make the result visible it is the last expression in a function. Using <code>if (TRUE) {</code> restores the previous behavior. (<a href="https://github.com/r-lib/covr/issues/391" class="external-link">#391</a>, <a href="https://github.com/r-lib/covr/issues/392" class="external-link">#392</a>)</li>
+</ul></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="3.3.0" id="covr-330">covr 3.3.0<small>2019-08-06</small><a class="anchor" aria-label="anchor" href="#covr-330"></a></h2>
 <div class="section level3">
@@ -133,7 +141,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>
