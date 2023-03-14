@@ -69,7 +69,7 @@
 ## New Features
 
 * New `azure()` function added to make it easy to use covr on [Azure
-  Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/)
+  Pipelines](https://azure.microsoft.com/en-us/products/devops/pipelines/)
   (#370)
 
 * Work around issues related to the new curly curly syntax in rlang (#379, #377, rlang#813)
