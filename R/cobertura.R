@@ -1,6 +1,6 @@
 #' Create a Cobertura XML file
 #'
-#' This functionality requires the xml2 package be installed. Create a
+#' Create a
 #' cobertura-compliant XML report following [this
 #' DTD](https://github.com/cobertura/cobertura/blob/master/cobertura/src/site/htdocs/xml/coverage-04.dtd).
 #' Because there are _two_ DTDs called `coverage-04.dtd` and some tools do not seem to
@@ -9,9 +9,10 @@
 #' context. Where `covr` doesn't provide a coverage metric (branch coverage,
 #' complexity), a zero is reported.
 #'
+#' *Note*: This functionality requires the xml2 package be installed.
+#'
 #' @param cov the coverage object returned from [package_coverage()]
 #' @param filename the name of the Cobertura XML file
-#' @author Willem Ligtenberg
 #' @export
 to_cobertura <- function(cov, filename = "cobertura.xml"){
 
