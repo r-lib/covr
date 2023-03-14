@@ -603,7 +603,7 @@ merge_coverage.character <- function(x) {
 
 #' @export
 merge_coverage.list <- function(x) {
-  coverage_obj <- x
+  coverage_objs <- x
   if (length(coverage_objs) == 0) {
     return()
   }
