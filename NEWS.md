@@ -1,4 +1,6 @@
-# covr (development version)
+# covr 3.6.1
+
+* `to_cobertura()` is now explicit about the doctype of the resulting XML. It also sets a source path if recorded. (@mmyrte, #524)
 
 * The internal generic `merge_coverage()` now correctly registers the S3 methods.
 
@@ -67,7 +69,7 @@
 ## New Features
 
 * New `azure()` function added to make it easy to use covr on [Azure
-  Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/)
+  Pipelines](https://azure.microsoft.com/en-us/products/devops/pipelines/)
   (#370)
 
 * Work around issues related to the new curly curly syntax in rlang (#379, #377, rlang#813)

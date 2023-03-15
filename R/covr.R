@@ -595,15 +595,16 @@ merge_coverage <- function(x) {
 }
 
 #' @export
-merge_coverage.character <- function(files) {
-  coverage_objs <- lapply(files, function(f) {
+merge_coverage.character <- function(x) {
+  coverage_objs <- lapply(x, function(f) {
     as.list(suppressWarnings(readRDS(f)))
   })
   merge_coverage(coverage_objs)
 }
 
 #' @export
-merge_coverage.list <- function(coverage_objs) {
+merge_coverage.list <- function(x) {
+  coverage_objs <- x
   if (length(coverage_objs) == 0) {
     return()
   }
