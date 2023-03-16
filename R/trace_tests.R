@@ -110,17 +110,20 @@ count_test <- function(key) {
   tests <- .counters[[key]]$tests
   n <- NROW(tests$tally)
   if (.counters[[key]]$value > n) {
-    tests$tally <- rbind(tests$tally, matrix(NA_integer_, ncol = 3L, nrow = n))
+    tests$tally <- rbind(tests$tally, matrix(NA_integer_, ncol = 4L, nrow = n))
   }
 
   # test number
-  tests$.data[[1L]] <- length(.counters$tests)
+  tests$.data[[1L]] <- .current_test$index
+
+  # test call number (for tests that are called multiple times)
+  tests$.data[[2L]] <- .current_test$call_count
 
   # call stack depth when trace is hit
-  tests$.data[[2L]] <- sys.nframe() - length(.current_test$frames) - n_calls_into_covr + 1L
+  tests$.data[[3L]] <- sys.nframe() - length(.current_test$frames) - n_calls_into_covr + 1L
 
   # number of traces hit by the test so far
-  tests$.data[[3L]] <- .current_test$i
+  tests$.data[[4L]] <- .current_test$i
 
   tests$.value <- .counters[[key]]$value
   with(tests, tally[.value,] <- .data)
@@ -146,11 +149,11 @@ new_test_counter <- function(key) {
   .counters[[key]]$tests$.value <- integer(1L)
   .counters[[key]]$tests$tally <- matrix(
     NA_integer_,
-    ncol = 3L,
+    ncol = 4L,
     # initialize with 4 empty rows, only expanded once populated
     nrow = 4L,
-    # cols: test index; call stack depth of covr:::count; execution order index
-    dimnames = list(c(), c("test", "depth", "i"))
+    # cols: test index; call index; call stack depth of covr:::count; execution order index
+    dimnames = list(c(), c("test", "call", "depth", "i"))
   )
 }
 
@@ -206,6 +209,9 @@ update_current_test <- function() {
   exec_frames <- unique(c(test_frames, syscall_first_count - 1L))
 
   # build updated current test data, isolating relevant frames
+  .current_test$key <- NULL
+  .current_test$index <- length(.counters$tests) + 1L
+  .current_test$call_count <- 0L
   .current_test$trace <- syscalls[exec_frames]
   .current_test$i <- 0L
   .current_test$frames <- exec_frames
@@ -213,7 +219,31 @@ update_current_test <- function() {
     has_srcref,
     .current_test$trace,
     right = TRUE,
-    nomatch = length(exec_frames))]]
+    nomatch = length(exec_frames)
+  )]]
+
+  # check if test has already been encountered and reuse test index
+  if (inherits(.current_test$src, "srcref")) {
+    # when tests have srcrefs, we can quickly compare test keys
+    .current_test$key <- file.path(
+      dirname(get_source_filename(.current_test$src, normalize = TRUE)),
+      key(.current_test$src)
+    )
+
+    .current_test$index <- match(
+      .current_test$key,
+      names(.counters$tests),
+      nomatch = length(.counters$tests) + 1L
+    )
+  } else {
+    # otherwise we compare call stacks
+    .current_test$index <- Position(
+      function(t) identical(t[], .current_test$trace),  # t[] to ignore attr
+      .counters$tests,
+      right = TRUE,
+      nomatch = length(.counters$tests) + 1L
+    )
+  }
 
   # might be NULL if srcrefs aren't kept during building / sourcing
   .current_test$src_env <- sys.frame(which = .current_test$last_frame - 1L)
@@ -221,14 +251,22 @@ update_current_test <- function() {
   .current_test$srcref <- getSrcref(.current_test$src_call)
   .current_test$src <- .current_test$srcref %||% .current_test$src_call
 
+  # increment existing call count if we're hitting a previous test again
+  if (.current_test$index <= length(.counters$tests)) {
+    .current_test$call_count <- attr(.counters$tests[[.current_test$index]], "call_count")
+  }
+
   # build test data to store within .counters
   test <- list(.current_test$trace)
+  names(test) <- .current_test$key
+  attr(test, "call_count") <- .current_test$call_count + 1L
 
   # only name if srcrefs can be determined
   if (inherits(.current_test$src, "srcref")) {
     names(test) <- file.path(
       dirname(get_source_filename(.current_test$src, normalize = TRUE)),
-      key(.current_test$src))
+      key(.current_test$src)
+    )
   }
 
   # NOTE: r-bugs 18348
@@ -241,7 +279,9 @@ update_current_test <- function() {
     warning("A large call was captured as part of a test and will be truncated.")
   }
 
-  .counters$tests <- append(.counters$tests, test)
+  cat("current: ", .current_test$index, "  total: ", length(.counters$tests), "\n")
+  .counters$tests[[.current_test$index]] <- test
+  names(.counters$tests)[[.current_test$index]] <- .current_test$key
 }
 
 
@@ -262,8 +302,6 @@ truncate_call <- function(call_obj, limit = 1e4) {
   call_obj[[length(call_obj)]] <- quote(`<truncated>`)
   call_obj
 }
-
-
 
 #' Returns TRUE if we've moved on from test reflected in .current_test
 #'
