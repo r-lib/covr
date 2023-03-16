@@ -216,7 +216,7 @@ update_current_test <- function() {
     nomatch = length(exec_frames))]]
 
   # might be NULL if srcrefs aren't kept during building / sourcing
-  .current_test$src_env <- sys.frame(which = .current_test$last_frame)
+  .current_test$src_env <- sys.frame(which = .current_test$last_frame - 1L)
   .current_test$src_call <- syscalls[[.current_test$last_frame]]
   .current_test$srcref <- getSrcref(.current_test$src_call)
   .current_test$src <- .current_test$srcref %||% .current_test$src_call
@@ -277,7 +277,7 @@ is_current_test_finished <- function() {
   is.null(.current_test$src) ||
   .current_test$last_frame > sys.nframe() ||
   !identical(.current_test$src_call, sys.call(which = .current_test$last_frame)) ||
-  !identical(.current_test$src_env, sys.frame(which = .current_test$last_frame))
+  !identical(.current_test$src_env, sys.frame(which = .current_test$last_frame - 1L))
 }
 
 #' Is the source bound to the expression
