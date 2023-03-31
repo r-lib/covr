@@ -98,7 +98,7 @@ NULL
 count_test <- function(key) {
   n_calls_into_covr <- 2L
 
-  if (i <- is_current_test_finished()) {
+  if (is_current_test_finished()) {
     update_current_test()
   }
 
