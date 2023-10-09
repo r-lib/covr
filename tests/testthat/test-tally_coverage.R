@@ -1,5 +1,6 @@
 test_that("tally_coverage includes compiled code", {
   skip_on_cran()
+  skip_if(is_windows() && getRversion() == "4.1")
 
   cov <- package_coverage(test_path("TestCompiled"))
   tall <- tally_coverage(cov)
