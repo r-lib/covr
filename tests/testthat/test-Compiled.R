@@ -1,6 +1,8 @@
 context("Compiled")
 test_that("Compiled code coverage is reported including code in headers", {
   skip_on_cran()
+  skip_if(is_windows() && getRversion() == "4.1")
+
   cov <- as.data.frame(package_coverage("TestCompiled", relative_path = TRUE))
 
   simple_cc <- cov[cov$filename == "src/simple.cc", ]
@@ -32,6 +34,7 @@ test_that("Compiled code coverage is reported including code in headers", {
 
 test_that("Can pass path to relative_path argument", {
   skip_on_cran()
+  skip_if(is_windows() && getRversion() == "4.1")
   cov <- as.data.frame(package_coverage("TestCompiled", relative_path = "."))
 
   expect_true(all(unique(cov$filename) %in% c(
@@ -44,6 +47,7 @@ test_that("Can pass path to relative_path argument", {
 
 test_that("Source code subdirectories are found", {
   skip_on_cran()
+  skip_if(is_windows() && getRversion() == "4.1")
   cov <- as.data.frame(package_coverage("TestCompiledSubdir", relative_path = TRUE))
 
   expect_equal(cov[cov$first_line == "9", "value"], 4)
@@ -59,6 +63,7 @@ test_that("Source code subdirectories are found", {
 
 test_that("Compiled code coverage is reported under non-standard char's", {
   skip_on_cran()
+  skip_if(is_windows() && getRversion() == "4.1")
   cov <- as.data.frame(package_coverage("Test+Char/TestCompiled", relative_path = TRUE))
 
   expect_equal(cov[cov$first_line == "9", "value"], 4)

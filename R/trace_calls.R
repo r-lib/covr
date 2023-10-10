@@ -28,7 +28,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
     lapply(y, trace_calls, parent_functions = parent_functions)
   }
 
-  if (is.atomic(x) || is.name(x)) {
+  if (is.atomic(x) || is.name(x) || is.null(x)) {
     if (is.null(parent_ref)) {
       x
     }

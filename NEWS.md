@@ -2,6 +2,8 @@
 
 * Added support for `klmr/box` modules. This works best with `file_coverage()`. (@radbasa, #491)
 
+# covr 3.6.2
+
 # covr 3.6.1
 
 * `to_cobertura()` is now explicit about the doctype of the resulting XML. It also sets a source path if recorded. (@mmyrte, #524)

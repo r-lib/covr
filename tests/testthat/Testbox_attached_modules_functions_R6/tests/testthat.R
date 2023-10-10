@@ -3,6 +3,6 @@ options(box.path = file.path(getwd()))
 loaded_mods <- loadNamespace("box")$loaded_mods
 rm(list = ls(loaded_mods), envir = loaded_mods)
 
-box::use(
-  app/modules/module
-)
+library(testthat)
+
+test_dir("tests/testthat")

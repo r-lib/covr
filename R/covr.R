@@ -538,7 +538,7 @@ package_coverage <- function(path = ".",
     "src/cpp11.cpp",
     "R/cpp11.R",
     line_exclusions,
-    parse_covr_ignore()
+    withr::with_dir(root, parse_covr_ignore())
   )
 
   exclude(coverage,
