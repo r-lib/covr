@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">covr</a>
-        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">3.6.0.9000</span>
+        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">3.6.3.9000</span>
       </span>
     </div>
 
@@ -65,6 +65,17 @@
 
     <div class="section level2">
 <h2 class="page-header" data-toc-text="development version" id="covr-development-version">covr (development version)<a class="anchor" aria-label="anchor" href="#covr-development-version"></a></h2>
+</div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="3.6.3" id="covr-363">covr 3.6.3<small>2023-10-10</small><a class="anchor" aria-label="anchor" href="#covr-363"></a></h2>
+<ul><li><p>Updates to internal usage of <code><a href="https://rdrr.io/r/base/is.recursive.html" class="external-link">is.atomic()</a></code> to work with upcoming R release (<a href="https://github.com/mmaechler" class="external-link">@mmaechler</a> , <a href="https://github.com/r-lib/covr/issues/542" class="external-link">#542</a>)</p></li>
+<li><p><code><a href="../reference/package_coverage.html">package_coverage()</a></code> now works correctly with ignore files when it is not run in the package root directory (<a href="https://github.com/mpadge" class="external-link">@mpadge</a>, <a href="https://github.com/r-lib/covr/issues/538" class="external-link">#538</a>)</p></li>
+</ul></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="3.6.2" id="covr-362">covr 3.6.2<small>2023-03-25</small><a class="anchor" aria-label="anchor" href="#covr-362"></a></h2>
+</div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="3.6.1" id="covr-361">covr 3.6.1<small>2022-08-26</small><a class="anchor" aria-label="anchor" href="#covr-361"></a></h2>
 <ul><li><p><code><a href="../reference/to_cobertura.html">to_cobertura()</a></code> is now explicit about the doctype of the resulting XML. It also sets a source path if recorded. (<a href="https://github.com/mmyrte" class="external-link">@mmyrte</a>, <a href="https://github.com/r-lib/covr/issues/524" class="external-link">#524</a>)</p></li>
 <li><p>The internal generic <code>merge_coverage()</code> now correctly registers the S3 methods.</p></li>
 <li><p>The internal test for recording large calls no longer assumes R is on the system PATH.</p></li>
@@ -111,7 +122,7 @@
 <h2 class="page-header" data-toc-text="3.3.0" id="covr-330">covr 3.3.0<small>2019-08-06</small><a class="anchor" aria-label="anchor" href="#covr-330"></a></h2>
 <div class="section level3">
 <h3 id="new-features-3-3-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-3-3-0"></a></h3>
-<ul><li><p>New <code><a href="../reference/azure.html">azure()</a></code> function added to make it easy to use covr on <a href="https://azure.microsoft.com/en-us/services/devops/pipelines/" class="external-link">Azure Pipelines</a> (<a href="https://github.com/r-lib/covr/issues/370" class="external-link">#370</a>)</p></li>
+<ul><li><p>New <code><a href="../reference/azure.html">azure()</a></code> function added to make it easy to use covr on <a href="https://azure.microsoft.com/en-us/products/devops/pipelines/" class="external-link">Azure Pipelines</a> (<a href="https://github.com/r-lib/covr/issues/370" class="external-link">#370</a>)</p></li>
 <li><p>Work around issues related to the new curly curly syntax in rlang (<a href="https://github.com/r-lib/covr/issues/379" class="external-link">#379</a>, <a href="https://github.com/r-lib/covr/issues/377" class="external-link">#377</a>, rlang#813)</p></li>
 <li><p>Compiled code coverage has been improved, in particular C++ templates now contain the merged coverage of all template instances, even if the instances were defined in separate compilation units. (<a href="https://github.com/r-lib/covr/issues/390" class="external-link">#390</a>)</p></li>
 </ul></div>
