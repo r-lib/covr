@@ -2,6 +2,12 @@
 
 * Added support for `klmr/box` modules. This works best with `file_coverage()`. (@radbasa, #491)
 
+# covr 3.6.3
+
+* Updates to internal usage of `is.atomic()` to work with upcoming R release (@mmaechler , #542)
+
+* `package_coverage()` now works correctly with ignore files when it is not run in the package root directory (@mpadge, #538)
+
 # covr 3.6.2
 
 # covr 3.6.1
