@@ -1,3 +1,5 @@
+# covr (development version)
+
 # covr 3.6.3
 
 * Updates to internal usage of `is.atomic()` to work with upcoming R release (@mmaechler , #542)
