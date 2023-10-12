@@ -177,7 +177,6 @@ new_test_counter <- function(key) {
 #' `srcref` (or expression, if no source is available) at the same frame prior
 #' to entering into a package where `covr:::count` is called.
 #'
-#' @param key generated with [key()]
 #' @keywords internal
 #'
 #' @importFrom utils getSrcDirectory

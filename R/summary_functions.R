@@ -233,7 +233,7 @@ markers.coverage <- function(x, ...) {
 
 }
 
-markers.data.frame <- function(x, type = "test") { # nolint
+markers.data.frame <- function(x, ..., type = "test") { # nolint
   # generate the markers
   markers <- Map(function(filename, line, column) {
     list(

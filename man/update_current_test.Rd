@@ -6,9 +6,6 @@
 \usage{
 update_current_test()
 }
-\arguments{
-\item{key}{generated with \code{\link[=key]{key()}}}
-}
 \description{
 Updating a test logs some metadata regarding the current call stack, noteably
 trying to capture information about the call stack prior to the covr::count
