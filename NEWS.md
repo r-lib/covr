@@ -1,4 +1,4 @@
-# covr (development version)
+# covr 3.6.4
 
 * Fix for a failing test on CRAN
 
