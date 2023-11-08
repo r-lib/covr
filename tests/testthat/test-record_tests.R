@@ -165,6 +165,7 @@ test_that("covr.record_tests: test that coverage objects contain expected test d
 
 test_that("covr.record_tests: safely handles extremely large calls", {
   skip_on_cran()
+  skip_if(is_r_devel())
 
   fcode <- 'f <- function(...) { sum(...) }'
 
