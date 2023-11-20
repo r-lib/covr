@@ -1,5 +1,8 @@
 url: http://covr.r-lib.org
 
+template:
+  bootstrap: 5
+
 authors:
   "Jim Hester":
     href: http://jimhester.com
