@@ -1,8 +1,8 @@
-url: http://covr.r-lib.org
+url: https://covr.r-lib.org
 
 authors:
   "Jim Hester":
-    href: http://jimhester.com
+    href: https://www.jimhester.com/
 
 destination: docs
 
@@ -10,5 +10,6 @@ development:
   mode: auto
 
 template:
+  bootstrap: 5
   params:
     ganalytics: UA-115082821-1
