@@ -69,7 +69,7 @@ Suggests:
     memoise,
     mockery,
     covr,
-    box
+    box (>= 1.2.0)
 License: MIT + file LICENSE
 VignetteBuilder: knitr
 RoxygenNote: 7.2.3
