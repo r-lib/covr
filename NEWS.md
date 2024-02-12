@@ -1,4 +1,5 @@
 # covr (development version)
+* Fix a bug preventing `package_coverage()` from running tests when `install_path` is set to a relative path (@gergness, #517, #548).
 
 * Added support for `klmr/box` modules. This works best with `file_coverage()`. (@radbasa, #491)
 
