@@ -1,5 +1,7 @@
 # covr (development version)
 
+* Added `code_stdout` option to `package_coverage()` which allows code output to print to the console while running
+
 * Added support for `klmr/box` modules. This works best with `file_coverage()`. (@radbasa, #491)
 
 # covr 3.6.4

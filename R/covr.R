@@ -350,6 +350,9 @@ environment_coverage <- function(
 #'   and tests run in. By default it is a path in the R sessions temporary
 #'   directory. It can sometimes be useful to set this (along with `clean =
 #'   FALSE`) to help debug test failures.
+#' @param code_stdout When running code specified in the `code` argument, whether to
+#' use Rscript so that the console updates live (defaults to FALSE, using R CMD BATCH,
+#' and only showing the output after all tests have run when there is a failure)
 #' @seealso [exclusions()] For details on excluding parts of the
 #' package from the coverage calculations.
 #' @export
@@ -364,7 +367,7 @@ package_coverage <- function(path = ".",
                              code = character(),
                              install_path = temp_file("R_LIBS"),
                              ...,
-                             exclusions, pre_clean=TRUE) {
+                             exclusions, pre_clean=TRUE, code_stdout = FALSE) {
 
   if (!missing(exclusions)) {
     warning(
@@ -501,7 +504,7 @@ package_coverage <- function(path = ".",
 
       # We always run the commands file (even if empty) to load the package and
       # initialize all the counters to 0.
-      run_commands(pkg, install_path, code)
+      run_commands(pkg, install_path, code, code_stdout)
     },
     message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
     warning = function(e) if (quiet) invokeRestart("muffleWarning") else e)
@@ -735,20 +738,30 @@ run_vignettes <- function(pkg, lib) {
   }
 }
 
-run_commands <- function(pkg, lib, commands) {
+run_commands <- function(pkg, lib, commands, code_stdout = FALSE) {
   outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
   failfile <- paste(outfile, "fail", sep = "." )
   writeLines(c(
     paste0("library('", pkg$package, "')"),
     commands), con = outfile)
-  cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
-               "CMD BATCH --vanilla --no-timing",
-               shQuote(outfile), shQuote(failfile))
-  res <- system(cmd)
-  if (res != 0L) {
-    show_failures(dirname(failfile))
+
+  if (!code_stdout) {
+    cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
+                 "CMD BATCH --vanilla --no-timing",
+                 shQuote(outfile), shQuote(failfile))
+    res <- system(cmd)
+    if (res != 0L) {
+      show_failures(dirname(failfile))
+    } else {
+      file.rename(failfile, outfile)
+    }
   } else {
-    file.rename(failfile, outfile)
+    cmd <- paste(shQuote(file.path(R.home("bin"), "Rscript")),
+                 "--vanilla", shQuote(outfile))
+    res <- system(cmd)
+    if (res != 0L) {
+      stop("Failure when running covr commands")
+    }
   }
 }
 

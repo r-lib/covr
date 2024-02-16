@@ -17,7 +17,8 @@ package_coverage(
   install_path = temp_file("R_LIBS"),
   ...,
   exclusions,
-  pre_clean = TRUE
+  pre_clean = TRUE,
+  code_stdout = FALSE
 )
 }
 \arguments{
@@ -58,6 +59,10 @@ directory. It can sometimes be useful to set this (along with \code{clean = FALS
 \item{exclusions}{\sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.}
 
 \item{pre_clean}{whether to delete all objects present in the src directory before recompiling}
+
+\item{code_stdout}{When running code specified in the \code{code} argument, whether to
+use Rscript so that the console updates live (defaults to FALSE, using R CMD BATCH,
+and only showing the output after all tests have run when there is a failure)}
 }
 \description{
 This function calculates the test coverage for a development package on the
