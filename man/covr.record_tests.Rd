@@ -25,10 +25,11 @@ execution.
 
 \item \verb{$<srcref>$tests}: For each srcref count in the coverage object, a
 \verb{$tests} field is now included which contains a matrix with three columns,
-"test", "depth" and "i" which specify the test number (corresponding to the
-index of the test in \code{attr(,"tests")}, the stack depth into the target
-code where the trace was executed, and the order of execution for each
-test.
+"test", "call", "depth" and "i" which specify the test number
+(corresponding to the index of the test in \code{attr(,"tests")}, the number
+of times the test expression was evaluated to produce the trace hit, the
+stack depth into the target code where the trace was executed, and the
+order of execution for each test.
 }
 }
 
@@ -78,22 +79,22 @@ cov[[3]][c("srcref", "tests")]
 # f(!x)
 #
 # $tests
-#      test depth i
-# [1,]    1     2 4
+#      test call depth i
+# [1,]    1    1     2 4
 
 # reconstruct the code path of a test by ordering test traces by [,"i"]
 lapply(cov, `[[`, "tests")
 # $`source.Ref2326138c55:4:6:4:10:6:10:4:4`
-#      test depth i
-# [1,]    1     1 2
+#      test call depth i
+# [1,]    1    1     1 2
 #
 # $`source.Ref2326138c55:3:8:3:8:8:8:3:3`
-#      test depth i
-# [1,]    1     1 1
-# [2,]    1     2 3
+#      test call depth i
+# [1,]    1    1     1 1
+# [2,]    1    1     2 3
 #
 # $`source.Ref2326138c55:6:6:6:10:6:10:6:6`
-#      test depth i
-# [1,]    1     2 4
+#      test call depth i
+# [1,]    1    1     2 4
 
 }

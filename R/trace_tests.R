@@ -19,10 +19,11 @@
 #'
 #'   \item `$<srcref>$tests`: For each srcref count in the coverage object, a
 #'     `$tests` field is now included which contains a matrix with three columns,
-#'     "test", "depth" and "i" which specify the test number (corresponding to the
-#'     index of the test in `attr(,"tests")`, the stack depth into the target
-#'     code where the trace was executed, and the order of execution for each
-#'     test.
+#'     "test", "call", "depth" and "i" which specify the test number
+#'     (corresponding to the index of the test in `attr(,"tests")`, the number
+#'     of times the test expression was evaluated to produce the trace hit, the
+#'     stack depth into the target code where the trace was executed, and the
+#'     order of execution for each test.
 #' }
 #'
 #' @section Test traces:
@@ -68,23 +69,23 @@
 #' # f(!x)
 #' #
 #' # $tests
-#' #      test depth i
-#' # [1,]    1     2 4
+#' #      test call depth i
+#' # [1,]    1    1     2 4
 #'
 #' # reconstruct the code path of a test by ordering test traces by [,"i"]
 #' lapply(cov, `[[`, "tests")
 #' # $`source.Ref2326138c55:4:6:4:10:6:10:4:4`
-#' #      test depth i
-#' # [1,]    1     1 2
+#' #      test call depth i
+#' # [1,]    1    1     1 2
 #' #
 #' # $`source.Ref2326138c55:3:8:3:8:8:8:3:3`
-#' #      test depth i
-#' # [1,]    1     1 1
-#' # [2,]    1     2 3
+#' #      test call depth i
+#' # [1,]    1    1     1 1
+#' # [2,]    1    1     2 3
 #' #
 #' # $`source.Ref2326138c55:6:6:6:10:6:10:6:6`
-#' #      test depth i
-#' # [1,]    1     2 4
+#' #      test call depth i
+#' # [1,]    1    1     2 4
 #'
 #' @name covr.record_tests
 NULL
@@ -110,17 +111,20 @@ count_test <- function(key) {
   tests <- .counters[[key]]$tests
   n <- NROW(tests$tally)
   if (.counters[[key]]$value > n) {
-    tests$tally <- rbind(tests$tally, matrix(NA_integer_, ncol = 3L, nrow = n))
+    tests$tally <- rbind(tests$tally, matrix(NA_integer_, ncol = 4L, nrow = n))
   }
 
   # test number
-  tests$.data[[1L]] <- length(.counters$tests)
+  tests$.data[[1L]] <- .current_test$index
+
+  # test call number (for test expressions that are called multiple times)
+  tests$.data[[2L]] <- .current_test$call_count
 
   # call stack depth when trace is hit
-  tests$.data[[2L]] <- sys.nframe() - length(.current_test$frames) - n_calls_into_covr + 1L
+  tests$.data[[3L]] <- sys.nframe() - length(.current_test$frames) - n_calls_into_covr + 1L
 
   # number of traces hit by the test so far
-  tests$.data[[3L]] <- .current_test$i
+  tests$.data[[4L]] <- .current_test$i
 
   tests$.value <- .counters[[key]]$value
   with(tests, tally[.value,] <- .data)
@@ -142,15 +146,15 @@ count_test <- function(key) {
 #'
 new_test_counter <- function(key) {
   .counters[[key]]$tests <- new.env(parent = baseenv())
-  .counters[[key]]$tests$.data <- vector("integer", 3L)
+  .counters[[key]]$tests$.data <- vector("integer", 4L)
   .counters[[key]]$tests$.value <- integer(1L)
   .counters[[key]]$tests$tally <- matrix(
     NA_integer_,
-    ncol = 3L,
+    ncol = 4L,
     # initialize with 4 empty rows, only expanded once populated
     nrow = 4L,
-    # cols: test index; call stack depth of covr:::count; execution order index
-    dimnames = list(c(), c("test", "depth", "i"))
+    # cols: test index; call index; call stack depth of covr:::count; execution order index
+    dimnames = list(c(), c("test", "call", "depth", "i"))
   )
 }
 
@@ -213,38 +217,100 @@ update_current_test <- function() {
     has_srcref,
     .current_test$trace,
     right = TRUE,
-    nomatch = length(exec_frames))]]
+    nomatch = length(exec_frames)
+  )]]
 
   # might be NULL if srcrefs aren't kept during building / sourcing
-  .current_test$src_env <- sys.frame(which = .current_test$last_frame)
+  .current_test$src_env <- sys.frame(which = .current_test$last_frame - 1L)
   .current_test$src_call <- syscalls[[.current_test$last_frame]]
   .current_test$srcref <- getSrcref(.current_test$src_call)
   .current_test$src <- .current_test$srcref %||% .current_test$src_call
 
-  # build test data to store within .counters
-  test <- list(.current_test$trace)
-
-  # only name if srcrefs can be determined
-  if (inherits(.current_test$src, "srcref")) {
-    names(test) <- file.path(
-      dirname(get_source_filename(.current_test$src, normalize = TRUE)),
-      key(.current_test$src))
-  }
+  .current_test$key <- current_test_key()
+  .current_test$index <- current_test_index()
+  .current_test$call_count <- current_test_call_count()
 
   # NOTE: r-bugs 18348
   # restrict test call lengths to avoid R Rds deserialization limit
   # https://bugs.r-project.org/show_bug.cgi?id=18348
   max_call_len <- 1e4
-  call_lengths <- vapply(test[[1L]], length, numeric(1L))
+  call_lengths <- vapply(.current_test$trace, length, numeric(1L))
   if (any(call_lengths > max_call_len)) {
-    test[[1L]] <- lapply(test[[1L]], truncate_call, limit = max_call_len)
+    .current_test$trace <- lapply(
+      .current_test$trace,
+      truncate_call,
+      limit = max_call_len
+    )
+
     warning("A large call was captured as part of a test and will be truncated.")
   }
 
-  .counters$tests <- append(.counters$tests, test)
+  .counters$tests[[.current_test$index]] <- .current_test$trace
+  attr(.counters$tests[[.current_test$index]], "call_count") <- .current_test$call_count
+  names(.counters$tests)[[.current_test$index]] <- .current_test$key
 }
 
+#' Build key for the current test
+#'
+#' If the current test has a srcref, a unique character key is built from its
+#' srcref. Otherwise, an empty string is returned.
+#'
+#' @return A unique character string if the test call has a srcref, or an empty
+#'   string otherwise.
+#'
+#' @keywords internal
+current_test_key <- function() {
+  if (!inherits(.current_test$src, "srcref")) return("")
+  file.path(
+    dirname(get_source_filename(.current_test$src, normalize = TRUE)),
+    key(.current_test$src)
+  )
+}
 
+#' Retrieve the index for the test in `.counters$tests`
+#'
+#' If the test was encountered before, the index will be the index of the test
+#' in the logged tests list. Otherwise, the index will be the next index beyond
+#' the length of the tests list.
+#'
+#' @return An integer index for the test call
+#'
+#' @keywords internal
+current_test_index <- function() {
+  # check if test has already been encountered and reuse test index
+  if (inherits(.current_test$src, "srcref")) {
+    # when tests have srcrefs, we can quickly compare test keys
+    match(
+      .current_test$key,
+      names(.counters$tests),
+      nomatch = length(.counters$tests) + 1L
+    )
+  } else {
+    # otherwise we compare call stacks
+    Position(
+      function(t) identical(t[], .current_test$trace),  # t[] to ignore attr
+      .counters$tests,
+      right = TRUE,
+      nomatch = length(.counters$tests) + 1L
+    )
+  }
+}
+
+#' Retrieve the number of times the test call was called
+#'
+#' A single test expression might be evaluated many times. Each time the same
+#' expression is called, the call count is incremented.
+#'
+#' @return An integer value representing the number of calls of the current
+#'   call into the package from the testing suite.
+#'
+current_test_call_count <- function() {
+  if (.current_test$index <= length(.counters$tests)) {
+    attr(.counters$tests[[.current_test$index]], "call_count") + 1L
+  } else {
+    1L
+  }
+}
 
 #' Truncate call objects to limit the number of arguments
 #'
@@ -263,8 +329,6 @@ truncate_call <- function(call_obj, limit = 1e4) {
   call_obj
 }
 
-
-
 #' Returns TRUE if we've moved on from test reflected in .current_test
 #'
 #' Quickly dismiss the need to update the current test if we can. To test if
@@ -277,7 +341,7 @@ is_current_test_finished <- function() {
   is.null(.current_test$src) ||
   .current_test$last_frame > sys.nframe() ||
   !identical(.current_test$src_call, sys.call(which = .current_test$last_frame)) ||
-  !identical(.current_test$src_env, sys.frame(which = .current_test$last_frame))
+  !identical(.current_test$src_env, sys.frame(which = .current_test$last_frame - 1L))
 }
 
 #' Is the source bound to the expression

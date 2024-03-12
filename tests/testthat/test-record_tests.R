@@ -16,8 +16,8 @@ test_that("covr.record_tests causes test traces to be recorded", {
 
 
 test_that("covr.record_tests records test indices and depth for each trace", {
-  expect_equal(ncol(cov_func[[1]]$tests), 3L)
-  expect_equal(colnames(cov_func[[1]]$tests), c("test", "depth", "i"))
+  expect_equal(ncol(cov_func[[1]]$tests), 4L)
+  expect_equal(colnames(cov_func[[1]]$tests), c("test", "call", "depth", "i"))
 })
 
 
@@ -204,4 +204,20 @@ test_that("covr.record_tests: safely handles extremely large calls", {
     ))))
   }
 
+})
+
+test_that("covr.record_tests: records multiple calls to the same test expr", {
+  fcode <- 'f1 <- function(...) "hello, world"; f2 <- function() c(1, 2, 3)'
+
+  withr::with_options(c("covr.record_tests" = TRUE), {
+    cov <- code_coverage(fcode, "for (i in 1:3) with(new.env(), { f1(); f2() })")
+  })
+
+  trace_f1 <- which(vapply(cov, `[[`, character(1L), "functions") == "f1")
+  expect_equal(cov[[trace_f1]]$tests[, "test"], c(1, 1, 1))
+  expect_equal(cov[[trace_f1]]$tests[, "call"], c(1, 2, 3))
+
+  trace_f2 <- which(vapply(cov, `[[`, character(1L), "functions") == "f2")
+  expect_equal(cov[[trace_f2]]$tests[, "test"], c(2, 2, 2))
+  expect_equal(cov[[trace_f2]]$tests[, "call"], c(1, 2, 3))
 })
