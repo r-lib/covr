@@ -1,5 +1,8 @@
 # covr (development version)
 
+* Prevent `covr.record_tests` option from logging duplicate tests when the same
+  line of testing code is hit repeatedly, as in a loop. (@dgkf, #528)
+
 * Added support for `klmr/box` modules. This works best with `file_coverage()`. (@radbasa, #491)
 
 # covr 3.6.4
@@ -15,9 +18,6 @@
 # covr 3.6.2
 
 # covr 3.6.1
-
-* Prevent `covr.record_tests` option from logging duplicate tests when the same
-  line of testing code is hit repeatedly, as in a loop. (@dgkf, #528)
 
 * `to_cobertura()` is now explicit about the doctype of the resulting XML. It also sets a source path if recorded. (@mmyrte, #524)
 
