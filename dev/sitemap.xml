@@ -64,6 +64,15 @@
     <loc>https://covr.r-lib.org/dev/reference/covr.record_tests.html</loc>
   </url>
   <url>
+    <loc>https://covr.r-lib.org/dev/reference/current_test_call_count.html</loc>
+  </url>
+  <url>
+    <loc>https://covr.r-lib.org/dev/reference/current_test_index.html</loc>
+  </url>
+  <url>
+    <loc>https://covr.r-lib.org/dev/reference/current_test_key.html</loc>
+  </url>
+  <url>
     <loc>https://covr.r-lib.org/dev/reference/display_name.html</loc>
   </url>
   <url>
