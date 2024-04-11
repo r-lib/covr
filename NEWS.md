@@ -1,4 +1,5 @@
 # covr (development version)
+* Fix a bug preventing `package_coverage()` from running tests when `install_path` is set to a relative path (@gergness, #517, #548).
 
 * Prevent `covr.record_tests` option from logging duplicate tests when the same
   line of testing code is hit repeatedly, as in a loop. (@dgkf, #528)
