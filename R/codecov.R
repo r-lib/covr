@@ -222,8 +222,10 @@ codecov <- function(...,
 
   token <- token %||% Sys.getenv("CODECOV_TOKEN", extract_from_yaml(attr(coverage, "package")$path))
 
+  codecov_headers <- character()
   if (nzchar(token)) {
     codecov_query$token <- token
+    codecov_headers <- c("Authorization" = paste("Bearer", token))
   }
 
   coverage_json <- to_codecov(coverage)
@@ -233,6 +235,7 @@ codecov <- function(...,
                             query = codecov_query,
                             body = coverage_json,
                             encode = "json",
+                            httr::add_headers(codecov_headers),
                             httr::config(http_version = curl_http_1_1())))
 }
 
