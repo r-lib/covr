@@ -453,7 +453,7 @@ package_coverage <- function(path = ".",
         "--with-keep.parse.data",
         "--no-staged-install",
         "--no-multiarch",
-        pkg$path
+        shQuote(pkg$path)
       )
 
       name <- if (.Platform$OS.type == "windows") "R.exe" else "R"

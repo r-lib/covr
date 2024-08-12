@@ -194,7 +194,7 @@ test_that("covr.record_tests: safely handles extremely large calls", {
     res <- system2(file.path(R.home("bin"), "R"), list("-q", "-s", "--vanilla", "-f", r_script), stdout = TRUE, stderr = TRUE)
   })
 
-  if (attr(res, "status") == 0L) {
+  if (identical(attr(res, "status"), 0L)) {
     warning(paste0(collapse = "\n", strwrap(paste0(
       "Looks like R was updated and the work-around for Rds ",
       "deserialization segfaults can now be made to apply conditionally to only ",
