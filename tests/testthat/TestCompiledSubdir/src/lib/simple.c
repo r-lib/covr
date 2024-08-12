@@ -6,7 +6,7 @@
 SEXP simple_(SEXP x) {
   double *px, *pout;
 
-  SEXP out = PROTECT(allocVector(REALSXP, 1));
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, 1));
 
   px = REAL(x);
   pout = REAL(out);
