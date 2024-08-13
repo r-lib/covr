@@ -441,18 +441,26 @@ package_coverage <- function(path = ".",
   if (isTRUE(pre_clean)) clean_objects(pkg$path)
 
   # install the package in a temporary directory
-  withr::with_makevars(flags, assignment = "+=",
-    utils::install.packages(repos = NULL,
-                            lib = install_path,
-                            pkg$path,
-                            type = "source",
-                            INSTALL_opts = c("--example",
-                                             "--install-tests",
-                                             "--with-keep.source",
-                                             "--with-keep.parse.data",
-                                             "--no-staged-install",
-                                             "--no-multiarch"),
-                            quiet = quiet))
+  withr::with_envvar(
+    list(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep)),
+    withr::with_makevars(flags, assignment = "+=", {
+      args <- c(
+        "--vanilla", "CMD", "INSTALL",
+        "-l", shQuote(install_path),
+        "--example",
+        "--install-tests",
+        "--with-keep.source",
+        "--with-keep.parse.data",
+        "--no-staged-install",
+        "--no-multiarch",
+        shQuote(pkg$path)
+      )
+
+      name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
+      path <- file.path(R.home("bin"), name)
+      system2(path, args)
+    })
+  )
 
   # add hooks to the package startup
   add_hooks(pkg$package, install_path,

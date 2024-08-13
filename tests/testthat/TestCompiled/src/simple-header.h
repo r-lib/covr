@@ -9,7 +9,7 @@ template <typename R, int R_SXP>
 SEXP simple2_(SEXP x) {
   R *px, *pout;
 
-  SEXP out = PROTECT(allocVector(R_SXP, 1));
+  SEXP out = PROTECT(Rf_allocVector(R_SXP, 1));
 
   px = (R *) DATAPTR(x);
   pout = (R *) DATAPTR(out);
