@@ -138,6 +138,10 @@ clean_parse_data <- function() {
 }
 
 # Needed to work around https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16756
-get_tokens <- function(srcref) {
-  getParseData(srcref) %||% get_parse_data(attr(getSrcref(srcref), "srcfile"))
+if (getRversion() < "4.4.0") {
+  get_tokens <- function(srcref) {
+    getParseData(srcref) %||% get_parse_data(attr(getSrcref(srcref), "srcfile"))
+  }
+} else {
+  get_tokens <- getParseData
 }
