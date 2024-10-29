@@ -5,9 +5,8 @@
 #include <Rdefines.h>
 #include <stdlib.h>  // for NULL
 
-SEXP covr_reassign_function(SEXP name, SEXP env, SEXP old_fun, SEXP new_fun) {
+SEXP covr_reassign_function(SEXP name, SEXP /* unused */ env, SEXP old_fun, SEXP new_fun) {
   if (TYPEOF(name) != SYMSXP) error("name must be a symbol");
-  if (TYPEOF(env) != ENVSXP) error("env must be an environment");
   if (TYPEOF(old_fun) != CLOSXP) error("old_fun must be a function");
   if (TYPEOF(new_fun) != CLOSXP) error("new_fun must be a function");
 
