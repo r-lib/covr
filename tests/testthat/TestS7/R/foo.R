@@ -1,5 +1,5 @@
 #' @import S7
-range <- new_class("range",
+Range <- new_class("Range",
   properties = list(
     start = class_double,
     end = class_double,
@@ -29,6 +29,6 @@ range <- new_class("range",
 #' @export
 inside <- new_generic("inside", "x")
 
-method(inside, range) <- function(x, y) {
+method(inside, Range) <- function(x, y) {
   y >= x@start & y <= x@end
 }

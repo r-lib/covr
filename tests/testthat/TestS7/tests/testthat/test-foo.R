@@ -1,5 +1,5 @@
-test_that("range works", {
-  x <- range(1:10)
+test_that("Range works", {
+  x <- Range(1:10)
 
   x@end <- 20
 
@@ -14,5 +14,3 @@ test_that("range works", {
   expect_equal(x@length, 5)
   expect_equal(x@end, 6)
 })
-
-
