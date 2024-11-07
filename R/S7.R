@@ -14,15 +14,21 @@ traverse_S7_generic <- function(x) {
 }
 
 traverse_S7_class <- function(x) {
-  c(use.names=FALSE,
+  prop_fun_replacements <-
+    lapply(x@properties, function(p) {
+      lapply(c("getter", "setter", "validator"), function(prop_fun) {
+        if (!is.null(p[[prop_fun]])) {
+          replacement(prop_fun, env = p, target_value = p[[prop_fun]])
+        }
+      })
+  })
+  prop_fun_replacements <- unlist(prop_fun_replacements, FALSE, FALSE)
+
+  c(
     list(
       replacement("constructor", env = x, target_value=x@constructor),
       replacement("validator", env = x, target_value=x@validator)
     ),
-    for (prop_fun in c("getter", "setter", "validator")) {
-      lapply(x@properties, function(p) {
-        if (!is.null(p[[prop_fun]])) { replacement(prop_fun, env=p, target_value=p[[prop_fun]]) }
-      })
-    }
+    prop_fun_replacements
   )
 }
