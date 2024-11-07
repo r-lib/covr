@@ -5,9 +5,7 @@
 #include <Rdefines.h>
 #include <stdlib.h>  // for NULL
 
-SEXP covr_reassign_function(SEXP name, SEXP env, SEXP old_fun, SEXP new_fun) {
-  if (TYPEOF(name) != SYMSXP) error("name must be a symbol");
-  if (TYPEOF(env) != ENVSXP) error("env must be an environment");
+SEXP covr_reassign_function(SEXP old_fun, SEXP new_fun) {
   if (TYPEOF(old_fun) != CLOSXP) error("old_fun must be a function");
   if (TYPEOF(new_fun) != CLOSXP) error("new_fun must be a function");
 
@@ -23,11 +21,11 @@ SEXP covr_duplicate_(SEXP x) { return duplicate(x); }
 
 /* .Call calls */
 extern SEXP covr_duplicate_(SEXP);
-extern SEXP covr_reassign_function(SEXP, SEXP, SEXP, SEXP);
+extern SEXP covr_reassign_function(SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"covr_duplicate_", (DL_FUNC)&covr_duplicate_, 1},
-    {"covr_reassign_function", (DL_FUNC)&covr_reassign_function, 4},
+    {"covr_reassign_function", (DL_FUNC)&covr_reassign_function, 2},
     {NULL, NULL, 0}};
 
 void R_init_covr(DllInfo *dll) {

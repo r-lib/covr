@@ -28,9 +28,9 @@ replacement <- function(name, env = as.environment(-1), target_value = get(name,
 }
 
 replace <- function(replacement) {
-  .Call(covr_reassign_function, replacement$name, replacement$env, replacement$target_value, replacement$new_value)
+  .Call(covr_reassign_function, replacement$target_value, replacement$new_value)
 }
 
 reset <- function(replacement) {
-  .Call(covr_reassign_function, replacement$name, replacement$env, replacement$target_value, replacement$orig_value)
+  .Call(covr_reassign_function, replacement$target_value, replacement$orig_value)
 }
