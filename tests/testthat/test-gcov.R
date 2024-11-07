@@ -1,4 +1,3 @@
-context("gcov")
 test_that("parse_gcov parses files properly", {
   mockery::stub(parse_gcov, "file.exists", TRUE)
   mockery::stub(normalize_path, "normalizePath", "simple.c")

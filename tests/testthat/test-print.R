@@ -1,4 +1,3 @@
-context("print function")
 test_that("format_percentage works as expected", {
   expect_equal(format_percentage(0), crayon::red("0.00%"))
 

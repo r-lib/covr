@@ -1,4 +1,3 @@
-context("Compiled")
 test_that("Compiled code coverage is reported including code in headers", {
   skip_on_cran()
   skip_if(is_win_r41())

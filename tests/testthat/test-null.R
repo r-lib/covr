@@ -1,5 +1,3 @@
-context("NULL")
-
 test_that("coverage of functions with NULL constructs", {
   f1 <- function() NULL
   f2 <- function() {
