@@ -66,7 +66,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>How does covr work anyway?</h1>
                         <h4 data-toc-skip class="author">Jim Hester</h4>
             
-            <h4 data-toc-skip class="date">2024-08-13</h4>
+            <h4 data-toc-skip class="date">2024-11-07</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/r-lib/covr/blob/main/vignettes/how_it_works.Rmd" class="external-link"><code>vignettes/how_it_works.Rmd</code></a></small>
       <div class="d-none name"><code>how_it_works.Rmd</code></div>
@@ -312,14 +312,10 @@ call.</p>
 <span><span class="co"># get results with no unit tests</span></span>
 <span><span class="va">c1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/function_coverage.html">function_coverage</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f1</span>, code <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span><span class="va">c1</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="font-weight: bold;">Coverage: </span><span style="color: #BB0000;">0.00%</span></span></span></code></pre>
-<pre><code><span><span class="co">## <span style="font-weight: bold;">&lt;text&gt;: </span><span style="color: #BB0000;">0.00%</span></span></span></code></pre>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># get results with unit tests</span></span>
 <span><span class="va">c2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/function_coverage.html">function_coverage</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f1</span>, code <span class="op">=</span> <span class="fu">f1</span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">c2</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="font-weight: bold;">Coverage: </span><span style="color: #00BB00;">100.00%</span></span></span></code></pre>
-<pre><code><span><span class="co">## <span style="font-weight: bold;">&lt;text&gt;: </span><span style="color: #00BB00;">100.00%</span></span></span></code></pre>
 <p>An <code>as.data.frame</code> method is available to make subsetting
 by various features easy to do.</p>
 <p>While <strong>covr</strong> tracks coverage by expression, typically
@@ -400,7 +396,7 @@ quality code part of every R user’s routine.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer>
