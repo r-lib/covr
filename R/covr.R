@@ -458,7 +458,12 @@ package_coverage <- function(path = ".",
 
       name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
       path <- file.path(R.home("bin"), name)
-      system2(path, args)
+      system2(
+        path,
+        args,
+        stdout = if (quiet) NULL else "",
+        stderr = if (quiet) NULL else ""
+      )
     })
   )
 
