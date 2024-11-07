@@ -10,7 +10,21 @@ replacements_S7 <- function(env) {
 }
 
 traverse_S7_generic <- function(x) {
-	 lapply(names(x@methods), replacement, env = x@methods)
+  # Each binding in the environment at x@methods is either a function or, for
+  # generics that dispatch on multiple arguments, another environment.
+  get_replacements <- function(env) {
+    replacements <- lapply(names(env), function(name) {
+      target_value <- get(name, envir = env)
+      if (is.environment(target_value)) {
+        # Recurse for nested environments
+        get_replacements(target_value)
+      } else {
+        list(replacement(name, env, target_value))
+      }
+    })
+    unlist(replacements, FALSE, FALSE)
+  }
+  get_replacements(x@methods)
 }
 
 traverse_S7_class <- function(x) {
