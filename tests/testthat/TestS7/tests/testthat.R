@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(tests7)
+library(TestS7)
 
-test_check("tests7")
+test_check("TestS7")
