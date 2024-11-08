@@ -24,7 +24,7 @@ traverse_S7_generic <- function(x) {
     })
     unlist(replacements, FALSE, FALSE)
   }
-  get_replacements(x@methods)
+  get_replacements(S7::prop(x, "methods"))
 }
 
 traverse_S7_class <- function(x) {
