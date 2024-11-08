@@ -94,8 +94,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
     recurse(x)
   }
   else {
-    message("Unknown language class: ", paste(class(x), collapse = "/"),
-      call. = FALSE)
+    message("Unknown language class: ", paste(class(x), collapse = "/"))
     x
   }
 }
