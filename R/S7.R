@@ -19,11 +19,11 @@ traverse_S7_generic <- function(x) {
         # Recurse for nested environments
         get_replacements(target_value)
       } else {
-        name <- as.character(attr(target_value, "name", TRUE) %||% name)
+        name <- as.character(attr(target_value, "name", exact = TRUE) %||% name)
         list(replacement(name, env, target_value))
       }
     })
-    unlist(replacements, FALSE, FALSE)
+    unlist(replacements, recursive = FALSE, use.names = FALSE)
   }
   get_replacements(S7::prop(x, "methods"))
 }
@@ -41,7 +41,7 @@ traverse_S7_class <- function(x) {
         }
       })
   })
-  prop_fun_replacements <- unlist(prop_fun_replacements, FALSE, FALSE)
+  prop_fun_replacements <- unlist(prop_fun_replacements, recursive = FALSE, use.names = FALSE)
 
   c(
     list(
