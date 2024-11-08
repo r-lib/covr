@@ -28,6 +28,11 @@ jobs:
           extra-packages: any::covr, any::xml2
           needs: coverage
 
+      - name: Setup
+        run: |
+          R CMD INSTALL .
+          source shim_package.sh
+
       - name: Test coverage
         run: |
           cov <- covr::package_coverage(
