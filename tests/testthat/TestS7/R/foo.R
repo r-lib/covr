@@ -37,3 +37,18 @@ method(inside, Range) <- function(x, y) {
 # enable usage of <S7_object>@name in package code
 #' @rawNamespace if (getRversion() < "4.3.0") importFrom("S7", "@")
 NULL
+
+# test external S3 generics
+method(format, Range) <- function(x) {
+  sprintf("Range(%s, %s)", x@start, x@end)
+}
+
+testthat_print <- new_external_generic("testthat", "testthat_print", "x")
+method(testthat_print, Range) <- function(x, ...) {
+  cat(format(x))
+  invisible(x)
+}
+
+.onLoad <- function(libname, pkgname) {
+  S7::methods_register()
+}
