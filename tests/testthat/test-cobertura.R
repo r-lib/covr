@@ -1,5 +1,3 @@
-context("cobertura_export")
-
 test_that("it works with coverage objects", {
   tmp <- tempfile()
   cov <- package_coverage(test_path("TestSummary"))

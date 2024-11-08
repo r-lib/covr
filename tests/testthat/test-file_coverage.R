@@ -1,4 +1,3 @@
-context("file_coverage")
 s1 <- tempfile()
 t1 <- tempfile()
 writeLines(con = s1,

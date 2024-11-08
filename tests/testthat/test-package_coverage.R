@@ -1,4 +1,3 @@
-context("package_coverage")
 test_that("package_coverage returns an error if the path does not exist", {
   expect_error(package_coverage("blah"))
 })

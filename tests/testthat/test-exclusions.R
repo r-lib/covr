@@ -2,7 +2,6 @@ exclude_ops <- list(exclude_pattern = "#TeSt_NoLiNt",
                     exclude_start = "#TeSt_NoLiNt_StArT",
                     exclude_end = "#TeSt_NoLiNt_EnD")
 
-context("parse_exclusions")
 test_that("it returns an empty vector if there are no exclusions", {
   t1 <- c("this",
           "is",
@@ -64,7 +63,6 @@ test_that("it throws an error if start and end are unpaired", {
   expect_error(do.call(parse_exclusions, c(list(t1), exclude_ops)), "but only")
 })
 
-context("normalize_exclusions")
 expect_equal_vals <- function(x, y) {
   testthat::expect_equal(unname(x), unname(y))
 }
@@ -124,7 +122,6 @@ test_that("it handles redundant files", {
 
 cov <- package_coverage("TestSummary")
 
-context("exclude")
 test_that("it excludes lines", {
   expect_equal(length(cov), 4)
   expect_equal(length(exclude(cov, list("R/TestSummary.R" = 5), path = "TestSummary")), 3)
@@ -149,7 +146,6 @@ test_that("it excludes properly", {
   expect_equal(length(t1), 0)
 })
 
-context("file_exclusions")
 test_that("it returns NULL if empty or no file exclusions", {
   expect_equal(file_exclusions(NULL, ""), NULL)
 

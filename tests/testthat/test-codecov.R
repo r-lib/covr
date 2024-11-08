@@ -1,4 +1,3 @@
-context("codecov")
 ci_vars <- c(
   "APPVEYOR" = NA,
   "APPVEYOR_ACCOUNT_NAME" = NA,

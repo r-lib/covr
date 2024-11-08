@@ -62,7 +62,7 @@ Suggests:
     rmarkdown,
     htmltools,
     DT (>= 0.2),
-    testthat,
+    testthat (>= 3.0.0),
     rlang,
     rstudioapi (>= 0.2),
     xml2 (>= 1.0.0),
@@ -75,3 +75,5 @@ License: MIT + file LICENSE
 VignetteBuilder: knitr
 RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
+Config/testthat/edition: 3
+Config/testthat/parallel: TRUE

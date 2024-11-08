@@ -1,4 +1,3 @@
-context("Vectorize")
 s1 = tempfile()
 t1 = tempfile()
 writeLines(con = s1,

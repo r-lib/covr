@@ -1,5 +1,3 @@
-context("R6")
-
 test_that("R6 methods coverage is reported", {
   # There is some sort of bug that causes this test to fail during R CMD check
   # in R-devel, not sure why, and can't reproduce it interactively

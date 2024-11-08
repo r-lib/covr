@@ -1,4 +1,3 @@
-context("function_coverage")
 test_that("function_coverage", {
 
   withr::with_options(c(keep.source = TRUE), {
@@ -59,7 +58,6 @@ test_that("duplicated first_line", {
   })
 })
 
-context("trace_calls")
 test_that("trace calls handles all possibilities", {
   expr <- expression(y <- x * 10)
 
@@ -68,7 +66,6 @@ test_that("trace calls handles all possibilities", {
   expect_equal(trace_calls(list(expr)), list(expr))
 })
 
-context("show_failures")
 test_that("show_failures shows as much text as it can from the end", {
   withr::with_options(c(warning.length = 300), {
     td <- tempfile()

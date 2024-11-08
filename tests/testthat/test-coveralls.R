@@ -1,5 +1,3 @@
-context("coveralls")
-
 ci_vars <- c(
   "APPVEYOR" = NA,
   "APPVEYOR_BUILD_NUMBER" = NA,

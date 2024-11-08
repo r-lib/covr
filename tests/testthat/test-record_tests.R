@@ -1,5 +1,3 @@
-context("record_tests")
-
 cov_func <- withr::with_options(
   list(covr.record_tests = TRUE),
   package_coverage(test_path("TestFunctional")))
