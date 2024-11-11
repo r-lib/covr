@@ -5,6 +5,30 @@
 #include <R_ext/Rdynload.h>
 #include <Rdefines.h>
 #include <stdlib.h>  // for NULL
+#include <stdint.h> // for uint64_t
+
+// Mirror the exact structures of SEXPREC from R internals
+struct proxy_sxpinfo_struct {
+    uint64_t bits;  // guaranteed to be 64 bits
+};
+
+struct proxy_closxp_struct {
+    struct SEXPREC *formals;
+    struct SEXPREC *body;
+    struct SEXPREC *env;
+};
+
+struct proxy_sexprec {
+    struct proxy_sxpinfo_struct sxpinfo;
+    struct SEXPREC *attrib;
+    struct SEXPREC *gengc_next_node, *gengc_prev_node;
+    union {
+        struct proxy_closxp_struct closxp;
+        // We could add other union members if needed
+    } u;
+};
+
+typedef struct proxy_sexprec* proxy_sexp;
 
 SEXP covr_reassign_function(SEXP old_fun, SEXP new_fun) {
   if (TYPEOF(old_fun) != CLOSXP) error("old_fun must be a function");
@@ -19,20 +43,19 @@ SEXP covr_reassign_function(SEXP old_fun, SEXP new_fun) {
   // But those functions are now "non-API". So we comply with the letter of the law and
   // swap the fields manually, making some hard assumptions about the underling memory
   // layout in the process. See also: "The Cobra Effect" (https://en.wikipedia.org/wiki/Cobra_effect).
-
-  // Offset and size for closure-specific data within SEXPREC
-  const size_t closure_data_offset = 32;  // 8 bytes (sxpinfo) + 24 bytes (3 pointers for attrib, gengc_next_node, gengc_prev_node)
-  const size_t closure_data_size = 24;    // 3 pointers for formals, body, env (3 * 8 bytes)
+  // Rather than using memcpy() with a hard coded byte offset,
+  // we mirror the R internals SEXPREC struct defs here, to hopefully match the alignment
+  // behavior of R (e.g., on windows).
 
   // Duplicate attributes is still not "non-API", thankfully.
   DUPLICATE_ATTRIB(old_fun, new_fun);
 
-  // Temporary buffer to hold CLOSXP data (the 3 pointers to formals, body, env)
-  char temp[closure_data_size];
+  proxy_sexp old = (proxy_sexp) old_fun;
+  proxy_sexp new = (proxy_sexp) new_fun;
 
-  memcpy(temp, (char *)old_fun + closure_data_offset, closure_data_size);
-  memcpy((char *)old_fun + closure_data_offset, (char *)new_fun + closure_data_offset, closure_data_size);
-  memcpy((char *)new_fun + closure_data_offset, temp, closure_data_size);
+  struct proxy_closxp_struct tmp = old->u.closxp;
+  old->u.closxp = new->u.closxp;
+  new->u.closxp = tmp;
 
   return R_NilValue;
 }
