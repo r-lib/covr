@@ -8,7 +8,7 @@ replacements_S7 <- function(env) {
       }
     }))
 
-  S7_methods_tbl <- attr(env[[".__S3MethodsTable__."]], "S7methods", TRUE)
+  S7_methods_tbl <- attr(env[[".__S3MethodsTable__."]], "S7methods", exact = TRUE)
   external_methods <- lapply(seq_along(S7_methods_tbl), function(i) {
     entry <- S7_methods_tbl[[i]]
     name <- external_generic_method_signature(entry$generic, entry$signature)
@@ -34,11 +34,11 @@ traverse_S7_generic <- function(x) {
         # Recurse for nested environments
         get_replacements(target_value)
       } else {
-        name <- as.character(attr(target_value, "name", TRUE) %||% name)
+        name <- as.character(attr(target_value, "name", exact = TRUE) %||% name)
         list(replacement(name, env, target_value))
       }
     })
-    unlist(replacements, FALSE, FALSE)
+    unlist(replacements, recursive = FALSE, use.names = FALSE)
   }
   get_replacements(S7::prop(x, "methods"))
 }
@@ -56,7 +56,7 @@ traverse_S7_class <- function(x) {
         }
       })
   })
-  prop_fun_replacements <- unlist(prop_fun_replacements, FALSE, FALSE)
+  prop_fun_replacements <- unlist(prop_fun_replacements, recursive = FALSE, use.names = FALSE)
 
   c(
     list(
