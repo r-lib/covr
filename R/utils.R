@@ -90,6 +90,10 @@ split_on_line_directives <- function(lines) {
       capture(name = "line_number", digit), spaces,
       quotes, capture(name = "filename", anything), quotes))
   directive_lines <- which(!is.na(matches$line_number))
+  if (!length(directive_lines)) {
+    return(NULL)
+  }
+
   file_starts <- directive_lines + 1
   file_ends <- c(directive_lines[-1] - 1, length(lines))
   res <- mapply(function(start, end) lines[start:end], file_starts, file_ends)

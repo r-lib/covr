@@ -122,7 +122,12 @@ package_parse_data <- new.env()
 get_parse_data <- function(srcfile) {
   if (length(package_parse_data) == 0) {
     lines <- getSrcLines(srcfile, 1L, Inf)
-    res <- lapply(split_on_line_directives(lines),
+    lines_split <- split_on_line_directives(lines)
+    if (!length(lines_split)) {
+      return(NULL)
+    }
+
+    res <- lapply(lines_split,
       function(x) getParseData(parse(text = x, keep.source = TRUE), includeText = TRUE))
     for (i in seq_along(res)) {
       package_parse_data[[names(res)[[i]]]] <- res[[i]]
