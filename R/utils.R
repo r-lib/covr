@@ -96,7 +96,12 @@ split_on_line_directives <- function(lines) {
 
   file_starts <- directive_lines + 1
   file_ends <- c(directive_lines[-1] - 1, length(lines))
-  res <- mapply(function(start, end) lines[start:end], file_starts, file_ends)
+  res <- mapply(
+    function(start, end) lines[start:end],
+    file_starts,
+    file_ends,
+    SIMPLIFY = FALSE
+  )
   names(res) <- na.omit(matches$filename)
   res
 }

@@ -72,3 +72,34 @@ test_that("split_on_line_directives returns NULL for input without directive (#5
     NULL
   )
 })
+
+test_that("split_on_line_directives does not simplify the result (#588)", {
+  expect_identical(
+    split_on_line_directives(
+      c(
+        '#line 1 "foo.R"',
+        "abc",
+        "def"
+      )
+    ),
+    list(
+      "foo.R" = c("abc", "def")
+    )
+  )
+  expect_identical(
+    split_on_line_directives(
+      c(
+        '#line 1 "foo.R"',
+        "abc",
+        "def",
+        '#line 4 "bar.R"',
+        "ghi",
+        "jkl"
+      )
+    ),
+    list(
+      "foo.R" = c("abc", "def"),
+      "bar.R" = c("ghi", "jkl")
+    )
+  )
+})
