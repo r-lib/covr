@@ -1,4 +1,5 @@
 # covr (development version)
+* Fix a bug preventing `package_coverage()` from running tests when `install_path` is set to a relative path (@gergness, #517, #548).
 
 * Fixed a performance regression and an error triggered by a change in R
   4.4.0. (@kyleam, #588)
