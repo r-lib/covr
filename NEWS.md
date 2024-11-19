@@ -1,5 +1,8 @@
 # covr (development version)
 
+* Fixed a performance regression and an error triggered by a change in R
+  4.4.0. (@kyleam, #588)
+
 * Fixed an issue where attempting to generate code coverage on an already-loaded
   package could fail on Windows. (@kevinushey, #574)
 
