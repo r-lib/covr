@@ -10,6 +10,8 @@
 * Prevent `covr.record_tests` option from logging duplicate tests when the same
   line of testing code is hit repeatedly, as in a loop. (@dgkf, #528)
 
+* Added `code_stdout` option to `package_coverage()` which allows code output to print to the console while running
+
 * Added support for `klmr/box` modules. This works best with `file_coverage()`. (@radbasa, #491)
 
 # covr 3.6.4

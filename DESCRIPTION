@@ -73,7 +73,7 @@ Suggests:
     box (>= 1.2.0)
 License: MIT + file LICENSE
 VignetteBuilder: knitr
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Roxygen: list(markdown = TRUE)
 Config/testthat/edition: 3
 Config/testthat/parallel: TRUE
