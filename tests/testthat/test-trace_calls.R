@@ -1,4 +1,3 @@
-context("trace_calls")
 test_that("one-line functions are traced correctly", {
   old <- getOption("keep.source")
   options(keep.source = TRUE)

@@ -1,5 +1,3 @@
-context("report")
-
 skip_on_ci <- function() {
   if (!identical(Sys.getenv("CI"), "true")) {
     return(invisible(TRUE))

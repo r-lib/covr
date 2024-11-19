@@ -1,5 +1,3 @@
-context("gitlab")
-
 test_that("gitlab", {
   cov <- package_coverage("TestS4")
 
