@@ -2,7 +2,7 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/r-lib/covr/branch/master/graph/badge.svg)](https://app.codecov.io/gh/r-lib/covr?branch=master)
+[![Codecov test coverage](https://codecov.io/gh/r-lib/covr/graph/badge.svg)](https://app.codecov.io/gh/r-lib/covr)
 [![CRAN version](http://www.r-pkg.org/badges/version/covr)](https://cran.r-project.org/package=covr)
 <!-- badges: end -->
 
@@ -18,7 +18,7 @@ install.packages("covr")
 devtools::install_github("r-lib/covr")
 ```
 
-The easiest way to setup covr on [Github Actions](https://github.com/r-lib/actions/tree/v2-branch/examples#test-coverage-workflow) 
+The easiest way to setup covr on [Github Actions](https://github.com/r-lib/actions/tree/v2-branch/examples#test-coverage-workflow)
 is with [usethis](https://github.com/r-lib/usethis).
 
 ```r
