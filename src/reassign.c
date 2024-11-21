@@ -34,7 +34,7 @@ void CheckBody(SEXP x) {
   case EXTPTRSXP:
   case WEAKREFSXP:
   case RAWSXP:
-  case OBJSXP:
+  case S4SXP: // renamed to OBJSXP
     return;
 
   default:
@@ -56,7 +56,7 @@ void CheckFormals(SEXP ls) {
     for (; ls != R_NilValue; ls = CDR(ls))
       if (TYPEOF(TAG(ls)) != SYMSXP)
         goto err;
-      return;
+    return;
   }
   err:
     error("Unexpected closure formals");
