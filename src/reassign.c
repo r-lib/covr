@@ -41,9 +41,9 @@ SEXP covr_reassign_function(SEXP old_fun, SEXP new_fun) {
   //   SET_BODY(old_fun, BODY(new_fun));
   //   SET_CLOENV(old_fun, CLOENV(new_fun));
   // But those functions are now "non-API". So we comply with the letter of the law and
-  // swap the fields manually, making some hard assumptions about the underling memory
+  // swap the fields manually, making some hard assumptions about the underlying memory
   // layout in the process. See also: "The Cobra Effect" (https://en.wikipedia.org/wiki/Cobra_effect).
-  // Rather than using memcpy() with a hard coded byte offset,
+  // Rather than using memcpy() with a hard-coded byte offset,
   // we mirror the R internals SEXPREC struct defs here, to hopefully match the alignment
   // behavior of R (e.g., on windows).
 
