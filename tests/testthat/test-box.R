@@ -1,5 +1,3 @@
-context("box")
-
 loaded_mods <- loadNamespace("box")$loaded_mods
 rm(list = ls(loaded_mods), envir = loaded_mods)
 

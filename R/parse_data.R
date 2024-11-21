@@ -122,7 +122,12 @@ package_parse_data <- new.env()
 get_parse_data <- function(srcfile) {
   if (length(package_parse_data) == 0) {
     lines <- getSrcLines(srcfile, 1L, Inf)
-    res <- lapply(split_on_line_directives(lines),
+    lines_split <- split_on_line_directives(lines)
+    if (!length(lines_split)) {
+      return(NULL)
+    }
+
+    res <- lapply(lines_split,
       function(x) getParseData(parse(text = x, keep.source = TRUE), includeText = TRUE))
     for (i in seq_along(res)) {
       package_parse_data[[names(res)[[i]]]] <- res[[i]]
@@ -135,7 +140,16 @@ clean_parse_data <- function() {
   rm(list = ls(package_parse_data), envir = package_parse_data)
 }
 
-# Needed to work around https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16756
 get_tokens <- function(srcref) {
-  getParseData(srcref) %||% get_parse_data(attr(getSrcref(srcref), "srcfile"))
+  # Before R 4.4.0, covr's custom get_parse_data is necessary because
+  # utils::getParseData returns parse data for only the last file in the
+  # package. That issue (bug#16756) is fixed in R 4.4.0 (r84538).
+  #
+  # On R 4.4.0, continue to use get_parse_data because covr's code expects the
+  # result to be limited to the srcref file. getParseData will return parse data
+  # for all of the package's files.
+  get_parse_data(attr(getSrcref(srcref), "srcfile")) %||%
+    # This covers the non-installed file case where the source file isn't a
+    # concatenated file with "line N" directives.
+    getParseData(srcref)
 }

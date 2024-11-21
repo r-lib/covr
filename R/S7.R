@@ -1,5 +1,5 @@
 replacements_S7 <- function(env) {
-  unlist(recursive = FALSE, use.names = FALSE, eapply(env, all.names = TRUE,
+  bindings <- unlist(recursive = FALSE, use.names = FALSE, eapply(env, all.names = TRUE,
     function(obj) {
       if (inherits(obj, "S7_generic")) {
         traverse_S7_generic(obj)
@@ -7,6 +7,21 @@ replacements_S7 <- function(env) {
         traverse_S7_class(obj)
       }
     }))
+
+  S7_methods_tbl <- attr(env[[".__S3MethodsTable__."]], "S7methods", exact = TRUE)
+  external_methods <- lapply(seq_along(S7_methods_tbl), function(i) {
+    entry <- S7_methods_tbl[[i]]
+    name <- external_generic_method_signature(entry$generic, entry$signature)
+
+    replacement(
+      # `name` is for informative printouts only.
+      # It is not used by covr, and does not need to be unique,
+      name = name,
+      env = entry,
+      target_value = entry$method)
+  })
+
+  c(bindings, external_methods)
 }
 
 traverse_S7_generic <- function(x) {
@@ -50,4 +65,20 @@ traverse_S7_class <- function(x) {
     ),
     prop_fun_replacements
   )
+}
+
+
+external_generic_method_signature <- function(generic, signature) {
+  # This function is a lightly modified copy of S7:::method_signature() for external generics
+  display_generic <- paste0(c(generic$package, generic$name), collapse = "::")
+  class_deparse <- asNamespace("S7")$class_deparse # not exported from S7 :/
+  single <- length(generic$dispatch_args) == 1
+  if (single) {
+    signature <- class_deparse(signature[[1]])
+  } else {
+    classes <- vapply(signature, class_deparse, "", USE.NAMES = FALSE)
+    signature <- paste0("list(", paste0(classes, collapse = ", "), ")")
+  }
+
+  sprintf("method(%s, %s)", display_generic, signature)
 }

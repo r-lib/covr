@@ -1,4 +1,3 @@
-context("evaluated functions")
 test_that("function_coverage generates output", {
   env <- new.env()
   withr::with_options(c("keep.source" = TRUE), {

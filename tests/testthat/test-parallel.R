@@ -1,6 +1,3 @@
-context("coverage of parallel code")
-
-
 test_that("mcparallel without the fix", {
   skip_on_os("windows")
 

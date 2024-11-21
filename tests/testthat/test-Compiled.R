@@ -1,4 +1,3 @@
-context("Compiled")
 test_that("Compiled code coverage is reported including code in headers", {
   skip_on_cran()
   skip_if(is_win_r41())
@@ -79,16 +78,31 @@ test_that("Compiled code coverage is reported under non-standard char's", {
 
 test_that("Error thrown for missing gcov", {
   skip_on_cran()
-  withr::with_options(c(covr.gcov=''),
-    expect_error(package_coverage("TestCompiled", relative_path=TRUE),
-                 "gcov not found")
-  )
+
+  withr::local_options(covr.gcov='')
+  expect_snapshot(package_coverage("TestCompiled", relative_path=TRUE), error = TRUE)
 })
 
 test_that("Warning thrown for empty gcov output", {
   skip_on_cran()
-  withr::with_options(c(covr.gcov_args='-n'),
-    expect_warning(package_coverage("TestCompiled", relative_path=TRUE),
-                   "parsed gcov output was empty")
+
+  withr::local_options(covr.gcov_args='-n')
+  expect_snapshot(
+    . <- package_coverage("TestCompiled", relative_path=TRUE),
+    transform = function(x) gsub(getwd(), "<wd>", x)
   )
+})
+
+test_that("tally_coverage includes compiled code", {
+  skip_on_cran()
+  skip_if(is_win_r41())
+
+  cov <- package_coverage(test_path("TestCompiled"))
+  tall <- tally_coverage(cov)
+
+  expect_named(tall, c("filename", "functions", "line", "value"))
+
+  expect_equal(
+    unique(tall$filename),
+    c("R/TestCompiled.R", "src/simple-header.h", "src/simple.cc", "src/simple4.cc"))
 })

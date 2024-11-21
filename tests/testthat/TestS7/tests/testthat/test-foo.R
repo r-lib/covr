@@ -14,3 +14,11 @@ test_that("Range works", {
   expect_equal(x@length, 5)
   expect_equal(x@end, 6)
 })
+
+test_that("Range methods work", {
+  x <- Range(1:10)
+  expect_equal(base::format(x), "Range(1, 10)")
+
+  # Test external generic method for testthat::testthat_print()
+  expect_equal(testthat::capture_output(x, print = TRUE), "Range(1, 10)")
+})

@@ -1,4 +1,3 @@
-context("RC")
 test_that("RC methods coverage is reported", {
   cov <- as.data.frame(package_coverage("TestRC"))
 

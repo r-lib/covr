@@ -1,5 +1,3 @@
-context("braceless")
-
 test_that("if", {
   f <-
 'f <- function(x) {
