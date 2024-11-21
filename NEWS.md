@@ -1,4 +1,7 @@
 # covr (development version)
+
+* Fix R CMD check NOTE: non-API calls to SET_BODY, SET_CLOENV, SET_FORMALS (@t-kalinowski, #587)
+
 * Fix a bug preventing `package_coverage()` from running tests when `install_path` is set to a relative path (@gergness, #517, #548).
 
 * Fixed a performance regression and an error triggered by a change in R
