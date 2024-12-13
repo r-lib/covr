@@ -43,11 +43,12 @@ ci_vars <- c(
   "WERCKER_GIT_COMMIT" = NA,
   "WERCKER_GIT_OWNER" = NA,
   "WERCKER_GIT_REPOSITORY" = NA,
-  "WERCKER_MAIN_PIPELINE_STARTED" = NA)
+  "WERCKER_MAIN_PIPELINE_STARTED" = NA
+)
 
 read_file <- function(file) paste(collapse = "\n", readLines(file))
 
-cov <- package_coverage("TestS4")
+cov <- package_coverage(test_path("TestS4"))
 
 test_that("coveralls generates a properly formatted json file", {
 
