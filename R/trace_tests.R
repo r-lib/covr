@@ -127,7 +127,7 @@ count_test <- function(key) {
   tests$.data[[4L]] <- .current_test$i
 
   tests$.value <- .counters[[key]]$value
-  with(tests, tally[.value,] <- .data)
+  with(tests, tally[.value, ] <- .data)
 }
 
 #' Initialize a new test counter for a coverage trace
@@ -339,9 +339,9 @@ truncate_call <- function(call_obj, limit = 1e4) {
 #'
 is_current_test_finished <- function() {
   is.null(.current_test$src) ||
-  .current_test$last_frame > sys.nframe() ||
-  !identical(.current_test$src_call, sys.call(which = .current_test$last_frame)) ||
-  !identical(.current_test$src_env, sys.frame(which = .current_test$last_frame - 1L))
+    .current_test$last_frame > sys.nframe() ||
+    !identical(.current_test$src_call, sys.call(which = .current_test$last_frame)) ||
+    !identical(.current_test$src_env, sys.frame(which = .current_test$last_frame - 1L))
 }
 
 #' Is the source bound to the expression

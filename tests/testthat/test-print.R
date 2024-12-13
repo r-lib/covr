@@ -30,9 +30,6 @@ test_that("print.coverage prints by = \"line\" by default", {
 
   expect_message(print(cov),
     rex::rex("R/TestPrint.R: ", anything, "0.00%"))
-})
-test_that("print.coverage prints by = \"line\" by default", {
-  cov <- package_coverage("TestPrint")
 
   expect_message(print(cov, group = "functions"),
     rex::rex("test_me", anything, "0.00%"))

@@ -12,7 +12,7 @@ skip_on_ci <- function() {
 
   #tmp <- tempfile()
   #set.seed(42)
-  #cov <- package_coverage("TestS4")
+  #cov <- package_coverage(test_path("TestS4"))
   ## Shiny uses its own seed which is not affected by set.seed, so we need to
   ## set that as well to have reproducibility
   #g <- shiny:::.globals

@@ -13,7 +13,7 @@ test_that("mcparallel with the fix", {
   skip_on_os("windows")
 
   # using auto detection
-  cov <- package_coverage("TestParallel", type = "test")
+  cov <- package_coverage(test_path("TestParallel"), type = "test")
   # only the non parallel code is covered
   expect_equal(percent_coverage(cov), 100)
 })

@@ -54,7 +54,7 @@ parse_icov <- function(lines, package_path = "") {
                     by = list(line=m1$line, functions=m1$functions), sum)
     names(m2) <- c("line", "functions", "coverage")
   }
-  matches <- m2[order(m2$line),]
+  matches <- m2[order(m2$line), ]
 
   values <- as.numeric(matches$coverage > 0L)
   functions <- matches$functions

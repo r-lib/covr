@@ -31,8 +31,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
   if (is.atomic(x) || is.name(x) || is.null(x)) {
     if (is.null(parent_ref)) {
       x
-    }
-    else {
+    } else {
       if (is_na(x) || is_brace(x)) {
         x
       } else {
@@ -40,8 +39,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
         count(key, x)
       }
     }
-  }
-  else if (is.call(x)) {
+  } else if (is.call(x)) {
     src_ref <- attr(x, "srcref") %||% impute_srcref(x, parent_ref)
     if ((identical(x[[1]], as.name("<-")) || identical(x[[1]], as.name("="))) && # nolint
       (is.call(x[[3]]) && identical(x[[3]][[1]], as.name("function")))) {
@@ -59,8 +57,7 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
     } else {
       as.call(recurse(x))
     }
-  }
-  else if (is.function(x)) {
+  } else if (is.function(x)) {
 
     # We cannot trace primitive functions
     if (is.primitive(x)) {
@@ -83,17 +80,13 @@ trace_calls <- function (x, parent_functions = NULL, parent_ref = NULL) {
     formals(x) <- new_formals
     body(x) <- fun_body
     x
-  }
-  else if (is.pairlist(x)) {
+  } else if (is.pairlist(x)) {
     as.pairlist(recurse(x))
-  }
-  else if (is.expression(x)) {
+  } else if (is.expression(x)) {
     as.expression(recurse(x))
-  }
-  else if (is.list(x)) {
+  } else if (is.list(x)) {
     recurse(x)
-  }
-  else {
+  } else {
     message("Unknown language class: ", paste(class(x), collapse = "/"))
     x
   }

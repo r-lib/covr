@@ -1,2 +1,2 @@
-linters: with_defaults(line_length_linter(120))
+linters: linters_with_defaults(line_length_linter(120))
 exclusions: list("inst/doc/how_it_works.R")
