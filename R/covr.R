@@ -365,7 +365,7 @@ package_coverage <- function(path = ".",
                              code = character(),
                              install_path = temp_file("R_LIBS"),
                              ...,
-                             exclusions, pre_clean=TRUE) {
+                             exclusions, pre_clean = TRUE) {
 
   if (!missing(exclusions)) {
     warning(
@@ -419,8 +419,7 @@ package_coverage <- function(path = ".",
   # check for compiler
   if (!uses_icc()) {
     flags <- getOption("covr.flags")
-  }
-  else {
+  } else {
     if (length(getOption("covr.icov")) > 0L) {
       flags <- getOption("covr.icov_flags")
       # clean up old icov files
@@ -705,7 +704,7 @@ merge_coverage_tests <- function(from, into = NULL) {
   # modify trace test tallies
   for (name in intersect(names(into), names(from))) {
     if (name == "tests") next
-    from[[name]]$tests$tally[,1L] <- test_idx[from[[name]]$tests$tally[,1L]]
+    from[[name]]$tests$tally[, 1L] <- test_idx[from[[name]]$tests$tally[, 1L]]
     into[[name]]$tests$tally <- rbind(into[[name]]$tests$tally, from[[name]]$tests$tally)
   }
 

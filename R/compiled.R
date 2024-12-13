@@ -87,7 +87,7 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
   res <- withr::with_dir(src_path, {
            compact(unlist(lapply(gcov_inputs, run_gcov_one), recursive = FALSE))
          })
-  if (!length(res) & length(gcov_inputs))
+  if (!length(res) && length(gcov_inputs))
     warning('parsed gcov output was empty')
   res
 }
