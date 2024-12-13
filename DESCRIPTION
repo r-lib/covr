@@ -68,7 +68,6 @@ Suggests:
     xml2 (>= 1.0.0),
     parallel,
     memoise,
-    mockery,
     covr,
     box (>= 1.2.0)
 License: MIT + file LICENSE

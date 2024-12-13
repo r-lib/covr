@@ -82,6 +82,10 @@
 #' @importFrom utils capture.output getSrcFilename relist str head
 NULL
 
+# For mocking
+#' @importFrom httr content RETRY upload_file
+NULL
+
 the <- new.env(parent = emptyenv())
 
 the$replacements <- list()

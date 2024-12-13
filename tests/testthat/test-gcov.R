@@ -1,48 +1,68 @@
 test_that("parse_gcov parses files properly", {
-  mockery::stub(parse_gcov, "file.exists", TRUE)
-  mockery::stub(normalize_path, "normalizePath", "simple.c")
-  mockery::stub(parse_gcov, "line_coverages", function(source_file, matches, values, ...) values)
+  local_mocked_bindings(
+    # Only called within parse_gcov
+    source_file_exists = function(path) TRUE,
+    # Only called within normalize_path
+    normalize_path_impl = function(path) "simple.c",
+    # Only called within parse_gcov
+    line_coverages_impl = function(source_file, matches, values, ...) values
+  )
 
+  with_mocked_bindings(
+    expect_equal(parse_gcov("hi.c.gcov"), numeric()),
+    read_lines_impl = function(x) {
+      "        -:    0:Source:simple.c"
+    }
+  )
 
-  mockery::stub(parse_gcov, "readLines",
-"        -:    0:Source:simple.c")
-  expect_equal(parse_gcov("hi.c.gcov"), numeric())
+  with_mocked_bindings(
+    read_lines_impl = function(x) {
+      c(
+        "        -:    0:Source:simple.c",
+        "        -:    1:#define USE_RINTERNALS"
+      )
+    },
+    expect_equal(parse_gcov("hi.c.gcov"), numeric())
+  )
 
-  mockery::stub(parse_gcov, "readLines", c(
-"        -:    0:Source:simple.c",
-"        -:    1:#define USE_RINTERNALS"))
-  expect_equal(parse_gcov("hi.c.gcov"), numeric())
-
-  mockery::stub(parse_gcov, "readLines", c(
-"        -:    0:Source:simple.c",
-"        -:    0:Graph:simple.gcno",
-"        -:    0:Data:simple.gcda",
-"        -:    0:Runs:1",
-"        -:    0:Programs:1",
-"        -:    1:#define USE_RINTERNALS",
-"        -:    2:#include <R.h>",
-"        -:    3:#include <Rdefines.h>",
-"        -:    4:#include <R_ext/Error.h>",
-"        -:    5:",
-"        4:    6:SEXP simple_(SEXP x) {"))
-  expect_equal(parse_gcov("hi.c.gcov"), 4)
-
-  mockery::stub(parse_gcov, "readLines", c(
-"        -:    0:Source:simple.c",
-"        -:    0:Graph:simple.gcno",
-"        -:    0:Data:simple.gcda",
-"        -:    0:Runs:1",
-"        -:    0:Programs:1",
-"        -:    1:#define USE_RINTERNALS",
-"        -:    2:#include <R.h>",
-"        -:    3:#include <Rdefines.h>",
-"        -:    4:#include <R_ext/Error.h>",
-"        -:    5:",
-"        4:    6:SEXP simple_(SEXP x) {",
-"        -:    7:  }",
-"    #####:    8:    pout[0] = 0;" # nolint
-    ))
-    expect_equal(parse_gcov("hi.c.gcov"), c(4, 0))
+  with_mocked_bindings(
+    read_lines_impl = function(x) {
+      c(
+        "        -:    0:Source:simple.c",
+        "        -:    0:Graph:simple.gcno",
+        "        -:    0:Data:simple.gcda",
+        "        -:    0:Runs:1",
+        "        -:    0:Programs:1",
+        "        -:    1:#define USE_RINTERNALS",
+        "        -:    2:#include <R.h>",
+        "        -:    3:#include <Rdefines.h>",
+        "        -:    4:#include <R_ext/Error.h>",
+        "        -:    5:",
+        "        4:    6:SEXP simple_(SEXP x) {"
+      )
+    },
+    code = expect_equal(parse_gcov("hi.c.gcov"), 4)
+  )
+  with_mocked_bindings(
+    read_lines_impl = function(x) {
+      c(
+        "        -:    0:Source:simple.c",
+        "        -:    0:Graph:simple.gcno",
+        "        -:    0:Data:simple.gcda",
+        "        -:    0:Runs:1",
+        "        -:    0:Programs:1",
+        "        -:    1:#define USE_RINTERNALS",
+        "        -:    2:#include <R.h>",
+        "        -:    3:#include <Rdefines.h>",
+        "        -:    4:#include <R_ext/Error.h>",
+        "        -:    5:",
+        "        4:    6:SEXP simple_(SEXP x) {",
+        "        -:    7:  }",
+        "    #####:    8:    pout[0] = 0;"
+      )
+    },
+    code = expect_equal(parse_gcov("hi.c.gcov"), c(4, 0))
+  )
 })
 
 test_that("clean_gcov correctly clears files", {
