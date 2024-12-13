@@ -51,7 +51,7 @@ Imports:
     jsonlite,
     rex,
     httr,
-    crayon,
+    cli,
     withr (>= 1.0.2),
     yaml
 Suggests:

@@ -162,17 +162,24 @@ print.coverage <- function(x, group = c("filename", "functions"), by = "line", .
 
   overall_percentage <- percent_coverage(df, by = by)
 
-  message(crayon::bold(
-      paste(collapse = " ",
-        c(attr(x, "package")$package, to_title(type), "Coverage: "))),
-    format_percentage(overall_percentage))
-
+  msg <- cli::format_message(paste0(
+    cli::style_bold(
+      "{attr(x, 'package')$package} {to_title(type)} Coverage: "
+    ),
+    format_percentage(overall_percentage)
+  ))
+  message(msg)
   by_coverage <- percents[order(percents,
       names(percents))]
 
   for (i in seq_along(by_coverage)) {
-    message(crayon::bold(paste0(names(by_coverage)[i], ": ")),
-      format_percentage(by_coverage[i]))
+    msg <- cli::format_message(
+      paste0(
+        cli::style_bold(names(by_coverage)[i], ": "),
+        format_percentage(by_coverage[i])
+      )
+    )
+    message(msg)
   }
   invisible(x)
 }
@@ -190,9 +197,9 @@ print.coverages <- function(x, ...) {
 }
 
 format_percentage <- function(x) {
-  color <- if (x >= 90) crayon::green
-    else if (x >= 75) crayon::yellow
-    else crayon::red
+  color <- if (x >= 90) cli::col_green
+    else if (x >= 75) cli::col_yellow
+    else cli::col_red
 
   color(sprintf("%02.2f%%", x))
 }

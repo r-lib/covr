@@ -1,19 +1,19 @@
 test_that("format_percentage works as expected", {
-  expect_equal(format_percentage(0), crayon::red("0.00%"))
+  expect_equal(format_percentage(0), cli::col_red("0.00%"))
 
-  expect_equal(format_percentage(25), crayon::red("25.00%"))
+  expect_equal(format_percentage(25), cli::col_red("25.00%"))
 
-  expect_equal(format_percentage(51), crayon::red("51.00%"))
+  expect_equal(format_percentage(51), cli::col_red("51.00%"))
 
-  expect_equal(format_percentage(76.5), crayon::yellow("76.50%"))
+  expect_equal(format_percentage(76.5), cli::col_yellow("76.50%"))
 
-  expect_equal(format_percentage(86.5), crayon::yellow("86.50%"))
+  expect_equal(format_percentage(86.5), cli::col_yellow("86.50%"))
 
-  expect_equal(format_percentage(96.5), crayon::green("96.50%"))
+  expect_equal(format_percentage(96.5), cli::col_green("96.50%"))
 })
 
 test_that("print.coverage prints by = \"line\" by default", {
-  cov <- package_coverage("TestPrint")
+  cov <- package_coverage(test_path("TestPrint"))
 
   expect_message(print(cov, by = "expression"),
     rex::rex("R/TestPrint.R: ", anything, "66.67%"))
