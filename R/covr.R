@@ -411,7 +411,8 @@ package_coverage <- function(path = ".",
   }
 
   # tools::testInstalledPackage requires normalized install_path (#517)
-  dir.create(install_path <- normalize_path(install_path))
+  install_path <- normalize_path(install_path)
+  dir.create(install_path)
 
   flags <- getOption("covr.flags")
 
