@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">covr</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">3.6.4.9003</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">3.6.4.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,6 +49,7 @@
 <li><p>Fixed an issue where attempting to generate code coverage on an already-loaded package could fail on Windows. (<a href="https://github.com/kevinushey" class="external-link">@kevinushey</a>, <a href="https://github.com/r-lib/covr/issues/574" class="external-link">#574</a>)</p></li>
 <li><p>Prevent <code>covr.record_tests</code> option from logging duplicate tests when the same line of testing code is hit repeatedly, as in a loop. (<a href="https://github.com/dgkf" class="external-link">@dgkf</a>, <a href="https://github.com/r-lib/covr/issues/528" class="external-link">#528</a>)</p></li>
 <li><p>Added support for <code>klmr/box</code> modules. This works best with <code><a href="../reference/file_coverage.html">file_coverage()</a></code>. (<a href="https://github.com/radbasa" class="external-link">@radbasa</a>, <a href="https://github.com/r-lib/covr/issues/491" class="external-link">#491</a>)</p></li>
+<li><p>Normalize <code>install_path</code> path before creating directory to prevent failures when running covr in a subprocess using a path with Windows <code>\\</code> path separators. (<a href="https://github.com/maksymiuks" class="external-link">@maksymiuks</a>, <a href="https://github.com/r-lib/covr/issues/592" class="external-link">#592</a>)</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="3.6.4" id="covr-364">covr 3.6.4<a class="anchor" aria-label="anchor" href="#covr-364"></a></h2><p class="text-muted">CRAN release: 2023-11-09</p>
