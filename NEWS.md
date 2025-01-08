@@ -15,6 +15,10 @@
 
 * Added support for `klmr/box` modules. This works best with `file_coverage()`. (@radbasa, #491)
 
+* Normalize `install_path` path before creating directory to prevent
+  failures when running covr in a subprocess using a path with Windows 
+  `\\` path separators. (@maksymiuks, #592)
+
 # covr 3.6.4
 
 * Fix for a failing test on CRAN
