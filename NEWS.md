@@ -16,8 +16,8 @@
 * Added support for `klmr/box` modules. This works best with `file_coverage()`. (@radbasa, #491)
 
 * Normalize `install_path` path before creating directory to prevent
-  failures when during running covr in subprocess a path with Windows 
-  `\\` file path separator is provided. (@maksymiuks, #592)
+  failures when running covr in a subprocess using a path with Windows 
+  `\\` path separators. (@maksymiuks, #592)
 
 # covr 3.6.4
 
