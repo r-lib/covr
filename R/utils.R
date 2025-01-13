@@ -322,7 +322,7 @@ env_path <- function(...) {
 }
 
 normalize_path <- function(x) {
-  path <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  path <- normalizePath(x, winslash = "/", mustWork = FALSE)
   # Strip any trailing slashes as they are invalid on windows
   sub("/*$", "", path)
 }
