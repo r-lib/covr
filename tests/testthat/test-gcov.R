@@ -1,22 +1,22 @@
 test_that("parse_gcov parses files properly", {
   local_mocked_bindings(
     # Only called within parse_gcov
-    source_file_exists = function(path) TRUE,
+    file.exists = function(path) TRUE,
     # Only called within normalize_path
-    normalize_path_impl = function(path) "simple.c",
+    normalize_path = function(path) "simple.c",
     # Only called within parse_gcov
-    line_coverages_impl = function(source_file, matches, values, ...) values
+    line_coverages = function(source_file, matches, values, ...) values
   )
 
   with_mocked_bindings(
     expect_equal(parse_gcov("hi.c.gcov"), numeric()),
-    read_lines_impl = function(x) {
+    readLines = function(x) {
       "        -:    0:Source:simple.c"
     }
   )
 
   with_mocked_bindings(
-    read_lines_impl = function(x) {
+    readLines = function(x) {
       c(
         "        -:    0:Source:simple.c",
         "        -:    1:#define USE_RINTERNALS"
@@ -26,7 +26,7 @@ test_that("parse_gcov parses files properly", {
   )
 
   with_mocked_bindings(
-    read_lines_impl = function(x) {
+    readLines = function(x) {
       c(
         "        -:    0:Source:simple.c",
         "        -:    0:Graph:simple.gcno",
@@ -44,7 +44,7 @@ test_that("parse_gcov parses files properly", {
     code = expect_equal(parse_gcov("hi.c.gcov"), 4)
   )
   with_mocked_bindings(
-    read_lines_impl = function(x) {
+    readLines = function(x) {
       c(
         "        -:    0:Source:simple.c",
         "        -:    0:Graph:simple.gcno",

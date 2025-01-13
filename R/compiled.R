@@ -1,17 +1,17 @@
 # this does not handle LCOV_EXCL_START ect.
 parse_gcov <- function(file, package_path = "") {
-  if (!source_file_exists(file)) {
+  if (!file.exists(file)) {
     return(NULL)
   }
 
-  lines <- read_lines_impl(file)
+  lines <- readLines(file)
   source_file <- rex::re_matches(lines[1], rex::rex("Source:", capture(name = "source", anything)))$source
 
   # retrieve full path to the source files
   source_file <- normalize_path(source_file)
 
   # If the source file does not start with the package path or does not exist ignore it.
-  if (!source_file_exists(source_file) || !grepl(rex::rex(start, rex::regex(paste0(rex::escape(package_path), collapse = "|"))), source_file)) {
+  if (!file.exists(source_file) || !grepl(rex::rex(start, rex::regex(paste0(rex::escape(package_path), collapse = "|"))), source_file)) {
     return(NULL)
   }
 
@@ -46,23 +46,12 @@ parse_gcov <- function(file, package_path = "") {
   # There are no functions for gcov, so we set everything to NA
   functions <- rep(NA_character_, length(values))
 
-  line_coverages_impl(source_file, matches, values, functions)
-}
-
-# For mocking (only use it within parse_gcov())
-line_coverages_impl <- function(source_file, matches, values, functions) {
   line_coverages(source_file, matches, values, functions)
 }
 
-# For mocking (only use it within parse_gcov())
-source_file_exists <- function(path) {
-  file.exists(path)
-}
-
-# For mocking (only use it within parse_gcov())
-read_lines_impl <- function(path) {
-  readLines(path)
-}
+# for mocking
+readLines <- NULL
+file.exists <- NULL
 
 clean_gcov <- function(path) {
   src_dir <- file.path(path, "src")
