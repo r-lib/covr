@@ -14,7 +14,7 @@
 #' @param cov the coverage object returned from [package_coverage()]
 #' @param filename the name of the Cobertura XML file
 #' @export
-to_cobertura <- function(cov, filename = "cobertura.xml"){
+to_cobertura <- function(cov, filename = "cobertura.xml") {
 
   loadNamespace("xml2")
 
@@ -24,7 +24,7 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
   percent_per_function <- tapply(df$value, df$functions, FUN = function(x) (sum(x > 0) / length(x)))
   lines_valid <- nrow(df)
   lines_covered <- sum(df$value > 0)
-                                 
+
   d <- xml2::xml_new_document()
 
   xml2::xml_add_child(d, xml2::xml_dtd(
@@ -34,7 +34,7 @@ to_cobertura <- function(cov, filename = "cobertura.xml"){
   top <- xml2::xml_add_child(d,
     "coverage",
     "line-rate" = as.character(percent_overall),
-    "branch-rate" = "0", 
+    "branch-rate" = "0",
     `lines-covered` = as.character(lines_covered),
     `lines-valid` = as.character(lines_valid),
     `branches-covered` = "0",

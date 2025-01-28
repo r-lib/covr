@@ -3,7 +3,7 @@
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/r-lib/covr/branch/master/graph/badge.svg)](https://app.codecov.io/gh/r-lib/covr?branch=master)
-[![CRAN version](http://www.r-pkg.org/badges/version/covr)](https://cran.r-project.org/package=covr)
+[![CRAN version](https://www.r-pkg.org/badges/version/covr)](https://cran.r-project.org/package=covr)
 <!-- badges: end -->
 
 Track test coverage for your R package and view reports locally or (optionally)
