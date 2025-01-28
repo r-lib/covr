@@ -30,10 +30,10 @@ coveralls <- function(..., coverage = NULL,
   coverage_json <- to_coveralls(coverage,
     repo_token = repo_token, service_name = service)
 
-  result <- httr::RETRY("POST", url = coveralls_url,
-    body = list(json_file = httr::upload_file(to_file(coverage_json))))
+  result <- RETRY("POST", url = coveralls_url,
+    body = list(json_file = upload_file(to_file(coverage_json))))
 
-  content <- httr::content(result)
+  content <- content(result)
   if (isTRUE(content$error)) {
     stop("Failed to upload coverage data. Reply by Coveralls: ", content$message)
   }

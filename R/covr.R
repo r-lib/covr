@@ -80,6 +80,7 @@
 #' @import methods
 #' @importFrom stats aggregate na.omit na.pass setNames
 #' @importFrom utils capture.output getSrcFilename relist str head
+#' @importFrom httr content RETRY upload_file
 NULL
 
 the <- new.env(parent = emptyenv())
@@ -410,9 +411,9 @@ package_coverage <- function(path = ".",
     root <- NULL
   }
 
-  dir.create(install_path)
   # tools::testInstalledPackage requires normalized install_path (#517)
   install_path <- normalize_path(install_path)
+  dir.create(install_path)
 
   flags <- getOption("covr.flags")
 

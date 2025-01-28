@@ -15,15 +15,17 @@ test_that("it returns the package if given the root or child directory", {
 })
 
 test_that("it works as expected", {
-  with_mock(`covr:::system_output` = function(...) { "test_branch " }, {
+  with_mocked_bindings(
+    system_output = function(...) {"test_branch "},
     expect_equal(local_branch("TestSummary"), "test_branch")
-  })
+  )
 })
 
 test_that("it works as expected", {
-  with_mock(`covr:::system_output` = function(...) { " test_hash" }, {
-  expect_equal(current_commit("TestSummary"), "test_hash")
-  })
+  with_mocked_bindings(
+    system_output = function(...) {" test_hash"},
+    expect_equal(current_commit("TestSummary"), "test_hash")
+  )
 })
 
 test_that("it works", {

@@ -49,6 +49,10 @@ parse_gcov <- function(file, package_path = "") {
   line_coverages(source_file, matches, values, functions)
 }
 
+# for mocking
+readLines <- NULL
+file.exists <- NULL
+
 clean_gcov <- function(path) {
   src_dir <- file.path(path, "src")
 
