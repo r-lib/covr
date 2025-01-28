@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Package: covr
 Title: Test Coverage for Packages
-Version: 3.6.4.9003
+Version: 3.6.4.9004
 Authors@R: c(
     person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre")),
     person("Willem", "Ligtenberg", role = "ctb"),
@@ -68,12 +68,11 @@ Suggests:
     xml2 (>= 1.0.0),
     parallel,
     memoise,
-    mockery,
     covr,
     box (>= 1.2.0)
 License: MIT + file LICENSE
 VignetteBuilder: knitr
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
 Config/testthat/edition: 3
 Config/testthat/parallel: TRUE

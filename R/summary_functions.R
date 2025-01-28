@@ -206,6 +206,7 @@ format_percentage <- function(x) {
 
 markers <- function(x, ...) UseMethod("markers")
 
+#' @export
 markers.coverages <- function(x, ...) {
   mrks <- unlist(lapply(unname(x), markers), recursive = FALSE)
 
@@ -223,6 +224,7 @@ markers.coverages <- function(x, ...) {
                       autoSelect = "first")
   invisible()
 }
+#' @export
 markers.coverage <- function(x, ...) {
 
   # generate the markers
@@ -240,6 +242,7 @@ markers.coverage <- function(x, ...) {
 
 }
 
+#' @export
 markers.data.frame <- function(x, ..., type = "test") { # nolint
   # generate the markers
   markers <- Map(function(filename, line, column) {

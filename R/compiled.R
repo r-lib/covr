@@ -49,6 +49,10 @@ parse_gcov <- function(file, package_path = "") {
   line_coverages(source_file, matches, values, functions)
 }
 
+# for mocking
+readLines <- NULL
+file.exists <- NULL
+
 clean_gcov <- function(path) {
   src_dir <- file.path(path, "src")
 
@@ -87,7 +91,7 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
   res <- withr::with_dir(src_path, {
            compact(unlist(lapply(gcov_inputs, run_gcov_one), recursive = FALSE))
          })
-  if (!length(res) & length(gcov_inputs))
+  if (!length(res) && length(gcov_inputs))
     warning('parsed gcov output was empty')
   res
 }

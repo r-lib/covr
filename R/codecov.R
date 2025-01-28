@@ -178,7 +178,7 @@ codecov <- function(...,
     codecov_query <- list(service = "github-actions",
                           branch = branch,
                           build = github_run_id,
-                          build_url = utils::URLencode(sprintf("http://github.com/%s/actions/runs/%s", slug, github_run_id)),
+                          build_url = utils::URLencode(sprintf("https://github.com/%s/actions/runs/%s", slug, github_run_id)),
                           pr = pr,
                           slug = slug,
                           commit = commit %||% Sys.getenv("GITHUB_SHA"))
@@ -228,12 +228,12 @@ codecov <- function(...,
 
   coverage_json <- to_codecov(coverage)
 
-  httr::content(httr::RETRY("POST",
-                            url = codecov_url,
-                            query = codecov_query,
-                            body = coverage_json,
-                            encode = "json",
-                            httr::config(http_version = curl_http_1_1())))
+  content(RETRY("POST",
+                url = codecov_url,
+                query = codecov_query,
+                body = coverage_json,
+                encode = "json",
+                httr::config(http_version = curl_http_1_1())))
 }
 
 curl_http_1_1 <- function() {

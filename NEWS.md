@@ -2,6 +2,8 @@
 
 * Messages are now displayed using cli instead of crayon (@olivroy, #591).
 
+* covr now uses `testthat::with_mocked_bindings()` for its internal testing (@olivroy, #595).
+
 * Fix R CMD check NOTE: non-API calls to SET_BODY, SET_CLOENV, SET_FORMALS (@t-kalinowski, #587)
 
 * Fix a bug preventing `package_coverage()` from running tests when `install_path` is set to a relative path (@gergness, #517, #548).
@@ -16,6 +18,10 @@
   line of testing code is hit repeatedly, as in a loop. (@dgkf, #528)
 
 * Added support for `klmr/box` modules. This works best with `file_coverage()`. (@radbasa, #491)
+
+* Normalize `install_path` path before creating directory to prevent
+  failures when running covr in a subprocess using a path with Windows 
+  `\\` path separators. (@maksymiuks, #592)
 
 # covr 3.6.4
 
