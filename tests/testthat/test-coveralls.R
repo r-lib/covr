@@ -51,11 +51,11 @@ read_file <- function(file) paste(collapse = "\n", readLines(file))
 cov <- package_coverage(test_path("TestS4"))
 
 test_that("coveralls generates a properly formatted json file", {
-  with_mocked_bindings(
+  local_mocked_bindings(
     RETRY = function(...) list(...),
     content = identity,
-    upload_file = function(file) readChar(file, file.info(file)$size),
-    code = {
+    upload_file = function(file) readChar(file, file.info(file)$size)
+  )
       withr::local_envvar(c(
         ci_vars, "CI_NAME" = "FAKECI"
       ))
@@ -74,17 +74,15 @@ test_that("coveralls generates a properly formatted json file", {
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA
         )
       )
-    }
-  )
 })
 
 test_that("coveralls can spawn a job using repo_token", {
-  with_mocked_bindings(
+  local_mocked_bindings(
     RETRY = function(...) list(...),
     content = identity,
     upload_file = function(file) readChar(file, file.info(file)$size),
-    system_output = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n"),
-    code = {
+    system_output = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
+  )
       withr::local_envvar(c(
         ci_vars, "CI_NAME" = "DRONE"
       ))
@@ -106,14 +104,12 @@ test_that("coveralls can spawn a job using repo_token", {
           NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA
         )
       )
-    }
-  )
 })
 
 test_that("generates correct payload for Drone and Jenkins", {
-  with_mocked_bindings(
-    system_output = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n"),
-    code = {
+  local_mocked_bindings(
+    system_output = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
+  )
       withr::local_envvar(c(
         ci_vars,
         "CI_NAME" = "FAKECI", "CI_BRANCH" = "fakebranch", "CI_REMOTE" = "covr"
@@ -129,17 +125,15 @@ test_that("generates correct payload for Drone and Jenkins", {
       expect_equal(git$branch, jsonlite::unbox("fakebranch"))
       expect_equal(git$remotes[[1]]$name, jsonlite::unbox("origin"))
       expect_equal(git$remotes[[1]]$url, jsonlite::unbox("covr"))
-    }
-  )
 })
 
 test_that("coveralls can spawn a job using repo_token - travis-pro #285", {
-  with_mocked_bindings(
+  local_mocked_bindings(
     RETRY = function(...) list(...),
     content = identity,
     upload_file = function(file) readChar(file, file.info(file)$size),
-    system_output = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n"),
-    code = {
+    system_output = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
+  )
       withr::local_envvar(
         c(ci_vars, "CI_NAME" = "travis-pro")
       )
@@ -167,6 +161,4 @@ test_that("coveralls can spawn a job using repo_token - travis-pro #285", {
       expect_equal(json$git$head$commiter_name, "d")
       expect_equal(json$git$head$commiter_email, "e")
       expect_equal(json$git$head$message, "f")
-    }
-  )
 })
