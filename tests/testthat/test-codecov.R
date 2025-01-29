@@ -54,14 +54,13 @@ ci_vars <- c(
 cov <- package_coverage(test_path("TestS4"))
 
 test_that("it generates a properly formatted json file", {
+  withr::local_envvar(ci_vars)
   local_mocked_bindings(
     RETRY = function(...) list(...),
     content = identity,
     local_branch = function(dir) "master",
     current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   )
-  # Set environment variables
-  withr::local_envvar(ci_vars)
   res <- codecov(coverage = cov)
   json <- jsonlite::fromJSON(res$body)
 
@@ -77,25 +76,25 @@ test_that("it generates a properly formatted json file", {
 })
 
 test_that("it adds a flags argument to the query if specified", {
+  withr::local_envvar(ci_vars)
   local_mocked_bindings(
     RETRY = function(...) list(...),
     content = identity,
     local_branch = function(dir) "master",
     current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   )
-  withr::local_envvar(ci_vars)
   res <- codecov(coverage = cov, flags = "R")
   expect_equal(res$query$flags, "R")
 })
 
 test_that("it works with local repos", {
+  withr::local_envvar(ci_vars)
   local_mocked_bindings(
     RETRY = function(...) list(...),
     content = identity,
     local_branch = function(dir) "master",
     current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   )
-  withr::local_envvar(ci_vars)
   res <- codecov(coverage = cov)
 
   expect_match(res$url, "2") # nolint
@@ -103,11 +102,11 @@ test_that("it works with local repos", {
   expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
 test_that("it works with local repos and explicit branch and commit", {
+  withr::local_envvar(ci_vars)
   local_mocked_bindings(
     RETRY = function(...) list(...),
     content = identity
   )
-  withr::local_envvar(ci_vars)
   res <- codecov(coverage = cov, branch = "master", commit = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 
   expect_match(res$url, "/upload/v2") # nolint
@@ -115,13 +114,13 @@ test_that("it works with local repos and explicit branch and commit", {
   expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
 test_that("it adds the token to the query if available", {
+  withr::local_envvar(c(ci_vars, "CODECOV_TOKEN" = "codecov_test"))
   local_mocked_bindings(
     RETRY = function(...) list(...),
     content = identity,
     local_branch = function(dir) "master",
     current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   )
-  withr::local_envvar(c(ci_vars, "CODECOV_TOKEN" = "codecov_test"))
   res <- codecov(coverage = cov)
 
   expect_match(res$url, "/upload/v2") # nolint
@@ -130,13 +129,13 @@ test_that("it adds the token to the query if available", {
   expect_match(res$query$token, "codecov_test")
 })
 test_that("it looks for token in a .yml file", {
+  withr::local_envvar(ci_vars)
   local_mocked_bindings(
     RETRY = function(...) list(...),
     content = identity,
     local_branch = function(dir) "master",
     current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   )
-  withr::local_envvar(ci_vars)
   res <- codecov(coverage = cov)
 
   expect_match(res$url, "/upload/v2") # nolint
@@ -146,10 +145,6 @@ test_that("it looks for token in a .yml file", {
 })
 
 test_that("it works with jenkins", {
-  local_mocked_bindings(
-    RETRY = function(...) list(...),
-    content = identity
-  )
   withr::local_envvar(c(
     ci_vars,
     "JENKINS_URL" = "jenkins.com",
@@ -158,7 +153,10 @@ test_that("it works with jenkins", {
     "BUILD_NUMBER" = "1",
     "BUILD_URL" = "http://test.com/tester/test"
   ))
-
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity
+  )
   res <- codecov(coverage = cov)
 
   expect_match(res$query$service, "jenkins")
@@ -169,10 +167,6 @@ test_that("it works with jenkins", {
 })
 
 test_that("it works with travis normal builds", {
-  local_mocked_bindings(
-    RETRY = function(...) list(...),
-    content = identity
-  )
   withr::local_envvar(c(
     ci_vars,
     "CI" = "true",
@@ -184,7 +178,12 @@ test_that("it works with travis normal builds", {
     "TRAVIS_JOB_ID" = "10",
     "TRAVIS_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   ))
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity
+  )
   res <- codecov(coverage = cov)
+
   expect_match(res$query$service, "travis")
   expect_match(res$query$branch, "master")
   expect_match(res$query$job, "10")
@@ -195,10 +194,6 @@ test_that("it works with travis normal builds", {
 })
 
 test_that("it works with travis pull requests", {
-  local_mocked_bindings(
-    RETRY = function(...) list(...),
-    content = identity
-  )
   withr::local_envvar(c(
     ci_vars,
     "CI" = "true",
@@ -210,6 +205,10 @@ test_that("it works with travis pull requests", {
     "TRAVIS_JOB_ID" = "10",
     "TRAVIS_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   ))
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity
+  )
   res <- codecov(coverage = cov)
 
   expect_match(res$query$service, "travis")
@@ -222,10 +221,6 @@ test_that("it works with travis pull requests", {
 })
 
 test_that("it works with codeship", {
-  local_mocked_bindings(
-    RETRY = function(...) list(...),
-    content = identity
-  )
   withr::local_envvar(c(
     ci_vars,
     "CI" = "true",
@@ -235,6 +230,10 @@ test_that("it works with codeship", {
     "CI_BUILD_URL" = "http://test.com/tester/test",
     "CI_COMMIT_ID" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   ))
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity
+  )
   res <- codecov(coverage = cov)
 
   expect_match(res$query$service, "codeship")
@@ -244,10 +243,6 @@ test_that("it works with codeship", {
   expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
 test_that("it works with circleci", {
-  local_mocked_bindings(
-    RETRY = function(...) list(...),
-    content = identity
-  )
   withr::local_envvar(c(
     ci_vars,
     "CI" = "true",
@@ -258,6 +253,10 @@ test_that("it works with circleci", {
     "CIRCLE_PROJECT_REPONAME" = "test",
     "CIRCLE_SHA1" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   ))
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity
+  )
   res <- codecov(coverage = cov)
 
   expect_match(res$query$service, "circleci")
@@ -268,10 +267,6 @@ test_that("it works with circleci", {
   expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
 test_that("it works with semaphore", {
-  local_mocked_bindings(
-    RETRY = function(...) list(...),
-    content = identity
-  )
   withr::local_envvar(c(
     ci_vars,
     "CI" = "true",
@@ -281,6 +276,10 @@ test_that("it works with semaphore", {
     "SEMAPHORE_REPO_SLUG" = "tester/test",
     "REVISION" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   ))
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity
+  )
   res <- codecov(coverage = cov)
 
   expect_match(res$query$service, "semaphore")
@@ -291,10 +290,6 @@ test_that("it works with semaphore", {
   expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
 test_that("it works with drone", {
-  local_mocked_bindings(
-    RETRY = function(...) list(...),
-    content = identity
-  )
   withr::local_envvar(c(
     ci_vars,
     "CI" = "true",
@@ -304,6 +299,10 @@ test_that("it works with drone", {
     "DRONE_BUILD_URL" = "http://test.com/tester/test",
     "DRONE_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   ))
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity
+  )
   res <- codecov(coverage = cov)
 
   expect_match(res$query$service, "drone.io")
@@ -313,10 +312,6 @@ test_that("it works with drone", {
   expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
 test_that("it works with AppVeyor", {
-  local_mocked_bindings(
-    RETRY = function(...) list(...),
-    content = identity
-  )
   withr::local_envvar(c(
     ci_vars,
     "CI" = "True",
@@ -329,6 +324,10 @@ test_that("it works with AppVeyor", {
     "APPVEYOR_JOB_ID" = "225apqggpmlkn5pr",
     "APPVEYOR_REPO_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   ))
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity
+  )
   res <- codecov(coverage = cov)
 
   expect_match(res$query$service, "appveyor")
@@ -339,10 +338,6 @@ test_that("it works with AppVeyor", {
   expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
 test_that("it works with Wercker", {
-  local_mocked_bindings(
-    RETRY = function(...) list(...),
-    content = identity
-  )
   withr::local_envvar(c(
     ci_vars,
     "CI" = "true",
@@ -352,6 +347,10 @@ test_that("it works with Wercker", {
     "WERCKER_GIT_REPOSITORY" = "test",
     "WERCKER_GIT_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   ))
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity
+  )
   res <- codecov(coverage = cov)
 
   expect_match(res$query$service, "wercker")
@@ -363,10 +362,6 @@ test_that("it works with Wercker", {
 })
 
 test_that("it works with GitLab", {
-  local_mocked_bindings(
-    RETRY = function(...) list(...),
-    content = identity
-  )
   withr::local_envvar(c(
     ci_vars,
     "CI" = "true",
@@ -376,6 +371,10 @@ test_that("it works with GitLab", {
     "CI_BUILD_REF_NAME" = "master",
     "CI_BUILD_REF" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   ))
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity
+  )
   res <- codecov(coverage = cov)
 
   expect_match(res$query$service, "gitlab")
