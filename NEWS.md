@@ -1,5 +1,7 @@
 # covr (development version)
 
+* Messages are now displayed using cli instead of crayon (@olivroy, #591).
+
 * covr now uses `testthat::with_mocked_bindings()` for its internal testing (@olivroy, #595).
 
 * Fix R CMD check NOTE: non-API calls to SET_BODY, SET_CLOENV, SET_FORMALS (@t-kalinowski, #587)
