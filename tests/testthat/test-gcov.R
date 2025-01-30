@@ -1,18 +1,16 @@
 test_that("parse_gcov parses files properly", {
   local_mocked_bindings(
-    # Only called within parse_gcov
+    # functions called within parse_gcov
     file.exists = function(path) TRUE,
-    # Only called within normalize_path
     normalize_path = function(path) "simple.c",
-    # Only called within parse_gcov
     line_coverages = function(source_file, matches, values, ...) values
   )
 
   with_mocked_bindings(
-    expect_equal(parse_gcov("hi.c.gcov"), numeric()),
     readLines = function(x) {
       "        -:    0:Source:simple.c"
-    }
+    },
+    expect_equal(parse_gcov("hi.c.gcov"), numeric())
   )
 
   with_mocked_bindings(
@@ -41,7 +39,7 @@ test_that("parse_gcov parses files properly", {
         "        4:    6:SEXP simple_(SEXP x) {"
       )
     },
-    code = expect_equal(parse_gcov("hi.c.gcov"), 4)
+    expect_equal(parse_gcov("hi.c.gcov"), 4)
   )
   with_mocked_bindings(
     readLines = function(x) {
@@ -61,7 +59,7 @@ test_that("parse_gcov parses files properly", {
         "    #####:    8:    pout[0] = 0;"
       )
     },
-    code = expect_equal(parse_gcov("hi.c.gcov"), c(4, 0))
+    expect_equal(parse_gcov("hi.c.gcov"), c(4, 0))
   )
 })
 
