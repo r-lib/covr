@@ -28,3 +28,10 @@ extern "C" SEXP simple_(SEXP x) {
 extern "C" SEXP simple3_(SEXP x) {
   return simple2_<double, REALSXP>(x);
 }
+
+// multi-expression lines allow for partially executed blocks
+extern "C" SEXP simple5_(SEXP x) {
+  if (REAL(x)[0] > 0) return Rf_ScalarLogical(TRUE);
+  if (REAL(x)[0] < 0) return NA_REAL;
+  return Rf_ScalarLogical(FALSE);
+}

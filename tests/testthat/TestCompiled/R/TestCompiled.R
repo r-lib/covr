@@ -12,3 +12,7 @@ simple3 <- function(x) {
 simple4 <- function(x) {
   .Call(simple4_, x) # nolint
 }
+
+simple5 <- function(x) {
+  .Call(simple5_, x) # nolint
+}

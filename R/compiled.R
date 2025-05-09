@@ -16,7 +16,7 @@ parse_gcov <- function(file, package_path = "") {
   }
 
   re <- rex::rex(any_spaces,
-    capture(name = "coverage", some_of(digit, "-", "#", "=")),
+    capture(name = "coverage", some_of(digit, "-", "#", "="), maybe("*")),
     ":", any_spaces,
     capture(name = "line", digits),
     ":"
@@ -29,7 +29,14 @@ parse_gcov <- function(file, package_path = "") {
   matches <- na.omit(matches)
 
   # gcov lines which have no coverage
-  matches$coverage[matches$coverage == "#####"] <- 0 # nolint
+  matches$coverage[matches$coverage == "#####"] <- "0" # nolint
+
+  partial_coverage_idx <- endsWith(matches$coverage, "*")
+  if (isTRUE(getOption("covr.gcov_exclude_partial_lines", FALSE))) {
+    matches$coverage[partial_coverage_idx] <- "0"
+  } else {
+    matches$coverage[partial_coverage_idx] <- sub("[*]$", "", matches$coverage[partial_coverage_idx])
+  }
 
   # gcov lines which have parse error, so make untracked
   matches$coverage[matches$coverage == "====="] <- "-"
