@@ -461,7 +461,7 @@ package_coverage <- function(path = ".",
 
       name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
       path <- file.path(R.home("bin"), name)
-      system2(
+      res <- system2(
         path,
         args,
         stdout = if (quiet) NULL else "",
@@ -469,6 +469,10 @@ package_coverage <- function(path = ".",
       )
     })
   )
+
+  if (res != 0) {
+    warning("Package installation did not succeed.")
+  }
 
   # add hooks to the package startup
   add_hooks(pkg$package, install_path,
