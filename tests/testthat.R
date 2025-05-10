@@ -9,4 +9,5 @@
 library(testthat)
 library(covr)
 
+system('gcov --version')
 test_check("covr")
