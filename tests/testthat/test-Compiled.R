@@ -108,6 +108,7 @@ test_that("Partial coverage can be optionally excluded", {
   skip_on_cran()
   skip_if(is_win_r41())
   skip_if(uses_icc())
+  system('gcov --version')
   withr::local_options(list(covr.gcov_exclude_partial_lines = TRUE))
 
   cov <- as.data.frame(package_coverage("TestCompiled", relative_path = TRUE))
