@@ -2,7 +2,7 @@ test_that("Compiled code coverage is reported including code in headers", {
   skip_on_cran()
   skip_if(is_win_r41())
 
-  cov <- as.data.frame(package_coverage("TestCompiled", relative_path = TRUE, quiet=FALSE))
+  cov <- as.data.frame(package_coverage("TestCompiled", relative_path = TRUE))
 
   simple_cc <- cov[cov$filename == "src/simple.cc", ]
   expect_equal(simple_cc[simple_cc$first_line == "10", "value"], 4)
@@ -31,7 +31,7 @@ test_that("Compiled code coverage is reported including code in headers", {
 test_that("Can pass path to relative_path argument", {
   skip_on_cran()
   skip_if(is_win_r41())
-  cov <- as.data.frame(package_coverage("TestCompiled", relative_path = ".", quiet=FALSE))
+  cov <- as.data.frame(package_coverage("TestCompiled", relative_path = "."))
 
   expect_true(all(unique(cov$filename) %in% c(
     "TestCompiled/R/TestCompiled.R",
@@ -85,7 +85,7 @@ test_that("Warning thrown for empty gcov output", {
 
   withr::local_options(covr.gcov_args='-n')
   expect_snapshot(
-    . <- package_coverage("TestCompiled", relative_path=TRUE, quiet=FALSE),
+    . <- package_coverage("TestCompiled", relative_path=TRUE),
     transform = function(x) gsub(getwd(), "<wd>", x)
   )
 })
@@ -94,7 +94,7 @@ test_that("tally_coverage includes compiled code", {
   skip_on_cran()
   skip_if(is_win_r41())
 
-  cov <- package_coverage(test_path("TestCompiled"), quiet=FALSE)
+  cov <- package_coverage(test_path("TestCompiled"))
   tall <- tally_coverage(cov)
 
   expect_named(tall, c("filename", "functions", "line", "value"))
@@ -109,7 +109,7 @@ test_that("Partial coverage can be optionally excluded", {
   skip_if(is_win_r41())
   withr::local_options(list(covr.gcov_exclude_partial_lines = TRUE))
 
-  cov <- as.data.frame(package_coverage("TestCompiled", relative_path = TRUE, quiet=FALSE))
+  cov <- as.data.frame(package_coverage("TestCompiled", relative_path = TRUE))
 
   simple_cc <- cov[cov$filename == "src/simple.cc", ]
   expect_equal(simple_cc[simple_cc$first_line == "34", "value"], 0)
