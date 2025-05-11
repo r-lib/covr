@@ -56,6 +56,36 @@ parse_gcov <- function(file, package_path = "") {
   line_coverages(source_file, matches, values, functions)
 }
 
+supports_simple_partial_coverage <- function(gcov_path = getOption("covr.gcov_path", "")) {
+  if (!nzchar(gcov_path)) {
+    stop("Please set covr.gcov_path first")
+  }
+  tmp_dir <- tempfile()
+  dir.create(tmp_dir)
+  old_wd <- setwd(tmp_dir)
+  on.exit({
+    setwd(old_wd)
+    unlink(tmp_dir, recursive = TRUE)
+  })
+
+  cat(file = "test.cc", '
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+  int verbose = 0;
+  if (argc > 1 && argv[1][0] == \'v\') {
+    verbose = 1;
+  }
+  if (verbose) printf("Verbose mode is ON\\n");
+  printf("Program finished\\n");
+  return 0;
+}
+')
+  system2(r_compiler(), c("-fprofile-arcs", "-ftest-coverage", "test.cc", "-o", "test.o"))
+  system2("./test.o")
+  system2(gcov_path, "test.cc")
+}
+
 # for mocking
 readLines <- NULL
 file.exists <- NULL
