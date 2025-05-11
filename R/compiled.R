@@ -87,7 +87,7 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
   }
   run_gcov_one <- function(src) {
     system_check(gcov_path,
-      args = c(gcov_args, src, "-p", "-o", dirname(src)),
+      args = c(gcov_args, src, "-a", "-p", "-o", dirname(src)),
       quiet = quiet, echo = !quiet)
     gcov_outputs <- list.files(path, pattern = rex::rex(".gcov", end), recursive = TRUE, full.names = TRUE)
     if (clean) {
