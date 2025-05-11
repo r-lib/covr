@@ -5,6 +5,7 @@ parse_gcov <- function(file, package_path = "") {
   }
 
   lines <- readLines(file)
+  writeLines(c("Coverage for", file, lines))
   source_file <- rex::re_matches(lines[1], rex::rex("Source:", capture(name = "source", anything)))$source
 
   # retrieve full path to the source files

@@ -10,4 +10,7 @@ library(testthat)
 library(covr)
 
 system('gcov --version')
+system('gcov --help')
+system('man gcov | cat')
+package_coverage('testthat/TestCompiled', quiet=FALSE)
 test_check("covr")
