@@ -5,7 +5,6 @@ parse_gcov <- function(file, package_path = "") {
   }
 
   lines <- readLines(file)
-  writeLines(c("Coverage for", file, lines))
   source_file <- rex::re_matches(lines[1], rex::rex("Source:", capture(name = "source", anything)))$source
 
   # retrieve full path to the source files
@@ -87,7 +86,7 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
   }
   run_gcov_one <- function(src) {
     system_check(gcov_path,
-      args = c(gcov_args, src, "-a", "-p", "-o", dirname(src)),
+      args = c(gcov_args, src, "-p", "-o", dirname(src)),
       quiet = quiet, echo = !quiet)
     gcov_outputs <- list.files(path, pattern = rex::rex(".gcov", end), recursive = TRUE, full.names = TRUE)
     if (clean) {
