@@ -415,20 +415,16 @@ package_coverage <- function(path = ".",
   install_path <- normalize_path(install_path)
   dir.create(install_path)
 
-  flags <- getOption("covr.flags")
-
   # check for compiler
   if (!uses_icc()) {
     flags <- getOption("covr.flags")
+  } else if (length(getOption("covr.icov")) > 0L) {
+    flags <- getOption("covr.icov_flags")
+    # clean up old icov files
+    unlink(file.path(pkg$path, "src", "*.dyn"))
+    unlink(file.path(pkg$path, "src", "pgopti.*"))
   } else {
-    if (length(getOption("covr.icov")) > 0L) {
-      flags <- getOption("covr.icov_flags")
-      # clean up old icov files
-      unlink(file.path(pkg$path, "src","*.dyn"))
-      unlink(file.path(pkg$path, "src","pgopti.*"))
-    } else {
-      stop("icc is not available")
-    }
+    stop("icc is not available")
   }
 
   if (isTRUE(clean)) {
