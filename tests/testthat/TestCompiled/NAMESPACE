@@ -3,3 +3,4 @@
 useDynLib(TestCompiled,simple_)
 useDynLib(TestCompiled,simple3_)
 useDynLib(TestCompiled,simple4_)
+useDynLib(TestCompiled,simple5_)
