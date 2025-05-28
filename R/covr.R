@@ -457,7 +457,7 @@ package_coverage <- function(path = ".",
 
       name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
       path <- file.path(R.home("bin"), name)
-      system2(
+      res <- system2(
         path,
         args,
         stdout = if (quiet) NULL else "",
@@ -465,6 +465,10 @@ package_coverage <- function(path = ".",
       )
     })
   )
+
+  if (res != 0) {
+    stop("Package installation did not succeed.")
+  }
 
   # add hooks to the package startup
   add_hooks(pkg$package, install_path,
@@ -782,7 +786,7 @@ add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE,
   trace_dir <- paste0("Sys.getenv(\"COVERAGE_DIR\", \"", lib, "\")")
 
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
-  lines <- readLines(file.path(lib, pkg_name, "R", pkg_name))
+  lines <- readLines(load_script)
   lines <- append(lines,
     c(paste0("setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.record_tests = ", record_tests, "))"),
       "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
