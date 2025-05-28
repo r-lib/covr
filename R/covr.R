@@ -471,7 +471,7 @@ package_coverage <- function(path = ".",
   )
 
   if (res != 0) {
-    warning("Package installation did not succeed.")
+    stop("Package installation did not succeed.")
   }
 
   # add hooks to the package startup
