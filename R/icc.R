@@ -119,8 +119,7 @@ run_icov <- function(path, quiet = TRUE,
       class = "coverage")
 }
 
-# check if icc is used
-uses_icc <- function() {
+r_compiler <- function() {
   compiler <- tryCatch(
     {
       system2(file.path(R.home("bin"), "R"),
@@ -128,5 +127,10 @@ uses_icc <- function() {
         stdout = TRUE)
     },
     warning = function(e) NA_character_)
-  isTRUE(any(grepl("\\bicc\\b", compiler)))
+  compiler
+}
+
+# check if icc is used
+uses_icc <- function() {
+  isTRUE(any(grepl("\\bicc\\b", r_compiler())))
 }
