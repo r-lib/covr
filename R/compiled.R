@@ -109,6 +109,7 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
       )
 
       on.exit({
+        writeLines(c("Moving gcov outputs to covr directory.", ""))
         file.rename(gcov_outputs, gcov_output_targets)
       })
     }
