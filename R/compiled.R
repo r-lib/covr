@@ -72,7 +72,7 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
      return()
   }
 
-  res <- withr::local_dir(src_path)
+  withr::local_dir(src_path)
 
   gcov_inputs <- list.files(".", pattern = rex::rex(".gcno", end), recursive = TRUE, full.names = TRUE)
 
