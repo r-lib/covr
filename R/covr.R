@@ -455,7 +455,6 @@ package_coverage <- function(path = ".",
       clean_objects(pkg$path)
       clean_gcov(pkg$path)
       clean_parse_data()
-      unlink(install_path, recursive = TRUE)
     }, add = TRUE)
   }
 
@@ -581,6 +580,8 @@ package_coverage <- function(path = ".",
 
   if (!clean) {
     attr(coverage, "library") <- install_path
+  } else {
+    unlink(install_path, recursive = TRUE)
   }
 
   if (getOption("covr.filter_non_package", TRUE)) {
