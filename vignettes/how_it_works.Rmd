@@ -124,8 +124,7 @@ env$f2() == 3
 
 As modifying external environments and correctly restoring them can be tricky
 to get correct, we use the C function
-[`reassign_function`](https://github.com/r-lib/covr/blob/9753e0e257b053059b85be90ef6eb614a5af9bba/src/reassign.c#L7-L20),
-which is also used in `testthat::with_mock`.
+[`covr_reassign_function`](https://github.com/r-lib/covr/blob/40122df12bc9ef1e577dd0720a895b5340b1516f/src/reassign.c#L65-L135).
 This function takes a function name,
 environment, old definition, new definition and copies the formals, body,
 attributes and environment from the old function to the new function.
