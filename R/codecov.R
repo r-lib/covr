@@ -270,3 +270,21 @@ to_codecov <- function(x) {
 
   jsonlite::toJSON(na = "null", list("files" = res, "uploader" = jsonlite::unbox("R")))
 }
+
+#' @export 
+to_simple_codecov <- function(coverage) {
+  fullLineCoverage <- per_line(coverage)
+
+  data <- Map(function(fileCoverage) {
+    resultCoverage <- lapply(fileCoverage$coverage, jsonlite::unbox)
+    names(resultCoverage) <- seq_along(resultCoverage)
+    return(resultCoverage)
+  }, fullLineCoverage)
+
+  return(jsonlite::toJSON(list("coverage" = data), na = "null"))
+}
+
+#' @export 
+write_simple_codecov <- function(coverage, file_name = "simple-codecov.json") {
+  writeLines(to_simple_codecov(coverage), file_name)
+}
