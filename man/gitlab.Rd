@@ -20,6 +20,6 @@ gitlab(..., coverage = NULL, file = "public/coverage.html", quiet = TRUE)
 \description{
 Utilize internal GitLab static pages to publish package coverage.
 Creates local covr report in a package subdirectory.
-Uses the \href{https://docs.gitlab.com/ee/ci/yaml/README.html#pages}{pages}
+Uses the \href{https://docs.gitlab.com/user/project/pages/}{pages}
 GitLab job to publish the report.
 }

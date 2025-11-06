@@ -2,7 +2,7 @@
 #'
 #' Utilize internal GitLab static pages to publish package coverage.
 #' Creates local covr report in a package subdirectory.
-#' Uses the [pages](https://docs.gitlab.com/ee/ci/yaml/README.html#pages)
+#' Uses the [pages](https://docs.gitlab.com/user/project/pages/)
 #' GitLab job to publish the report.
 #' @inheritParams codecov
 #' @inheritParams report
