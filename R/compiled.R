@@ -88,8 +88,8 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
     gcov_outputs <- list.files(".", pattern = rex::rex(".gcov", end), recursive = TRUE, full.names = TRUE)
 
     if (!quiet) {
-      writeLines(paste0("gcov output for ", src, ":"))
-      writeLines(gcov_outputs)
+      message("gcov output for ", src, ":")
+      message(paste(gcov_outputs, collapse = "\n"))
     }
 
     if (clean) {
@@ -99,8 +99,8 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
       gcov_output_targets <- sub(".", gcov_output_base, gcov_outputs)
 
       if (!quiet) {
-        writeLines(paste0("gcov output targets for ", src, ":"))
-        writeLines(gcov_output_targets)
+        message("gcov output targets for ", src, ":")
+        message(paste(gcov_output_targets, collapse = "\n"))
       }
 
       lapply(
@@ -109,7 +109,9 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
       )
 
       on.exit({
-        writeLines(c("Moving gcov outputs to covr directory.", ""))
+	if (!quiet) {
+	  message("Moving gcov outputs to covr directory.\n")
+	}
         file.rename(gcov_outputs, gcov_output_targets)
       })
     }
