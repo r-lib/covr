@@ -6,27 +6,24 @@ test_that("Compiled code coverage is reported including code in headers", {
 
   simple_cc <- cov[cov$filename == "src/simple.cc", ]
   expect_equal(simple_cc[simple_cc$first_line == "10", "value"], 4)
-
   expect_equal(simple_cc[simple_cc$first_line == "16", "value"], 3)
-
   expect_equal(simple_cc[simple_cc$first_line == "19", "value"], 0)
-
   expect_equal(simple_cc[simple_cc$first_line == "21", "value"], 1)
-
   expect_equal(simple_cc[simple_cc$first_line == "23", "value"], 4)
+  # partial coverage counts as coverage by default
+  expect_equal(simple_cc[simple_cc$first_line == "34", "value"], 1)
+  expect_equal(simple_cc[simple_cc$first_line == "35", "value"], 1)
+  expect_equal(simple_cc[simple_cc$first_line == "36", "value"], 1)
 
   # This header contains a C++ template, which requires you to run gcov for
   # each object file separately and merge the results together.
   simple_h <- cov[cov$filename == "src/simple-header.h", ]
   expect_equal(simple_h[simple_h$first_line == "12", "value"], 4)
-
   expect_equal(simple_h[simple_h$first_line == "18", "value"], 3)
-
   expect_equal(simple_h[simple_h$first_line == "21", "value"], 0)
-
   expect_equal(simple_h[simple_h$first_line == "23", "value"], 1)
-
   expect_equal(simple_h[simple_h$first_line == "25", "value"], 4)
+
 
   expect_true(all(unique(cov$filename) %in% c("R/TestCompiled.R", "src/simple-header.h", "src/simple.cc", "src/simple4.cc")))
 })
@@ -105,4 +102,17 @@ test_that("tally_coverage includes compiled code", {
   expect_equal(
     unique(tall$filename),
     c("R/TestCompiled.R", "src/simple-header.h", "src/simple.cc", "src/simple4.cc"))
+})
+
+test_that("Partial coverage can be optionally excluded", {
+  skip_on_cran()
+  skip_if(is_win_r41())
+  withr::local_options(list(covr.gcov_exclude_partial_lines = TRUE))
+
+  cov <- as.data.frame(package_coverage("TestCompiled", relative_path = TRUE))
+
+  simple_cc <- cov[cov$filename == "src/simple.cc", ]
+  expect_equal(simple_cc[simple_cc$first_line == "34", "value"], 0)
+  expect_equal(simple_cc[simple_cc$first_line == "35", "value"], 0)
+  expect_equal(simple_cc[simple_cc$first_line == "36", "value"], 1)
 })

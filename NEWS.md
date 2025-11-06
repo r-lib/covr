@@ -1,5 +1,10 @@
 # covr (development version)
 
+* Support for excluding partially-covered lines in compiled code (@MichaelChirico, #604).
+  Use `options(covr.gcov_exclude_partial_lines = TRUE)` to require every statement on a line be
+  executed before the line is counted a "covered". For example, `if (verbose) Rprintf("hi\n");`
+  would require a test under `verbose=true` in this stricter setting.
+
 * Messages are now displayed using cli instead of crayon (@olivroy, #591).
 
 * covr now uses `testthat::with_mocked_bindings()` for its internal testing (@olivroy, #595).

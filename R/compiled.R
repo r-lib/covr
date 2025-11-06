@@ -16,7 +16,7 @@ parse_gcov <- function(file, package_path = "") {
   }
 
   re <- rex::rex(any_spaces,
-    capture(name = "coverage", some_of(digit, "-", "#", "=")),
+    capture(name = "coverage", some_of(digit, "-", "#", "="), maybe("*")),
     ":", any_spaces,
     capture(name = "line", digits),
     ":"
@@ -29,7 +29,14 @@ parse_gcov <- function(file, package_path = "") {
   matches <- na.omit(matches)
 
   # gcov lines which have no coverage
-  matches$coverage[matches$coverage == "#####"] <- 0 # nolint
+  matches$coverage[matches$coverage == "#####"] <- "0" # nolint
+
+  partial_coverage_idx <- endsWith(matches$coverage, "*")
+  if (isTRUE(getOption("covr.gcov_exclude_partial_lines", FALSE))) {
+    matches$coverage[partial_coverage_idx] <- "0"
+  } else {
+    matches$coverage[partial_coverage_idx] <- sub("[*]$", "", matches$coverage[partial_coverage_idx])
+  }
 
   # gcov lines which have parse error, so make untracked
   matches$coverage[matches$coverage == "====="] <- "-"
@@ -47,6 +54,36 @@ parse_gcov <- function(file, package_path = "") {
   functions <- rep(NA_character_, length(values))
 
   line_coverages(source_file, matches, values, functions)
+}
+
+supports_simple_partial_coverage <- function(gcov_path = getOption("covr.gcov_path", "")) {
+  if (!nzchar(gcov_path)) {
+    stop("Please set covr.gcov_path first")
+  }
+  tmp_dir <- tempfile()
+  dir.create(tmp_dir)
+  old_wd <- setwd(tmp_dir)
+  on.exit({
+    setwd(old_wd)
+    unlink(tmp_dir, recursive = TRUE)
+  })
+
+  cat(file = "test.cc", '
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+  int verbose = 0;
+  if (argc > 1 && argv[1][0] == \'v\') {
+    verbose = 1;
+  }
+  if (verbose) printf("Verbose mode is ON\\n");
+  printf("Program finished\\n");
+  return 0;
+}
+')
+  system2(r_compiler(), c("-fprofile-arcs", "-ftest-coverage", "test.cc", "-o", "test.o"))
+  system2("./test.o")
+  system2(gcov_path, "test.cc")
 }
 
 # for mocking
