@@ -1,5 +1,7 @@
 # covr (development version)
 
+* Performance improvement for compiled code with a lot of compilation units (@krlmlr, #611)
+
 * Messages are now displayed using cli instead of crayon (@olivroy, #591).
 
 * covr now uses `testthat::with_mocked_bindings()` for its internal testing (@olivroy, #595).

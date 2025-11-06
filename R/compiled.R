@@ -72,27 +72,58 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
      return()
   }
 
-  gcov_inputs <- list.files(path, pattern = rex::rex(".gcno", end), recursive = TRUE, full.names = TRUE)
+  withr::local_dir(src_path)
+
+  gcov_inputs <- list.files(".", pattern = rex::rex(".gcno", end), recursive = TRUE, full.names = TRUE)
+
   if (!nzchar(gcov_path)) {
     if (length(gcov_inputs)) stop('gcov not found')
     return()
   }
+
   run_gcov_one <- function(src) {
     system_check(gcov_path,
       args = c(gcov_args, src, "-p", "-o", dirname(src)),
       quiet = quiet, echo = !quiet)
-    gcov_outputs <- list.files(path, pattern = rex::rex(".gcov", end), recursive = TRUE, full.names = TRUE)
+    gcov_outputs <- list.files(".", pattern = rex::rex(".gcov", end), recursive = TRUE, full.names = TRUE)
+
+    if (!quiet) {
+      message("gcov output for ", src, ":")
+      message(paste(gcov_outputs, collapse = "\n"))
+    }
+
     if (clean) {
       on.exit(unlink(gcov_outputs))
+    } else {
+      gcov_output_base <- file.path("..", "covr", src)
+      gcov_output_targets <- sub(".", gcov_output_base, gcov_outputs)
+
+      if (!quiet) {
+        message("gcov output targets for ", src, ":")
+        message(paste(gcov_output_targets, collapse = "\n"))
+      }
+
+      lapply(
+        unique(dirname(gcov_output_targets)),
+        function(.x) dir.create(.x, recursive = TRUE, showWarnings = FALSE)
+      )
+
+      on.exit({
+	if (!quiet) {
+	  message("Moving gcov outputs to covr directory.\n")
+	}
+        file.rename(gcov_outputs, gcov_output_targets)
+      })
     }
+
     unlist(lapply(gcov_outputs, parse_gcov, package_path = c(path, getOption("covr.gcov_additional_paths", NULL))), recursive = FALSE)
   }
 
-  res <- withr::with_dir(src_path, {
-           compact(unlist(lapply(gcov_inputs, run_gcov_one), recursive = FALSE))
-         })
+  res <- compact(unlist(lapply(gcov_inputs, run_gcov_one), recursive = FALSE))
+
   if (!length(res) && length(gcov_inputs))
     warning('parsed gcov output was empty')
+
   res
 }
 
