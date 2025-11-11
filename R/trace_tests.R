@@ -114,6 +114,9 @@ count_test <- function(key) {
     tests$tally <- rbind(tests$tally, matrix(NA_integer_, ncol = 4L, nrow = n))
   }
 
+  # ignore if .current_test was not initialized properly yet
+  if (length(.current_test$index) == 0) return()
+
   # test number
   tests$.data[[1L]] <- .current_test$index
 

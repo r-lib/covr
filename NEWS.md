@@ -8,6 +8,9 @@
 
 * Fix R CMD check NOTE for upcoming R 4.6: non-API calls to SET_BODY, SET_CLOENV, SET_FORMALS (@t-kalinowski, #587)
 
+* Fix a rare edge case where `count_test` was called before `.current_test` has
+  been initialized leading to crash. (@maksymiuks)
+
 ## Fixes and minor improvements
 
 * Messages are now displayed using cli instead of crayon (@olivroy, #591).
