@@ -80,8 +80,15 @@
 #' @import methods
 #' @importFrom stats aggregate na.omit na.pass setNames
 #' @importFrom utils capture.output getSrcFilename relist str head
-#' @importFrom httr content RETRY upload_file
 NULL
+
+RETRY <- function(...) {
+  httr::RETRY(...)
+}
+
+upload_file <- function(...) {
+  httr::upload_file(...)
+}
 
 the <- new.env(parent = emptyenv())
 
