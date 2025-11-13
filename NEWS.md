@@ -1,5 +1,7 @@
 # covr (development version)
 
+* Avoid cyclic import when running coverage on httr and its dependencies (#623)
+
 # covr 3.6.5
 
 ## New Features and improvements
