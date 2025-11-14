@@ -1,5 +1,8 @@
 # covr (development version)
 
+* Fix a rare edge case where `count_test` was called before `.current_test` has
+  been initialized leading to crash (@maksymiuks).
+
 # covr 3.6.5
 
 ## New Features and improvements
