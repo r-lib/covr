@@ -2,6 +2,16 @@
 
 ## covr (development version)
 
+- Fix a rare edge case where `count_test` was called before
+  `.current_test` has been initialized leading to crash
+  ([@maksymiuks](https://github.com/maksymiuks),
+  [\#631](https://github.com/r-lib/covr/issues/631)).
+
+- Fix rare error in `clean_coverage_tests` where `NA` were being
+  compared in `if` condition
+  ([@maksymiuks](https://github.com/maksymiuks),
+  [\#631](https://github.com/r-lib/covr/issues/631)).
+
 ## covr 3.6.5
 
 CRAN release: 2025-11-09
