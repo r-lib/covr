@@ -667,9 +667,9 @@ clean_coverage_tests <- function(obj) {
 
   for (i in seq_along(obj)) {
     val <- obj[[i]]$value
-    if (is.null(val) || is.na(val)) next
+    if (length(val) == 0 || is.na(val)) next
     n <- nrow(obj[[i]]$tests$tally)
-    if (is.null(n) || is.na(n) || n < val) next
+    if (length(n) == 0  || is.na(n) || n < val) next
     obj[[i]]$tests$tally <- obj[[i]]$tests$tally[seq_len(val),,drop = FALSE]
   }
 }

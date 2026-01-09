@@ -82,3 +82,18 @@ test_that("show_failures shows as much text as it can from the end", {
     expect_error(show_failures(td), "eleifend conubia pellentesque viverra.", fixed = TRUE, class = "covr_error")
   })
 })
+
+test_that("clean_coverage_tests works with degenerated objects", {
+  obj <- list(
+    a = list(tests = new.env()),
+    tests = structure(list(structure(
+      list("a", "b"), call_count = 1L
+    )), names = ""),
+    b = list(value = integer(0)),
+    c = list(value = NA)
+  )
+
+  expect_no_error(
+    covr:::clean_coverage_tests(obj)
+  )
+})
