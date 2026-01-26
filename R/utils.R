@@ -144,6 +144,8 @@ traced_files <- function(x) {
   res
 }
 
+# Converts to a structure in which the coverage is a vector whose indices represent
+# line numbers and the values represent the coverage of that line
 per_line <- function(coverage) {
   df <- as.data.frame(coverage)
 

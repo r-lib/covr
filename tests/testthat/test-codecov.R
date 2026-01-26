@@ -75,6 +75,20 @@ test_that("it generates a properly formatted json file", {
   expect_equal(json$uploader, "R")
 })
 
+test_that("it generates the simple codecov format correctly for usage with the codecov action", {
+  withr::local_envvar(ci_vars)
+  json <- jsonlite::fromJSON(to_simple_codecov(cov))
+
+  expect_in("R/TestS4.R", names(json$coverage))
+  expect_equal(
+    unname(json$coverage[["R/TestS4.R"]]),
+    r <- list(
+      NULL, NULL, NULL, NULL, NULL, NULL, 5, 2, NULL, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, 1, NULL
+    )
+  )
+})
+
 test_that("it adds a flags argument to the query if specified", {
   withr::local_envvar(ci_vars)
   local_mocked_bindings(

@@ -270,3 +270,37 @@ to_codecov <- function(x) {
 
   jsonlite::toJSON(na = "null", list("files" = res, "uploader" = jsonlite::unbox("R")))
 }
+
+#' to_simple_codecov
+#'
+#' Converts a coverage object to a JSON-string conforming to the simple codecov
+#' reporting format. Can be used to write a coverage file to be uploaded with
+#' the codecov GH action.
+#'
+#' @param coverage an existing coverage object
+#' @seealso write_simple_codecov
+#' @export
+to_simple_codecov <- function(coverage) {
+  fullLineCoverage <- per_line(coverage)
+
+  data <- Map(function(fileCoverage) {
+    resultCoverage <- lapply(fileCoverage$coverage, jsonlite::unbox)
+    names(resultCoverage) <- seq_along(resultCoverage)
+    return(resultCoverage)
+  }, fullLineCoverage)
+
+  return(jsonlite::toJSON(list("coverage" = data), na = "null"))
+}
+
+#' write_simple_codecov
+#'
+#' Writes an existing coverage object to a file in the simple codecov
+#' format reporting format. Can be used with the codecov GH action to upload
+#' the coverage data to codecov.
+#'
+#' @param coverage an existing coverage object
+#' @param file_name file to write the coverage report to
+#' @export
+write_simple_codecov <- function(coverage, file_name = "simple-codecov.json") {
+  writeLines(to_simple_codecov(coverage), file_name)
+}
