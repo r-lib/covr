@@ -81,13 +81,12 @@ test_that("it generates the simple codecov format correctly for usage with the c
 
   expect_in("R/TestS4.R", names(json$coverage))
   expect_equal(
-    json$coverage[["R/TestS4.R"]],
-    c(
-      NA, NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
-      NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA
+    unname(json$coverage[["R/TestS4.R"]]),
+    r <- list(
+      NULL, NULL, NULL, NULL, NULL, NULL, 5, 2, NULL, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, 1, NULL
     )
   )
-
 })
 
 test_that("it adds a flags argument to the query if specified", {
