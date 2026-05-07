@@ -1,5 +1,11 @@
 # covr (development version)
 
+## New Features and improvements
+
+* Add support for generating LCOV reports (@michaelchirico, #442).
+
+## Fixes and minor improvements
+
 * Fix a rare edge case where `count_test` was called before `.current_test` has
   been initialized leading to crash (@maksymiuks, #631).
 
