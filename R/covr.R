@@ -635,9 +635,11 @@ merge_coverage.list <- function(x) {
     clean_coverage_tests(y)
     x <- merge_coverage_tests(from = y, into = x)
 
-    for (name in intersect(names, names(y))) {
-      if (name == "tests") next
-      x[[name]]$value <- x[[name]]$value + y[[name]]$value
+    shared <- setdiff(intersect(names, names(y)), "tests")
+    x_idx <- match(shared, names(x))
+    y_idx <- match(shared, names(y))
+    for (i in seq_along(shared)) {
+      x[[x_idx[[i]]]]$value <- x[[x_idx[[i]]]]$value + y[[y_idx[[i]]]]$value
     }
 
     for (name in setdiff(names(y), names)) {
