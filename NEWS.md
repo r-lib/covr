@@ -1,5 +1,7 @@
 # covr (development version)
 
+* `merge_coverage()` is much faster for packages with many traces (@erkurtharun, #643).
+
 * Fix a rare edge case where `count_test` was called before `.current_test` has
   been initialized leading to crash (@maksymiuks, #631).
 
