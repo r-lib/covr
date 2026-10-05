@@ -1,5 +1,8 @@
 # covr (development version)
 
+* Tracing a package is faster, as parse data now keeps text only for terminal
+  tokens (@erkurtharun, #644).
+
 * Fix a rare edge case where `count_test` was called before `.current_test` has
   been initialized leading to crash (@maksymiuks, #631).
 
