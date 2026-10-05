@@ -2,6 +2,10 @@
 
 * `merge_coverage()` is much faster for packages with many traces (@erkurtharun, #643).
 
+* With `options(covr.record_tests = TRUE)`, merging coverage now correctly
+  renumbers the test indices of traces that are absent from the first
+  coverage object (#643).
+
 * Fix a rare edge case where `count_test` was called before `.current_test` has
   been initialized leading to crash (@maksymiuks, #631).
 
