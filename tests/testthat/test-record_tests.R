@@ -104,6 +104,22 @@ test_that("covr.record_tests: merging coverage objects appends tests", {
   expect_equal(cov_merged$`a:1:2:3:4:5:6:7:8`$tests$tally[[3L,1L]], 3L)
 })
 
+test_that("covr.record_tests: merging renumbers tests of traces only in later objects", {
+  .counter_1 <- list(
+    tests = list(test1 = list(quote(a())), test2 = list(quote(b()))),
+    a = list(value = 1L, tests = as.environment(list(tally = cbind(test = 1L, call = 1L, depth = 0L, i = 1L))))
+  )
+  .counter_2 <- list(
+    tests = list(test1 = list(quote(a())), test3 = list(quote(c()))),
+    a = list(value = 1L, tests = as.environment(list(tally = cbind(test = 1L, call = 1L, depth = 0L, i = 1L)))),
+    c = list(value = 1L, tests = as.environment(list(tally = cbind(test = 2L, call = 1L, depth = 0L, i = 2L))))
+  )
+
+  cov_merged <- merge_coverage(list(.counter_1, .counter_2))
+  expect_equal(names(cov_merged$tests), c("test1", "test2", "test3"))
+  expect_equal(names(cov_merged$tests)[cov_merged$c$tests$tally[, "test"]], "test3")
+})
+
 
 test_that("covr.record_tests: tests tally is pruned even when no tests are hit", {
   # "test" a function, but no code is executed and therefore no tests are logged

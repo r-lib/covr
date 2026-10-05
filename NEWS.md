@@ -1,5 +1,11 @@
 # covr (development version)
 
+* `merge_coverage()` is much faster for packages with many traces (@erkurtharun, #643).
+
+* With `options(covr.record_tests = TRUE)`, merging coverage now correctly
+  renumbers the test indices of traces that are absent from the first
+  coverage object (#643).
+
 * Fix compilation of the `TestCompiled` test package on R 4.6 by using public
   `REAL()` and `INTEGER()` accessors instead of the non-API `DATAPTR()`.
 
