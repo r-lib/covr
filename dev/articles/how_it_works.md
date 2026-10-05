@@ -61,6 +61,7 @@ language syntax, but they are actually a Primitive function and you can
 call them like any other function.
 
 ``` r
+
 identical(x = { 1 + 2; 3 + 4 },
     y = `{`(1 + 2, 3 + 4))
 ```
@@ -72,6 +73,7 @@ expression, we can call a counting function followed by the previous
 function substituting `as.call(recurse(x))` in our function above with.
 
 ``` r
+
 `{`(count(), as.call(recurse(x)))
 ```
 
@@ -99,6 +101,7 @@ Each statement comes with a source reference. Unfortunately, the
 following is counted as one statement:
 
 ``` r
+
 if (x)
  y()
 ```
@@ -115,6 +118,7 @@ functions which call the old function also use the new definition? You
 might try redefining the function directly.
 
 ``` r
+
 f1 <- function() 1
 
 f1 <- function() 2
@@ -128,6 +132,7 @@ the same environment, it fails if another function calls a function in a
 different environment.
 
 ``` r
+
 env <- new.env()
 f1 <- function() 1
 env$f2 <- function() f1() + 1
@@ -233,6 +238,7 @@ traced call is from). The value is the number of times that given
 expression was called and the source ref of the original call.
 
 ``` r
+
 # an object to analyze
 f1 <- function(x) { x + 1 }
 # get results with no unit tests
@@ -241,6 +247,7 @@ c1
 ```
 
 ``` r
+
 # get results with unit tests
 c2 <- function_coverage(fun = f1, code = f1(x = 1) == 2)
 c2

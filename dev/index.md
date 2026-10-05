@@ -7,6 +7,7 @@ or [coveralls](https://coveralls.io/).
 # Installation
 
 ``` r
+
 install.packages("covr")
 
 # For devel version
@@ -18,6 +19,7 @@ Actions](https://github.com/r-lib/actions/tree/v2-branch/examples#test-coverage-
 is with [usethis](https://github.com/r-lib/usethis).
 
 ``` r
+
 usethis::use_github_action("test-coverage")
 ```
 
@@ -28,6 +30,7 @@ for each line in your package. *Note* requires the
 [DT](https://github.com/rstudio/DT) package to be installed.
 
 ``` r
+
 library(covr)
 
 # If run with no arguments implicitly calls `package_coverage()`
@@ -45,6 +48,7 @@ e.g. *Ctrl-Shift-C*.
 ## Interactively
 
 ``` r
+
 # If run with the working directory within the package source.
 package_coverage()
 
@@ -90,6 +94,7 @@ can be used to exclude functions by name. This argument takes a vector
 of regular expressions matching functions to exclude.
 
 ``` r
+
 # exclude print functions
 package_coverage(function_exclusions = "print\\.")
 
@@ -105,6 +110,7 @@ can be used to exclude some or all of a file. This argument takes a list
 of filenames or named ranges to exclude.
 
 ``` r
+
 # exclude whole file of R/test.R
 package_coverage(line_exclusions = "R/test.R")
 
@@ -123,6 +129,7 @@ comments in your source code.
 This can be done per line.
 
 ``` r
+
 f1 <- function(x) {
   x + 1 # nocov
 }
@@ -131,6 +138,7 @@ f1 <- function(x) {
 Or by specifying a range with a start and end.
 
 ``` r
+
 f2 <- function(x) { # nocov start
   x + 2
 } # nocov end
@@ -163,6 +171,7 @@ appropriate location with the `covr.gcov` options. If you set this path
 to “” it will turn *off* coverage of compiled code.
 
 ``` r
+
 options(covr.gcov = "path/to/gcov")
 ```
 
@@ -179,6 +188,7 @@ behind it.
 You can view the vignette from within `R` using
 
 ``` r
+
 vignette("how_it_works", package = "covr")
 ```
 

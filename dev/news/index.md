@@ -2,6 +2,10 @@
 
 ## covr (development version)
 
+- Fix compilation of the `TestCompiled` test package on R 4.6 by using
+  public `REAL()` and `INTEGER()` accessors instead of the non-API
+  `DATAPTR()`.
+
 - Fix a rare edge case where `count_test` was called before
   `.current_test` has been initialized leading to crash
   ([@maksymiuks](https://github.com/maksymiuks),
