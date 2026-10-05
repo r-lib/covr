@@ -26,5 +26,5 @@ extern "C" SEXP simple_(SEXP x) {
 }
 
 extern "C" SEXP simple3_(SEXP x) {
-  return simple2_<double, REALSXP>(x);
+  return simple2_<double, REALSXP, REAL>(x);
 }

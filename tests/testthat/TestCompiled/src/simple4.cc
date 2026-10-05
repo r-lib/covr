@@ -5,5 +5,5 @@
 #include "simple-header.h"
 
 extern "C" SEXP simple4_(SEXP x) {
-  return simple2_<int, INTSXP>(x);
+  return simple2_<int, INTSXP, INTEGER>(x);
 }
