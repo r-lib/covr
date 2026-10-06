@@ -1,5 +1,8 @@
 # covr (development version)
 
+* Tracing a package is faster, as parse data now keeps text only for terminal
+  tokens (@erkurtharun, #644).
+
 * `merge_coverage()` is much faster for packages with many traces (@erkurtharun, #643).
 
 * With `options(covr.record_tests = TRUE)`, merging coverage now correctly
