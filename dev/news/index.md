@@ -2,6 +2,10 @@
 
 ## covr (development version)
 
+- Tracing a package is faster, as parse data now keeps text only for
+  terminal tokens ([@erkurtharun](https://github.com/erkurtharun),
+  [\#644](https://github.com/r-lib/covr/issues/644)).
+
 - `merge_coverage()` is much faster for packages with many traces
   ([@erkurtharun](https://github.com/erkurtharun),
   [\#643](https://github.com/r-lib/covr/issues/643)).

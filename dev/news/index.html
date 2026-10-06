@@ -43,7 +43,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="covr-development-version">covr (development version)<a class="anchor" aria-label="anchor" href="#covr-development-version"></a></h2>
-<ul><li><p><code>merge_coverage()</code> is much faster for packages with many traces (<a href="https://github.com/erkurtharun" class="external-link">@erkurtharun</a>, <a href="https://github.com/r-lib/covr/issues/643" class="external-link">#643</a>).</p></li>
+<ul><li><p>Tracing a package is faster, as parse data now keeps text only for terminal tokens (<a href="https://github.com/erkurtharun" class="external-link">@erkurtharun</a>, <a href="https://github.com/r-lib/covr/issues/644" class="external-link">#644</a>).</p></li>
+<li><p><code>merge_coverage()</code> is much faster for packages with many traces (<a href="https://github.com/erkurtharun" class="external-link">@erkurtharun</a>, <a href="https://github.com/r-lib/covr/issues/643" class="external-link">#643</a>).</p></li>
 <li><p>With <code>options(covr.record_tests = TRUE)</code>, merging coverage now correctly renumbers the test indices of traces that are absent from the first coverage object (<a href="https://github.com/r-lib/covr/issues/643" class="external-link">#643</a>).</p></li>
 <li><p>Fix compilation of the <code>TestCompiled</code> test package on R 4.6 by using public <code>REAL()</code> and <code>INTEGER()</code> accessors instead of the non-API <code>DATAPTR()</code>.</p></li>
 <li><p>Fix a rare edge case where <code>count_test</code> was called before <code>.current_test</code> has been initialized leading to crash (<a href="https://github.com/maksymiuks" class="external-link">@maksymiuks</a>, <a href="https://github.com/r-lib/covr/issues/631" class="external-link">#631</a>).</p></li>
