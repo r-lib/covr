@@ -603,9 +603,9 @@ show_failures <- function(dir) {
   }
 }
 
-# merge multiple coverage files together. Assumes the order of coverage lines
-# is the same in each object, this should always be the case if the objects are
-# from the same initial library.
+# Merge multiple coverage objects together. Traces are matched by name; the
+# counts of shared traces are summed and traces missing from earlier objects
+# are appended.
 merge_coverage <- function(x) {
   UseMethod("merge_coverage")
 }
@@ -620,34 +620,56 @@ merge_coverage.character <- function(x) {
 
 #' @export
 merge_coverage.list <- function(x) {
-  coverage_objs <- x
-  if (length(coverage_objs) == 0) {
+  if (length(x) == 0) {
     return()
   }
 
-  x <- coverage_objs[[1]]
-  names <- names(x)
-  clean_coverage_tests(x)  # x[[key]]$tests environments modified in-place
+  clean_coverage_tests(x[[1L]])
+  Reduce(merge_coverage_pair, x)
+}
 
-  for (y in tail(coverage_objs, -1L)) {
+# Test tallies are held in environments and modified in-place during merging.
+merge_coverage_pair <- function(into, from) {
+  clean_coverage_tests(from)
 
-    # only affects coverage produced with options(covr.record_tests = TRUE)
-    clean_coverage_tests(y)
-    x <- merge_coverage_tests(from = y, into = x)
+  tests <- from$tests
+  from <- from[setdiff(names(from), "tests")]
+  idx <- match(names(from), names(into))
+  shared <- which(!is.na(idx))
 
-    for (name in intersect(names, names(y))) {
-      if (name == "tests") next
-      x[[name]]$value <- x[[name]]$value + y[[name]]$value
-    }
+  if (!is.null(tests)) {
+    test_idx <- match(names(tests), Filter(nchar, names(into$tests)))
+    new_test_idx <- if (!length(test_idx)) seq_along(tests) else which(is.na(test_idx))
+    test_idx[new_test_idx] <- length(into$tests) + seq_along(new_test_idx)
 
-    for (name in setdiff(names(y), names)) {
-      x[[name]] <- y[[name]]
-    }
-
-    names <- union(names, names(y))
+    into$tests <- append(into$tests, tests[new_test_idx])
+    from <- lapply(from, renumber_trace_tests, test_idx)
+    into[idx[shared]] <- Map(merge_trace_tests, into[idx[shared]], from[shared])
   }
 
-  x
+  # Integer indexing avoids repeated name lookups in the loop.
+  for (i in shared) {
+    j <- idx[[i]]
+    into[[j]]$value <- into[[j]]$value + from[[i]]$value
+  }
+
+  added <- is.na(idx)
+  into[names(from)[added]] <- from[added]
+  into
+}
+
+merge_trace_tests <- function(into, from) {
+  if (!is.null(from$tests$tally)) {
+    into$tests$tally <- rbind(into$tests$tally, from$tests$tally)
+  }
+  into
+}
+
+renumber_trace_tests <- function(trace, test_idx) {
+  if (!is.null(trace$tests$tally)) {
+    trace$tests$tally[, 1L] <- test_idx[trace$tests$tally[, 1L]]
+  }
+  trace
 }
 
 # Strip allocated, but unused test records from coverage test matrix
@@ -672,46 +694,6 @@ clean_coverage_tests <- function(obj) {
     if (is.null(n) || is.na(n) || n < val) next
     obj[[i]]$tests$tally <- obj[[i]]$tests$tally[seq_len(val),,drop = FALSE]
   }
-}
-
-# Merge recorded tests from one coverage object into another. Because coverage
-# objects are environments, these environments will be modified by-reference as
-# a side-effect of calling this function.
-#
-# If tests were not recorded (that is, if `options(covr.record_tests)` was not
-# `TRUE` when the coverage was calculated, this function will have no effect.
-#
-# @param from A coverage counter environment whose tests should be merged into
-#   \code{into}
-# @param into A coverage counter environment to add tests into
-#
-merge_coverage_tests <- function(from, into = NULL) {
-  if (is.null(from$tests)) return(into)
-
-  # TODO: The x[[name]]$tests$tally matrices are re-allocated with each rbind of
-  # additional test hits as each object is merged. This could be avoided by
-  # first calculating the total rows needed to store all the merged tests and
-  # then allocating a matrix of the appropriate size from the start. In most
-  # cases, this amounts to neglegable overhead but is an opportunity for
-  # improvement.
-
-  # align tests from coverage objects
-  test_idx <- match(names(from$tests), Filter(nchar, names(into$tests)))
-  new_test_idx <- if (!length(test_idx)) seq_along(from$tests) else which(is.na(test_idx))
-  test_idx[new_test_idx] <- length(into$tests) + seq_along(new_test_idx)
-
-  # append any tests that we haven't encountered in previous objects
-  into$tests <- append(into$tests, from$tests[new_test_idx])
-  from$tests <- NULL
-
-  # modify trace test tallies
-  for (name in intersect(names(into), names(from))) {
-    if (name == "tests") next
-    from[[name]]$tests$tally[, 1L] <- test_idx[from[[name]]$tests$tally[, 1L]]
-    into[[name]]$tests$tally <- rbind(into[[name]]$tests$tally, from[[name]]$tests$tally)
-  }
-
-  into
 }
 
 parse_type <- function(type) {

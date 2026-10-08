@@ -128,7 +128,7 @@ get_parse_data <- function(srcfile) {
     }
 
     res <- lapply(lines_split,
-      function(x) getParseData(parse(text = x, keep.source = TRUE), includeText = TRUE))
+      function(x) getParseData(parse(text = x, keep.source = TRUE), includeText = NA))
     for (i in seq_along(res)) {
       package_parse_data[[names(res)[[i]]]] <- res[[i]]
     }
