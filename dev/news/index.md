@@ -2,6 +2,10 @@
 
 ## covr (development version)
 
+- Fix a generational garbage-collection bug when replacing traced
+  functions in place, without permanently retaining their bodies or
+  environments ([\#640](https://github.com/r-lib/covr/issues/640)).
+
 - Tracing a package is faster, as parse data now keeps text only for
   terminal tokens ([@erkurtharun](https://github.com/erkurtharun),
   [\#644](https://github.com/r-lib/covr/issues/644)).

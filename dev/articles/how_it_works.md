@@ -146,12 +146,23 @@ env$f2() == 3
 
 As modifying external environments and correctly restoring them can be
 tricky to get correct, we use the C function
-[`covr_reassign_function`](https://github.com/r-lib/covr/blob/40122df12bc9ef1e577dd0720a895b5340b1516f/src/reassign.c#L65-L135).
-This function takes a function name, environment, old definition, new
-definition and copies the formals, body, attributes and environment from
-the old function to the new function. This allows you to do an in-place
-replacement of a given function with a new function and ensure that all
-references to the old function will use the new definition.
+[`covr_reassign_function`](https://github.com/r-lib/covr/blob/main/src/reassign.c).
+This function takes the target and replacement functions and copies the
+replacement’s formals, body, attributes and environment into the target.
+This allows an in-place replacement of a given function and ensures that
+all existing references to it use the new definition.
+
+Copying closure fields directly bypasses R’s generational
+garbage-collection write barrier. Before copying the fields, covr
+temporarily attaches an attribute referencing the replacement through
+R’s barrier-aware attribute API. The attribute copy is shallow so it
+retains the exact replacement. This lets R remember the target for
+scanning or age the incoming reference graph appropriately. The
+replacement’s original attributes are then copied onto the target,
+removing the temporary reference without undoing the GC bookkeeping. No
+permanent `R_PreserveObject()` roots or extra attributes remain. R
+versions before 3.3 use the original barrier-aware closure setters
+instead.
 
 ## Object Orientation
 
