@@ -1,6 +1,6 @@
 # covr (development version)
 
-* S7 property callbacks and validators are covered when installed classes use shared class references.
+* Updates for compatibility with S7 > 0.2.2.
 
 * Fix a generational garbage-collection bug when replacing traced functions in
   place, without permanently retaining their bodies or environments (#640).
