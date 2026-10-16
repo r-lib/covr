@@ -43,7 +43,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="covr-development-version">covr (development version)<a class="anchor" aria-label="anchor" href="#covr-development-version"></a></h2>
-<ul><li><p>Fix a generational garbage-collection bug when replacing traced functions in place, without permanently retaining their bodies or environments (<a href="https://github.com/r-lib/covr/issues/640" class="external-link">#640</a>).</p></li>
+<ul><li><p>Coverage is now reported for S7 property getters, setters, and validators with S7 &gt; 0.2.2, which stores class callbacks in a shared class reference (<a href="https://github.com/t-kalinowski" class="external-link">@t-kalinowski</a>, <a href="https://github.com/r-lib/covr/issues/646" class="external-link">#646</a>).</p></li>
+<li><p>Fix a generational garbage-collection bug when replacing traced functions in place, without permanently retaining their bodies or environments (<a href="https://github.com/r-lib/covr/issues/640" class="external-link">#640</a>).</p></li>
 <li><p>Tracing a package is faster, as parse data now keeps text only for terminal tokens (<a href="https://github.com/erkurtharun" class="external-link">@erkurtharun</a>, <a href="https://github.com/r-lib/covr/issues/644" class="external-link">#644</a>).</p></li>
 <li><p><code>merge_coverage()</code> is much faster for packages with many traces (<a href="https://github.com/erkurtharun" class="external-link">@erkurtharun</a>, <a href="https://github.com/r-lib/covr/issues/643" class="external-link">#643</a>).</p></li>
 <li><p>With <code>options(covr.record_tests = TRUE)</code>, merging coverage now correctly renumbers the test indices of traces that are absent from the first coverage object (<a href="https://github.com/r-lib/covr/issues/643" class="external-link">#643</a>).</p></li>
