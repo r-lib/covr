@@ -354,7 +354,8 @@ environment_coverage <- function(
 #' @param quiet whether to load and compile the package quietly, useful for
 #' debugging errors.
 #' @param clean whether to clean temporary output files after running, mainly
-#' useful for debugging errors.
+#' useful for debugging errors. If coverage fails, `install_path` is kept even
+#' when `clean = TRUE`, so the test output can be inspected.
 #' @param line_exclusions a named list of files with the lines to exclude from
 #' each file.
 #' @param function_exclusions a vector of regular expressions matching function
@@ -366,7 +367,7 @@ environment_coverage <- function(
 #' @param install_path The path the instrumented package will be installed to
 #'   and tests run in. By default it is a path in the R sessions temporary
 #'   directory. It can sometimes be useful to set this (along with `clean =
-#'   FALSE`) to help debug test failures.
+#'   FALSE`) to help debug test failures. It is not removed if coverage fails.
 #' @param allow_failures If `TRUE`, failures or errors when running tests,
 #'   vignettes, examples or `code` are reported as warnings (with class
 #'   `covr_warning`) and coverage is still returned. Coverage may be incomplete
@@ -451,10 +452,14 @@ package_coverage <- function(path = ".",
   }
 
   if (isTRUE(clean)) {
+    # The install directory is only removed on success, so the test output
+    # files referenced in failure messages remain available for debugging.
+    succeeded <- FALSE
     on.exit({
       clean_objects(pkg$path)
       clean_gcov(pkg$path)
       clean_parse_data()
+      if (succeeded) unlink(install_path, recursive = TRUE)
     }, add = TRUE)
   }
 
@@ -580,8 +585,6 @@ package_coverage <- function(path = ".",
 
   if (!clean) {
     attr(coverage, "library") <- install_path
-  } else {
-    unlink(install_path, recursive = TRUE)
   }
 
   if (getOption("covr.filter_non_package", TRUE)) {
@@ -598,10 +601,13 @@ package_coverage <- function(path = ".",
     withr::with_dir(root, parse_covr_ignore())
   )
 
-  exclude(coverage,
+  coverage <- exclude(coverage,
     line_exclusions = line_exclusions,
     function_exclusions = function_exclusions,
     path = root)
+
+  succeeded <- TRUE
+  coverage
 }
 
 #' Convert a coverage dataset to a list
