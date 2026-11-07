@@ -53,14 +53,16 @@ report <- function(
 '
   )
 
-  # Open a new file in the source tab and switch to it
+  # Open a new file in the source tab and switch to it, starting at the top of
+  # the file
   file_choice_callback <- DT::JS(
-    "table.on('click.dt', 'a', function() {
+    "table.on('click.dt', 'a', function(e) {
+  e.preventDefault();
   files = $('div#files div');
   files.not('div.hidden').addClass('hidden');
   id = $(this).text();
   files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');
-  $('ul.nav a[data-value=Source]').text(id).tab('show');
+  $('ul.nav a[data-value=Source]').removeData('scroll').text(id).tab('show');
 });"
   )
 
@@ -88,6 +90,7 @@ report <- function(
 
   ui <- fluid_page(
     htmltools::includeCSS(system.file("www/report.css", package = "covr")),
+    htmltools::includeScript(system.file("www/report.js", package = "covr")),
     column(
       8,
       offset = 2,
@@ -364,7 +367,7 @@ bootstrap_page <- function(...) {
 html_dependency_bootstrap <- function() {
   htmltools::htmlDependency(
     name = "bootstrap",
-    version = "3.3.5",
+    version = "3.4.1",
     src = system.file(file = "www/shared/bootstrap", package = "covr"),
     meta = list(viewport = "width=device-width, initial-scale=1"),
     script = c(

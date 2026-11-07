@@ -25,6 +25,25 @@ is with [usethis](https://github.com/r-lib/usethis).
 usethis::use_github_action("test-coverage")
 ```
 
+This workflow uploads to Codecov. To use [Coveralls](https://coveralls.io/)
+instead, replace the `codecov/codecov-action` step with the official
+[Coveralls action](https://github.com/coverallsapp/github-action), which
+uploads the `cobertura.xml` file the workflow already creates. No Coveralls
+token is needed, the action authenticates with the built-in `GITHUB_TOKEN`.
+
+```yaml
+      - uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./cobertura.xml
+          format: cobertura
+          # Fail if error if not on PR
+          fail-on-error: ${{ github.event_name != 'pull_request' }}
+```
+
+If the package is in a subdirectory of the repository, also set `base-path` to
+that directory so Coveralls can find the source files.
+
 # Usage #
 
 For local development a coverage report can be used to inspect coverage for
@@ -59,6 +78,9 @@ as.data.frame(cov)
 # If run within RStudio, `zero_coverage()` will open a marker pane with the
 # uncovered lines.
 zero_coverage(cov)
+
+# or the functions which were never run
+zero_coverage(cov, by = "function")
 ```
 
 # Exclusions #
@@ -145,6 +167,20 @@ packages use covr. `usethis::use_coverage()` adds it for you.
 ## Will covr work with testthat, RUnit, etc... ##
 Covr should be compatible with any testing package, it uses
 `tools::testInstalledPackage()` to run your packages tests.
+
+## Why are tests using `skip_on_cran()` not counted in my coverage? ##
+`package_coverage()` runs your tests non-interactively in a separate R
+process, so testthat assumes it is running on CRAN unless the `NOT_CRAN`
+environment variable is `"true"`. Tests that call `skip_on_cran()` are then
+skipped, and the code they exercise is reported as uncovered. To include
+them, set the variable before computing coverage:
+
+```r
+Sys.setenv(NOT_CRAN = "true")
+package_coverage()
+```
+
+`devtools::test_coverage()` sets `NOT_CRAN` for you.
 
 ## Will covr work with alternative compilers such as ICC ##
 Covr now supports Intel's `icc` compiler, thanks to work contributed by Qin

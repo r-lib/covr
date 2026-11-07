@@ -2,18 +2,39 @@
 % Please edit documentation in R/summary_functions.R
 \name{tally_coverage}
 \alias{tally_coverage}
-\title{Tally coverage by line or expression}
+\title{Tally coverage by line, expression or function}
 \usage{
-tally_coverage(x, by = c("line", "expression"))
+tally_coverage(x, by = c("line", "expression", "function"))
 }
 \arguments{
 \item{x}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
 
-\item{by}{whether to tally coverage by line or expression}
+\item{by}{whether to tally coverage by line, expression or function}
 }
 \value{
-a \code{data.frame} of coverage tallied by line or expression.
+A \code{data.frame}. With \code{by = "expression"} it is the same as
+\code{\link[=as.data.frame.coverage]{as.data.frame.coverage()}}. With \code{by = "line"} it has one row for each
+line of code (excluding blank and comment lines of R code) and the
+columns \code{filename}, \code{functions}, \code{line} and \code{value}, where \code{value} is the
+smallest execution count of the expressions on that line, so a line only
+counts as covered if all its expressions were run.
+
+With \code{by = "function"} it has one row for each top level R function and
+the columns \code{filename}, \code{functions}, \code{first_line}, \code{last_line} and
+\code{value}, where \code{first_line} and \code{last_line} span the function's traced
+code and \code{value} is the largest execution count of its expressions, so a
+function counts as covered if any of its code was run. Compiled code has
+no function names, so it is left out.
 }
 \description{
-Tally coverage by line or expression
+Tally coverage by line, expression or function
+}
+\examples{
+cov <- code_coverage(
+  "f <- function(x) {\n  if (x) 'yes' else 'no'\n}\ng <- function() 1",
+  "f(TRUE)"
+)
+tally_coverage(cov)
+tally_coverage(cov, by = "expression")
+tally_coverage(cov, by = "function")
 }

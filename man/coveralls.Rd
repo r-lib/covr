@@ -30,5 +30,9 @@ If set to NULL, it is assumed that the job is running on travis-ci}
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }
 \description{
-Run covr on a package and upload the result to coveralls
+On GitHub Actions, use the official
+\href{https://github.com/coverallsapp/github-action}{Coveralls action} instead of
+this function: write the coverage with \code{\link[=to_cobertura]{to_cobertura()}} and upload
+\code{cobertura.xml} with \code{coverallsapp/github-action@v2}. See the README for an
+example workflow.
 }

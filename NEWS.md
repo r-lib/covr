@@ -5,6 +5,20 @@
   ggproto methods, can now be traced. This is off by default; enable it for a
   package with `Config/covr/full_traversal: true` in its DESCRIPTION, or with
   `options(covr.full_traversal = TRUE)` (#113).
+* `tally_coverage()` gains `by = "function"`, with one row for each function,
+  so `zero_coverage(cov, by = "function")` lists the functions that were
+  never run. `percent_coverage()` and `print()` also accept it (#245).
+
+* `report()` now bundles Bootstrap 3.4.1 instead of 3.3.5, which had known
+  security vulnerabilities (#639).
+
+* `value()` now works on coverage objects of R code; it previously errored
+  for anything but compiled code. The structure of coverage objects is now
+  documented in `?coverage`, and `as.data.frame()` on a coverage object in
+  `?as.data.frame.coverage` (#564).
+* `report()` now keeps the Files / Source tabs at the top of the page while
+  scrolling, and returning to the file list restores its scroll position
+  (#232).
 
 * Lines of compiled code that gcov reports as only partially executed (e.g.
   `if (x) f();` when `f()` never runs) are no longer dropped from the
