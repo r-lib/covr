@@ -93,6 +93,9 @@
 
 # covr 3.6.2
 
+* Fix S3 generic/method signature consistency and skip an R6 test on R-devel,
+  for CRAN checks (#534).
+
 # covr 3.6.1
 
 * `to_cobertura()` is now explicit about the doctype of the resulting XML. It also sets a source path if recorded. (@mmyrte, #524)
