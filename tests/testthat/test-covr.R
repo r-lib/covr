@@ -83,6 +83,21 @@ test_that("show_failures shows as much text as it can from the end", {
   })
 })
 
+test_that("clean_coverage_tests works with degenerated objects", {
+  obj <- list(
+    a = list(tests = new.env()),
+    tests = structure(list(structure(
+      list("a", "b"), call_count = 1L
+    )), names = ""),
+    b = list(value = integer(0)),
+    c = list(value = NA)
+  )
+
+  expect_no_error(
+    covr:::clean_coverage_tests(obj)
+  )
+})
+
 test_that("merge_coverage sums the counts of shared traces", {
   a <- list(t1 = list(value = 1L), t2 = list(value = 2L))
   b <- list(t2 = list(value = 3L), t3 = list(value = 4L), t1 = list(value = 5L))

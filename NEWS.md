@@ -25,6 +25,9 @@
 * Fix rare error in `clean_coverage_tests` where `NA` were being compared
   in `if` condition (@maksymiuks, #631).
 
+* `clean_coverage_tests` now uses `length(x) == 0` instead of `is.null(x)`
+  to account for `NULL` values and `integer(0)` at the same time (@maksymiuks, #631).
+
 # covr 3.6.5
 
 ## New Features and improvements
