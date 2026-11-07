@@ -80,26 +80,57 @@ test_that("trace calls handles all possibilities", {
   expect_equal(trace_calls(list(expr)), list(expr))
 })
 
-test_that("show_failures shows as much text as it can from the end", {
-  withr::with_options(c(warning.length = 300), {
-    td <- tempfile()
-    dir.create(td)
+covr_error_for <- function(lines, prompt = TRUE) {
+  td <- tempfile()
+  dir.create(td)
+  withr::defer(unlink(td, recursive = TRUE), parent.frame())
+  writeLines(
+    c(if (prompt) c("header", ">"), lines),
+    file.path(td, "x.Rout.fail")
+  )
+  err <- tryCatch(show_failures(td), covr_error = function(e) e)
+  err$file <- "x.Rout.fail"
+  err
+}
 
-    out <- file.path(td, "test.Rout.fail")
-    on.exit(unlink(td, recursive = TRUE))
-    writeLines(
-      "Lorem ipsum dolor sit amet, at erat praesent est mi ultrices. Eget in platea ac auctor et eu et venenatis. Tellus volutpat pellentesque. Dis nulla sem dignissim venenatis. Consequat montes maecenas congue donec ac himenaeos sed sed tempus. Ipsum risus lacus? Malesuada lectus, lacus egestas et lacus, in in ut sed. Tempus ligula dignissim a elementum semper maecenas eu. Enim pellentesque turpis at et ligula in est ut. Accumsan quis fermentum convallis proin ligula primis ut, curabitur. Sociosqu, fringilla, eu lacus eleifend conubia pellentesque viverra.",
-      out
-    )
+test_that("covr_error keeps full output and a bounded message", {
+  skip_if_not(l10n_info()$`UTF-8`)
+  td <- tempfile()
+  dir.create(td)
+  on.exit(unlink(td, recursive = TRUE))
+  out <- file.path(td, "test.Rout.fail")
+  body <- paste0("\u2714 line ", 1:200, " \u2550\u2550")
+  # multibyte body where bytes - warning.length exceeds nchar (old bug)
+  writeLines(
+    enc2utf8(c("R version header", "more header", ">", body)),
+    out,
+    useBytes = TRUE
+  )
+  expect_gt(sum(nchar(body, "bytes")) - 300, sum(nchar(body, "chars")))
 
-    # Expect the error to contain the end of the file
-    expect_error(
-      show_failures(td),
-      "eleifend conubia pellentesque viverra.",
-      fixed = TRUE,
-      class = "covr_error"
-    )
+  withr::local_options(warning.length = 300)
+  err <- expect_error(show_failures(td), class = "covr_error")
+  expect_equal(err$file, out)
+  # header skipped, whole output kept
+  expect_equal(err$output, c(">", body))
+  msg <- conditionMessage(err)
+  expect_lte(nchar(msg, "chars"), 300 - 9)
+  expect_match(msg, "line 200", fixed = TRUE)
+  expect_no_match(msg, "line 1 ", fixed = TRUE)
+  expect_no_match(msg, "R version header", fixed = TRUE)
+})
+
+test_that("covr_error print shows the last n lines", {
+  err <- covr_error_for(paste0("line ", 1:10))
+  expect_snapshot({
+    print(err, n = 3)
+    print(err, n = Inf)
   })
+})
+
+test_that("show_failures handles output without a prompt", {
+  err <- covr_error_for(c("a", "b"), prompt = FALSE)
+  expect_equal(err$output, c("a", "b"))
 })
 
 test_that("clean_coverage_tests works with degenerated objects", {
@@ -145,6 +176,15 @@ test_that("package_coverage keeps install_path only when coverage fails", {
   install_path <- tempfile("R_LIBS")
   package_coverage(test_path("TestSummary"), install_path = install_path)
   expect_false(dir.exists(install_path))
+})
+
+test_that("package_coverage errors carry the full testthat output", {
+  err <- expect_error(
+    package_coverage(test_path("TestFailure")),
+    class = "covr_error"
+  )
+  expect_true(file.exists(err$file))
+  expect_match(paste(err$output, collapse = "\n"), "this test fails")
 })
 
 test_that("package_coverage errors on test failures by default", {

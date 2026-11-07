@@ -1,5 +1,11 @@
 # covr (development version)
 
+* `covr_error` conditions (and the `covr_warning`s from `allow_failures`) now
+  keep the whole failure output in `$output` and its file in `$file`. The
+  message is bounded by `warning.length` measured in characters (it was
+  measured inconsistently in bytes), and `print()` shows the last `n` lines
+  (#570).
+
 * `package_coverage()` now only deletes `install_path` if coverage succeeds,
   so the test output referenced in failure messages can be inspected
   (@hadley, #615).
