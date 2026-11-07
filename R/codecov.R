@@ -276,14 +276,24 @@ codecov <- function(
 
   coverage_json <- to_codecov(coverage)
 
-  content(RETRY(
+  res <- RETRY(
     "POST",
     url = codecov_url,
     query = codecov_query,
     body = coverage_json,
     encode = "json",
     httr::config(http_version = curl_http_1_1())
-  ))
+  )
+  if (http_error(res)) {
+    stop(
+      "Failed to upload coverage to codecov.io. ",
+      httr::http_status(res)$message,
+      "\n",
+      httr::content(res, as = "text", encoding = "UTF-8"),
+      call. = FALSE
+    )
+  }
+  content(res)
 }
 
 curl_http_1_1 <- function() {

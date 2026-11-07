@@ -14,6 +14,8 @@
 * New `coverage_to_markdown()` formats coverage as a markdown table, optionally
   compared against a baseline, for GitHub Actions job summaries or pull
   request comments (#519).
+* `codecov()` now throws an error if the upload to codecov.io fails, so CI
+  jobs that upload coverage fail instead of silently succeeding (#565).
 
 * Functions nested inside lists and environments, such as
   `fns <- list(a = function(x) x)`, functions defined inside `local()` and
