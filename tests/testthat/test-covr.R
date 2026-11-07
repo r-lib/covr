@@ -170,3 +170,79 @@ test_that("covr.allow_failures returns coverage despite test failures", {
   expect_gt(values[["covered"]], 0)
   expect_equal(values[["not_covered"]], 0)
 })
+
+test_that("merge_coverage reports corrupt trace files with a covr_error", {
+  dir <- withr::local_tempdir()
+  good <- file.path(dir, "covr_trace_good")
+  bad <- file.path(dir, "covr_trace_bad")
+  saveRDS(list(t1 = list(value = 1L)), good)
+  writeBin(head(readBin(good, "raw", 1000), 10), bad)
+
+  expect_error(
+    merge_coverage(c(good, bad)),
+    "covr_trace_bad.*incomplete",
+    class = "covr_error"
+  )
+})
+
+test_that("merge_coverage reports error markers with the original message", {
+  dir <- withr::local_tempdir()
+  marker <- file.path(dir, "covr_trace_marker")
+  saveRDS(
+    structure(
+      list(message = "cannot serialize ALTREP", pid = 123L),
+      class = "covr_trace_error"
+    ),
+    marker
+  )
+
+  expect_error(
+    merge_coverage(marker),
+    "covr_trace_marker.*cannot serialize ALTREP",
+    class = "covr_error"
+  )
+})
+
+test_that("bad trace files can be skipped with the covr_continue restart", {
+  dir <- withr::local_tempdir()
+  good <- file.path(dir, "covr_trace_good")
+  bad <- file.path(dir, "covr_trace_bad")
+  saveRDS(list(t1 = list(value = 1L)), good)
+  writeBin(as.raw(1:5), bad)
+
+  merged <- withCallingHandlers(
+    merge_coverage(c(bad, good)),
+    covr_error = function(e) invokeRestart("covr_continue")
+  )
+  expect_equal(merged$t1$value, 1L)
+})
+
+test_that("save_trace writes only complete covr_trace_ files", {
+  dir <- withr::local_tempdir()
+  save_trace(dir)
+  files <- list.files(dir, all.files = TRUE, no.. = TRUE)
+  expect_length(files, 1)
+  expect_match(files, "^covr_trace_")
+  expect_no_error(readRDS(file.path(dir, files)))
+})
+
+test_that("save_trace writes an error marker when serialization fails", {
+  local_mocked_bindings(
+    save_rds = function(object, file) {
+      if (!inherits(object, "covr_trace_error")) {
+        stop("boom")
+      }
+      saveRDS(object, file)
+    }
+  )
+  dir <- withr::local_tempdir()
+  save_trace(dir)
+  files <- list.files(dir, all.files = TRUE, no.. = TRUE)
+  expect_length(files, 1)
+  expect_match(files, "^covr_trace_")
+  expect_error(
+    merge_coverage(file.path(dir, files)),
+    "boom",
+    class = "covr_error"
+  )
+})
