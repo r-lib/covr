@@ -42,6 +42,11 @@
 #'   \item `covr.filter_non_package`: If `TRUE` (the default behavior), coverage
 #'     of files outside the target package are filtered from coverage output.
 #'
+#'   \item `covr.failure_lines`: The number of trailing lines of test output
+#'     shown in the message and `print()` method of a `covr_error` when tests,
+#'     vignettes, examples or `code` fail (default `50`). The full output is
+#'     always available in the condition's `$output` field.
+#'
 #'   \item `covr.fix_parallel_mcexit`:
 #'
 #'   \item `covr.flags`:
@@ -706,7 +711,9 @@ show_failures <- function(dir) {
 }
 
 # Number of trailing output lines shown by default in the message and print()
-failure_lines <- 50L
+failure_lines <- function() {
+  getOption("covr.failure_lines", 50L)
+}
 
 covr_error <- function(file) {
   lines <- readLines(file, warn = FALSE)
@@ -729,7 +736,8 @@ covr_error <- function(file) {
 }
 
 # R only shows options("warning.length") characters of an error message, so
-# keep the message within that (and at most `failure_lines` lines) and show as many lines from the end as fit.
+# keep the message within that (and at most `failure_lines()` lines) and show
+# as many lines from the end as fit.
 failure_message <- function(file, lines) {
   header <- paste0(
     "Failure in `",
@@ -741,8 +749,9 @@ failure_message <- function(file, lines) {
   if (length(lines) == 0L || budget <= 0L) {
     return(header)
   }
-  if (length(lines) > failure_lines) {
-    lines <- lines[seq.int(length(lines) - failure_lines + 1L, length(lines))]
+  n <- failure_lines()
+  if (length(lines) > n) {
+    lines <- lines[seq.int(length(lines) - n + 1L, length(lines))]
   }
   # characters in the last k lines, joined by newlines
   size <- rev(cumsum(rev(nchar(lines, "chars") + 1L))) - 1L
@@ -757,7 +766,7 @@ failure_message <- function(file, lines) {
 }
 
 #' @export
-format.covr_error <- function(x, n = failure_lines, ...) {
+format.covr_error <- function(x, n = failure_lines(), ...) {
   out <- x$output
   total <- length(out)
   if (total > n) {
@@ -778,7 +787,7 @@ format.covr_error <- function(x, n = failure_lines, ...) {
 }
 
 #' @export
-print.covr_error <- function(x, n = failure_lines, ...) {
+print.covr_error <- function(x, n = failure_lines(), ...) {
   cat(format(x, n = n), "\n", sep = "")
   invisible(x)
 }
