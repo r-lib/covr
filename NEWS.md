@@ -1,5 +1,9 @@
 # covr (development version)
 
+* Trace files are now written atomically, and a failure to save or read one
+  is reported as a `covr_error` (a `covr_warning` with `allow_failures = TRUE`)
+  naming the file, rather than a cryptic `readRDS()` error (#509).
+
 * `package_coverage()` now only deletes `install_path` if coverage succeeds,
   so the test output referenced in failure messages can be inspected
   (@hadley, #615).
