@@ -53,68 +53,64 @@ tally_coverage <- function(x, by = c("line", "expression", "function")) {
 
   switch(
     by,
-    "line" = {
-      # if it already has a line column it has already been tallied.
-      if (!is.null(df$line)) {
-        return(df)
-      }
-
-      # aggregate() can't cope with zero-length data frames anyway.
-      if (nrow(df) == 0L) {
-        return(NULL)
-      }
-
-      # results with NA functions (such as from compiled code) are dropped
-      # unless NA is a level.
-      df$functions <- addNA(df$functions)
-      res <- expand_lines(df)
-
-      res <- aggregate(
-        value ~ filename + functions + line,
-        data = res,
-        FUN = min,
-        na.action = na.pass
-      )
-      res$functions <- as.character(res$functions)
-
-      # exclude blank lines from results
-      if (inherits(x, "coverage")) {
-        srcfiles <- unique(lapply(x, function(x) attr(x$srcref, "srcfile")))
-
-        srcfile_names <- vcapply(srcfiles, `[[`, "filename")
-
-        srcfile_names <- to_relative_path(srcfile_names, attr(x, "root"))
-
-        blank_lines <- compact(
-          setNames(
-            lapply(srcfiles, function(srcfile) {
-              attr(srcfile_lines(srcfile), "blanks")
-            }),
-            srcfile_names
-          )
-        )
-
-        if (length(blank_lines)) {
-          blank_lines <- utils::stack(blank_lines)
-
-          non_blanks <- setdiff.data.frame(
-            res,
-            blank_lines,
-            by.x = c("filename", "line"),
-            by.y = c("ind", "values")
-          )
-
-          res <- res[non_blanks, ]
-        }
-        res
-      }
-      res[order(res$filename, res$line), ]
-    },
-
+    "line" = tally_lines(df, x),
     "expression" = df,
-
     "function" = tally_functions(df)
   )
+}
+
+# `x` is the object passed to tally_coverage(); if it is a coverage object its
+# source files are used to drop blank lines.
+tally_lines <- function(df, x) {
+  # if it already has a line column it has already been tallied.
+  if (!is.null(df$line)) {
+    return(df)
+  }
+
+  # results with NA functions (such as from compiled code) are dropped
+  # unless NA is a level.
+  df$functions <- addNA(df$functions)
+  res <- expand_lines(df)
+
+  res <- aggregate(
+    value ~ filename + functions + line,
+    data = res,
+    FUN = min,
+    na.action = na.pass
+  )
+  res$functions <- as.character(res$functions)
+
+  if (inherits(x, "coverage")) {
+    res <- drop_blank_lines(res, x)
+  }
+  res[order(res$filename, res$line), ]
+}
+
+drop_blank_lines <- function(res, x) {
+  srcfiles <- unique(lapply(x, function(x) attr(x$srcref, "srcfile")))
+  srcfile_names <- vcapply(srcfiles, `[[`, "filename")
+  srcfile_names <- to_relative_path(srcfile_names, attr(x, "root"))
+
+  blank_lines <- compact(
+    setNames(
+      lapply(srcfiles, function(srcfile) {
+        attr(srcfile_lines(srcfile), "blanks")
+      }),
+      srcfile_names
+    )
+  )
+  if (!length(blank_lines)) {
+    return(res)
+  }
+
+  blank_lines <- utils::stack(blank_lines)
+  non_blanks <- setdiff.data.frame(
+    res,
+    blank_lines,
+    by.x = c("filename", "line"),
+    by.y = c("ind", "values")
+  )
+  res[non_blanks, ]
 }
 
 # Accepts the output of tally_coverage() by expression, line or function.
