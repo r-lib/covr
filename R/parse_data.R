@@ -118,7 +118,12 @@ impute_srcref <- function(x, parent_ref) {
 
       exprs <- lapply(exprs, ignore_dots)
 
-      c(list(NULL), lapply(exprs, make_srcref))
+      src_ref <- c(list(NULL), lapply(exprs, make_srcref))
+
+      # A trailing comma (e.g. `switch(x, a = 1, )`) adds an empty argument
+      # with no expression in the parse data
+      length(src_ref) <- length(x)
+      src_ref
     },
 
     NULL
