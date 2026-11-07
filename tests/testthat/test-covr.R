@@ -106,6 +106,21 @@ test_that("merge_coverage sums the counts of shared traces", {
   expect_equal(vapply(merged, `[[`, integer(1), "value"), c(t1 = 6L, t2 = 5L, t3 = 4L))
 })
 
+test_that("package_coverage keeps install_path only when coverage fails", {
+  install_path <- tempfile("R_LIBS")
+  on.exit(unlink(install_path, recursive = TRUE), add = TRUE)
+  expect_error(
+    package_coverage(test_path("TestFailure"), install_path = install_path),
+    class = "covr_error"
+  )
+  fail_files <- list.files(install_path, pattern = "fail$", recursive = TRUE)
+  expect_equal(basename(fail_files), "testthat.Rout.fail")
+
+  install_path <- tempfile("R_LIBS")
+  package_coverage(test_path("TestSummary"), install_path = install_path)
+  expect_false(dir.exists(install_path))
+})
+
 test_that("package_coverage errors on test failures by default", {
   expect_error(
     package_coverage(test_path("TestFailure")),

@@ -1,5 +1,9 @@
 # covr (development version)
 
+* `package_coverage()` now only deletes `install_path` if coverage succeeds,
+  so the test output referenced in failure messages can be inspected
+  (@hadley, #615).
+
 * Avoid cyclic namespace dependency when running coverage on httr and its
   dependencies, such as R6 (#623).
 

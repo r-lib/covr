@@ -40,7 +40,8 @@ relative to that root.}
 debugging errors.}
 
 \item{clean}{whether to clean temporary output files after running, mainly
-useful for debugging errors.}
+useful for debugging errors. If coverage fails, \code{install_path} is kept even
+when \code{clean = TRUE}, so the test output can be inspected.}
 
 \item{line_exclusions}{a named list of files with the lines to exclude from
 each file.}
@@ -52,7 +53,7 @@ names to exclude. Example \verb{print\\\\\\.} to match print methods.}
 
 \item{install_path}{The path the instrumented package will be installed to
 and tests run in. By default it is a path in the R sessions temporary
-directory. It can sometimes be useful to set this (along with \code{clean = FALSE}) to help debug test failures.}
+directory. It can sometimes be useful to set this (along with \code{clean = FALSE}) to help debug test failures. It is not removed if coverage fails.}
 
 \item{...}{Additional arguments passed to \code{\link[tools:testInstalledPackage]{tools::testInstalledPackage()}}.}
 
