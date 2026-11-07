@@ -169,6 +169,11 @@
 <h1 id="faq">FAQ<a class="anchor" aria-label="anchor" href="#faq"></a>
 </h1>
 <div class="section level2">
+<h2 id="should-i-add-covr-to-my-packages-suggests">Should I add covr to my package’s Suggests?<a class="anchor" aria-label="anchor" href="#should-i-add-covr-to-my-packages-suggests"></a>
+</h2>
+<p>It isn’t required, as covr is usually only used in CI rather than by your package’s code. It is useful though: <code>devtools::install()</code> and <code><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak::pak()</a></code> will then install covr for local development, and it helps us see which packages use covr. <code>usethis::use_coverage()</code> adds it for you.</p>
+</div>
+<div class="section level2">
 <h2 id="will-covr-work-with-testthat-runit-etc">Will covr work with testthat, RUnit, etc…<a class="anchor" aria-label="anchor" href="#will-covr-work-with-testthat-runit-etc"></a>
 </h2>
 <p>Covr should be compatible with any testing package, it uses <code><a href="https://rdrr.io/r/tools/testInstalledPackage.html" class="external-link">tools::testInstalledPackage()</a></code> to run your packages tests.</p>

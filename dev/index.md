@@ -153,6 +153,14 @@ should look like `// # nocov`.
 
 # FAQ
 
+## Should I add covr to my package’s Suggests?
+
+It isn’t required, as covr is usually only used in CI rather than by
+your package’s code. It is useful though: `devtools::install()` and
+[`pak::pak()`](https://pak.r-lib.org/reference/pak.html) will then
+install covr for local development, and it helps us see which packages
+use covr. `usethis::use_coverage()` adds it for you.
+
 ## Will covr work with testthat, RUnit, etc…
 
 Covr should be compatible with any testing package, it uses
