@@ -1,5 +1,8 @@
 # covr (development version)
 
+* `report()` now bundles Bootstrap 3.4.1 instead of 3.3.5, which had known
+  security vulnerabilities (#639).
+
 * `value()` now works on coverage objects of R code; it previously errored
   for anything but compiled code. The structure of coverage objects is now
   documented in `?coverage`, and `as.data.frame()` on a coverage object in
