@@ -30,6 +30,26 @@ impute_srcref <- function(x, parent_ref) {
   # exclude comments
   pd_child <- pd_child[pd_child$token != "COMMENT", ]
 
+  # For `lhs |> call(...)` the srcref covers the whole pipe expression. Use the
+  # parse data of the call on the right-hand side, with `lhs` inserted as its
+  # first argument so it matches the parse data of `call(lhs, ...)`.
+  if (any(pd_child$token == "PIPE")) {
+    lhs <- pd_child[1L, ]
+    rhs_id <- pd_child$id[[nrow(pd_child)]]
+    pd_child <- pd[pd$parent == rhs_id, ]
+    pd_child <- pd_child[order(pd_child$line1, pd_child$col1), ]
+    pd_child <- pd_child[pd_child$token != "COMMENT", ]
+    open <- which(pd_child$token == "'('")[[1L]]
+    comma <- lhs
+    comma$token <- "','"
+    pd_child <- rbind(
+      pd_child[seq_len(open), ],
+      lhs,
+      if (pd_child$token[[open + 1L]] != "')'") comma,
+      pd_child[-seq_len(open), ]
+    )
+  }
+
   if (
     pd$line1[pd_expr_idx] == parent_ref[[7L]] &
       pd$line2[pd_expr_idx] == parent_ref[[8L]]

@@ -111,6 +111,24 @@ test_that("switch with trailing comma", {
   expect_equal(res$value, c(3, 2, 1))
 })
 
+test_that("switch with drop through and the base pipe (#630)", {
+  skip_if(getRversion() < "4.1")
+  f <-
+    'f <- function(x) {
+  x |>
+    switch(
+      a = ,
+      b = 2,
+      c = d <- 1,
+      NULL
+    )
+}'
+
+  res <- as.data.frame(code_coverage(f, 'f("a");f("b");f("c")'))
+  expect_equal(res$first_line, c(2, 5, 6, 7))
+  expect_equal(res$value, c(3, 2, 1, 0))
+})
+
 test_that("switch with ellipses", {
   f <-
     'f <- function(x, ...) {
