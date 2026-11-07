@@ -36,3 +36,4 @@ _dev\.R$
 ^CRAN-SUBMISSION$
 ^air\.toml$
 ^AGENTS\.md$
+^\.git-blame-ignore-revs$
