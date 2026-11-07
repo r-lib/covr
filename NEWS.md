@@ -31,19 +31,21 @@
   measured in characters (it was measured inconsistently in bytes), and
   `print()` shows the last `n` lines, 50 by default. The number of lines can be
   set with `options(covr.failure_lines)` (#570).
+* New `with_coverage()` measures the coverage of arbitrary code, such as
+  `testthat::test_file()`, run against an environment like a package namespace
+  loaded with `pkgload::load_all()`. This allows tools such as
+  `devtools::test_coverage_active_file()` to use testthat's own runner instead
+  of recreating it (related to #543).
+
 * The RStudio addin now prints a message when it starts calculating coverage,
   so there is feedback before the report opens (#404).
+
 * Fix a warning, and possibly an error under `options(warn = 2)`, when tracing
   a `switch()` call with a trailing comma (#483).
 
 * Trace files are now written atomically, and a failure to save or read one
   is reported as a `covr_error` (a `covr_warning` with `allow_failures = TRUE`)
   naming the file, rather than a cryptic `readRDS()` error (#509).
-* New `with_coverage()` measures the coverage of arbitrary code, such as
-  `testthat::test_file()`, run against an environment like a package namespace
-  loaded with `pkgload::load_all()`. This allows tools such as
-  `devtools::test_coverage_active_file()` to use testthat's own runner instead
-  of recreating it (related to #543).
 
 * `package_coverage()` now only deletes `install_path` if coverage succeeds,
   so the test output referenced in failure messages can be inspected
