@@ -2,6 +2,12 @@
 
 ## covr (development version)
 
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  now only deletes `install_path` if coverage succeeds, so the test
+  output referenced in failure messages can be inspected
+  ([@hadley](https://github.com/hadley),
+  [\#615](https://github.com/r-lib/covr/issues/615)).
+
 - Avoid cyclic namespace dependency when running coverage on httr and
   its dependencies, such as R6
   ([\#623](https://github.com/r-lib/covr/issues/623)).

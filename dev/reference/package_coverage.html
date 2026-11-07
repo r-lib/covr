@@ -105,7 +105,8 @@ debugging errors.</p></dd>
 
 <dt id="arg-clean">clean<a class="anchor" aria-label="anchor" href="#arg-clean"></a></dt>
 <dd><p>whether to clean temporary output files after running, mainly
-useful for debugging errors.</p></dd>
+useful for debugging errors. If coverage fails, <code>install_path</code> is kept even
+when <code>clean = TRUE</code>, so the test output can be inspected.</p></dd>
 
 
 <dt id="arg-line-exclusions">line_exclusions<a class="anchor" aria-label="anchor" href="#arg-line-exclusions"></a></dt>
@@ -125,7 +126,7 @@ names to exclude. Example <code>print\\\.</code> to match print methods.</p></dd
 <dt id="arg-install-path">install_path<a class="anchor" aria-label="anchor" href="#arg-install-path"></a></dt>
 <dd><p>The path the instrumented package will be installed to
 and tests run in. By default it is a path in the R sessions temporary
-directory. It can sometimes be useful to set this (along with <code>clean = FALSE</code>) to help debug test failures.</p></dd>
+directory. It can sometimes be useful to set this (along with <code>clean = FALSE</code>) to help debug test failures. It is not removed if coverage fails.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

@@ -56,7 +56,8 @@ package_coverage(
 - clean:
 
   whether to clean temporary output files after running, mainly useful
-  for debugging errors.
+  for debugging errors. If coverage fails, `install_path` is kept even
+  when `clean = TRUE`, so the test output can be inspected.
 
 - line_exclusions:
 
@@ -76,7 +77,7 @@ package_coverage(
   The path the instrumented package will be installed to and tests run
   in. By default it is a path in the R sessions temporary directory. It
   can sometimes be useful to set this (along with `clean = FALSE`) to
-  help debug test failures.
+  help debug test failures. It is not removed if coverage fails.
 
 - ...:
 
