@@ -59,3 +59,20 @@ test_that("percent_coverage", {
   res <- percent_coverage(cov)
   expect_equal(res, 83.333333, tolerance = .01)
 })
+
+test_that("coverage_to_markdown() formats totals, files and differences", {
+  src <- "f <- function(x) {\n  if (x) {\n    1\n  }\n  2\n}"
+  dir <- withr::local_tempdir()
+  writeLines(src, file.path(dir, "f.R"))
+  writeLines("f(TRUE)", file.path(dir, "full.R"))
+  writeLines("f(FALSE)", file.path(dir, "part.R"))
+  withr::local_dir(dir)
+  full <- file_coverage("f.R", "full.R")
+  part <- file_coverage("f.R", "part.R")
+  expect_snapshot(
+    {
+      coverage_to_markdown(part)
+      coverage_to_markdown(full, base = part)
+    }
+  )
+})

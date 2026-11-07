@@ -763,6 +763,74 @@ coverage_to_list <- function(x = package_coverage()) {
   return(list(filecoverage = file_result, totalcoverage = total_result))
 }
 
+#' Convert a coverage dataset to a markdown table
+#'
+#' Creates a markdown table with the total coverage and the coverage of each
+#' file, suitable for a GitHub Actions job summary or a pull request comment.
+#' If `base` is given, the table also includes the coverage of `base` and the
+#' change from it.
+#'
+#' @param x a coverage dataset, defaults to running `package_coverage()`.
+#' @param base an optional coverage dataset to compare against, e.g. the
+#'   coverage of the main branch.
+#' @return A character vector of markdown lines, with class `"covr_markdown"`.
+#' @examples
+#' \dontrun{
+#' # In a GitHub Actions step
+#' md <- coverage_to_markdown(package_coverage())
+#' cat(md, file = Sys.getenv("GITHUB_STEP_SUMMARY"), sep = "\n", append = TRUE)
+#' }
+#' @export
+coverage_to_markdown <- function(x = package_coverage(), base = NULL) {
+  head <- coverage_to_list(x)
+  files <- names(head$filecoverage)
+  head_pct <- c(head$totalcoverage, unname(head$filecoverage))
+  rows <- c("Total", files)
+  fmt <- function(p) ifelse(is.na(p), "", sprintf("%.2f%%", p))
+
+  if (is.null(base)) {
+    lines <- c(
+      "| File | Coverage |",
+      "| :--- | ---: |",
+      paste0("| ", rows, " | ", fmt(head_pct), " |")
+    )
+  } else {
+    base <- coverage_to_list(base)
+    base_pct <- c(
+      base$totalcoverage,
+      unname(base$filecoverage[match(files, names(base$filecoverage))])
+    )
+    diff <- head_pct - base_pct
+    diff_str <- ifelse(
+      is.na(diff),
+      "",
+      sprintf("%+.2f%%", diff)
+    )
+    lines <- c(
+      "| File | Coverage | Base | Change |",
+      "| :--- | ---: | ---: | ---: |",
+      paste0(
+        "| ",
+        rows,
+        " | ",
+        fmt(head_pct),
+        " | ",
+        fmt(base_pct),
+        " | ",
+        diff_str,
+        " |"
+      )
+    )
+  }
+  structure(lines, class = "covr_markdown")
+}
+
+#' @export
+print.covr_markdown <- function(x, ...) {
+  writeLines(unclass(x))
+  invisible(x)
+}
+
 show_failures <- function(dir) {
   fail_files <- list.files(
     dir,

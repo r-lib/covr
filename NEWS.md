@@ -1,5 +1,8 @@
 # covr (development version)
 
+* New `coverage_to_markdown()` formats coverage as a markdown table, optionally
+  compared against a baseline, for GitHub Actions job summaries or pull
+  request comments (#519).
 * Functions nested inside lists and environments, such as
   `fns <- list(a = function(x) x)`, functions defined inside `local()` and
   ggproto methods, can now be traced. This is off by default; enable it for a
