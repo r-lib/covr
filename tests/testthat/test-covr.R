@@ -105,3 +105,23 @@ test_that("merge_coverage sums the counts of shared traces", {
   expect_equal(names(merged), c("t1", "t2", "t3"))
   expect_equal(vapply(merged, `[[`, integer(1), "value"), c(t1 = 6L, t2 = 5L, t3 = 4L))
 })
+
+test_that("package_coverage errors on test failures by default", {
+  expect_error(
+    package_coverage(test_path("TestFailure")),
+    "this test fails",
+    class = "covr_error"
+  )
+})
+
+test_that("covr.allow_failures returns coverage despite test failures", {
+  withr::local_options(covr.allow_failures = TRUE)
+  expect_warning(
+    cov <- package_coverage(test_path("TestFailure")),
+    "this test fails",
+    class = "covr_warning"
+  )
+  values <- tapply(tally_coverage(cov)$value, tally_coverage(cov)$functions, sum)
+  expect_gt(values[["covered"]], 0)
+  expect_equal(values[["not_covered"]], 0)
+})

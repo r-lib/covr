@@ -352,6 +352,13 @@ environment_coverage <- function(
 #'   and tests run in. By default it is a path in the R sessions temporary
 #'   directory. It can sometimes be useful to set this (along with `clean =
 #'   FALSE`) to help debug test failures.
+#' @param allow_failures If `TRUE`, failures or errors when running tests,
+#'   vignettes, examples or `code` are reported as warnings (with class
+#'   `covr_warning`) and coverage is still returned. Coverage may be incomplete
+#'   in this case, as code which would have run after the failure is not
+#'   tracked. The default, `FALSE`, throws an error (with class `covr_error`)
+#'   on the first failure. The default can be changed with the
+#'   `covr.allow_failures` option, e.g. `options(covr.allow_failures = TRUE)`.
 #' @seealso [exclusions()] For details on excluding parts of the
 #' package from the coverage calculations.
 #' @export
@@ -366,7 +373,8 @@ package_coverage <- function(path = ".",
                              code = character(),
                              install_path = temp_file("R_LIBS"),
                              ...,
-                             exclusions, pre_clean = TRUE) {
+                             exclusions, pre_clean = TRUE,
+                             allow_failures = getOption("covr.allow_failures", FALSE)) {
 
   if (!missing(exclusions)) {
     warning(
@@ -476,6 +484,10 @@ package_coverage <- function(path = ".",
 
   libs <- env_path(install_path, .libPaths())
 
+  # Failures collected when `allow_failures` is TRUE, signaled as warnings
+  # after the tests have run.
+  failures <- list()
+
   # We need to set the libpaths in the current R session for examples with
   # install or runtime Sexpr blocks, which may implicitly load the package in
   # the current R session.
@@ -520,9 +532,22 @@ package_coverage <- function(path = ".",
       run_commands(pkg, install_path, code)
     },
     message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
-    warning = function(e) if (quiet) invokeRestart("muffleWarning") else e)
+    warning = function(e) if (quiet) invokeRestart("muffleWarning") else e,
+    covr_error = function(e) {
+      if (isTRUE(allow_failures)) {
+        failures[[length(failures) + 1L]] <<- e
+        invokeRestart("covr_continue")
+      }
     })
     })
+    })
+
+  for (failure in failures) {
+    warning(structure(
+      list(message = conditionMessage(failure), call = NULL),
+      class = c("covr_warning", "warning", "condition")
+    ))
+  }
 
   # read tracing files
   trace_files <- list.files(path = install_path, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
@@ -599,7 +624,7 @@ show_failures <- function(dir) {
     error_body <- substr(error_body, body_len - (error_length - header_len), body_len)
 
     cnd <- structure(list(message = paste0(error_header, error_body)), class = c("covr_error", "error", "condition"))
-    stop(cnd)
+    withRestarts(stop(cnd), covr_continue = function() NULL)
   }
 }
 

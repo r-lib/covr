@@ -17,7 +17,8 @@ package_coverage(
   install_path = temp_file("R_LIBS"),
   ...,
   exclusions,
-  pre_clean = TRUE
+  pre_clean = TRUE,
+  allow_failures = getOption("covr.allow_failures", FALSE)
 )
 }
 \arguments{
@@ -58,6 +59,14 @@ directory. It can sometimes be useful to set this (along with \code{clean = FALS
 \item{exclusions}{\sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.}
 
 \item{pre_clean}{whether to delete all objects present in the src directory before recompiling}
+
+\item{allow_failures}{If \code{TRUE}, failures or errors when running tests,
+vignettes, examples or \code{code} are reported as warnings (with class
+\code{covr_warning}) and coverage is still returned. Coverage may be incomplete
+in this case, as code which would have run after the failure is not
+tracked. The default, \code{FALSE}, throws an error (with class \code{covr_error})
+on the first failure. The default can be changed with the
+\code{covr.allow_failures} option, e.g. \code{options(covr.allow_failures = TRUE)}.}
 }
 \description{
 This function calculates the test coverage for a development package on the

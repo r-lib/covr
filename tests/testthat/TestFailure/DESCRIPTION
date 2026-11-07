@@ -1,0 +1,7 @@
+Package: TestFailure
+Title: Package with a Failing Test
+Version: 0.0.0.9000
+Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
+Description: Used to test coverage with failing tests.
+License: MIT
+Suggests: testthat
