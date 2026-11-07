@@ -27,6 +27,9 @@ names to exclude. Example \verb{print\\\\\\.} to match print methods.}
 
 \item{parent_env}{The parent environment to use when sourcing the files.}
 }
+\value{
+A \code{coverage} object, see the Value section of \code{\link[=package_coverage]{package_coverage()}}.
+}
 \description{
 The files in \code{source_files} are first sourced into a new environment
 to define functions to be checked. Then they are instrumented to track

@@ -1,5 +1,10 @@
 # covr (development version)
 
+* `value()` now works on coverage objects of R code; it previously errored
+  for anything but compiled code. `?package_coverage` now documents the
+  structure of the returned coverage object, and `as.data.frame()` on a
+  coverage object is now documented (#564).
+
 * Lines of compiled code that gcov reports as only partially executed (e.g.
   `if (x) f();` when `f()` never runs) are no longer dropped from the
   coverage. They count as covered, or as not covered with

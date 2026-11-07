@@ -211,6 +211,7 @@ as_coverage_with_tests <- function(counters) {
 #' @param code expressions to run.
 #' @param env environment the function is defined in.
 #' @param enc the enclosing environment which to run the expressions.
+#' @return A `coverage` object, see the Value section of [package_coverage()].
 #' @examples
 #' add <- function(x, y) { x + y }
 #' function_coverage(fun = add, code = NULL) # 0% coverage
@@ -264,6 +265,7 @@ function_coverage <- function(
 #'   functions
 #' @param parent_env The parent environment to use when sourcing the files.
 #' @inheritParams package_coverage
+#' @return A `coverage` object, see the Value section of [package_coverage()].
 #' @examples
 #' # For the purpose of this example, save code containing code and tests to files
 #' cat("add <- function(x, y) { x + y }", file="add.R")
@@ -318,6 +320,7 @@ file_coverage <- function(
 #' @param test_code A character vector of test code
 #' @inheritParams file_coverage
 #' @param ... Additional arguments passed to [file_coverage()]
+#' @return A `coverage` object, see the Value section of [package_coverage()].
 #' @examples
 #' source <- "add <- function(x, y) { x + y }"
 #' test <- "add(1, 2) == 3"
@@ -348,6 +351,7 @@ code_coverage <- function(
 #'
 #' @param env The environment to be instrumented.
 #' @inheritParams file_coverage
+#' @return A `coverage` object, see the Value section of [package_coverage()].
 #' @export
 environment_coverage <- function(
   env = parent.frame(),
@@ -432,6 +436,44 @@ environment_coverage <- function(
 #'   tracked. The default, `FALSE`, throws an error (with class `covr_error`)
 #'   on the first failure. The default can be changed with the
 #'   `covr.allow_failures` option, e.g. `options(covr.allow_failures = TRUE)`.
+#' @return A `coverage` object. It is a named list with one element for each
+#' traced expression of R code and each line of compiled code. Each element is
+#' a list with:
+#'
+#' * `value`: the number of times the expression or line was executed.
+#' * `srcref`: a [srcref][base::srcref] with its location. Its `srcfile`
+#'   attribute holds the name and lines of the source file.
+#' * `functions`: the name of the function containing it, or `NA` for compiled
+#'   code.
+#' * `tests`: only present with `options(covr.record_tests = TRUE)`, see
+#'   [covr.record_tests].
+#'
+#' The names of the elements are the base name of the file followed by the
+#' eight numbers of the srcref, separated by `:`. For example
+#' `foo.R:10:3:12:4:3:4:10:12` is an expression from line 10 column 3 to line
+#' 12 column 4 of `foo.R` (see [as.data.frame.coverage()] for the meaning of
+#' each number). The `srcfile` of the `srcref`, or the `filename` column of
+#' [as.data.frame()], gives the path of the file.
+#'
+#' The object also has the attributes `package` (information about the
+#' package, such as its `package` name and `path`), `root` (the directory
+#' file names are relative to, or `NULL`) and, if `clean = FALSE`, `library`
+#' (the `install_path`).
+#'
+#' Rather than using the list directly, you will usually want to:
+#'
+#' * Get a data frame with one row for each expression with [as.data.frame()]
+#'   ([as.data.frame.coverage()]), or one row for each line with
+#'   [tally_coverage()].
+#' * Get the overall percentage with [percent_coverage()], or the percentage
+#'   for each file with [coverage_to_list()].
+#' * Find the lines which were never run with [zero_coverage()].
+#' * Get the execution counts as a named numeric vector with [value()].
+#' * Browse the coverage with [report()] or [file_report()].
+#'
+#' If `combine_types = FALSE` and more than one `type` is run, the result is
+#' instead a list of class `coverages` with one `coverage` object for each
+#' type, named by type.
 #' @seealso [exclusions()] For details on excluding parts of the
 #' package from the coverage calculations.
 #' @export

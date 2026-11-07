@@ -69,6 +69,48 @@ tracked. The default, \code{FALSE}, throws an error (with class \code{covr_error
 on the first failure. The default can be changed with the
 \code{covr.allow_failures} option, e.g. \code{options(covr.allow_failures = TRUE)}.}
 }
+\value{
+A \code{coverage} object. It is a named list with one element for each
+traced expression of R code and each line of compiled code. Each element is
+a list with:
+\itemize{
+\item \code{value}: the number of times the expression or line was executed.
+\item \code{srcref}: a \link[base:srcref]{srcref} with its location. Its \code{srcfile}
+attribute holds the name and lines of the source file.
+\item \code{functions}: the name of the function containing it, or \code{NA} for compiled
+code.
+\item \code{tests}: only present with \code{options(covr.record_tests = TRUE)}, see
+\link{covr.record_tests}.
+}
+
+The names of the elements are the base name of the file followed by the
+eight numbers of the srcref, separated by \code{:}. For example
+\code{foo.R:10:3:12:4:3:4:10:12} is an expression from line 10 column 3 to line
+12 column 4 of \code{foo.R} (see \code{\link[=as.data.frame.coverage]{as.data.frame.coverage()}} for the meaning of
+each number). The \code{srcfile} of the \code{srcref}, or the \code{filename} column of
+\code{\link[=as.data.frame]{as.data.frame()}}, gives the path of the file.
+
+The object also has the attributes \code{package} (information about the
+package, such as its \code{package} name and \code{path}), \code{root} (the directory
+file names are relative to, or \code{NULL}) and, if \code{clean = FALSE}, \code{library}
+(the \code{install_path}).
+
+Rather than using the list directly, you will usually want to:
+\itemize{
+\item Get a data frame with one row for each expression with \code{\link[=as.data.frame]{as.data.frame()}}
+(\code{\link[=as.data.frame.coverage]{as.data.frame.coverage()}}), or one row for each line with
+\code{\link[=tally_coverage]{tally_coverage()}}.
+\item Get the overall percentage with \code{\link[=percent_coverage]{percent_coverage()}}, or the percentage
+for each file with \code{\link[=coverage_to_list]{coverage_to_list()}}.
+\item Find the lines which were never run with \code{\link[=zero_coverage]{zero_coverage()}}.
+\item Get the execution counts as a named numeric vector with \code{\link[=value]{value()}}.
+\item Browse the coverage with \code{\link[=report]{report()}} or \code{\link[=file_report]{file_report()}}.
+}
+
+If \code{combine_types = FALSE} and more than one \code{type} is run, the result is
+instead a list of class \code{coverages} with one \code{coverage} object for each
+type, named by type.
+}
 \description{
 This function calculates the test coverage for a development package on the
 \code{path}. By default it runs only the package tests, but it can also run

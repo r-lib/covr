@@ -15,7 +15,19 @@ percent_coverage <- function(x, ...) {
 #'
 #' @inheritParams percent_coverage
 #' @param by whether to tally coverage by line or expression
-#' @return a `data.frame` of coverage tallied by line or expression.
+#' @return A `data.frame`. With `by = "expression"` it is the same as
+#'   [as.data.frame.coverage()]. With `by = "line"` it has one row for each
+#'   line of code (excluding blank and comment lines of R code) and the
+#'   columns `filename`, `functions`, `line` and `value`, where `value` is the
+#'   smallest execution count of the expressions on that line, so a line only
+#'   counts as covered if all its expressions were run.
+#' @examples
+#' cov <- code_coverage(
+#'   "f <- function(x) {\n  if (x) 'yes' else 'no'\n}",
+#'   "f(TRUE)"
+#' )
+#' tally_coverage(cov)
+#' tally_coverage(cov, by = "expression")
 #' @export
 tally_coverage <- function(x, by = c("line", "expression")) {
   # Rarely something goes wrong with the source references and we get all NAs
