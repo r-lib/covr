@@ -121,9 +121,36 @@ reset_traces <- function() {
   lapply(the$replacements, reset)
 }
 
+# Trace files are written under a temporary name and renamed into place, so
+# `merge_coverage()` never sees a partially written `covr_trace_*` file. The
+# temporary prefix intentionally does not match `^covr_trace_`: leftovers from
+# a process killed mid-write are simply ignored.
+#
+# If serializing the counters fails (e.g. with ALTREP vectors, #509) an error
+# marker is written instead, so the main process can report the failed save.
 save_trace <- function(directory) {
-  tmp_file <- temp_file("covr_trace_", tmpdir = directory)
-  saveRDS(.counters, file = tmp_file)
+  final_file <- temp_file("covr_trace_", tmpdir = directory)
+  tmp_file <- temp_file(".covr_tmp_", tmpdir = directory)
+  on.exit(unlink(tmp_file), add = TRUE)
+
+  tryCatch(
+    save_rds(.counters, tmp_file),
+    error = function(e) {
+      marker <- structure(
+        list(message = conditionMessage(e), pid = Sys.getpid()),
+        class = "covr_trace_error"
+      )
+      save_rds(marker, tmp_file)
+    }
+  )
+  if (!file.rename(tmp_file, final_file)) {
+    stop("Could not write trace file: ", final_file, call. = FALSE)
+  }
+  invisible(final_file)
+}
+
+save_rds <- function(object, file) {
+  saveRDS(object, file = file)
 }
 
 #' Convert a counters object to a coverage object
@@ -616,6 +643,22 @@ package_coverage <- function(
     )
   })
 
+  # read tracing files
+  trace_files <- list.files(
+    path = install_path,
+    pattern = "^covr_trace_[^/]+$",
+    full.names = TRUE
+  )
+  coverage <- withCallingHandlers(
+    merge_coverage(trace_files),
+    covr_error = function(e) {
+      if (isTRUE(allow_failures)) {
+        failures[[length(failures) + 1L]] <<- e
+        invokeRestart("covr_continue")
+      }
+    }
+  )
+
   for (failure in failures) {
     warning(structure(
       list(message = conditionMessage(failure), call = NULL),
@@ -623,13 +666,6 @@ package_coverage <- function(
     ))
   }
 
-  # read tracing files
-  trace_files <- list.files(
-    path = install_path,
-    pattern = "^covr_trace_[^/]+$",
-    full.names = TRUE
-  )
-  coverage <- merge_coverage(trace_files)
   if (!uses_icc()) {
     res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
   } else {
@@ -735,10 +771,44 @@ merge_coverage <- function(x) {
 
 #' @export
 merge_coverage.character <- function(x) {
-  coverage_objs <- lapply(x, function(f) {
-    as.list(suppressWarnings(readRDS(f)))
-  })
-  merge_coverage(coverage_objs)
+  coverage_objs <- lapply(x, read_trace)
+  merge_coverage(Filter(Negate(is.null), coverage_objs))
+}
+
+# Read one trace file. Returns NULL (after signaling a `covr_error` that can be
+# skipped with the `covr_continue` restart) if the file is corrupt or holds an
+# error marker written by `save_trace()`.
+read_trace <- function(file) {
+  fail <- function(reason) {
+    cnd <- structure(
+      list(
+        message = sprintf(
+          "Failed to read coverage trace file '%s': %s\nCoverage will be incomplete.",
+          file,
+          reason
+        ),
+        call = NULL
+      ),
+      class = c("covr_error", "error", "condition")
+    )
+    withRestarts(stop(cnd), covr_continue = function() NULL)
+  }
+
+  trace <- tryCatch(
+    suppressWarnings(readRDS(file)),
+    error = function(e) e
+  )
+  if (inherits(trace, "error")) {
+    return(fail(conditionMessage(trace)))
+  }
+  if (inherits(trace, "covr_trace_error")) {
+    return(fail(sprintf(
+      "the subprocess (pid %s) could not save its trace: %s",
+      trace$pid,
+      trace$message
+    )))
+  }
+  as.list(trace)
 }
 
 #' @export
