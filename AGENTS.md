@@ -12,6 +12,22 @@ covr measures test coverage of R packages. `package_coverage()` installs an inst
 - The test packages in `tests/testthat/Test*/` and other fixtures under `tests/testthat/` are coverage inputs, and many tests assert exact line numbers in them. Do not reformat or edit them unless a test needs it; they are excluded from air in `air.toml`.
 - `devtools::load_all()` loads every package listed in `DESCRIPTION`, so to check what loading covr itself does (e.g. which namespaces get loaded) install it with `R CMD INSTALL` into a temporary library and load it in a fresh R process.
 
+### Measuring covr's own coverage
+
+The instrumented package's startup hooks call `covr:::` functions, so the package being measured can't also be called covr. Instead, the installed covr is run on a copy of the source renamed to `covrShim`. `shim_package.sh` does the renaming (in DESCRIPTION, NAMESPACE, `R/`, `src/` and the tests) and `unshim_package.sh` reverses it. This is what `.github/workflows/test-coverage.yaml` does.
+
+The scripts edit files in place, so run them on a throwaway copy rather than your working tree:
+
+```sh
+dir=$(mktemp -d) && git archive HEAD | tar -x -C "$dir" && cd "$dir"
+lib=$(mktemp -d)
+R CMD INSTALL -l "$lib" .  # install this version of covr first
+sh shim_package.sh         # then rename the source to covrShim
+R_LIBS="$lib" Rscript -e 'covr::report(covr::package_coverage())'
+```
+
+If you do shim your working tree, run `sh unshim_package.sh` before committing. `git archive HEAD` only includes committed changes, so commit (or copy the files) first if you want to measure uncommitted work.
+
 ### Releases
 
 The pkgdown site uses `development: mode: auto`. The site root (https://covr.r-lib.org/) is only rebuilt when the pkgdown workflow runs on a commit with a release version (e.g. `3.6.5`); development versions (e.g. `3.6.5.9000`) build to `/dev`.
