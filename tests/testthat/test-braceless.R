@@ -95,6 +95,22 @@ test_that("switch with drop through", {
   expect_equal(res$value, c(3, 2, 1, 0))
 })
 
+test_that("switch with trailing comma", {
+  f <-
+    'f <- function(x) {
+  switch(x,
+    a = 1,
+    b = 2,
+  )
+}'
+
+  expect_no_warning(
+    res <- as.data.frame(code_coverage(f, 'f("a");f("a");f("b")'))
+  )
+  expect_equal(res$first_line, c(2, 3, 4))
+  expect_equal(res$value, c(3, 2, 1))
+})
+
 test_that("switch with ellipses", {
   f <-
     'f <- function(x, ...) {
