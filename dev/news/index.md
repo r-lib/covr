@@ -38,6 +38,11 @@
   ([@maksymiuks](https://github.com/maksymiuks),
   [\#631](https://github.com/r-lib/covr/issues/631)).
 
+- `clean_coverage_tests` now uses `length(x) == 0` instead of
+  `is.null(x)` to account for `NULL` values and `integer(0)` at the same
+  time ([@maksymiuks](https://github.com/maksymiuks),
+  [\#631](https://github.com/r-lib/covr/issues/631)).
+
 ## covr 3.6.5
 
 CRAN release: 2025-11-09

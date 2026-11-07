@@ -69,12 +69,12 @@ Source:
 [`DESCRIPTION`](https://github.com/r-lib/covr/blob/main/DESCRIPTION)
 
 Hester J (2026). *covr: Test Coverage for Packages*. R package version
-3.6.5.9001, <https://covr.r-lib.org>.
+3.6.5.9002, <https://covr.r-lib.org>.
 
     @Manual{,
       title = {covr: Test Coverage for Packages},
       author = {Jim Hester},
       year = {2026},
-      note = {R package version 3.6.5.9001},
+      note = {R package version 3.6.5.9002},
       url = {https://covr.r-lib.org},
     }
