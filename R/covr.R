@@ -80,8 +80,23 @@
 #' @import methods
 #' @importFrom stats aggregate na.omit na.pass setNames
 #' @importFrom utils capture.output getSrcFilename relist str head
-#' @importFrom httr content RETRY upload_file
 NULL
+
+# httr is called through these wrappers rather than imported, so that it is
+# only loaded when used. Importing it makes httr and its dependencies load
+# time dependencies of covr, which causes a cyclic namespace dependency when
+# running coverage on them (#623). The wrappers also allow mocking in tests.
+content <- function(...) {
+  httr::content(...)
+}
+
+RETRY <- function(...) {
+  httr::RETRY(...)
+}
+
+upload_file <- function(...) {
+  httr::upload_file(...)
+}
 
 the <- new.env(parent = emptyenv())
 

@@ -383,3 +383,7 @@ test_that("it works with GitLab", {
   expect_match(res$query$slug, "tester/test")
   expect_match(res$query$commit, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
+
+test_that("httr is not a load time dependency of covr (#623)", {
+  expect_false("httr" %in% names(getNamespaceImports("covr")))
+})
