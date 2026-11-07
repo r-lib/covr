@@ -31,3 +31,7 @@ environment_coverage(
 
   a vector of regular expressions matching function names to exclude.
   Example `print\\\.` to match print methods.
+
+## Value
+
+A [coverage](https://covr.r-lib.org/dev/reference/coverage.md) object.

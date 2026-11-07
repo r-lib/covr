@@ -9,6 +9,7 @@
 <url><loc>https://covr.r-lib.org/dev/authors.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/index.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/news/index.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/as.data.frame.coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/as_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/as_coverage_with_tests.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/azure.html</loc></url>
@@ -17,6 +18,7 @@
 <url><loc>https://covr.r-lib.org/dev/reference/codecov.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/count.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/count_test.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/coverage_to_list.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/coveralls.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/covr-package.html</loc></url>

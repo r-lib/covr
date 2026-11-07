@@ -2,6 +2,8 @@
 
 ## All functions
 
+- [`as.data.frame(`*`<coverage>`*`)`](https://covr.r-lib.org/dev/reference/as.data.frame.coverage.md)
+  : Convert a coverage object to a data frame
 - [`as_coverage()`](https://covr.r-lib.org/dev/reference/as_coverage.md)
   : Convert a counters object to a coverage object
 - [`as_coverage_with_tests()`](https://covr.r-lib.org/dev/reference/as_coverage_with_tests.md)
@@ -13,6 +15,8 @@
   : Calculate coverage of code directly
 - [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) : Run
   covr on a package and upload the result to codecov.io
+- [`coverage`](https://covr.r-lib.org/dev/reference/coverage.md) :
+  Coverage objects
 - [`coverage_to_list()`](https://covr.r-lib.org/dev/reference/coverage_to_list.md)
   : Convert a coverage dataset to a list
 - [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md) :
@@ -65,6 +69,6 @@
 - [`truncate_call()`](https://covr.r-lib.org/dev/reference/truncate_call.md)
   : Truncate call objects to limit the number of arguments
 - [`value()`](https://covr.r-lib.org/dev/reference/value.md) : Retrieve
-  the value from an object
+  the execution counts from a coverage object
 - [`zero_coverage()`](https://covr.r-lib.org/dev/reference/zero_coverage.md)
   : Provide locations of zero coverage

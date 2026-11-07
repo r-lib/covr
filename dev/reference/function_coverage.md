@@ -26,6 +26,10 @@ function_coverage(fun, code = NULL, env = NULL, enc = parent.frame())
 
   the enclosing environment which to run the expressions.
 
+## Value
+
+A [coverage](https://covr.r-lib.org/dev/reference/coverage.md) object.
+
 ## Examples
 
 ``` r

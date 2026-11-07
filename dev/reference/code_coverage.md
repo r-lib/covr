@@ -41,6 +41,10 @@ code_coverage(
   Additional arguments passed to
   [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md)
 
+## Value
+
+A [coverage](https://covr.r-lib.org/dev/reference/coverage.md) object.
+
 ## Examples
 
 ``` r
@@ -48,5 +52,5 @@ source <- "add <- function(x, y) { x + y }"
 test <- "add(1, 2) == 3"
 code_coverage(source, test)
 #> Coverage: 100.00%
-#> /tmp/Rtmpiyzo72/source.R18d44844c64b: 100.00%
+#> /tmp/Rtmp3zUiIp/source.R18f5104196c5: 100.00%
 ```

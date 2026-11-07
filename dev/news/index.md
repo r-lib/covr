@@ -2,6 +2,15 @@
 
 ## covr (development version)
 
+- [`value()`](https://covr.r-lib.org/dev/reference/value.md) now works
+  on coverage objects of R code; it previously errored for anything but
+  compiled code. The structure of coverage objects is now documented in
+  [`?coverage`](https://covr.r-lib.org/dev/reference/coverage.md), and
+  [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) on a
+  coverage object in
+  [`?as.data.frame.coverage`](https://covr.r-lib.org/dev/reference/as.data.frame.coverage.md)
+  ([\#564](https://github.com/r-lib/covr/issues/564)).
+
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md) now keeps
   the Files / Source tabs at the top of the page while scrolling, and
   returning to the file list restores its scroll position

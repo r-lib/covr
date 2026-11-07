@@ -40,6 +40,10 @@ file_coverage(
 
   The parent environment to use when sourcing the files.
 
+## Value
+
+A [coverage](https://covr.r-lib.org/dev/reference/coverage.md) object.
+
 ## Examples
 
 ``` r

@@ -104,6 +104,12 @@ package_coverage(
   `covr.allow_failures` option, e.g.
   `options(covr.allow_failures = TRUE)`.
 
+## Value
+
+A [coverage](https://covr.r-lib.org/dev/reference/coverage.md) object.
+If `combine_types = FALSE` and more than one `type` is run, a list of
+class `coverages` with one coverage object for each type, named by type.
+
 ## Details
 
 This function uses

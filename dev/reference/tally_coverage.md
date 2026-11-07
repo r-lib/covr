@@ -21,4 +21,31 @@ tally_coverage(x, by = c("line", "expression"))
 
 ## Value
 
-a `data.frame` of coverage tallied by line or expression.
+A `data.frame`. With `by = "expression"` it is the same as
+[`as.data.frame.coverage()`](https://covr.r-lib.org/dev/reference/as.data.frame.coverage.md).
+With `by = "line"` it has one row for each line of code (excluding blank
+and comment lines of R code) and the columns `filename`, `functions`,
+`line` and `value`, where `value` is the smallest execution count of the
+expressions on that line, so a line only counts as covered if all its
+expressions were run.
+
+## Examples
+
+``` r
+cov <- code_coverage(
+  "f <- function(x) {\n  if (x) 'yes' else 'no'\n}",
+  "f(TRUE)"
+)
+tally_coverage(cov)
+#>                               filename functions line value
+#> 1 /tmp/Rtmp3zUiIp/source.R18f55d200ff7         f    2     0
+tally_coverage(cov, by = "expression")
+#>                               filename functions first_line first_byte
+#> 1 /tmp/Rtmp3zUiIp/source.R18f55d200ff7         f          2          7
+#> 2 /tmp/Rtmp3zUiIp/source.R18f55d200ff7         f          2         10
+#> 3 /tmp/Rtmp3zUiIp/source.R18f55d200ff7         f          2         21
+#>   last_line last_byte first_column last_column first_parsed last_parsed value
+#> 1         2         7            7           7            2           2     1
+#> 2         2        14           10          14            2           2     1
+#> 3         2        24           21          24            2           2     0
+```
