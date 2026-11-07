@@ -325,7 +325,10 @@ addin_report <- function() {
 
   project <- rstudioapi::getActiveProject()
 
-  covr::report(covr::package_coverage(project %||% getwd()))
+  path <- project %||% getwd()
+  message("Calculating test coverage for ", path, "...")
+
+  covr::report(covr::package_coverage(path))
 }
 
 # These are all adapted from functions in shiny

@@ -1,5 +1,8 @@
 # covr (development version)
 
+* The RStudio addin now prints a message when it starts calculating coverage,
+  so there is feedback before the report opens (#404).
+
 * `package_coverage()` now only deletes `install_path` if coverage succeeds,
   so the test output referenced in failure messages can be inspected
   (@hadley, #615).
