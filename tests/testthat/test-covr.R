@@ -97,3 +97,11 @@ test_that("clean_coverage_tests works with degenerated objects", {
     covr:::clean_coverage_tests(obj)
   )
 })
+
+test_that("merge_coverage sums the counts of shared traces", {
+  a <- list(t1 = list(value = 1L), t2 = list(value = 2L))
+  b <- list(t2 = list(value = 3L), t3 = list(value = 4L), t1 = list(value = 5L))
+  merged <- merge_coverage(list(a, b))
+  expect_equal(names(merged), c("t1", "t2", "t3"))
+  expect_equal(vapply(merged, `[[`, integer(1), "value"), c(t1 = 6L, t2 = 5L, t3 = 4L))
+})

@@ -1,5 +1,24 @@
 # covr (development version)
 
+* Coverage is now reported for S7 property getters, setters, and validators
+  with S7 > 0.2.2, which stores class callbacks in a shared class reference
+  (@t-kalinowski, #646).
+
+* Fix a generational garbage-collection bug when replacing traced functions in
+  place, without permanently retaining their bodies or environments (#640).
+
+* Tracing a package is faster, as parse data now keeps text only for terminal
+  tokens (@erkurtharun, #644).
+
+* `merge_coverage()` is much faster for packages with many traces (@erkurtharun, #643).
+
+* With `options(covr.record_tests = TRUE)`, merging coverage now correctly
+  renumbers the test indices of traces that are absent from the first
+  coverage object (#643).
+
+* Fix compilation of the `TestCompiled` test package on R 4.6 by using public
+  `REAL()` and `INTEGER()` accessors instead of the non-API `DATAPTR()`.
+
 * Fix a rare edge case where `count_test` was called before `.current_test` has
   been initialized leading to crash (@maksymiuks, #631).
 
@@ -7,7 +26,7 @@
   in `if` condition (@maksymiuks, #631).
 
 * `clean_coverage_tests` now uses `length(x) == 0` instead of `is.null(x)`
-  to accounts for `NULL` values and `integer(0)` at the same time (@maksymiuks, #631).
+  to account for `NULL` values and `integer(0)` at the same time (@maksymiuks, #631).
 
 # covr 3.6.5
 
