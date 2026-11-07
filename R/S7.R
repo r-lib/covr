@@ -44,6 +44,12 @@ traverse_S7_generic <- function(x) {
 }
 
 traverse_S7_class <- function(x) {
+  # Installed constructors can be byte-compiled copies of the class. Instances
+  # call the callbacks held by the shared class reference in their environment.
+  class_ref <- environment(x)[[".S7_class_ref"]]
+  if (!is.null(class_ref)) {
+    x <- class_ref$class
+  }
   class_name <- S7::prop(x, "name")
   prop_fun_replacements <-
     lapply(S7::prop(x, "properties"), function(p) {

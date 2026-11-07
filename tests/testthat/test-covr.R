@@ -82,3 +82,46 @@ test_that("show_failures shows as much text as it can from the end", {
     expect_error(show_failures(td), "eleifend conubia pellentesque viverra.", fixed = TRUE, class = "covr_error")
   })
 })
+
+test_that("clean_coverage_tests works with degenerated objects", {
+  obj <- list(
+    a = list(tests = new.env()),
+    tests = structure(list(structure(
+      list("a", "b"), call_count = 1L
+    )), names = ""),
+    b = list(value = integer(0)),
+    c = list(value = NA)
+  )
+
+  expect_no_error(
+    covr:::clean_coverage_tests(obj)
+  )
+})
+
+test_that("merge_coverage sums the counts of shared traces", {
+  a <- list(t1 = list(value = 1L), t2 = list(value = 2L))
+  b <- list(t2 = list(value = 3L), t3 = list(value = 4L), t1 = list(value = 5L))
+  merged <- merge_coverage(list(a, b))
+  expect_equal(names(merged), c("t1", "t2", "t3"))
+  expect_equal(vapply(merged, `[[`, integer(1), "value"), c(t1 = 6L, t2 = 5L, t3 = 4L))
+})
+
+test_that("package_coverage errors on test failures by default", {
+  expect_error(
+    package_coverage(test_path("TestFailure")),
+    "this test fails",
+    class = "covr_error"
+  )
+})
+
+test_that("covr.allow_failures returns coverage despite test failures", {
+  withr::local_options(covr.allow_failures = TRUE)
+  expect_warning(
+    cov <- package_coverage(test_path("TestFailure")),
+    "this test fails",
+    class = "covr_warning"
+  )
+  values <- tapply(tally_coverage(cov)$value, tally_coverage(cov)$functions, sum)
+  expect_gt(values[["covered"]], 0)
+  expect_equal(values[["not_covered"]], 0)
+})
