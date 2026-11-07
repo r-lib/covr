@@ -10,13 +10,13 @@ test_that("percent_coverage", {
   on.exit(options(keep.source = old), add = TRUE)
 
   fun <- function() {
-     x <- 1
-     if (x > 2) {
-       print(x)
-     }
-     res <- lapply(1:2, function(x) {
-                          x + 1
-                        })
+    x <- 1
+    if (x > 2) {
+      print(x)
+    }
+    res <- lapply(1:2, function(x) {
+      x + 1
+    })
   }
   cov <- function_coverage("fun", env = environment(fun), fun())
 

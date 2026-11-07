@@ -1,26 +1,37 @@
 test_that("function_coverage", {
-
   withr::with_options(c(keep.source = TRUE), {
-      f <- function(x) {
-        x + 1
-      }
-      expect_equal(as.numeric(function_coverage("f", env = environment(f))[[1]]$value), 0)
+    f <- function(x) {
+      x + 1
+    }
+    expect_equal(
+      as.numeric(function_coverage("f", env = environment(f))[[1]]$value),
+      0
+    )
 
-      expect_equal(as.numeric(function_coverage("f", env = environment(f), f(1))[[1]]$value), 1)
+    expect_equal(
+      as.numeric(function_coverage("f", env = environment(f), f(1))[[1]]$value),
+      1
+    )
 
-      expect_equal(as.numeric(function_coverage("f", env = environment(f), f(1), f(1))[[1]]$value), 2)
-    })
+    expect_equal(
+      as.numeric(
+        function_coverage("f", env = environment(f), f(1), f(1))[[1]]$value
+      ),
+      2
+    )
+  })
 })
 
 test_that("function_coverage identity function", {
-
   withr::with_options(c(keep.source = TRUE), {
     fun <- function(x) {
       x
     }
 
     cov_num <- function(...) {
-      as.numeric(function_coverage("fun", env = environment(fun), ...)[[1]]$value)
+      as.numeric(
+        function_coverage("fun", env = environment(fun), ...)[[1]]$value
+      )
     }
 
     expect_equal(cov_num(), 0)
@@ -29,7 +40,6 @@ test_that("function_coverage identity function", {
 })
 
 test_that("function_coverage return last expr", {
-
   withr::with_options(c(keep.source = TRUE), {
     fun <- function(x = 1) {
       x
@@ -37,7 +47,11 @@ test_that("function_coverage return last expr", {
     }
 
     cov_fun <- function(...) {
-      vdapply(function_coverage("fun", env = environment(fun), ...), "[[", "value")
+      vdapply(
+        function_coverage("fun", env = environment(fun), ...),
+        "[[",
+        "value"
+      )
     }
 
     expect_equal(as.numeric(cov_fun()), c(0L, 0L))
@@ -47,8 +61,8 @@ test_that("function_coverage return last expr", {
 
 test_that("duplicated first_line", {
   withr::with_options(c(keep.source = TRUE), {
-
     fun <- function() {
+      # fmt: skip
       res <- lapply(1:2, function(x) { x + 1 }) # nolint
     }
     cov <- function_coverage("fun", env = environment(fun))
@@ -79,16 +93,25 @@ test_that("show_failures shows as much text as it can from the end", {
     )
 
     # Expect the error to contain the end of the file
-    expect_error(show_failures(td), "eleifend conubia pellentesque viverra.", fixed = TRUE, class = "covr_error")
+    expect_error(
+      show_failures(td),
+      "eleifend conubia pellentesque viverra.",
+      fixed = TRUE,
+      class = "covr_error"
+    )
   })
 })
 
 test_that("clean_coverage_tests works with degenerated objects", {
   obj <- list(
     a = list(tests = new.env()),
-    tests = structure(list(structure(
-      list("a", "b"), call_count = 1L
-    )), names = ""),
+    tests = structure(
+      list(structure(
+        list("a", "b"),
+        call_count = 1L
+      )),
+      names = ""
+    ),
     b = list(value = integer(0)),
     c = list(value = NA)
   )
@@ -103,7 +126,10 @@ test_that("merge_coverage sums the counts of shared traces", {
   b <- list(t2 = list(value = 3L), t3 = list(value = 4L), t1 = list(value = 5L))
   merged <- merge_coverage(list(a, b))
   expect_equal(names(merged), c("t1", "t2", "t3"))
-  expect_equal(vapply(merged, `[[`, integer(1), "value"), c(t1 = 6L, t2 = 5L, t3 = 4L))
+  expect_equal(
+    vapply(merged, `[[`, integer(1), "value"),
+    c(t1 = 6L, t2 = 5L, t3 = 4L)
+  )
 })
 
 test_that("package_coverage keeps install_path only when coverage fails", {
@@ -136,7 +162,11 @@ test_that("covr.allow_failures returns coverage despite test failures", {
     "this test fails",
     class = "covr_warning"
   )
-  values <- tapply(tally_coverage(cov)$value, tally_coverage(cov)$functions, sum)
+  values <- tapply(
+    tally_coverage(cov)$value,
+    tally_coverage(cov)$functions,
+    sum
+  )
   expect_gt(values[["covered"]], 0)
   expect_equal(values[["not_covered"]], 0)
 })

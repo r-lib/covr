@@ -9,12 +9,12 @@ test_that("R6 box attached module coverage is reported", {
   withr::with_dir("Testbox_attached_modules_functions_R6", {
     cov <- as.data.frame(file_coverage(
       source_files = "app/app.R",
-      test_files = list.files("tests/testthat", full.names = TRUE)))
+      test_files = list.files("tests/testthat", full.names = TRUE)
+    ))
 
     expect_equal(cov$value, c(1, 1))
     expect_equal(cov$first_line, c(5, 8))
     expect_equal(cov$last_line, c(5, 8))
     expect_true("show" %in% cov$functions)
   })
-
 })

@@ -1,0 +1,9 @@
+[format]
+# Coverage tests assert exact line numbers/expressions in these fixtures.
+exclude = [
+  "tests/testthat/Test*/",
+  "tests/testthat/a/",
+  "tests/testthat/b/",
+  "tests/testthat/corner-cases.R",
+  "tests/testthat/corner-cases-test.R",
+]

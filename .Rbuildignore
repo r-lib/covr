@@ -34,3 +34,4 @@ _dev\.R$
 ^\.github$
 ^SECURITY\.md$
 ^CRAN-SUBMISSION$
+^air\.toml$

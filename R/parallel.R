@@ -2,7 +2,7 @@
 replace_binding <- function(package, name, value) {
   ns <- getNamespace(package)
   unlock <- get('unlockBinding') # to fool r CMD check
-  lock <-  get('lockBinding')
+  lock <- get('lockBinding')
   unlock(name, ns)
   assign(name, value, ns)
   lock(name, ns)
@@ -17,16 +17,24 @@ fix_mcexit <- function(trace_dir) {
   trace_dir <- parse(text = trace_dir)[[1]]
 
   # directly patch mcexit
-  body(mcexit) <- as.call(append(after = 1, as.list(body(mcexit)),
-      as.call(list(call(":::", as.symbol("covr"), as.symbol("save_trace")), trace_dir))))
+  body(mcexit) <- as.call(append(
+    after = 1,
+    as.list(body(mcexit)),
+    as.call(list(
+      call(":::", as.symbol("covr"), as.symbol("save_trace")),
+      trace_dir
+    ))
+  ))
 
   replace_binding('parallel', 'mcexit', mcexit)
 }
 
 
 uses_parallel <- function(pkg) {
-  any(grepl("\\bparallel\\b",
-      pkg[c("depends", "imports", "suggests", "enhances", "linkingto")]))
+  any(grepl(
+    "\\bparallel\\b",
+    pkg[c("depends", "imports", "suggests", "enhances", "linkingto")]
+  ))
 }
 
 on_windows <- function() {
@@ -37,8 +45,11 @@ on_windows <- function() {
 # the option covr.fix_parallel_mcexit, or auto-detection of the usage of
 # parallel by the package (cf uses_parallel()).
 should_enable_parallel_mcexit_fix <- function(pkg) {
-  isTRUE(!on_windows() &&
-    as.logical(Sys.getenv("COVR_FIX_PARALLEL_MCEXIT",
-      getOption("covr.fix_parallel_mcexit",
-        uses_parallel(pkg)))))
+  isTRUE(
+    !on_windows() &&
+      as.logical(Sys.getenv(
+        "COVR_FIX_PARALLEL_MCEXIT",
+        getOption("covr.fix_parallel_mcexit", uses_parallel(pkg))
+      ))
+  )
 }

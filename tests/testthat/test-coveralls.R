@@ -65,14 +65,56 @@ test_that("coveralls generates a properly formatted json file", {
 
   expect_equal(nrow(json$source_files), 1)
   expect_equal(json$service_name, "fakeci")
-  expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R"))
+  expect_match(
+    json$source_files$name,
+    rex::rex("R", one_of("/", "\\"), "TestS4.R")
+  )
   expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R"))
-  expect_equal(json$source_files$source_digest, "1233f2eca5d84704101cb9d9b928f2e9")
+  expect_equal(
+    json$source_files$source_digest,
+    "1233f2eca5d84704101cb9d9b928f2e9"
+  )
   expect_equal(
     json$source_files$coverage[[1]],
     c(
-      NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
-      NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      5,
+      2,
+      NA,
+      3,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      1,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      1,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      1,
+      NA
     )
   )
 })
@@ -86,7 +128,9 @@ test_that("coveralls can spawn a job using repo_token", {
     RETRY = function(...) list(...),
     content = identity,
     upload_file = function(file) readChar(file, file.info(file)$size),
-    system_output = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
+    system_output = function(...) {
+      paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
+    }
   )
   res <- coveralls(coverage = cov, repo_token = "mytoken")
   json <- jsonlite::fromJSON(res$body$json_file)
@@ -96,14 +140,56 @@ test_that("coveralls can spawn a job using repo_token", {
   # service_name set #285
   expect_equal(json$service_name, "drone")
   expect_equal(json$repo_token, "mytoken")
-  expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R"))
+  expect_match(
+    json$source_files$name,
+    rex::rex("R", one_of("/", "\\"), "TestS4.R")
+  )
   expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R"))
-  expect_equal(json$source_files$source_digest, "1233f2eca5d84704101cb9d9b928f2e9")
+  expect_equal(
+    json$source_files$source_digest,
+    "1233f2eca5d84704101cb9d9b928f2e9"
+  )
   expect_equal(
     json$source_files$coverage[[1]],
     c(
-      NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
-      NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      5,
+      2,
+      NA,
+      3,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      1,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      1,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      1,
+      NA
     )
   )
 })
@@ -111,10 +197,14 @@ test_that("coveralls can spawn a job using repo_token", {
 test_that("generates correct payload for Drone and Jenkins", {
   withr::local_envvar(c(
     ci_vars,
-    "CI_NAME" = "FAKECI", "CI_BRANCH" = "fakebranch", "CI_REMOTE" = "covr"
+    "CI_NAME" = "FAKECI",
+    "CI_BRANCH" = "fakebranch",
+    "CI_REMOTE" = "covr"
   ))
   local_mocked_bindings(
-    system_output = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
+    system_output = function(...) {
+      paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
+    }
   )
   git <- jenkins_git_info()
 
@@ -137,7 +227,9 @@ test_that("coveralls can spawn a job using repo_token - travis-pro #285", {
     RETRY = function(...) list(...),
     content = identity,
     upload_file = function(file) readChar(file, file.info(file)$size),
-    system_output = function(...) paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
+    system_output = function(...) {
+      paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
+    }
   )
   res <- coveralls(coverage = cov, repo_token = "mytoken")
   json <- jsonlite::fromJSON(res$body$json_file)
@@ -146,14 +238,56 @@ test_that("coveralls can spawn a job using repo_token - travis-pro #285", {
   expect_equal(nrow(json$source_files), 1)
   expect_equal(json$service_name, "travis-pro")
   expect_equal(json$repo_token, "mytoken")
-  expect_match(json$source_files$name, rex::rex("R", one_of("/", "\\"), "TestS4.R"))
+  expect_match(
+    json$source_files$name,
+    rex::rex("R", one_of("/", "\\"), "TestS4.R")
+  )
   expect_equal(json$source_files$source, read_file("TestS4/R/TestS4.R"))
-  expect_equal(json$source_files$source_digest, "1233f2eca5d84704101cb9d9b928f2e9")
+  expect_equal(
+    json$source_files$source_digest,
+    "1233f2eca5d84704101cb9d9b928f2e9"
+  )
   expect_equal(
     json$source_files$coverage[[1]],
     c(
-      NA, NA, NA, NA, NA, NA, 5, 2, NA, 3, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
-      NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, NA
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      5,
+      2,
+      NA,
+      3,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      1,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      1,
+      NA,
+      NA,
+      NA,
+      NA,
+      NA,
+      1,
+      NA
     )
   )
   # git correct #285

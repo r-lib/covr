@@ -5,14 +5,21 @@ test_that("package_coverage returns an error if the path does not exist", {
 test_that("package_coverage returns an error if the type is incorrect", {
   expect_error(
     package_coverage("TestPrint", type = "blah"),
-    "'arg' should be one of")
+    "'arg' should be one of"
+  )
 
-  expect_error(package_coverage("TestPrint", type = c("blah", "test")),
-    "'arg' should be one of")
+  expect_error(
+    package_coverage("TestPrint", type = c("blah", "test")),
+    "'arg' should be one of"
+  )
 })
 
 test_that("package_coverage can return just tests and vignettes", {
-  cov <- package_coverage("TestPrint", type = c("tests", "vignettes"), combine_types = FALSE)
+  cov <- package_coverage(
+    "TestPrint",
+    type = c("tests", "vignettes"),
+    combine_types = FALSE
+  )
 
   expect_equal(names(cov), c("tests", "vignettes"))
 })

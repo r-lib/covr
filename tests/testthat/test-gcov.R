@@ -64,12 +64,23 @@ test_that("parse_gcov parses files properly", {
 })
 
 test_that("clean_gcov correctly clears files", {
-
   dir <- file.path(tempfile(), "src")
 
   dir.create(dir, recursive = TRUE)
-  file.create(file.path(dir, c("simple.c", "Makevars", "simple.c.gcov", "simple.gcda", "simple.gcno")))
-  expect_identical(list.files(dir), sort(c("simple.c", "Makevars", "simple.c.gcov", "simple.gcda", "simple.gcno")))
+  file.create(file.path(
+    dir,
+    c("simple.c", "Makevars", "simple.c.gcov", "simple.gcda", "simple.gcno")
+  ))
+  expect_identical(
+    list.files(dir),
+    sort(c(
+      "simple.c",
+      "Makevars",
+      "simple.c.gcov",
+      "simple.gcda",
+      "simple.gcno"
+    ))
+  )
 
   clean_gcov(dirname(dir))
   expect_identical(list.files(dir), sort(c("simple.c", "Makevars")))

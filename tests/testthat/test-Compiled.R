@@ -28,7 +28,15 @@ test_that("Compiled code coverage is reported including code in headers", {
 
   expect_equal(simple_h[simple_h$first_line == "25", "value"], 4)
 
-  expect_true(all(unique(cov$filename) %in% c("R/TestCompiled.R", "src/simple-header.h", "src/simple.cc", "src/simple4.cc")))
+  expect_true(all(
+    unique(cov$filename) %in%
+      c(
+        "R/TestCompiled.R",
+        "src/simple-header.h",
+        "src/simple.cc",
+        "src/simple4.cc"
+      )
+  ))
 })
 
 test_that("Can pass path to relative_path argument", {
@@ -36,18 +44,24 @@ test_that("Can pass path to relative_path argument", {
   skip_if(is_win_r41())
   cov <- as.data.frame(package_coverage("TestCompiled", relative_path = "."))
 
-  expect_true(all(unique(cov$filename) %in% c(
-    "TestCompiled/R/TestCompiled.R",
-    "TestCompiled/src/simple-header.h",
-    "TestCompiled/src/simple.cc",
-    "TestCompiled/src/simple4.cc"
-  )))
+  expect_true(all(
+    unique(cov$filename) %in%
+      c(
+        "TestCompiled/R/TestCompiled.R",
+        "TestCompiled/src/simple-header.h",
+        "TestCompiled/src/simple.cc",
+        "TestCompiled/src/simple4.cc"
+      )
+  ))
 })
 
 test_that("Source code subdirectories are found", {
   skip_on_cran()
   skip_if(is_win_r41())
-  cov <- as.data.frame(package_coverage("TestCompiledSubdir", relative_path = TRUE))
+  cov <- as.data.frame(package_coverage(
+    "TestCompiledSubdir",
+    relative_path = TRUE
+  ))
 
   expect_equal(cov[cov$first_line == "9", "value"], 4)
 
@@ -63,7 +77,10 @@ test_that("Source code subdirectories are found", {
 test_that("Compiled code coverage is reported under non-standard char's", {
   skip_on_cran()
   skip_if(is_win_r41())
-  cov <- as.data.frame(package_coverage("Test+Char/TestCompiled", relative_path = TRUE))
+  cov <- as.data.frame(package_coverage(
+    "Test+Char/TestCompiled",
+    relative_path = TRUE
+  ))
 
   expect_equal(cov[cov$first_line == "9", "value"], 4)
 
@@ -79,16 +96,19 @@ test_that("Compiled code coverage is reported under non-standard char's", {
 test_that("Error thrown for missing gcov", {
   skip_on_cran()
 
-  withr::local_options(covr.gcov='')
-  expect_snapshot(package_coverage("TestCompiled", relative_path=TRUE), error = TRUE)
+  withr::local_options(covr.gcov = '')
+  expect_snapshot(
+    package_coverage("TestCompiled", relative_path = TRUE),
+    error = TRUE
+  )
 })
 
 test_that("Warning thrown for empty gcov output", {
   skip_on_cran()
 
-  withr::local_options(covr.gcov_args='-n')
+  withr::local_options(covr.gcov_args = '-n')
   expect_snapshot(
-    . <- package_coverage("TestCompiled", relative_path=TRUE),
+    . <- package_coverage("TestCompiled", relative_path = TRUE),
     transform = function(x) gsub(getwd(), "<wd>", x)
   )
 })
@@ -104,5 +124,11 @@ test_that("tally_coverage includes compiled code", {
 
   expect_equal(
     unique(tall$filename),
-    c("R/TestCompiled.R", "src/simple-header.h", "src/simple.cc", "src/simple4.cc"))
+    c(
+      "R/TestCompiled.R",
+      "src/simple-header.h",
+      "src/simple.cc",
+      "src/simple4.cc"
+    )
+  )
 })

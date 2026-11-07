@@ -1,21 +1,27 @@
 #' @importFrom utils getParseData getSrcref tail
 impute_srcref <- function(x, parent_ref) {
-  if (!is_conditional_or_loop(x)) return(NULL)
-  if (is.null(parent_ref)) return(NULL)
+  if (!is_conditional_or_loop(x)) {
+    return(NULL)
+  }
+  if (is.null(parent_ref)) {
+    return(NULL)
+  }
 
   pd <- get_tokens(parent_ref)
   pd_expr <-
-    (
-      (pd$line1 == parent_ref[[1L]] & pd$line2 == parent_ref[[3L]]) |
-      (pd$line1 == parent_ref[[7L]] & pd$line2 == parent_ref[[8L]])
-    ) &
+    ((pd$line1 == parent_ref[[1L]] & pd$line2 == parent_ref[[3L]]) |
+      (pd$line1 == parent_ref[[7L]] & pd$line2 == parent_ref[[8L]])) &
     pd$col1 == parent_ref[[2L]] &
     pd$col2 == parent_ref[[4L]] &
     pd$token == "expr"
   pd_expr_idx <- which(pd_expr)
-  if (length(pd_expr_idx) == 0L) return(NULL) # srcref not found in parse data
+  if (length(pd_expr_idx) == 0L) {
+    return(NULL)
+  } # srcref not found in parse data
 
-  if (length(pd_expr_idx) > 1) pd_expr_idx <- pd_expr_idx[[1]]
+  if (length(pd_expr_idx) > 1) {
+    pd_expr_idx <- pd_expr_idx[[1]]
+  }
 
   expr_id <- pd$id[pd_expr_idx]
   pd_child <- pd[pd$parent == expr_id, ]
@@ -24,7 +30,10 @@ impute_srcref <- function(x, parent_ref) {
   # exclude comments
   pd_child <- pd_child[pd_child$token != "COMMENT", ]
 
-  if (pd$line1[pd_expr_idx] == parent_ref[[7L]] & pd$line2[pd_expr_idx] == parent_ref[[8L]]) {
+  if (
+    pd$line1[pd_expr_idx] == parent_ref[[7L]] &
+      pd$line2[pd_expr_idx] == parent_ref[[8L]]
+  ) {
     line_offset <- parent_ref[[7L]] - parent_ref[[1L]]
   } else {
     line_offset <- 0
@@ -37,7 +46,8 @@ impute_srcref <- function(x, parent_ref) {
 
     srcref(
       attr(parent_ref, "srcfile"),
-      c(pd_child$line1[from] - line_offset,
+      c(
+        pd_child$line1[from] - line_offset,
         pd_child$col1[from],
         pd_child$line2[to] - line_offset,
         pd_child$col2[to],
@@ -115,7 +125,10 @@ impute_srcref <- function(x, parent_ref) {
   )
 }
 
-is_conditional_or_loop <- function(x) is.symbol(x[[1L]]) && as.character(x[[1L]]) %in% c("if", "for", "else", "switch")
+is_conditional_or_loop <- function(x) {
+  is.symbol(x[[1L]]) &&
+    as.character(x[[1L]]) %in% c("if", "for", "else", "switch")
+}
 
 package_parse_data <- new.env()
 
@@ -127,8 +140,9 @@ get_parse_data <- function(srcfile) {
       return(NULL)
     }
 
-    res <- lapply(lines_split,
-      function(x) getParseData(parse(text = x, keep.source = TRUE), includeText = NA))
+    res <- lapply(lines_split, function(x) {
+      getParseData(parse(text = x, keep.source = TRUE), includeText = NA)
+    })
     for (i in seq_along(res)) {
       package_parse_data[[names(res)[[i]]]] <- res[[i]]
     }
