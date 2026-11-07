@@ -179,12 +179,21 @@
 <p>Covr should be compatible with any testing package, it uses <code><a href="https://rdrr.io/r/tools/testInstalledPackage.html" class="external-link">tools::testInstalledPackage()</a></code> to run your packages tests.</p>
 </div>
 <div class="section level2">
+<h2 id="why-are-tests-using-skip_on_cran-not-counted-in-my-coverage">Why are tests using <code>skip_on_cran()</code> not counted in my coverage?<a class="anchor" aria-label="anchor" href="#why-are-tests-using-skip_on_cran-not-counted-in-my-coverage"></a>
+</h2>
+<p><code><a href="reference/package_coverage.html">package_coverage()</a></code> runs your tests non-interactively in a separate R process, so testthat assumes it is running on CRAN unless the <code>NOT_CRAN</code> environment variable is <code>"true"</code>. Tests that call <code>skip_on_cran()</code> are then skipped, and the code they exercise is reported as uncovered. To include them, set the variable before computing coverage:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>NOT_CRAN <span class="op">=</span> <span class="st">"true"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><code>devtools::test_coverage()</code> sets <code>NOT_CRAN</code> for you.</p>
+</div>
+<div class="section level2">
 <h2 id="will-covr-work-with-alternative-compilers-such-as-icc">Will covr work with alternative compilers such as ICC<a class="anchor" aria-label="anchor" href="#will-covr-work-with-alternative-compilers-such-as-icc"></a>
 </h2>
 <p>Covr now supports Intel’s <code>icc</code> compiler, thanks to work contributed by Qin Wang at Oracle.</p>
 <p>Covr is known to work with clang versions <code>3.5+</code> and gcc version <code>4.2+</code>.</p>
 <p>If the appropriate gcov version is not on your path you can set the appropriate location with the <code>covr.gcov</code> options. If you set this path to “” it will turn <em>off</em> coverage of compiled code.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.gcov <span class="op">=</span> <span class="st">"path/to/gcov"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -193,7 +202,7 @@
 <p><code>covr</code> tracks test coverage by modifying a package’s code to add tracking calls to each call.</p>
 <p>The vignette <a href="https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd" class="external-link">vignettes/how_it_works.Rmd</a> contains a detailed explanation of the technique and the rationale behind it.</p>
 <p>You can view the vignette from within <code>R</code> using</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"how_it_works"</span>, package <span class="op">=</span> <span class="st">"covr"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
