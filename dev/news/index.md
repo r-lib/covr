@@ -2,6 +2,10 @@
 
 ## covr (development version)
 
+- Avoid cyclic namespace dependency when running coverage on httr and
+  its dependencies, such as R6
+  ([\#623](https://github.com/r-lib/covr/issues/623)).
+
 - [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   gains an `allow_failures` argument (default
   `getOption("covr.allow_failures", FALSE)`). When `TRUE`, failing
