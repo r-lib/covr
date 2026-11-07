@@ -2,6 +2,22 @@
 
 ## covr (development version)
 
+- Lines of compiled code that gcov reports as only partially executed
+  (e.g. `if (x) f();` when `f()` never runs) are no longer dropped from
+  the coverage. They count as covered, or as not covered with
+  `options(covr.gcov_partial = "uncovered")`
+  ([\#604](https://github.com/r-lib/covr/issues/604)).
+
+- `covr_error` conditions (and the `covr_warning`s from
+  `allow_failures`) now keep the whole failure output in `$output` and
+  its file in `$file`. The message shows the last 50 lines and is
+  bounded by `warning.length` measured in characters (it was measured
+  inconsistently in bytes), and
+  [`print()`](https://rdrr.io/r/base/print.html) shows the last `n`
+  lines, 50 by default. The number of lines can be set with
+  `options(covr.failure_lines)`
+  ([\#570](https://github.com/r-lib/covr/issues/570)).
+
 - The RStudio addin now prints a message when it starts calculating
   coverage, so there is feedback before the report opens
   ([\#404](https://github.com/r-lib/covr/issues/404)).
@@ -156,6 +172,10 @@ CRAN release: 2023-10-10
 ## covr 3.6.2
 
 CRAN release: 2023-03-25
+
+- Fix S3 generic/method signature consistency and skip an R6 test on
+  R-devel, for CRAN checks
+  ([\#534](https://github.com/r-lib/covr/issues/534)).
 
 ## covr 3.6.1
 

@@ -94,6 +94,10 @@ regular expression which starts a line-exclusion region. For more
 details, see <code><a href="exclusions.html">?exclusions</a></code>.</p></li>
 <li><p><code>covr.filter_non_package</code>: If <code>TRUE</code> (the default behavior), coverage
 of files outside the target package are filtered from coverage output.</p></li>
+<li><p><code>covr.failure_lines</code>: The number of trailing lines of test output
+shown in the message and <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> method of a <code>covr_error</code> when tests,
+vignettes, examples or <code>code</code> fail (default <code>50</code>). The full output is
+always available in the condition's <code>$output</code> field.</p></li>
 <li><p><code>covr.fix_parallel_mcexit</code>:</p></li>
 <li><p><code>covr.flags</code>:</p></li>
 <li><p><code>covr.gcov</code>: If the appropriate gcov version is not on your path you
@@ -101,6 +105,10 @@ can use this option to set the appropriate location. If set to "" it will
 turn off coverage of compiled code.</p></li>
 <li><p><code>covr.gcov_additional_paths</code>:</p></li>
 <li><p><code>covr.gcov_args</code>:</p></li>
+<li><p><code>covr.gcov_partial</code>: How to count compiled code lines that gcov
+reports as only partially executed (e.g. <code>if (x) f();</code> when <code>f()</code> never
+runs). <code>"covered"</code> (the default) counts them as covered, <code>"uncovered"</code>
+counts them as not covered, for requiring every part of a line to run.</p></li>
 <li><p><code>covr.icov</code>:</p></li>
 <li><p><code>covr.icov_args</code>:</p></li>
 <li><p><code>covr.icov_flags</code>:</p></li>

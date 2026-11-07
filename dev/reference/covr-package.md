@@ -48,6 +48,13 @@ behaviour:
 - `covr.filter_non_package`: If `TRUE` (the default behavior), coverage
   of files outside the target package are filtered from coverage output.
 
+- `covr.failure_lines`: The number of trailing lines of test output
+  shown in the message and
+  [`print()`](https://rdrr.io/r/base/print.html) method of a
+  `covr_error` when tests, vignettes, examples or `code` fail (default
+  `50`). The full output is always available in the condition's
+  `$output` field.
+
 - `covr.fix_parallel_mcexit`:
 
 - `covr.flags`:
@@ -59,6 +66,12 @@ behaviour:
 - `covr.gcov_additional_paths`:
 
 - `covr.gcov_args`:
+
+- `covr.gcov_partial`: How to count compiled code lines that gcov
+  reports as only partially executed (e.g. `if (x) f();` when `f()`
+  never runs). `"covered"` (the default) counts them as covered,
+  `"uncovered"` counts them as not covered, for requiring every part of
+  a line to run.
 
 - `covr.icov`:
 
