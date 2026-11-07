@@ -11,25 +11,33 @@ percent_coverage <- function(x, ...) {
   (sum(res$value > 0) / length(res$value)) * 100
 }
 
-#' Tally coverage by line or expression
+#' Tally coverage by line, expression or function
 #'
 #' @inheritParams percent_coverage
-#' @param by whether to tally coverage by line or expression
+#' @param by whether to tally coverage by line, expression or function
 #' @return A `data.frame`. With `by = "expression"` it is the same as
 #'   [as.data.frame.coverage()]. With `by = "line"` it has one row for each
 #'   line of code (excluding blank and comment lines of R code) and the
 #'   columns `filename`, `functions`, `line` and `value`, where `value` is the
 #'   smallest execution count of the expressions on that line, so a line only
 #'   counts as covered if all its expressions were run.
+#'
+#'   With `by = "function"` it has one row for each top level R function and
+#'   the columns `filename`, `functions`, `first_line`, `last_line` and
+#'   `value`, where `first_line` and `last_line` span the function's traced
+#'   code and `value` is the largest execution count of its expressions, so a
+#'   function counts as covered if any of its code was run. Compiled code has
+#'   no function names, so it is left out.
 #' @examples
 #' cov <- code_coverage(
-#'   "f <- function(x) {\n  if (x) 'yes' else 'no'\n}",
+#'   "f <- function(x) {\n  if (x) 'yes' else 'no'\n}\ng <- function() 1",
 #'   "f(TRUE)"
 #' )
 #' tally_coverage(cov)
 #' tally_coverage(cov, by = "expression")
+#' tally_coverage(cov, by = "function")
 #' @export
-tally_coverage <- function(x, by = c("line", "expression")) {
+tally_coverage <- function(x, by = c("line", "expression", "function")) {
   # Rarely something goes wrong with the source references and we get all NAs
   # for them, so we omit them here
   df <- as.data.frame(x)
@@ -103,8 +111,35 @@ tally_coverage <- function(x, by = c("line", "expression")) {
       res[order(res$filename, res$line), ]
     },
 
-    "expression" = df
+    "expression" = df,
+
+    "function" = tally_functions(df)
   )
+}
+
+# Accepts the output of tally_coverage() by expression, line or function.
+tally_functions <- function(df) {
+  df <- df[!is.na(df$functions), , drop = FALSE]
+  first_line <- df$first_line %||% df$line
+  last_line <- df$last_line %||% df$line
+
+  groups <- split(
+    seq_len(NROW(df)),
+    paste(df$filename, df$functions, sep = "\r")
+  )
+  idx <- vapply(groups, `[[`, integer(1), 1L, USE.NAMES = FALSE)
+
+  res <- data.frame(
+    filename = as.character(df$filename[idx]),
+    functions = as.character(df$functions[idx]),
+    first_line = vapply(groups, function(i) min(first_line[i]), numeric(1)),
+    last_line = vapply(groups, function(i) max(last_line[i]), numeric(1)),
+    value = vapply(groups, function(i) max(df$value[i]), numeric(1)),
+    stringsAsFactors = FALSE
+  )
+  res <- res[order(res$filename, res$first_line, res$functions), ]
+  rownames(res) <- NULL
+  res
 }
 
 #' Provide locations of zero coverage
@@ -114,10 +149,18 @@ tally_coverage <- function(x, by = c("line", "expression")) {
 #'
 #' @param x a coverage object returned [package_coverage()]
 #' @param ... additional arguments passed to
-#' [tally_coverage()]
+#' [tally_coverage()], such as `by = "function"` to list the functions that
+#' were never run.
 #' @return A `data.frame` with coverage data where the coverage is 0.
 #' @details if used within RStudio this function outputs the results using the
 #' Marker API.
+#' @examples
+#' cov <- code_coverage(
+#'   "f <- function(x) {\n  if (x) 'yes' else 'no'\n}\ng <- function() 1",
+#'   "f(TRUE)"
+#' )
+#' zero_coverage(cov)
+#' zero_coverage(cov, by = "function")
 #' @export
 zero_coverage <- function(x, ...) {
   coverage_data <- tally_coverage(x, ...)
@@ -162,7 +205,7 @@ zero_coverage <- function(x, ...) {
 #'
 #' @param x the coverage object to be printed
 #' @param group whether to group coverage by filename or function
-#' @param by whether to count coverage by line or expression
+#' @param by whether to count coverage by line, expression or function
 #' @param ... additional arguments ignored
 #' @return The coverage object (invisibly).
 #' @export

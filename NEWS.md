@@ -2,6 +2,9 @@
 
 * `report()` now bundles Bootstrap 3.4.1 instead of 3.3.5, which had known
   security vulnerabilities (#639).
+* `tally_coverage()` gains `by = "function"`, with one row for each function,
+  so `zero_coverage(cov, by = "function")` lists the functions that were
+  never run. `percent_coverage()` and `print()` also accept it (#245).
 
 * `value()` now works on coverage objects of R code; it previously errored
   for anything but compiled code. The structure of coverage objects is now

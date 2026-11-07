@@ -4,6 +4,42 @@ test_that("Summary gives 50% coverage and two lines with zero coverage", {
   expect_equal(nrow(zero_coverage(cv)), 2)
 })
 
+test_that("tally_coverage() and zero_coverage() by function", {
+  cov <- code_coverage(
+    paste(
+      "f <- function(x) {",
+      "  if (x) {",
+      "    1",
+      "  } else {",
+      "    2",
+      "  }",
+      "}",
+      "g <- function() {",
+      "  h <- function() 3",
+      "  h()",
+      "}",
+      "k <- function() {",
+      "  4",
+      "}",
+      sep = "\n"
+    ),
+    "f(TRUE); f(TRUE); g()"
+  )
+
+  res <- tally_coverage(cov, by = "function")
+  expect_named(
+    res,
+    c("filename", "functions", "first_line", "last_line", "value")
+  )
+  expect_equal(res$functions, c("f", "g", "k"))
+  expect_equal(res$first_line, c(2, 9, 13))
+  expect_equal(res$last_line, c(5, 10, 13))
+  expect_equal(res$value, c(2, 1, 0))
+
+  expect_equal(zero_coverage(cov, by = "function")$functions, "k")
+  expect_equal(percent_coverage(cov, by = "function"), 200 / 3)
+})
+
 test_that("percent_coverage", {
   old <- getOption("keep.source")
   options(keep.source = TRUE)

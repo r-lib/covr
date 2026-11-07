@@ -10,7 +10,8 @@ zero_coverage(x, ...)
 \item{x}{a coverage object returned \code{\link[=package_coverage]{package_coverage()}}}
 
 \item{...}{additional arguments passed to
-\code{\link[=tally_coverage]{tally_coverage()}}}
+\code{\link[=tally_coverage]{tally_coverage()}}, such as \code{by = "function"} to list the functions that
+were never run.}
 }
 \value{
 A \code{data.frame} with coverage data where the coverage is 0.
@@ -22,4 +23,12 @@ any locations where there is \strong{0} test coverage.
 \details{
 if used within RStudio this function outputs the results using the
 Marker API.
+}
+\examples{
+cov <- code_coverage(
+  "f <- function(x) {\n  if (x) 'yes' else 'no'\n}\ng <- function() 1",
+  "f(TRUE)"
+)
+zero_coverage(cov)
+zero_coverage(cov, by = "function")
 }
