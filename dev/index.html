@@ -80,12 +80,21 @@
 <p>The easiest way to setup covr on <a href="https://github.com/r-lib/actions/tree/v2-branch/examples#test-coverage-workflow" class="external-link">Github Actions</a> is with <a href="https://github.com/r-lib/usethis" class="external-link">usethis</a>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu">use_github_action</span><span class="op">(</span><span class="st">"test-coverage"</span><span class="op">)</span></span></code></pre></div>
+<p>This workflow uploads to Codecov. To use <a href="https://coveralls.io/" class="external-link">Coveralls</a> instead, replace the <code>codecov/codecov-action</code> step with the official <a href="https://github.com/coverallsapp/github-action" class="external-link">Coveralls action</a>, which uploads the <code>cobertura.xml</code> file the workflow already creates. No Coveralls token is needed, the action authenticates with the built-in <code>GITHUB_TOKEN</code>.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> coverallsapp/github-action@v2</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="at">          </span><span class="fu">github-token</span><span class="kw">:</span><span class="at"> ${{ secrets.GITHUB_TOKEN }}</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="at">          </span><span class="fu">file</span><span class="kw">:</span><span class="at"> ./cobertura.xml</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="at">          </span><span class="fu">format</span><span class="kw">:</span><span class="at"> cobertura</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">          # Fail if error if not on PR</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="at">          </span><span class="fu">fail-on-error</span><span class="kw">:</span><span class="at"> ${{ github.event_name != 'pull_request' }}</span></span></code></pre></div>
+<p>If the package is in a subdirectory of the repository, also set <code>base-path</code> to that directory so Coveralls can find the source files.</p>
 </div>
 <div class="section level1">
 <h1 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h1>
 <p>For local development a coverage report can be used to inspect coverage for each line in your package. <em>Note</em> requires the <a href="https://github.com/rstudio/DT" class="external-link">DT</a> package to be installed.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://covr.r-lib.org">covr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># If run with no arguments implicitly calls `package_coverage()`</span></span>
@@ -94,7 +103,7 @@
 <div class="section level2">
 <h2 id="interactively">Interactively<a class="anchor" aria-label="anchor" href="#interactively"></a>
 </h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># If run with the working directory within the package source.</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -129,7 +138,7 @@
 <h2 id="function-exclusions">Function Exclusions<a class="anchor" aria-label="anchor" href="#function-exclusions"></a>
 </h2>
 <p>The <code>function_exclusions</code> argument to <code><a href="reference/package_coverage.html">package_coverage()</a></code> can be used to exclude functions by name. This argument takes a vector of regular expressions matching functions to exclude.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># exclude print functions</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>function_exclusions <span class="op">=</span> <span class="st">"print\\."</span><span class="op">)</span></span>
 <span></span>
@@ -140,7 +149,7 @@
 <h2 id="line-exclusions">Line Exclusions<a class="anchor" aria-label="anchor" href="#line-exclusions"></a>
 </h2>
 <p>The <code>line_exclusions</code> argument to <code><a href="reference/package_coverage.html">package_coverage()</a></code> can be used to exclude some or all of a file. This argument takes a list of filenames or named ranges to exclude.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># exclude whole file of R/test.R</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="st">"R/test.R"</span><span class="op">)</span></span>
 <span></span>
@@ -155,12 +164,12 @@
 </h2>
 <p>In addition you can exclude lines from the coverage by putting special comments in your source code.</p>
 <p>This can be done per line.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># nocov</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Or by specifying a range with a start and end.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="co"># nocov start</span></span>
 <span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">2</span></span>
 <span><span class="op">}</span> <span class="co"># nocov end</span></span></code></pre></div>
@@ -185,7 +194,7 @@
 <h2 id="why-are-tests-using-skip_on_cran-not-counted-in-my-coverage">Why are tests using <code>skip_on_cran()</code> not counted in my coverage?<a class="anchor" aria-label="anchor" href="#why-are-tests-using-skip_on_cran-not-counted-in-my-coverage"></a>
 </h2>
 <p><code><a href="reference/package_coverage.html">package_coverage()</a></code> runs your tests non-interactively in a separate R process, so testthat assumes it is running on CRAN unless the <code>NOT_CRAN</code> environment variable is <code>"true"</code>. Tests that call <code>skip_on_cran()</code> are then skipped, and the code they exercise is reported as uncovered. To include them, set the variable before computing coverage:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>NOT_CRAN <span class="op">=</span> <span class="st">"true"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><code>devtools::test_coverage()</code> sets <code>NOT_CRAN</code> for you.</p>
@@ -196,7 +205,7 @@
 <p>Covr now supports Intel’s <code>icc</code> compiler, thanks to work contributed by Qin Wang at Oracle.</p>
 <p>Covr is known to work with clang versions <code>3.5+</code> and gcc version <code>4.2+</code>.</p>
 <p>If the appropriate gcov version is not on your path you can set the appropriate location with the <code>covr.gcov</code> options. If you set this path to “” it will turn <em>off</em> coverage of compiled code.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.gcov <span class="op">=</span> <span class="st">"path/to/gcov"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -205,7 +214,7 @@
 <p><code>covr</code> tracks test coverage by modifying a package’s code to add tracking calls to each call.</p>
 <p>The vignette <a href="https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd" class="external-link">vignettes/how_it_works.Rmd</a> contains a detailed explanation of the technique and the rationale behind it.</p>
 <p>You can view the vignette from within <code>R</code> using</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"how_it_works"</span>, package <span class="op">=</span> <span class="st">"covr"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">

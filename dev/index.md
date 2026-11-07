@@ -23,6 +23,27 @@ is with [usethis](https://github.com/r-lib/usethis).
 usethis::use_github_action("test-coverage")
 ```
 
+This workflow uploads to Codecov. To use
+[Coveralls](https://coveralls.io/) instead, replace the
+`codecov/codecov-action` step with the official [Coveralls
+action](https://github.com/coverallsapp/github-action), which uploads
+the `cobertura.xml` file the workflow already creates. No Coveralls
+token is needed, the action authenticates with the built-in
+`GITHUB_TOKEN`.
+
+``` yaml
+      - uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./cobertura.xml
+          format: cobertura
+          # Fail if error if not on PR
+          fail-on-error: ${{ github.event_name != 'pull_request' }}
+```
+
+If the package is in a subdirectory of the repository, also set
+`base-path` to that directory so Coveralls can find the source files.
+
 # Usage
 
 For local development a coverage report can be used to inspect coverage
