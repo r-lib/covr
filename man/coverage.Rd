@@ -13,11 +13,11 @@ object, which records how many times each part of the code was executed.
 Rather than using the list directly, you will usually want to:
 \itemize{
 \item Get a data frame with one row for each expression with \code{\link[=as.data.frame]{as.data.frame()}}
-(\code{\link[=as.data.frame.coverage]{as.data.frame.coverage()}}), or one row for each line with
+(\code{\link[=as.data.frame.coverage]{as.data.frame.coverage()}}), or one row for each line or function with
 \code{\link[=tally_coverage]{tally_coverage()}}.
 \item Get the overall percentage with \code{\link[=percent_coverage]{percent_coverage()}}, or the percentage
 for each file with \code{\link[=coverage_to_list]{coverage_to_list()}}.
-\item Find the lines which were never run with \code{\link[=zero_coverage]{zero_coverage()}}.
+\item Find the lines or functions which were never run with \code{\link[=zero_coverage]{zero_coverage()}}.
 \item Get the execution counts as a named numeric vector with \code{\link[=value]{value()}}.
 \item Browse the coverage with \code{\link[=report]{report()}} or \code{\link[=file_report]{file_report()}}.
 }

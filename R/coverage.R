@@ -8,11 +8,11 @@
 #' Rather than using the list directly, you will usually want to:
 #'
 #' * Get a data frame with one row for each expression with [as.data.frame()]
-#'   ([as.data.frame.coverage()]), or one row for each line with
+#'   ([as.data.frame.coverage()]), or one row for each line or function with
 #'   [tally_coverage()].
 #' * Get the overall percentage with [percent_coverage()], or the percentage
 #'   for each file with [coverage_to_list()].
-#' * Find the lines which were never run with [zero_coverage()].
+#' * Find the lines or functions which were never run with [zero_coverage()].
 #' * Get the execution counts as a named numeric vector with [value()].
 #' * Browse the coverage with [report()] or [file_report()].
 #'

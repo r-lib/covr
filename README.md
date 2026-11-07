@@ -59,6 +59,9 @@ as.data.frame(cov)
 # If run within RStudio, `zero_coverage()` will open a marker pane with the
 # uncovered lines.
 zero_coverage(cov)
+
+# or the functions which were never run
+zero_coverage(cov, by = "function")
 ```
 
 # Exclusions #

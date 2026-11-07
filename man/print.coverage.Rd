@@ -11,7 +11,7 @@
 
 \item{group}{whether to group coverage by filename or function}
 
-\item{by}{whether to count coverage by line or expression}
+\item{by}{whether to count coverage by line, expression or function}
 
 \item{...}{additional arguments ignored}
 }
