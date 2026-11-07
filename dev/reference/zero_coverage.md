@@ -19,7 +19,8 @@ zero_coverage(x, ...)
 - ...:
 
   additional arguments passed to
-  [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
+  [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md),
+  such as `by = "function"` to list the functions that were never run.
 
 ## Value
 
@@ -29,3 +30,19 @@ A `data.frame` with coverage data where the coverage is 0.
 
 if used within RStudio this function outputs the results using the
 Marker API.
+
+## Examples
+
+``` r
+cov <- code_coverage(
+  "f <- function(x) {\n  if (x) 'yes' else 'no'\n}\ng <- function() 1",
+  "f(TRUE)"
+)
+zero_coverage(cov)
+#>                               filename functions line value
+#> 1 /tmp/Rtmp3rNctd/source.R18222d5ef26f         f    2     0
+#> 2 /tmp/Rtmp3rNctd/source.R18222d5ef26f         g    4     0
+zero_coverage(cov, by = "function")
+#>                               filename functions first_line last_line value
+#> 2 /tmp/Rtmp3rNctd/source.R18222d5ef26f         g          4         4     0
+```

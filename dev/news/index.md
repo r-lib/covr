@@ -2,6 +2,14 @@
 
 ## covr (development version)
 
+- [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
+  gains `by = "function"`, with one row for each function, so
+  `zero_coverage(cov, by = "function")` lists the functions that were
+  never run.
+  [`percent_coverage()`](https://covr.r-lib.org/dev/reference/percent_coverage.md)
+  and [`print()`](https://rdrr.io/r/base/print.html) also accept it
+  ([\#245](https://github.com/r-lib/covr/issues/245)).
+
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md) now
   bundles Bootstrap 3.4.1 instead of 3.3.5, which had known security
   vulnerabilities ([\#639](https://github.com/r-lib/covr/issues/639)).

@@ -16,7 +16,7 @@ Rather than using the list directly, you will usually want to:
 - Get a data frame with one row for each expression with
   [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html)
   ([`as.data.frame.coverage()`](https://covr.r-lib.org/dev/reference/as.data.frame.coverage.md)),
-  or one row for each line with
+  or one row for each line or function with
   [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md).
 
 - Get the overall percentage with
@@ -24,7 +24,7 @@ Rather than using the list directly, you will usually want to:
   or the percentage for each file with
   [`coverage_to_list()`](https://covr.r-lib.org/dev/reference/coverage_to_list.md).
 
-- Find the lines which were never run with
+- Find the lines or functions which were never run with
   [`zero_coverage()`](https://covr.r-lib.org/dev/reference/zero_coverage.md).
 
 - Get the execution counts as a named numeric vector with
@@ -79,14 +79,14 @@ With `options(covr.record_tests = TRUE)`, coverage objects also have a
 cov <- code_coverage("add <- function(x, y) { x + y }", "add(1, 2)")
 cov
 #> Coverage: 100.00%
-#> /tmp/RtmpbLxMqj/source.R1a893cb501c3: 100.00%
+#> /tmp/Rtmp3rNctd/source.R18225e040eb: 100.00%
 as.data.frame(cov)
-#>                               filename functions first_line first_byte
-#> 1 /tmp/RtmpbLxMqj/source.R1a893cb501c3       add          1         25
-#>   last_line last_byte first_column last_column first_parsed last_parsed value
-#> 1         1        29           25          29            1           1     1
+#>                              filename functions first_line first_byte last_line
+#> 1 /tmp/Rtmp3rNctd/source.R18225e040eb       add          1         25         1
+#>   last_byte first_column last_column first_parsed last_parsed value
+#> 1        29           25          29            1           1     1
 names(cov)
-#> [1] "source.R1a893cb501c3:1:25:1:29:25:29:1:1"
+#> [1] "source.R18225e040eb:1:25:1:29:25:29:1:1"
 cov[[1]]$value
 #> [1] 1
 ```

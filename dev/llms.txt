@@ -62,6 +62,9 @@ as.data.frame(cov)
 # If run within RStudio, `zero_coverage()` will open a marker pane with the
 # uncovered lines.
 zero_coverage(cov)
+
+# or the functions which were never run
+zero_coverage(cov, by = "function")
 ```
 
 # Exclusions
@@ -298,7 +301,7 @@ By contributing to this project, you agree to abide by its terms.
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md) : Display
   covr results using a standalone report
 - [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
-  : Tally coverage by line or expression
+  : Tally coverage by line, expression or function
 - [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
   : Create a Cobertura XML file
 - [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/to_sonarqube.md)

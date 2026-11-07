@@ -21,7 +21,7 @@ print(x, group = c("filename", "functions"), by = "line", ...)
 
 - by:
 
-  whether to count coverage by line or expression
+  whether to count coverage by line, expression or function
 
 - ...:
 

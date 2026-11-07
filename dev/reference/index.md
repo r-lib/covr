@@ -59,7 +59,7 @@
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md) : Display
   covr results using a standalone report
 - [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
-  : Tally coverage by line or expression
+  : Tally coverage by line, expression or function
 - [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
   : Create a Cobertura XML file
 - [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/to_sonarqube.md)
