@@ -37,15 +37,15 @@ cov <- code_coverage(
   "f(TRUE)"
 )
 tally_coverage(cov)
-#>                               filename functions line value
-#> 1 /tmp/Rtmp3zUiIp/source.R18f55d200ff7         f    2     0
+#>                              filename functions line value
+#> 1 /tmp/RtmpbLxMqj/source.R1a89fd9a26c         f    2     0
 tally_coverage(cov, by = "expression")
-#>                               filename functions first_line first_byte
-#> 1 /tmp/Rtmp3zUiIp/source.R18f55d200ff7         f          2          7
-#> 2 /tmp/Rtmp3zUiIp/source.R18f55d200ff7         f          2         10
-#> 3 /tmp/Rtmp3zUiIp/source.R18f55d200ff7         f          2         21
-#>   last_line last_byte first_column last_column first_parsed last_parsed value
-#> 1         2         7            7           7            2           2     1
-#> 2         2        14           10          14            2           2     1
-#> 3         2        24           21          24            2           2     0
+#>                              filename functions first_line first_byte last_line
+#> 1 /tmp/RtmpbLxMqj/source.R1a89fd9a26c         f          2          7         2
+#> 2 /tmp/RtmpbLxMqj/source.R1a89fd9a26c         f          2         10         2
+#> 3 /tmp/RtmpbLxMqj/source.R1a89fd9a26c         f          2         21         2
+#>   last_byte first_column last_column first_parsed last_parsed value
+#> 1         7            7           7            2           2     1
+#> 2        14           10          14            2           2     1
+#> 3        24           21          24            2           2     0
 ```

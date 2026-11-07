@@ -2,6 +2,10 @@
 
 ## covr (development version)
 
+- [`report()`](https://covr.r-lib.org/dev/reference/report.md) now
+  bundles Bootstrap 3.4.1 instead of 3.3.5, which had known security
+  vulnerabilities ([\#639](https://github.com/r-lib/covr/issues/639)).
+
 - [`value()`](https://covr.r-lib.org/dev/reference/value.md) now works
   on coverage objects of R code; it previously errored for anything but
   compiled code. The structure of coverage objects is now documented in
