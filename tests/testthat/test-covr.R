@@ -333,3 +333,42 @@ test_that("package_coverage reports bad trace files", {
   expect_s3_class(cov, "coverage")
   expect_gt(length(cov), 0)
 })
+
+test_that("package_coverage warns about processes that did not save a trace", {
+  rscript <- function(code) {
+    paste0(
+      "system2(file.path(R.home('bin'), 'Rscript'), ",
+      "c('--vanilla', '-e', shQuote('library(TestSummary); ",
+      code,
+      "')))"
+    )
+  }
+  code <- c(
+    rscript("test_me(1, 2)"),
+    rscript("dont_test_me(1, 2); tools::pskill(Sys.getpid(), tools::SIGKILL)")
+  )
+
+  expect_snapshot(
+    cov <- package_coverage(
+      test_path("TestSummary"),
+      type = "none",
+      code = code
+    )
+  )
+  values <- tapply(
+    tally_coverage(cov)$value,
+    tally_coverage(cov)$functions,
+    sum
+  )
+  expect_gt(values[["test_me"]], 0)
+  expect_equal(values[["dont_test_me"]], 0)
+})
+
+test_that("unsaved_traces ignores the markers of the current process", {
+  dir <- withr::local_tempdir()
+  pid <- Sys.getpid()
+  file.create(file.path(dir, paste0("covr_pending_", pid, "_a")))
+  file.create(file.path(dir, paste0("covr_pending_", pid, "0_b")))
+
+  expect_equal(unsaved_traces(dir), paste0("covr_pending_", pid, "0_b"))
+})

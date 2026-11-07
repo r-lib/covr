@@ -179,6 +179,62 @@ save_rds <- function(object, file) {
   saveRDS(object, file = file)
 }
 
+# Called from the loader script of the instrumented package (see `add_hooks()`)
+# while its namespace is loaded. The finalizer saves the trace when the
+# namespace is garbage collected or R exits normally. Until then a
+# `covr_pending_<pid>_*` marker exists in `directory`, so `package_coverage()`
+# can report processes that loaded the package but never saved their trace,
+# e.g. because they were killed (#438). Forked children inherit the finalizer
+# but did not create the marker, so they leave it alone.
+register_trace <- function(ns, directory) {
+  pid <- Sys.getpid()
+  pending <- temp_file(paste0("covr_pending_", pid, "_"), tmpdir = directory)
+  file.create(pending)
+  reg.finalizer(
+    ns,
+    function(...) {
+      save_trace(directory)
+      if (Sys.getpid() == pid) {
+        unlink(pending)
+      }
+    },
+    onexit = TRUE
+  )
+  invisible(pending)
+}
+
+# The markers of processes that loaded the package but did not save their
+# trace. Markers of this process are ignored; it can load the instrumented
+# package (e.g. for a `\Sexpr` in an example) but only saves its trace on exit.
+unsaved_traces <- function(directory) {
+  markers <- list.files(directory, pattern = "^covr_pending_")
+  markers[!grepl(paste0("^covr_pending_", Sys.getpid(), "_"), markers)]
+}
+
+unsaved_traces_warning <- function(package, n) {
+  structure(
+    list(
+      message = paste0(
+        sprintf(
+          ngettext(
+            n,
+            "%d R process loaded %s but did not save its coverage, so it is missing from the results.",
+            "%d R processes loaded %s but did not save their coverage, so it is missing from the results."
+          ),
+          n,
+          package
+        ),
+        "\nCoverage is saved when R exits normally; it is lost if a process is killed ",
+        "(e.g. with SIGKILL or SIGTERM) or is still running when the tests finish.",
+        "\nStop background processes started by the tests, such as Shiny apps, ",
+        "callr sessions or future workers, gracefully and wait for them to exit."
+      ),
+      call = NULL
+    ),
+    class = c("covr_unsaved_trace", "warning", "condition")
+  )
+}
+
 #' Convert a counters object to a coverage object
 #'
 #' @param counters An environment of covr trace results to convert to a coverage
@@ -477,6 +533,16 @@ with_coverage <- function(
 #' `type = "none"` and pass the code to run as a character vector to the
 #' `code` parameter.
 #'
+#' Coverage is also recorded in other R processes that load the package, such
+#' as \pkg{callr} sessions, \pkg{future} or \pkg{parallel} cluster workers, or
+#' Shiny apps run by \pkg{shinytest2}. Each process saves its coverage when it
+#' exits normally, so the coverage is lost if a process is killed (e.g. with
+#' `SIGKILL` or `SIGTERM`) or is still running when the tests finish, and
+#' `package_coverage()` warns (with class `covr_unsaved_trace`). Stop these
+#' processes gracefully and wait for them to exit, e.g. call `$stop()` on a
+#' \pkg{shinytest2} `AppDriver`, which waits longer for the app to exit when
+#' run by covr.
+#'
 #' #ifdef unix
 #' Parallelized code using \pkg{parallel}'s [mcparallel()] needs to
 #' use a patched `parallel:::mcexit`. This is done automatically if the
@@ -774,6 +840,11 @@ package_coverage <- function(
       ),
       class = c("covr_warning", "warning", "condition")
     ))
+  }
+
+  unsaved <- unsaved_traces(install_path)
+  if (length(unsaved) > 0) {
+    warning(unsaved_traces_warning(pkg$package, length(unsaved)))
   }
 
   if (!uses_icc()) {
@@ -1222,10 +1293,10 @@ run_commands <- function(pkg, lib, commands) {
 # pkg_name/R/pkg_name. This function adds a user level onLoad Hook to the
 # package which calls `covr::trace_environment`, so the package environment is
 # traced when the package is loaded.
-# It also adds a finalizer that saves the tracing information to the package
-# namespace environment which is run when the ns is garbage collected or the
-# process ends. This ensures the tracing count information will be written
-# regardless of how the process terminates.
+# It also registers a finalizer (with `register_trace()`) that saves the
+# tracing information when the namespace is garbage collected or the process
+# exits normally. A process that is killed does not save its trace, which
+# `package_coverage()` reports.
 # @param pkg_name name of the package to add hooks to
 # @param lib the library path to look in
 # @param fix_mcexit whether to add the fix for mcparallel:::mcexit
@@ -1254,11 +1325,7 @@ add_hooks <- function(
         "))"
       ),
       "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
-      paste0(
-        "reg.finalizer(ns, function(...) { covr:::save_trace(",
-        trace_dir,
-        ") }, onexit = TRUE)"
-      )
+      paste0("covr:::register_trace(ns, ", trace_dir, ")")
     ),
     length(lines) - 1L
   )
