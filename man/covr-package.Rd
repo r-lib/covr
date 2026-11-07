@@ -49,6 +49,11 @@ details, see \code{?exclusions}.
 \item \code{covr.filter_non_package}: If \code{TRUE} (the default behavior), coverage
 of files outside the target package are filtered from coverage output.
 
+\item \code{covr.failure_lines}: The number of trailing lines of test output
+shown in the message and \code{print()} method of a \code{covr_error} when tests,
+vignettes, examples or \code{code} fail (default \code{50}). The full output is
+always available in the condition's \verb{$output} field.
+
 \item \code{covr.fix_parallel_mcexit}:
 
 \item \code{covr.flags}:

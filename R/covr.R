@@ -42,6 +42,11 @@
 #'   \item `covr.filter_non_package`: If `TRUE` (the default behavior), coverage
 #'     of files outside the target package are filtered from coverage output.
 #'
+#'   \item `covr.failure_lines`: The number of trailing lines of test output
+#'     shown in the message and `print()` method of a `covr_error` when tests,
+#'     vignettes, examples or `code` fail (default `50`). The full output is
+#'     always available in the condition's `$output` field.
+#'
 #'   \item `covr.fix_parallel_mcexit`:
 #'
 #'   \item `covr.flags`:
@@ -666,7 +671,12 @@ package_coverage <- function(
 
   for (failure in failures) {
     warning(structure(
-      list(message = conditionMessage(failure), call = NULL),
+      list(
+        message = conditionMessage(failure),
+        call = NULL,
+        file = failure$file,
+        output = failure$output
+      ),
       class = c("covr_warning", "warning", "condition")
     ))
   }
@@ -737,34 +747,90 @@ show_failures <- function(dir) {
     full.names = TRUE
   )
   for (file in fail_files) {
-    lines <- readLines(file)
-
-    # Skip header lines (until first >)
-    lines <- lines[seq(which.min(grepl("^>", lines)), length(lines))]
-
-    # R will only show options("warning.length") number of characters in an
-    # error, so show the last characters of that number
-    error_header <- paste0("Failure in `", file, "`\n")
-
-    # 9 is the length of `Error: ` + newline + NUL maybe?
-    error_length <- getOption("warning.length") - 9
-    error_body <- paste(lines, collapse = "\n")
-
-    header_len <- nchar(error_header, "bytes")
-    body_len <- nchar(error_body, "bytes")
-
-    error_body <- substr(
-      error_body,
-      body_len - (error_length - header_len),
-      body_len
-    )
-
-    cnd <- structure(
-      list(message = paste0(error_header, error_body)),
-      class = c("covr_error", "error", "condition")
-    )
-    withRestarts(stop(cnd), covr_continue = function() NULL)
+    withRestarts(stop(covr_error(file)), covr_continue = function() NULL)
   }
+}
+
+# Number of trailing output lines shown by default in the message and print()
+failure_lines <- function() {
+  getOption("covr.failure_lines", 50L)
+}
+
+covr_error <- function(file) {
+  lines <- readLines(file, warn = FALSE)
+
+  # Skip header lines (until first >)
+  prompt <- grep("^>", lines)
+  if (length(prompt) > 0L) {
+    lines <- lines[seq(prompt[[1L]], length(lines))]
+  }
+
+  structure(
+    list(
+      message = failure_message(file, lines),
+      call = NULL,
+      file = file,
+      output = lines
+    ),
+    class = c("covr_error", "error", "condition")
+  )
+}
+
+# R only shows options("warning.length") characters of an error message, so
+# keep the message within that (and at most `failure_lines()` lines) and show
+# as many lines from the end as fit.
+failure_message <- function(file, lines) {
+  header <- paste0(
+    "Failure in `",
+    file,
+    "` (full output is in that file and in the `$output` of this condition)\n"
+  )
+  # 9 is the length of `Error: ` + newline + NUL maybe?
+  budget <- getOption("warning.length") - 9 - nchar(header, "chars")
+  if (length(lines) == 0L || budget <= 0L) {
+    return(header)
+  }
+  n <- failure_lines()
+  if (length(lines) > n) {
+    lines <- lines[seq.int(length(lines) - n + 1L, length(lines))]
+  }
+  # characters in the last k lines, joined by newlines
+  size <- rev(cumsum(rev(nchar(lines, "chars") + 1L))) - 1L
+  keep <- which(size <= budget)
+  if (length(keep) > 0L) {
+    lines <- lines[keep[[1L]]:length(lines)]
+  } else {
+    last <- lines[[length(lines)]]
+    lines <- substring(last, nchar(last, "chars") - budget + 1L)
+  }
+  paste0(header, paste(lines, collapse = "\n"))
+}
+
+#' @export
+format.covr_error <- function(x, n = failure_lines(), ...) {
+  out <- x$output
+  total <- length(out)
+  if (total > n) {
+    out <- out[seq.int(total - n + 1L, total)]
+  }
+  header <- paste0("<covr_error> Failure in `", x$file, "`")
+  if (total > length(out)) {
+    header <- paste0(
+      header,
+      "\n(showing last ",
+      length(out),
+      " of ",
+      total,
+      " lines; use `print(x, n = Inf)` or `x$output` for all)"
+    )
+  }
+  paste(c(header, out), collapse = "\n")
+}
+
+#' @export
+print.covr_error <- function(x, n = failure_lines(), ...) {
+  cat(format(x, n = n), "\n", sep = "")
+  invisible(x)
 }
 
 # Merge multiple coverage objects together. Traces are matched by name; the

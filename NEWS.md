@@ -5,6 +5,12 @@
   coverage. They count as covered, or as not covered with
   `options(covr.gcov_partial = "uncovered")` (#604).
 
+* `covr_error` conditions (and the `covr_warning`s from `allow_failures`) now
+  keep the whole failure output in `$output` and its file in `$file`. The
+  message shows the last 50 lines and is bounded by `warning.length`
+  measured in characters (it was measured inconsistently in bytes), and
+  `print()` shows the last `n` lines, 50 by default. The number of lines can be
+  set with `options(covr.failure_lines)` (#570).
 * The RStudio addin now prints a message when it starts calculating coverage,
   so there is feedback before the report opens (#404).
 * Fix a warning, and possibly an error under `options(warn = 2)`, when tracing
@@ -97,6 +103,9 @@
 * `package_coverage()` now works correctly with ignore files when it is not run in the package root directory (@mpadge, #538)
 
 # covr 3.6.2
+
+* Fix S3 generic/method signature consistency and skip an R6 test on R-devel,
+  for CRAN checks (#534).
 
 # covr 3.6.1
 
