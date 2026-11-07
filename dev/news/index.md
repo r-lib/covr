@@ -2,6 +2,10 @@
 
 ## covr (development version)
 
+- The RStudio addin now prints a message when it starts calculating
+  coverage, so there is feedback before the report opens
+  ([\#404](https://github.com/r-lib/covr/issues/404)).
+
 - Fix a warning, and possibly an error under `options(warn = 2)`, when
   tracing a [`switch()`](https://rdrr.io/r/base/switch.html) call with a
   trailing comma ([\#483](https://github.com/r-lib/covr/issues/483)).
