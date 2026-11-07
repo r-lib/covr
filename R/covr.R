@@ -459,7 +459,9 @@ package_coverage <- function(path = ".",
       clean_objects(pkg$path)
       clean_gcov(pkg$path)
       clean_parse_data()
-      if (succeeded) unlink(install_path, recursive = TRUE)
+      if (succeeded) {
+        unlink(install_path, recursive = TRUE)
+      }
     }, add = TRUE)
   }
 
