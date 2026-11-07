@@ -1,17 +1,129 @@
-# Releases
+## This package
 
-The pkgdown site uses `development: mode: auto`. The site root
-(https://covr.r-lib.org/) is only rebuilt when the pkgdown workflow runs on a
-commit with a release version (e.g. `3.6.5`); development versions
-(e.g. `3.6.5.9000`) build to `/dev`.
+covr measures test coverage of R packages. `package_coverage()` installs an instrumented copy of the package into a temporary library and runs the tests, vignettes, examples or `code` in separate R processes; trace counts are saved to files by a finalizer and merged afterwards. Compiled code coverage uses gcov.
 
-When releasing:
+### Compatibility
 
-- Push the release version commit on its own and let the pkgdown workflow run
-  before pushing the `.9000` version bump. If both are pushed together, only
-  the latest commit is built and the released site is never updated.
-- Publish a GitHub release for the version tag (`gh release create vX.Y.Z
-  --verify-tag`). This also triggers a release build of the site.
+- covr depends on `R (>= 3.1.0)`, so do not use the base pipe (`|>`), `\(x)` lambdas, or other syntax and functions newer than that.
+- Functions from optional dependencies such as httr must be called with `pkg::fun()` (or a small wrapper in covr, which also makes them mockable), not imported with `@importFrom`. Importing them makes them load time dependencies, which causes cyclic namespace errors when computing coverage of those packages (#623).
 
-If the site root still shows the previous version, publish the missing GitHub
-release, or run the pkgdown workflow manually on the release tag.
+### Tests
+
+- The test packages in `tests/testthat/Test*/` and other fixtures under `tests/testthat/` are coverage inputs, and many tests assert exact line numbers in them. Do not reformat or edit them unless a test needs it; they are excluded from air in `air.toml`.
+- `devtools::load_all()` loads every package listed in `DESCRIPTION`, so to check what loading covr itself does (e.g. which namespaces get loaded) install it with `R CMD INSTALL` into a temporary library and load it in a fresh R process.
+
+### Releases
+
+The pkgdown site uses `development: mode: auto`. The site root (https://covr.r-lib.org/) is only rebuilt when the pkgdown workflow runs on a commit with a release version (e.g. `3.6.5`); development versions (e.g. `3.6.5.9000`) build to `/dev`.
+
+- Push the release version commit on its own and let the pkgdown workflow finish before pushing the `.9000` version bump. If both are pushed together, only the latest commit is built and the released site is never updated.
+- Publish a GitHub release for the version tag (`gh release create vX.Y.Z --verify-tag`). This also triggers a release build of the site.
+- If the site root still shows the previous version, publish the missing GitHub release, or run the pkgdown workflow manually on the release tag.
+
+## Package development
+
+### Key commands
+
+(All these functions have been optimized for agentic use, so they can be called directly without other arguments.)
+
+```R
+# Executing code
+devtools::load_all()
+code
+
+# Tests
+devtools::test() # all tests
+devtools::test(filter = "^{name}") # tests for files starting with {name}
+devtools::test_active_file("R/{name}.R") # tests for R/{name}.R
+devtools::test_active_file("R/{name}.R", desc = 'blah') # single test with exact description "blah" (no regexp)
+
+# Test coverage
+devtools::test_coverage() # all files
+devtools::test_coverage_active_file("R/{name}.R") # coverage for R/{name}.R from tests in tests/testthat/test-{name}.R
+
+# Documentation
+devtools::document() # redocument package
+pkgdown::check_pkgdown() # check website
+
+# Run complete R CMD check
+devtools::check()
+```
+
+### Running R
+
+There are three possible ways to run code, listed in rough order of desirability:
+
+- If you're running inside Posit Assistant or otherwise have an
+  `executeCode()` tool available, use it to run code in a session that the
+  user can also interact with.
+
+- Otherwise, if an R REPL (e.g. `mcp__r__repl` or `btw::run_r`) is
+  available, use that. Note that `mcp__r__repl` uses a sandbox that blocks
+  network requests and reads/writes outside of the current directory.
+
+- Otherwise, use `Rscript -e "code"`. On Windows, `Rscript -e` can segfault on
+  multiline or complex code; in that case, write it to a temporary `.R` file
+  and run `Rscript path/to/file.R`.
+
+### Code style
+
+- Follow the tidyverse style guide.
+- Always run `air format .` after generating code. (air is bundled with Positron so look there if you can't otherwise find it.)
+- Use `function() {...}` for anonymous functions (see Compatibility above).
+
+### Test style
+
+- Tests for `R/{name}.R` go in `tests/testthat/test-{name}.R`.
+- All new code should have an accompanying test.
+- If there are existing tests, place new tests next to similar existing tests.
+- Strive to keep your tests minimal with few comments.
+- Never put code in a `test-{name}.R` file outside of a `test_that()` block. Instead, use `tests/testthat/helper.R` or `tests/testthat/helper-{name}.R`.
+- Avoid `expect_true()` and `expect_false()` in favor of a specific expectation with a better failure message. A few expectations in newer releases that you might not know about are `expect_all_true()`, `expect_all_equal()`, and `expect_r6_class()`.
+- When testing errors and warnings:
+  - Only use `expect_error()` or `expect_warning()` if the error or warning has a known class.
+  - Generally, prefer `expect_snapshot(error = TRUE)` for errors and `expect_snapshot()` for warnings because these allow the user to review the full text of the output.
+- Avoid the `.package` argument to `local_mocked_bindings()`; this modifies the namespace of another package, which is not good practice. Instead create a mockable version of the function in the current package. See `?local_mocked_bindings` for more details.
+
+### Documentation
+
+- Every user-facing function should be exported and have roxygen2 documentation.
+- Internal functions should not have roxygen documentation.
+- Wrap roxygen2 comments to 80 characters.
+- Whenever you add a new (non-internal) documentation topic, also add the topic to `_pkgdown.yml`.
+- Always re-document the package after changing a roxygen2 comment.
+- Use `pkgdown::check_pkgdown()` to check that all topics are included in the reference index.
+
+### `NEWS.md`
+
+- Every user-facing change should be given a bullet in `NEWS.md`.
+- Changes that shouldn't get a bullet:
+    - Small documentation changes.
+    - Internal refactorings.
+    - Fixes to bugs introduced in the current dev version.
+- Each bullet should briefly describe the change to the end user and mention the related issue in parentheses.
+- Wrap bullets to 80 characters, matching the existing entries.
+- If the change is related to a function, put the name of the function early in the bullet.
+- If the change is related to an issue, include the issue number in parentheses.
+- Only include a GitHub username if the PR was created by someone who isn't an author.
+- Add new bullets at the top of the development version section.
+
+## Git
+
+- If the user asks you to commit, use markdown in the commit message, and don't line wrap.
+- If the commit fixes an issue, include `Fixes #num.` on its own line.
+- Only push when the user explicitly requests it.
+
+## Writing
+
+- Use sentence case for headings.
+- Use US English.
+
+### Proofreading
+
+If the user asks you to proofread a file, act as an expert proofreader and editor with a deep understanding of clear, engaging, and well-structured writing.
+
+Work paragraph by paragraph, always starting by making a TODO list that includes individual items for each top-level section.
+
+Fix spelling, grammar, and other minor problems without asking the user. Label any unclear, confusing, or ambiguous sentences with a FIXME comment.
+
+Only report what you have changed.
