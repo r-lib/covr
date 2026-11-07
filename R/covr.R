@@ -186,10 +186,14 @@ save_rds <- function(object, file) {
 # can report processes that loaded the package but never saved their trace,
 # e.g. because they were killed (#438). Forked children inherit the finalizer
 # but did not create the marker, so they leave it alone.
+#
+# `directory` (from `COVERAGE_DIR`) is fixed when the package loads, so the
+# marker and the trace end up in the same place. A marker that can't be created
+# is not worth a warning during package load; the trace save fails later too.
 register_trace <- function(ns, directory) {
   pid <- Sys.getpid()
   pending <- temp_file(paste0("covr_pending_", pid, "_"), tmpdir = directory)
-  file.create(pending)
+  suppressWarnings(file.create(pending))
   reg.finalizer(
     ns,
     function(...) {
