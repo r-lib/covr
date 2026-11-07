@@ -115,6 +115,19 @@ fixture_test_file <- function(pkg) {
   )
 }
 
+# Run a fixture's test file, capturing what its tests print
+quiet_test_file <- function(pkg, ...) {
+  utils::capture.output(
+    res <- testthat::test_file(
+      fixture_test_file(pkg),
+      package = pkg,
+      reporter = "silent",
+      ...
+    )
+  )
+  invisible(res)
+}
+
 test_that("with_coverage() works with testthat::test_file() on a load_all()ed package", {
   skip_if_not_installed("pkgload")
 
@@ -122,11 +135,7 @@ test_that("with_coverage() works with testthat::test_file() on a load_all()ed pa
     ns <- local({
       ns <- local_load_all(pkg)
       cov <- with_coverage(
-        testthat::test_file(
-          fixture_test_file(pkg),
-          package = pkg,
-          reporter = "silent"
-        ),
+        quiet_test_file(pkg),
         env = ns
       )
       expect_equal(
@@ -148,11 +157,7 @@ test_that("with_coverage() works with R6 classes", {
 
   ns <- local_load_all("TestR6")
   cov <- with_coverage(
-    testthat::test_file(
-      fixture_test_file("TestR6"),
-      package = "TestR6",
-      reporter = "silent"
-    ),
+    quiet_test_file("TestR6"),
     env = ns
   )
 
@@ -170,12 +175,7 @@ test_that("with_coverage() cleans up when a test file fails", {
 
   expect_error(
     with_coverage(
-      testthat::test_file(
-        fixture_test_file("TestFailure"),
-        package = "TestFailure",
-        reporter = "silent",
-        stop_on_failure = TRUE
-      ),
+      quiet_test_file("TestFailure", stop_on_failure = TRUE),
       env = ns
     ),
     "Test failures"

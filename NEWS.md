@@ -5,6 +5,12 @@
   ggproto methods, can now be traced. This is off by default; enable it for a
   package with `Config/covr/full_traversal: true` in its DESCRIPTION, or with
   `options(covr.full_traversal = TRUE)` (#113).
+* New `with_coverage()` measures the coverage of arbitrary code, such as
+  `testthat::test_file()`, run against an environment like a package namespace
+  loaded with `pkgload::load_all()`. This allows tools such as
+  `devtools::test_coverage_active_file()` to use testthat's own runner instead
+  of recreating it (related to #543).
+
 * `tally_coverage()` gains `by = "function"`, with one row for each function,
   so `zero_coverage(cov, by = "function")` lists the functions that were
   never run. `percent_coverage()` and `print()` also accept it (#245).
@@ -16,6 +22,7 @@
   for anything but compiled code. The structure of coverage objects is now
   documented in `?coverage`, and `as.data.frame()` on a coverage object in
   `?as.data.frame.coverage` (#564).
+
 * `report()` now keeps the Files / Source tabs at the top of the page while
   scrolling, and returning to the file list restores its scroll position
   (#232).
@@ -31,11 +38,6 @@
   measured in characters (it was measured inconsistently in bytes), and
   `print()` shows the last `n` lines, 50 by default. The number of lines can be
   set with `options(covr.failure_lines)` (#570).
-* New `with_coverage()` measures the coverage of arbitrary code, such as
-  `testthat::test_file()`, run against an environment like a package namespace
-  loaded with `pkgload::load_all()`. This allows tools such as
-  `devtools::test_coverage_active_file()` to use testthat's own runner instead
-  of recreating it (related to #543).
 
 * The RStudio addin now prints a message when it starts calculating coverage,
   so there is feedback before the report opens (#404).
