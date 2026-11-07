@@ -1,5 +1,10 @@
 # covr (development version)
 
+* Lines of compiled code that gcov reports as only partially executed (e.g.
+  `if (x) f();` when `f()` never runs) are no longer dropped from the
+  coverage. They count as covered, or as not covered with
+  `options(covr.gcov_partial = "uncovered")` (#604).
+
 * The RStudio addin now prints a message when it starts calculating coverage,
   so there is feedback before the report opens (#404).
 * Fix a warning, and possibly an error under `options(warn = 2)`, when tracing

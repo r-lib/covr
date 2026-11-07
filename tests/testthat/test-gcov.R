@@ -63,6 +63,29 @@ test_that("parse_gcov parses files properly", {
   )
 })
 
+test_that("parse_gcov counts partially executed lines (#604)", {
+  local_mocked_bindings(
+    file.exists = function(path) TRUE,
+    normalize_path = function(path) "simple.c",
+    line_coverages = function(source_file, matches, values, ...) {
+      stats::setNames(values, matches$line)
+    },
+    readLines = function(x) {
+      c(
+        "        -:    0:Source:simple.c",
+        "        3:    2:int f(int verbose) {",
+        "       3*:    4:  if (verbose) printf(\"reached\");",
+        "    #####:    5:  never();"
+      )
+    }
+  )
+
+  expect_equal(parse_gcov("hi.c.gcov"), c(`2` = 3, `4` = 3, `5` = 0))
+
+  withr::local_options(covr.gcov_partial = "uncovered")
+  expect_equal(parse_gcov("hi.c.gcov"), c(`2` = 3, `4` = 0, `5` = 0))
+})
+
 test_that("clean_gcov correctly clears files", {
   dir <- file.path(tempfile(), "src")
 
