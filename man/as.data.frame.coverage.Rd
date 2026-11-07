@@ -7,7 +7,7 @@
 \method{as.data.frame}{coverage}(x, row.names = NULL, optional = FALSE, sort = TRUE, ...)
 }
 \arguments{
-\item{x}{a coverage object, as returned by \code{\link[=package_coverage]{package_coverage()}}.}
+\item{x}{a \link{coverage} object.}
 
 \item{row.names, optional}{ignored, for compatibility with
 \code{\link[base:as.data.frame]{base::as.data.frame()}}.}

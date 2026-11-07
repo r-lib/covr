@@ -1,6 +1,6 @@
 #' Convert a coverage object to a data frame
 #'
-#' @param x a coverage object, as returned by [package_coverage()].
+#' @param x a [coverage] object.
 #' @param row.names,optional ignored, for compatibility with
 #'   [base::as.data.frame()].
 #' @param sort if `TRUE` (the default), sum the counts of identical

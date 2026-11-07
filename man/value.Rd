@@ -7,16 +7,14 @@
 value(x, ...)
 }
 \arguments{
-\item{x}{a coverage object, as returned by \code{\link[=package_coverage]{package_coverage()}}, or one of
-its elements.}
+\item{x}{a \link{coverage} object, or one of its elements.}
 
 \item{...}{additional arguments passed to methods.}
 }
 \value{
 For a coverage object, a named numeric vector with the number of
 times each traced expression or line was executed, named like the
-elements of \code{x} (see the Value section of \code{\link[=package_coverage]{package_coverage()}}). For a
-single element, its count.
+elements of \code{x} (see \link{coverage}). For a single element, its count.
 }
 \description{
 Retrieve the execution counts from a coverage object

@@ -26,7 +26,7 @@ names to exclude. Example \verb{print\\\\\\.} to match print methods.}
 \item{...}{Additional arguments passed to \code{\link[=file_coverage]{file_coverage()}}}
 }
 \value{
-A \code{coverage} object, see the Value section of \code{\link[=package_coverage]{package_coverage()}}.
+A \link{coverage} object.
 }
 \description{
 This function is useful for testing, and is a thin wrapper around
