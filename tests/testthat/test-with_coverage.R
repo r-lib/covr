@@ -142,6 +142,9 @@ test_that("with_coverage() works with testthat::test_file() on a load_all()ed pa
 test_that("with_coverage() works with R6 classes", {
   skip_if_not_installed("pkgload")
   skip_if_not_installed("R6")
+  # package_coverage() of TestR6 is wrong during R CMD check on R-devel (see
+  # the skip in test-R6.R), so the reference can't be computed there
+  skip_if(is_r_devel())
 
   ns <- local_load_all("TestR6")
   cov <- with_coverage(
