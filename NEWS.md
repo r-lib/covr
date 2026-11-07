@@ -1,5 +1,10 @@
 # covr (development version)
 
+* Functions nested inside lists and environments, such as
+  `fns <- list(a = function(x) x)`, functions defined inside `local()` and
+  ggproto methods, can now be traced. This is off by default; enable it for a
+  package with `Config/covr/full_traversal: true` in its DESCRIPTION, or with
+  `options(covr.full_traversal = TRUE)` (#113).
 * `tally_coverage()` gains `by = "function"`, with one row for each function,
   so `zero_coverage(cov, by = "function")` lists the functions that were
   never run. `percent_coverage()` and `print()` also accept it (#245).

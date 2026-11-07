@@ -88,6 +88,14 @@ top level test expressions and associate tests with \code{covr} traces
 evaluated during the test's execution. For more details, see
 \code{?covr.record_tests}.
 
+\item \code{covr.full_traversal}: If \code{TRUE} (default \code{FALSE}), also trace
+functions nested inside lists and environments, such as
+\code{fns <- list(a = function(x) x)} or functions defined inside \code{local()}.
+This walks every object in the package, so it is off by default. For
+\code{package_coverage()} it can also be enabled for a package by adding
+\code{Config/covr/full_traversal: true} to its DESCRIPTION; the option takes
+precedence when set.
+
 \item \code{covr.showCfunctions}:
 }
 }
@@ -103,6 +111,11 @@ Useful links:
 }
 \author{
 \strong{Maintainer}: Jim Hester \email{james.f.hester@gmail.com}
+
+Authors:
+\itemize{
+  \item Jim Hester \email{james.f.hester@gmail.com}
+}
 
 Other contributors:
 \itemize{

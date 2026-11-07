@@ -157,13 +157,32 @@ SEXP covr_reassign_function(SEXP old_fun, SEXP new_fun) {
 
 SEXP covr_duplicate_(SEXP x) { return duplicate(x); }
 
+// The address of an object, used to track objects by identity.
+SEXP covr_address(SEXP x) {
+  char buf[64];
+  snprintf(buf, sizeof(buf), "%p", (void *)x);
+  return mkString(buf);
+}
+
+// Whether `name` in `env` is a promise that has not been evaluated yet, checked
+// without forcing it.
+SEXP covr_is_unforced_promise(SEXP env, SEXP name) {
+  SEXP value = findVarInFrame3(env, installChar(STRING_ELT(name, 0)), FALSE);
+  return ScalarLogical(TYPEOF(value) == PROMSXP &&
+                       PRVALUE(value) == R_UnboundValue);
+}
+
 /* .Call calls */
 extern SEXP covr_duplicate_(SEXP);
 extern SEXP covr_reassign_function(SEXP, SEXP);
+extern SEXP covr_address(SEXP);
+extern SEXP covr_is_unforced_promise(SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"covr_duplicate_", (DL_FUNC)&covr_duplicate_, 1},
     {"covr_reassign_function", (DL_FUNC)&covr_reassign_function, 2},
+    {"covr_address", (DL_FUNC)&covr_address, 1},
+    {"covr_is_unforced_promise", (DL_FUNC)&covr_is_unforced_promise, 2},
     {NULL, NULL, 0}};
 
 void R_init_covr(DllInfo *dll) {

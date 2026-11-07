@@ -81,6 +81,14 @@
 #'     evaluated during the test's execution. For more details, see
 #'     `?covr.record_tests`.
 #'
+#'   \item `covr.full_traversal`: If `TRUE` (default `FALSE`), also trace
+#'     functions nested inside lists and environments, such as
+#'     `fns <- list(a = function(x) x)` or functions defined inside `local()`.
+#'     This walks every object in the package, so it is off by default. For
+#'     `package_coverage()` it can also be enabled for a package by adding
+#'     `Config/covr/full_traversal: true` to its DESCRIPTION; the option takes
+#'     precedence when set.
+#'
 #'   \item `covr.showCfunctions`:
 #' }
 #'
@@ -115,7 +123,7 @@ the$replacements <- list()
 trace_environment <- function(env) {
   clear_counters()
 
-  the$replacements <- compact(c(
+  replacements <- compact(c(
     replacements_S4(env),
     replacements_RC(env),
     replacements_R6(env),
@@ -123,6 +131,10 @@ trace_environment <- function(env) {
     replacements_box(env),
     lapply(ls(env, all.names = TRUE), replacement, env = env)
   ))
+  if (isTRUE(getOption("covr.full_traversal", FALSE))) {
+    replacements <- c(replacements, replacements_nested(env, replacements))
+  }
+  the$replacements <- replacements
 
   lapply(the$replacements, replace)
 }
@@ -578,7 +590,11 @@ package_coverage <- function(
   add_hooks(
     pkg$package,
     install_path,
-    fix_mcexit = should_enable_parallel_mcexit_fix(pkg)
+    fix_mcexit = should_enable_parallel_mcexit_fix(pkg),
+    full_traversal = getOption(
+      "covr.full_traversal",
+      isTRUE(as.logical(pkg[["config/covr/full_traversal"]]))
+    )
   )
 
   libs <- env_path(install_path, .libPaths())
@@ -1068,7 +1084,8 @@ add_hooks <- function(
   pkg_name,
   lib,
   fix_mcexit = FALSE,
-  record_tests = isTRUE(getOption("covr.record_tests", FALSE))
+  record_tests = isTRUE(getOption("covr.record_tests", FALSE)),
+  full_traversal = FALSE
 ) {
   trace_dir <- paste0("Sys.getenv(\"COVERAGE_DIR\", \"", lib, "\")")
 
@@ -1080,6 +1097,11 @@ add_hooks <- function(
       paste0(
         "setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.record_tests = ",
         record_tests,
+        "))"
+      ),
+      paste0(
+        "setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.full_traversal = ",
+        isTRUE(full_traversal),
         "))"
       ),
       "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
