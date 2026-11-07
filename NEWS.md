@@ -6,6 +6,12 @@
   measured in characters (it was measured inconsistently in bytes), and
   `print()` shows the last `n` lines, 50 by default. The number of lines can be
   set with `options(covr.failure_lines)` (#570).
+* Fix a warning, and possibly an error under `options(warn = 2)`, when tracing
+  a `switch()` call with a trailing comma (#483).
+
+* Trace files are now written atomically, and a failure to save or read one
+  is reported as a `covr_error` (a `covr_warning` with `allow_failures = TRUE`)
+  naming the file, rather than a cryptic `readRDS()` error (#509).
 
 * `package_coverage()` now only deletes `install_path` if coverage succeeds,
   so the test output referenced in failure messages can be inspected
