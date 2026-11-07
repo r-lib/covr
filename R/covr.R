@@ -437,8 +437,8 @@ environment_coverage <- function(
 #'   on the first failure. The default can be changed with the
 #'   `covr.allow_failures` option, e.g. `options(covr.allow_failures = TRUE)`.
 #' @return A [coverage] object. If `combine_types = FALSE` and more than one
-#' `type` is run, a list of class `coverages` with one coverage object for
-#' each type, named by type.
+#'   `type` is run, a list of class `coverages` with one coverage object for
+#'   each type, named by type.
 #' @seealso [exclusions()] For details on excluding parts of the
 #' package from the coverage calculations.
 #' @export

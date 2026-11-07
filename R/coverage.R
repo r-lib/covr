@@ -41,6 +41,9 @@
 #' `path`), `root` (the directory file names are relative to, or `NULL`) and,
 #' if `clean = FALSE`, `library` (the `install_path`).
 #'
+#' With `options(covr.record_tests = TRUE)`, coverage objects also have a
+#' `tests` attribute with the test calls, see [covr.record_tests].
+#'
 #' @examples
 #' cov <- code_coverage("add <- function(x, y) { x + y }", "add(1, 2)")
 #' cov

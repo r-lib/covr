@@ -49,6 +49,9 @@ Coverage objects from \code{\link[=package_coverage]{package_coverage()}} also h
 \code{package} (information about the package, such as its \code{package} name and
 \code{path}), \code{root} (the directory file names are relative to, or \code{NULL}) and,
 if \code{clean = FALSE}, \code{library} (the \code{install_path}).
+
+With \code{options(covr.record_tests = TRUE)}, coverage objects also have a
+\code{tests} attribute with the test calls, see \link{covr.record_tests}.
 }
 
 \examples{
