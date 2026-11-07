@@ -59,6 +59,11 @@
 #'
 #'   \item `covr.gcov_args`:
 #'
+#'   \item `covr.gcov_partial`: How to count compiled code lines that gcov
+#'     reports as only partially executed (e.g. `if (x) f();` when `f()` never
+#'     runs). `"covered"` (the default) counts them as covered, `"uncovered"`
+#'     counts them as not covered, for requiring every part of a line to run.
+#'
 #'   \item `covr.icov`:
 #'
 #'   \item `covr.icov_args`:

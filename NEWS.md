@@ -1,5 +1,10 @@
 # covr (development version)
 
+* Lines of compiled code that gcov reports as only partially executed (e.g.
+  `if (x) f();` when `f()` never runs) are no longer dropped from the
+  coverage. They count as covered, or as not covered with
+  `options(covr.gcov_partial = "uncovered")` (#604).
+
 * `covr_error` conditions (and the `covr_warning`s from `allow_failures`) now
   keep the whole failure output in `$output` and its file in `$file`. The
   message shows the last 50 lines and is bounded by `warning.length`

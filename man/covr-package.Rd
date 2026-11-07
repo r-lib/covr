@@ -66,6 +66,11 @@ turn off coverage of compiled code.
 
 \item \code{covr.gcov_args}:
 
+\item \code{covr.gcov_partial}: How to count compiled code lines that gcov
+reports as only partially executed (e.g. \code{if (x) f();} when \code{f()} never
+runs). \code{"covered"} (the default) counts them as covered, \code{"uncovered"}
+counts them as not covered, for requiring every part of a line to run.
+
 \item \code{covr.icov}:
 
 \item \code{covr.icov_args}:

@@ -29,7 +29,7 @@ parse_gcov <- function(file, package_path = "") {
 
   re <- rex::rex(
     any_spaces,
-    capture(name = "coverage", some_of(digit, "-", "#", "=")),
+    capture(name = "coverage", some_of(digit, "-", "#", "=", "*")),
     ":",
     any_spaces,
     capture(name = "line", digits),
@@ -47,6 +47,25 @@ parse_gcov <- function(file, package_path = "") {
 
   # gcov lines which have parse error, so make untracked
   matches$coverage[matches$coverage == "====="] <- "-"
+
+  # gcov marks lines where some blocks were not executed with a trailing `*`
+  # (e.g. `3*` for `if (x) f();` when `f()` never runs). They are counted as
+  # covered by default, or as uncovered with
+  # `options(covr.gcov_partial = "uncovered")`.
+  partial <- endsWith(matches$coverage, "*")
+  matches$coverage[partial] <- sub(
+    "*",
+    "",
+    matches$coverage[partial],
+    fixed = TRUE
+  )
+  partial_as <- match.arg(
+    getOption("covr.gcov_partial", "covered"),
+    c("covered", "uncovered")
+  )
+  if (partial_as == "uncovered") {
+    matches$coverage[partial] <- "0"
+  }
 
   coverage_lines <- matches$line != "0" & matches$coverage != "-"
   matches <- matches[coverage_lines, ]
