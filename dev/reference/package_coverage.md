@@ -20,7 +20,8 @@ package_coverage(
   install_path = temp_file("R_LIBS"),
   ...,
   exclusions,
-  pre_clean = TRUE
+  pre_clean = TRUE,
+  allow_failures = getOption("covr.allow_failures", FALSE)
 )
 ```
 
@@ -90,6 +91,17 @@ package_coverage(
 
   whether to delete all objects present in the src directory before
   recompiling
+
+- allow_failures:
+
+  If `TRUE`, failures or errors when running tests, vignettes, examples
+  or `code` are reported as warnings (with class `covr_warning`) and
+  coverage is still returned. Coverage may be incomplete in this case,
+  as code which would have run after the failure is not tracked. The
+  default, `FALSE`, throws an error (with class `covr_error`) on the
+  first failure. The default can be changed with the
+  `covr.allow_failures` option, e.g.
+  `options(covr.allow_failures = TRUE)`.
 
 ## Details
 

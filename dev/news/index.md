@@ -2,6 +2,15 @@
 
 ## covr (development version)
 
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  gains an `allow_failures` argument (default
+  `getOption("covr.allow_failures", FALSE)`). When `TRUE`, failing
+  tests, vignettes, examples or `code` produce a warning instead of an
+  error and coverage is still returned, e.g. so
+  [`covr::report()`](https://covr.r-lib.org/dev/reference/report.md) can
+  be viewed after a long test run with a failure
+  ([\#533](https://github.com/r-lib/covr/issues/533)).
+
 - Coverage is now reported for S7 property getters, setters, and
   validators with S7 \> 0.2.2, which stores class callbacks in a shared
   class reference ([@t-kalinowski](https://github.com/t-kalinowski),

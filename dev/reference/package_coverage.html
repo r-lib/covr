@@ -67,7 +67,8 @@ vignette and example code.</p>
 <span>  install_path <span class="op">=</span> <span class="fu">temp_file</span><span class="op">(</span><span class="st">"R_LIBS"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span>,</span>
 <span>  <span class="va">exclusions</span>,</span>
-<span>  pre_clean <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  pre_clean <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  allow_failures <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"covr.allow_failures"</span>, <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -137,6 +138,16 @@ directory. It can sometimes be useful to set this (along with <code>clean = FALS
 
 <dt id="arg-pre-clean">pre_clean<a class="anchor" aria-label="anchor" href="#arg-pre-clean"></a></dt>
 <dd><p>whether to delete all objects present in the src directory before recompiling</p></dd>
+
+
+<dt id="arg-allow-failures">allow_failures<a class="anchor" aria-label="anchor" href="#arg-allow-failures"></a></dt>
+<dd><p>If <code>TRUE</code>, failures or errors when running tests,
+vignettes, examples or <code>code</code> are reported as warnings (with class
+<code>covr_warning</code>) and coverage is still returned. Coverage may be incomplete
+in this case, as code which would have run after the failure is not
+tracked. The default, <code>FALSE</code>, throws an error (with class <code>covr_error</code>)
+on the first failure. The default can be changed with the
+<code>covr.allow_failures</code> option, e.g. <code>options(covr.allow_failures = TRUE)</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
