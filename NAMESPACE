@@ -32,6 +32,7 @@ export(tally_coverage)
 export(to_cobertura)
 export(to_sonarqube)
 export(value)
+export(with_coverage)
 export(zero_coverage)
 import(methods)
 importFrom(stats,
