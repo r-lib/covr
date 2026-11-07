@@ -136,6 +136,12 @@ The patterns used can be specified by setting the global options
 NB: The same pattern applies to exclusions in the `src` folder, so skipped lines in, e.g., C code (where comments can start with `//`) should look like `// # nocov`.
 
 # FAQ #
+## Should I add covr to my package's Suggests? ##
+It isn't required, as covr is usually only used in CI rather than by your
+package's code. It is useful though: `devtools::install()` and `pak::pak()`
+will then install covr for local development, and it helps us see which
+packages use covr. `usethis::use_coverage()` adds it for you.
+
 ## Will covr work with testthat, RUnit, etc... ##
 Covr should be compatible with any testing package, it uses
 `tools::testInstalledPackage()` to run your packages tests.
