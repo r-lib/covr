@@ -11,20 +11,24 @@ compact <- function(x) {
 }
 
 trim <- function(x) {
-  rex::re_substitutes(x, rex::rex(list(start, spaces) %or% list(spaces, end)),  "", global = TRUE)
+  rex::re_substitutes(
+    x,
+    rex::rex(list(start, spaces) %or% list(spaces, end)),
+    "",
+    global = TRUE
+  )
 }
 
 local_branch <- function(dir = ".") {
-  withr::with_dir(dir,
+  withr::with_dir(
+    dir,
     branch <- system_output("git", c("rev-parse", "--abbrev-ref", "HEAD"))
   )
   trim(branch)
 }
 
 current_commit <- function(dir = ".") {
-  withr::with_dir(dir,
-    commit <- system_output("git", c("rev-parse", "HEAD"))
-  )
+  withr::with_dir(dir, commit <- system_output("git", c("rev-parse", "HEAD")))
   trim(commit)
 }
 
@@ -38,26 +42,37 @@ current_commit <- function(dir = ".") {
 }
 
 to_title <- function(x) {
-  rex::re_substitutes(x,
-                      rex::rex(rex::regex("\\b"), capture(any)),
-                      "\\U\\1",
-                      global = TRUE)
+  rex::re_substitutes(
+    x,
+    rex::rex(rex::regex("\\b"), capture(any)),
+    "\\U\\1",
+    global = TRUE
+  )
 }
 
 srcfile_lines <- function(srcfile) {
   lines <- getSrcLines(srcfile, 1, Inf)
-  matches <- rex::re_matches(lines,
-    rex::rex(start, any_spaces, "#line", spaces,
-      capture(name = "line_number", digit), spaces,
-      quotes, capture(name = "filename", anything), quotes))
+  matches <- rex::re_matches(
+    lines,
+    rex::rex(
+      start,
+      any_spaces,
+      "#line",
+      spaces,
+      capture(name = "line_number", digit),
+      spaces,
+      quotes,
+      capture(name = "filename", anything),
+      quotes
+    )
+  )
 
   matches <- na.omit(matches)
 
   filename_match <- which(matches$filename == srcfile$filename)
 
   if (length(filename_match) == 1) {
-
-     # rownames(matches) is the line number of lines
+    # rownames(matches) is the line number of lines
     start <- as.numeric(rownames(matches)[filename_match]) + 1
 
     # If there is another directive we want to stop at that, otherwise stop at
@@ -78,17 +93,30 @@ srcfile_lines <- function(srcfile) {
 
   # Track blank or comment lines so they can be excluded from the result calculations, but only for R files
   if (rex::re_matches(srcfile$filename, rex::rex(".", one_of("r", "R"), end))) {
-    attr(res, "blanks") <- which(rex::re_matches(res, rex::rex(start, any_spaces, maybe("#", anything), end)))
+    attr(res, "blanks") <- which(rex::re_matches(
+      res,
+      rex::rex(start, any_spaces, maybe("#", anything), end)
+    ))
   }
   res
 }
 
 # Split lines into a list based on the line directives in the file.
 split_on_line_directives <- function(lines) {
-  matches <- rex::re_matches(lines,
-    rex::rex(start, any_spaces, "#line", spaces,
-      capture(name = "line_number", digit), spaces,
-      quotes, capture(name = "filename", anything), quotes))
+  matches <- rex::re_matches(
+    lines,
+    rex::rex(
+      start,
+      any_spaces,
+      "#line",
+      spaces,
+      capture(name = "line_number", digit),
+      spaces,
+      quotes,
+      capture(name = "filename", anything),
+      quotes
+    )
+  )
   directive_lines <- which(!is.na(matches$line_number))
   if (!length(directive_lines)) {
     return(NULL)
@@ -113,14 +141,28 @@ traced_files <- function(x) {
     src_file <- attr(x[[i]]$srcref, "srcfile")
     filename <- filenames[[i]]
 
-    if (filename == "") next
-    if (!is.null(res[[filename]])) next
+    if (filename == "") {
+      next
+    }
+    if (!is.null(res[[filename]])) {
+      next
+    }
 
     lines <- getSrcLines(src_file, 1, Inf)
-    matches <- rex::re_matches(lines,
-      rex::rex(start, any_spaces, "#line", spaces,
-        capture(name = "line_number", digit), spaces,
-        quotes, capture(name = "filename", anything), quotes))
+    matches <- rex::re_matches(
+      lines,
+      rex::rex(
+        start,
+        any_spaces,
+        "#line",
+        spaces,
+        capture(name = "line_number", digit),
+        spaces,
+        quotes,
+        capture(name = "filename", anything),
+        quotes
+      )
+    )
 
     matches <- na.omit(matches)
 
@@ -155,7 +197,10 @@ per_line <- function(coverage) {
 
   # Lines with only spaces or only comments
   blank_lines <- lapply(files, function(file) {
-    which(rex::re_matches(file$file_lines, rex::rex(start, any_spaces, maybe("#", anything), end)))
+    which(rex::re_matches(
+      file$file_lines,
+      rex::rex(start, any_spaces, maybe("#", anything), end)
+    ))
   })
 
   # lines with only })], or an else block
@@ -167,9 +212,8 @@ per_line <- function(coverage) {
     length(file$file_lines)
   })
 
-  res <- lapply(file_lengths,
-    function(x) {
-      rep(NA_real_, length.out = x)
+  res <- lapply(file_lengths, function(x) {
+    rep(NA_real_, length.out = x)
   })
 
   # df is sorted by file and first line ascending, so we store the maximum
@@ -181,13 +225,15 @@ per_line <- function(coverage) {
   for (i in seq_len(NROW(df))) {
     filename <- df[i, "filename"]
     for (line in seq(df[i, "first_line"], df[i, "last_line"])) {
-
       # if it is not a blank line or empty line
       if (!line %in% c(blank_lines[[filename]], empty_lines[[filename]])) {
-
         value <- df[i, "value"]
         # if current coverage is NA or last line < max last line
-        if (is.na(res[[filename]][line]) || line < max_last || (line == max_last && res[[filename]][line] > value)) {
+        if (
+          is.na(res[[filename]][line]) ||
+            line < max_last ||
+            (line == max_last && res[[filename]][line] > value)
+        ) {
           res[[filename]][line] <- value
         }
 
@@ -202,11 +248,18 @@ per_line <- function(coverage) {
     }
   }
   structure(
-    Map(function(file, coverage) {
-      structure(list(file = file, coverage = coverage), class = "line_coverage")
-    },
-    files, res),
-    class = "line_coverages")
+    Map(
+      function(file, coverage) {
+        structure(
+          list(file = file, coverage = coverage),
+          class = "line_coverage"
+        )
+      },
+      files,
+      res
+    ),
+    class = "line_coverages"
+  )
 }
 
 if (getRversion() < "3.2.0") {
@@ -267,11 +320,12 @@ read_description <- function(path) {
 }
 
 clean_objects <- function(path) {
-  files <- list.files(file.path(path, "src"),
-                      pattern = rex::rex(".",
-                        or("o", "sl", "so", "dylib",
-                          "a", "dll"), end),
-                      full.names = TRUE, recursive = TRUE)
+  files <- list.files(
+    file.path(path, "src"),
+    pattern = rex::rex(".", or("o", "sl", "so", "dylib", "a", "dll"), end),
+    full.names = TRUE,
+    recursive = TRUE
+  )
   unlink(files)
 
   invisible(files)
@@ -279,15 +333,21 @@ clean_objects <- function(path) {
 
 # This is not actually an S3 method
 # From http://stackoverflow.com/a/34639237/2055486
-setdiff.data.frame <- function(x, y,
-    by = intersect(names(x), names(y)),
-    by.x = by, by.y = by) {
+setdiff.data.frame <- function(
+  x,
+  y,
+  by = intersect(names(x), names(y)),
+  by.x = by,
+  by.y = by
+) {
   stopifnot(
     is.data.frame(x),
     is.data.frame(y),
-    length(by.x) == length(by.y))
+    length(by.x) == length(by.y)
+  )
 
-  !do.call(paste, c(x[by.x], sep = "\30")) %in% do.call(paste, c(y[by.y], sep = "\30"))
+  !do.call(paste, c(x[by.x], sep = "\30")) %in%
+    do.call(paste, c(y[by.y], sep = "\30"))
 }
 
 `%==%` <- function(x, y) identical(x, y)
@@ -303,10 +363,15 @@ is_brace <- function(x) {
 }
 
 modify_name <- function(expr, old, new) {
-  replace <- function(e)
-    if (is.name(e) && identical(e, as.name(old))) e <- as.name(new)
-     else if (length(e) <= 1L) e
-     else as.call(lapply(e, replace))
+  replace <- function(e) {
+    if (is.name(e) && identical(e, as.name(old))) {
+      e <- as.name(new)
+    } else if (length(e) <= 1L) {
+      e
+    } else {
+      as.call(lapply(e, replace))
+    }
+  }
   replace(expr)
 }
 
@@ -335,10 +400,15 @@ temp_file <- function(pattern = "file", tmpdir = temp_dir(), fileext = "") {
 }
 
 get_package_name <- function(x) {
-   attr(x, "package")$package %||% "coverage"
+  attr(x, "package")$package %||% "coverage"
 }
 
-get_source_filename <- function(x, full.names = FALSE, unique = TRUE, normalize = FALSE) {
+get_source_filename <- function(
+  x,
+  full.names = FALSE,
+  unique = TRUE,
+  normalize = FALSE
+) {
   res <- getSrcFilename(x, full.names, unique)
   if (length(res) == 0) {
     return("")

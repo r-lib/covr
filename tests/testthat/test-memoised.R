@@ -1,18 +1,22 @@
 s1 <- tempfile()
 t1 <- tempfile()
-writeLines(con = s1,
-"a <- memoise::memoise(function(x) {
+writeLines(
+  con = s1,
+  "a <- memoise::memoise(function(x) {
   x + 1
-})")
+})"
+)
 
-writeLines(con = t1,
-"
+writeLines(
+  con = t1,
+  "
 a(1)
 a(1)
 a(1)
 a(1)
 a(2)
-a(3)")
+a(3)"
+)
 
 on.exit(unlink(c(s1, t1)))
 

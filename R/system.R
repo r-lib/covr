@@ -11,17 +11,30 @@
 #' @return `TRUE` if the command succeeds, an error will be thrown if the
 #' command fails.
 #' @keywords internal
-system_check <- function(cmd, args = character(), env = character(),
-                         quiet = FALSE, echo = FALSE, ...) {
+system_check <- function(
+  cmd,
+  args = character(),
+  env = character(),
+  quiet = FALSE,
+  echo = FALSE,
+  ...
+) {
   full <- paste(c(shQuote(cmd), lapply(args, shQuote)), collapse = " ")
 
   if (echo) {
     message(wrap_command(full), "\n")
   }
 
-  status <- withr::with_envvar(env,
-    system(full, intern = FALSE, ignore.stderr = quiet, ignore.stdout = quiet, ...)
+  status <- withr::with_envvar(
+    env,
+    system(
+      full,
+      intern = FALSE,
+      ignore.stderr = quiet,
+      ignore.stdout = quiet,
+      ...
     )
+  )
 
   if (!identical(as.character(status), "0")) {
     stop("Command ", sQuote(full), " failed (", status, ")", call. = FALSE)
@@ -38,16 +51,26 @@ system_check <- function(cmd, args = character(), env = character(),
 #' @return command output if the command succeeds, an error will be thrown if
 #' the command fails.
 #' @keywords internal
-system_output <- function(cmd, args = character(), env = character(),
-                          quiet = FALSE, echo = FALSE, ...) {
+system_output <- function(
+  cmd,
+  args = character(),
+  env = character(),
+  quiet = FALSE,
+  echo = FALSE,
+  ...
+) {
   full <- paste(c(shQuote(cmd), lapply(args, shQuote)), collapse = " ")
 
   if (echo) {
     message(wrap_command(full), "\n")
   }
-  result <- withCallingHandlers(withr::with_envvar(env,
-    system(full, intern = TRUE, ignore.stderr = quiet, ...)
-    ), warning = function(w) stop(w))
+  result <- withCallingHandlers(
+    withr::with_envvar(
+      env,
+      system(full, intern = TRUE, ignore.stderr = quiet, ...)
+    ),
+    warning = function(w) stop(w)
+  )
 
   result
 }

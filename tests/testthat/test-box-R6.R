@@ -8,8 +8,9 @@ test_that("R6 box module coverage is reported", {
   skip_if(is_r_devel())
   withr::with_dir("Testbox_R6", {
     cov <- as.data.frame(file_coverage(
-        source_files = "app/app.R",
-        test_files = list.files("tests/testthat", full.names = TRUE)))
+      source_files = "app/app.R",
+      test_files = list.files("tests/testthat", full.names = TRUE)
+    ))
 
     expect_equal(cov$value, c(1, 1))
     expect_equal(cov$first_line, c(5, 8))

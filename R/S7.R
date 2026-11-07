@@ -1,14 +1,21 @@
 replacements_S7 <- function(env) {
-  bindings <- unlist(recursive = FALSE, use.names = FALSE, eapply(env, all.names = TRUE,
-    function(obj) {
+  bindings <- unlist(
+    recursive = FALSE,
+    use.names = FALSE,
+    eapply(env, all.names = TRUE, function(obj) {
       if (inherits(obj, "S7_generic")) {
         traverse_S7_generic(obj)
       } else if (inherits(obj, "S7_class")) {
         traverse_S7_class(obj)
       }
-    }))
+    })
+  )
 
-  S7_methods_tbl <- attr(env[[".__S3MethodsTable__."]], "S7methods", exact = TRUE)
+  S7_methods_tbl <- attr(
+    env[[".__S3MethodsTable__."]],
+    "S7methods",
+    exact = TRUE
+  )
   external_methods <- lapply(seq_along(S7_methods_tbl), function(i) {
     entry <- S7_methods_tbl[[i]]
     name <- external_generic_method_signature(entry$generic, entry$signature)
@@ -18,7 +25,8 @@ replacements_S7 <- function(env) {
       # It is not used by covr, and does not need to be unique,
       name = name,
       env = entry,
-      target_value = entry$method)
+      target_value = entry$method
+    )
   })
 
   c(bindings, external_methods)
@@ -58,16 +66,29 @@ traverse_S7_class <- function(x) {
           replacement(
             sprintf("%s@properties$%s$%s", class_name, p$name, prop_fun),
             env = p,
-            target_value = p[[prop_fun]])
+            target_value = p[[prop_fun]]
+          )
         }
       })
-  })
-  prop_fun_replacements <- unlist(prop_fun_replacements, recursive = FALSE, use.names = FALSE)
+    })
+  prop_fun_replacements <- unlist(
+    prop_fun_replacements,
+    recursive = FALSE,
+    use.names = FALSE
+  )
 
   c(
     list(
-      replacement(paste0(class_name, "@constructor"), env = x, target_value = S7::prop(x, "constructor")),
-      replacement(paste0(class_name, "@validator")  , env = x, target_value = S7::prop(x, "validator"))
+      replacement(
+        paste0(class_name, "@constructor"),
+        env = x,
+        target_value = S7::prop(x, "constructor")
+      ),
+      replacement(
+        paste0(class_name, "@validator"),
+        env = x,
+        target_value = S7::prop(x, "validator")
+      )
     ),
     prop_fun_replacements
   )

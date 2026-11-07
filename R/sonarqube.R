@@ -7,8 +7,7 @@
 #' @param filename the name of the SonarQube Generic XML file
 #' @author Talkdesk Inc.
 #' @export
-to_sonarqube <- function(cov, filename = "sonarqube.xml"){
-
+to_sonarqube <- function(cov, filename = "sonarqube.xml") {
   loadNamespace("xml2")
 
   df <- tally_coverage(cov, by = "line")
@@ -19,15 +18,23 @@ to_sonarqube <- function(cov, filename = "sonarqube.xml"){
 
   files <- unique(df$filename)
 
-  for (f in files){
-    file <- xml2::xml_add_child(top, "file", path = paste(attr(cov, "package")$package, "/", as.character(f), sep=""))
+  for (f in files) {
+    file <- xml2::xml_add_child(
+      top,
+      "file",
+      path = paste(attr(cov, "package")$package, "/", as.character(f), sep = "")
+    )
 
     for (fun_name in unique(na.omit(df[df$filename == f, "functions"]))) {
       fun_lines <- which(df$functions == fun_name & df$filename == f)
-      for (i in fun_lines){
+      for (i in fun_lines) {
         line <- df[i, ]
-        xml2::xml_add_child(file, "lineToCover", lineNumber = as.character(line$line),
-          covered = tolower(as.character(line$value>0)))
+        xml2::xml_add_child(
+          file,
+          "lineToCover",
+          lineNumber = as.character(line$line),
+          covered = tolower(as.character(line$value > 0))
+        )
       }
     }
   }

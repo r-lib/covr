@@ -1,14 +1,18 @@
 test_that("function_coverage generates output", {
   env <- new.env()
   withr::with_options(c("keep.source" = TRUE), {
-    eval(parse(text =
-"fun <- function(x) {
+    eval(
+      parse(
+        text = "fun <- function(x) {
   if (isTRUE(x)) {
     1
   } else {
     2
   }
-}"), envir = env)
+}"
+      ),
+      envir = env
+    )
   })
 
   t1 <- function_coverage("fun", env = env)
@@ -44,7 +48,9 @@ test_that("reassigned closures keep young fields alive without retaining them fo
     .Call(covr_reassign_function, target, replacement)
   })
 
-  for (i in seq_len(5)) invisible(gc(full = FALSE))
+  for (i in seq_len(5)) {
+    invisible(gc(full = FALSE))
+  }
   expect_false(state$finalized)
   # Avoid invoking a dangling closure if the GC regression returns.
   if (!state$finalized) {
@@ -53,7 +59,9 @@ test_that("reassigned closures keep young fields alive without retaining them fo
   }
 
   rm(target, alias)
-  for (i in seq_len(3)) invisible(gc(full = TRUE))
+  for (i in seq_len(3)) {
+    invisible(gc(full = TRUE))
+  }
   expect_true(state$finalized)
 })
 
@@ -89,13 +97,18 @@ test_that("function coverage restores closures and releases their local environm
 
   for (i in seq_len(3)) {
     cov <- function_coverage(
-      "f", code = quote(stopifnot(f() == 42L)), env = env, enc = env
+      "f",
+      code = quote(stopifnot(f() == 42L)),
+      env = env,
+      enc = env
     )
     expect_equal(percent_coverage(cov), 100)
     expect_identical(body(env$f), original_body)
   }
 
   rm(env)
-  for (i in seq_len(3)) invisible(gc(full = TRUE))
+  for (i in seq_len(3)) {
+    invisible(gc(full = TRUE))
+  }
   expect_true(state$finalized)
 })

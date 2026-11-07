@@ -9,8 +9,9 @@ test_that("coverage of functions with NULL constructs", {
     }
   }
   f4 <- function() {
-    if (FALSE)
+    if (FALSE) {
       NULL
+    }
   }
 
   cv1 <- function_coverage(f1, f1())

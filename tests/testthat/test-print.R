@@ -15,25 +15,36 @@ test_that("format_percentage works as expected", {
 test_that("print.coverage prints by = \"line\" by default", {
   cov <- package_coverage(test_path("TestPrint"))
 
-  expect_message(print(cov, by = "expression"),
-    rex::rex("R/TestPrint.R: ", anything, "66.67%"))
+  expect_message(
+    print(cov, by = "expression"),
+    rex::rex("R/TestPrint.R: ", anything, "66.67%")
+  )
 
-  expect_message(print(cov, by = "line"),
-    rex::rex("TestPrint Coverage: ", anything, "0.00%"))
+  expect_message(
+    print(cov, by = "line"),
+    rex::rex("TestPrint Coverage: ", anything, "0.00%")
+  )
 
-  expect_message(print(cov, by = "line"),
-    rex::rex("R/TestPrint.R: ", anything, "0.00%"))
+  expect_message(
+    print(cov, by = "line"),
+    rex::rex("R/TestPrint.R: ", anything, "0.00%")
+  )
 
   # test default
-  expect_message(print(cov),
-    rex::rex("TestPrint Coverage: ", anything, "0.00%"))
+  expect_message(
+    print(cov),
+    rex::rex("TestPrint Coverage: ", anything, "0.00%")
+  )
 
-  expect_message(print(cov),
-    rex::rex("R/TestPrint.R: ", anything, "0.00%"))
+  expect_message(print(cov), rex::rex("R/TestPrint.R: ", anything, "0.00%"))
 
-  expect_message(print(cov, group = "functions"),
-    rex::rex("test_me", anything, "0.00%"))
+  expect_message(
+    print(cov, group = "functions"),
+    rex::rex("test_me", anything, "0.00%")
+  )
 
-  expect_message(print(cov, group = "functions", by = "expression"),
-    rex::rex("test_me", anything, "66.67%"))
+  expect_message(
+    print(cov, group = "functions", by = "expression"),
+    rex::rex("test_me", anything, "66.67%")
+  )
 })

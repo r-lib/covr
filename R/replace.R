@@ -1,12 +1,24 @@
 #' @useDynLib covr, .registration = TRUE
-replacement <- function(name, env = as.environment(-1), target_value = get(name, envir = env)) {
+replacement <- function(
+  name,
+  env = as.environment(-1),
+  target_value = get(name, envir = env)
+) {
   if (is.function(target_value) && !is.primitive(target_value)) {
     if (is_vectorized(target_value)) {
       new_value <- target_value
-      environment(new_value)$FUN <- trace_calls(environment(new_value)$FUN, name)
-    } else if (is.function(target_value) && inherits(target_value, "memoised")) {
+      environment(new_value)$FUN <- trace_calls(
+        environment(new_value)$FUN,
+        name
+      )
+    } else if (
+      is.function(target_value) && inherits(target_value, "memoised")
+    ) {
       new_value <- target_value
-      environment(new_value)$`_f` <- trace_calls(environment(new_value)$`_f`, name)
+      environment(new_value)$`_f` <- trace_calls(
+        environment(new_value)$`_f`,
+        name
+      )
     } else {
       new_value <- trace_calls(target_value, name)
       attributes(body(new_value)) <- attributes(body(target_value))
@@ -32,5 +44,9 @@ replace <- function(replacement) {
 }
 
 reset <- function(replacement) {
-  .Call(covr_reassign_function, replacement$target_value, replacement$orig_value)
+  .Call(
+    covr_reassign_function,
+    replacement$target_value,
+    replacement$orig_value
+  )
 }

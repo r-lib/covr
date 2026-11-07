@@ -5,19 +5,33 @@ parse_gcov <- function(file, package_path = "") {
   }
 
   lines <- readLines(file)
-  source_file <- rex::re_matches(lines[1], rex::rex("Source:", capture(name = "source", anything)))$source
+  source_file <- rex::re_matches(
+    lines[1],
+    rex::rex("Source:", capture(name = "source", anything))
+  )$source
 
   # retrieve full path to the source files
   source_file <- normalize_path(source_file)
 
   # If the source file does not start with the package path or does not exist ignore it.
-  if (!file.exists(source_file) || !grepl(rex::rex(start, rex::regex(paste0(rex::escape(package_path), collapse = "|"))), source_file)) {
+  if (
+    !file.exists(source_file) ||
+      !grepl(
+        rex::rex(
+          start,
+          rex::regex(paste0(rex::escape(package_path), collapse = "|"))
+        ),
+        source_file
+      )
+  ) {
     return(NULL)
   }
 
-  re <- rex::rex(any_spaces,
+  re <- rex::rex(
+    any_spaces,
     capture(name = "coverage", some_of(digit, "-", "#", "=")),
-    ":", any_spaces,
+    ":",
+    any_spaces,
     capture(name = "line", digits),
     ":"
   )
@@ -56,36 +70,57 @@ file.exists <- NULL
 clean_gcov <- function(path) {
   src_dir <- file.path(path, "src")
 
-  gcov_files <- list.files(src_dir,
-                    pattern = rex::rex(or(".gcda", ".gcno", ".gcov"), end),
-                    full.names = TRUE,
-                    recursive = TRUE)
+  gcov_files <- list.files(
+    src_dir,
+    pattern = rex::rex(or(".gcda", ".gcno", ".gcov"), end),
+    full.names = TRUE,
+    recursive = TRUE
+  )
 
   unlink(gcov_files)
 }
 
-run_gcov <- function(path, quiet = TRUE, clean = TRUE,
-                      gcov_path = getOption("covr.gcov", ""),
-                      gcov_args = getOption("covr.gcov_args", NULL)) {
+run_gcov <- function(
+  path,
+  quiet = TRUE,
+  clean = TRUE,
+  gcov_path = getOption("covr.gcov", ""),
+  gcov_args = getOption("covr.gcov_args", NULL)
+) {
   src_path <- normalize_path(file.path(path, "src"))
   if (!file.exists(src_path)) {
-     return()
+    return()
   }
 
   withr::local_dir(src_path)
 
-  gcov_inputs <- list.files(".", pattern = rex::rex(".gcno", end), recursive = TRUE, full.names = TRUE)
+  gcov_inputs <- list.files(
+    ".",
+    pattern = rex::rex(".gcno", end),
+    recursive = TRUE,
+    full.names = TRUE
+  )
 
   if (!nzchar(gcov_path)) {
-    if (length(gcov_inputs)) stop('gcov not found')
+    if (length(gcov_inputs)) {
+      stop('gcov not found')
+    }
     return()
   }
 
   run_gcov_one <- function(src) {
-    system_check(gcov_path,
+    system_check(
+      gcov_path,
       args = c(gcov_args, src, "-p", "-o", dirname(src)),
-      quiet = quiet, echo = !quiet)
-    gcov_outputs <- list.files(".", pattern = rex::rex(".gcov", end), recursive = TRUE, full.names = TRUE)
+      quiet = quiet,
+      echo = !quiet
+    )
+    gcov_outputs <- list.files(
+      ".",
+      pattern = rex::rex(".gcov", end),
+      recursive = TRUE,
+      full.names = TRUE
+    )
 
     if (!quiet) {
       message("gcov output for ", src, ":")
@@ -109,38 +144,54 @@ run_gcov <- function(path, quiet = TRUE, clean = TRUE,
       )
 
       on.exit({
-	if (!quiet) {
-	  message("Moving gcov outputs to covr directory.\n")
-	}
+        if (!quiet) {
+          message("Moving gcov outputs to covr directory.\n")
+        }
         file.rename(gcov_outputs, gcov_output_targets)
       })
     }
 
-    unlist(lapply(gcov_outputs, parse_gcov, package_path = c(path, getOption("covr.gcov_additional_paths", NULL))), recursive = FALSE)
+    unlist(
+      lapply(
+        gcov_outputs,
+        parse_gcov,
+        package_path = c(path, getOption("covr.gcov_additional_paths", NULL))
+      ),
+      recursive = FALSE
+    )
   }
 
   res <- compact(unlist(lapply(gcov_inputs, run_gcov_one), recursive = FALSE))
 
-  if (!length(res) && length(gcov_inputs))
+  if (!length(res) && length(gcov_inputs)) {
     warning('parsed gcov output was empty')
+  }
 
   res
 }
 
 line_coverages <- function(source_file, matches, values, functions) {
-
   # create srcfile reference from the source file
   src_file <- srcfilecopy(source_file, readLines(source_file))
 
-  line_lengths <- vapply(src_file$lines[as.numeric(matches$line)], nchar, numeric(1))
+  line_lengths <- vapply(
+    src_file$lines[as.numeric(matches$line)],
+    nchar,
+    numeric(1)
+  )
 
-  res <- Map(function(line, length, value, func) {
-    src_ref <- srcref(src_file, c(line, 1, line, length))
-    res <- list(srcref = src_ref, value = value, functions = func)
-    class(res) <- "line_coverage"
-    res
-  },
-  matches$line, line_lengths, values, functions)
+  res <- Map(
+    function(line, length, value, func) {
+      src_ref <- srcref(src_file, c(line, 1, line, length))
+      res <- list(srcref = src_ref, value = value, functions = func)
+      class(res) <- "line_coverage"
+      res
+    },
+    matches$line,
+    line_lengths,
+    values,
+    functions
+  )
 
   if (!length(res)) {
     return(NULL)

@@ -49,20 +49,20 @@
 #' @name exclusions
 NULL
 
-exclude <- function(coverage,
+exclude <- function(
+  coverage,
   line_exclusions = NULL,
   function_exclusions = NULL,
   exclude_pattern = getOption("covr.exclude_pattern"),
   exclude_start = getOption("covr.exclude_start"),
   exclude_end = getOption("covr.exclude_end"),
-  path = NULL) {
-
+  path = NULL
+) {
   sources <- traced_files(coverage)
 
-  source_exclusions <- lapply(sources,
-    function(x) {
-      parse_exclusions(x$file_lines, exclude_pattern, exclude_start, exclude_end)
-    })
+  source_exclusions <- lapply(sources, function(x) {
+    parse_exclusions(x$file_lines, exclude_pattern, exclude_start, exclude_end)
+  })
 
   excl <- normalize_exclusions(c(source_exclusions, line_exclusions), path)
 
@@ -71,26 +71,30 @@ exclude <- function(coverage,
   to_exclude <- rep(FALSE, length(coverage))
 
   if (!is.null(function_exclusions)) {
-    to_exclude <- Reduce(`|`, init = to_exclude,
-      Map(rex::re_matches, function_exclusions, MoreArgs = list(data = df$functions)))
+    to_exclude <- Reduce(
+      `|`,
+      init = to_exclude,
+      Map(
+        rex::re_matches,
+        function_exclusions,
+        MoreArgs = list(data = df$functions)
+      )
+    )
     to_exclude[is.na(to_exclude)] <- FALSE
   }
 
-  df$full_name <- vcapply(coverage,
-    function(x) {
-      normalize_path(get_source_filename(x$srcref, full.names = TRUE))
-    })
+  df$full_name <- vcapply(coverage, function(x) {
+    normalize_path(get_source_filename(x$srcref, full.names = TRUE))
+  })
 
-  to_exclude <- to_exclude | vlapply(seq_len(NROW(df)),
-    function(i) {
+  to_exclude <- to_exclude |
+    vlapply(seq_len(NROW(df)), function(i) {
       file <- df[i, "full_name"]
       which_exclusion <- match(file, names(excl))
 
       !is.na(which_exclusion) &&
-        (
-          identical(excl[[which_exclusion]], Inf) ||
-          all(seq(df[i, "first_line"], df[i, "last_line"]) %in% excl[[file]])
-        )
+        (identical(excl[[which_exclusion]], Inf) ||
+          all(seq(df[i, "first_line"], df[i, "last_line"]) %in% excl[[file]]))
     })
 
   if (any(to_exclude)) {
@@ -100,11 +104,12 @@ exclude <- function(coverage,
   coverage
 }
 
-parse_exclusions <- function(lines,
-                             exclude_pattern = getOption("covr.exclude"),
-                             exclude_start = getOption("covr.exclude_start"),
-                             exclude_end = getOption("covr.exclude_end")) {
-
+parse_exclusions <- function(
+  lines,
+  exclude_pattern = getOption("covr.exclude"),
+  exclude_start = getOption("covr.exclude_start"),
+  exclude_end = getOption("covr.exclude_end")
+) {
   exclusions <- numeric(0)
 
   starts <- which(rex::re_matches(lines, exclude_start))
@@ -114,13 +119,20 @@ parse_exclusions <- function(lines,
     if (length(starts) != length(ends)) {
       starts_msg <- sprintf(
         ngettext(length(starts), "%d range start (%s)", "%d range starts (%s)"),
-        length(starts), toString(starts)
+        length(starts),
+        toString(starts)
       )
       ends_msg <- sprintf(
         ngettext(length(ends), "%d range end (%s)", "%d range ends (%s)"),
-        length(ends), toString(ends)
+        length(ends),
+        toString(ends)
       )
-      stop(starts_msg, " but only ", ends_msg, " for exclusion from code coverage!")
+      stop(
+        starts_msg,
+        " but only ",
+        ends_msg,
+        " for exclusion from code coverage!"
+      )
     }
 
     for (i in seq_along(starts)) {
@@ -155,18 +167,18 @@ normalize_exclusions <- function(x, path = NULL) {
   } else {
     unnamed <- names(x) == ""
     if (any(unnamed)) {
-
       # must be character vectors of length 1
-      bad <- vlapply(seq_along(x),
-        function(i) {
-          unnamed[i] & (!is.character(x[[i]]) | length(x[[i]]) != 1)
-        })
+      bad <- vlapply(seq_along(x), function(i) {
+        unnamed[i] & (!is.character(x[[i]]) | length(x[[i]]) != 1)
+      })
 
       if (any(bad)) {
-        stop("Full file exclusions must be character vectors of length 1. items: ",
-             paste(collapse = ", ", which(bad)),
-             " are not!",
-             call. = FALSE)
+        stop(
+          "Full file exclusions must be character vectors of length 1. items: ",
+          paste(collapse = ", ", which(bad)),
+          " are not!",
+          call. = FALSE
+        )
       }
       names(x)[unnamed] <- x[unnamed]
       x[unnamed] <- Inf
@@ -190,15 +202,14 @@ remove_file_duplicates <- function(x) {
 
   ## check for duplicate files
   if (length(unique_names) < length(names(x))) {
-    x <- lapply(unique_names,
-                function(name) {
-                  vals <- unname(unlist(x[names(x) == name]))
-                  if (any(vals == Inf)) {
-                    Inf
-                  } else {
-                    vals
-                  }
-                })
+    x <- lapply(unique_names, function(name) {
+      vals <- unname(unlist(x[names(x) == name]))
+      if (any(vals == Inf)) {
+        Inf
+      } else {
+        vals
+      }
+    })
 
     names(x) <- unique_names
   }
@@ -212,7 +223,12 @@ remove_line_duplicates <- function(x) {
   x
 }
 
-parse_covr_ignore <- function(file = getOption("covr.covrignore", Sys.getenv("COVR_COVRIGNORE", ".covrignore"))) {
+parse_covr_ignore <- function(
+  file = getOption(
+    "covr.covrignore",
+    Sys.getenv("COVR_COVRIGNORE", ".covrignore")
+  )
+) {
   if (!file.exists(file)) {
     return(NULL)
   }
@@ -221,9 +237,15 @@ parse_covr_ignore <- function(file = getOption("covr.covrignore", Sys.getenv("CO
   files <- unlist(
     lapply(paths, function(x) {
       if (dir.exists(x)) {
-        list.files(recursive = TRUE, all.files = TRUE, path = x, full.names = TRUE)
+        list.files(
+          recursive = TRUE,
+          all.files = TRUE,
+          path = x,
+          full.names = TRUE
+        )
       } else {
         x
       }
-    }))
+    })
+  )
 }

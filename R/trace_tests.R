@@ -103,7 +103,9 @@ count_test <- function(key) {
   }
 
   # ignore if .counter was not created with record_tests (nested coverage calls)
-  if (is.null(.counters[[key]]$tests)) return()
+  if (is.null(.counters[[key]]$tests)) {
+    return()
+  }
 
   .current_test$i <- .current_test$i + 1L
 
@@ -126,7 +128,10 @@ count_test <- function(key) {
   tests$.data[[2L]] <- .current_test$call_count
 
   # call stack depth when trace is hit
-  tests$.data[[3L]] <- sys.nframe() - length(.current_test$frames) - n_calls_into_covr + 1L
+  tests$.data[[3L]] <- sys.nframe() -
+    length(.current_test$frames) -
+    n_calls_into_covr +
+    1L
 
   # number of traces hit by the test so far
   tests$.data[[4L]] <- .current_test$i
@@ -193,7 +198,9 @@ new_test_counter <- function(key) {
 update_current_test <- function() {
   syscalls <- sys.calls()
   syscall_first_count <- Position(is_covr_count_call, syscalls, nomatch = -1L)
-  if (syscall_first_count < 2L) return()  # skip if nothing before covr::count
+  if (syscall_first_count < 2L) {
+    return()
+  } # skip if nothing before covr::count
   syscall_srcfile <- vcapply(syscalls, get_source_filename, normalize = TRUE)
 
   has_srcfile <- viapply(syscall_srcfile, length) > 0L
@@ -247,11 +254,16 @@ update_current_test <- function() {
       limit = max_call_len
     )
 
-    warning("A large call was captured as part of a test and will be truncated.")
+    warning(
+      "A large call was captured as part of a test and will be truncated."
+    )
   }
 
   .counters$tests[[.current_test$index]] <- .current_test$trace
-  attr(.counters$tests[[.current_test$index]], "call_count") <- .current_test$call_count
+  attr(
+    .counters$tests[[.current_test$index]],
+    "call_count"
+  ) <- .current_test$call_count
   names(.counters$tests)[[.current_test$index]] <- .current_test$key
 }
 
@@ -265,7 +277,9 @@ update_current_test <- function() {
 #'
 #' @keywords internal
 current_test_key <- function() {
-  if (!inherits(.current_test$src, "srcref")) return("")
+  if (!inherits(.current_test$src, "srcref")) {
+    return("")
+  }
   file.path(
     dirname(get_source_filename(.current_test$src, normalize = TRUE)),
     key(.current_test$src)
@@ -293,7 +307,7 @@ current_test_index <- function() {
   } else {
     # otherwise we compare call stacks
     Position(
-      function(t) identical(t[], .current_test$trace),  # t[] to ignore attr
+      function(t) identical(t[], .current_test$trace), # t[] to ignore attr
       .counters$tests,
       right = TRUE,
       nomatch = length(.counters$tests) + 1L
@@ -328,7 +342,9 @@ current_test_call_count <- function() {
 #' @return The \code{call_obj} with arguments trimmed
 #'
 truncate_call <- function(call_obj, limit = 1e4) {
-  if (length(call_obj) < limit) return(call_obj)
+  if (length(call_obj) < limit) {
+    return(call_obj)
+  }
   call_obj <- head(call_obj, limit)
   call_obj[[length(call_obj)]] <- quote(`<truncated>`)
   call_obj
@@ -345,8 +361,14 @@ truncate_call <- function(call_obj, limit = 1e4) {
 is_current_test_finished <- function() {
   is.null(.current_test$src) ||
     .current_test$last_frame > sys.nframe() ||
-    !identical(.current_test$src_call, sys.call(which = .current_test$last_frame)) ||
-    !identical(.current_test$src_env, sys.frame(which = .current_test$last_frame - 1L))
+    !identical(
+      .current_test$src_call,
+      sys.call(which = .current_test$last_frame)
+    ) ||
+    !identical(
+      .current_test$src_env,
+      sys.frame(which = .current_test$last_frame - 1L)
+    )
 }
 
 #' Is the source bound to the expression

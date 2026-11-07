@@ -7,7 +7,12 @@
 #' @inheritParams codecov
 #' @inheritParams report
 #' @export
-gitlab <- function(..., coverage = NULL, file = "public/coverage.html", quiet = TRUE) {
+gitlab <- function(
+  ...,
+  coverage = NULL,
+  file = "public/coverage.html",
+  quiet = TRUE
+) {
   if (is.null(coverage)) {
     coverage <- package_coverage(quiet = quiet, ...)
   }

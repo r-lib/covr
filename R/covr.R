@@ -106,12 +106,13 @@ trace_environment <- function(env) {
   clear_counters()
 
   the$replacements <- compact(c(
-      replacements_S4(env),
-      replacements_RC(env),
-      replacements_R6(env),
-      replacements_S7(env),
-      replacements_box(env),
-      lapply(ls(env, all.names = TRUE), replacement, env = env)))
+    replacements_S4(env),
+    replacements_RC(env),
+    replacements_R6(env),
+    replacements_S7(env),
+    replacements_box(env),
+    lapply(ls(env, all.names = TRUE), replacement, env = env)
+  ))
 
   lapply(the$replacements, replace)
 }
@@ -133,8 +134,9 @@ save_trace <- function(directory) {
 #' @param ... Additional attributes to include with the coverage object.
 #'
 as_coverage <- function(counters = NULL, ...) {
-  if (missing(counters))
+  if (missing(counters)) {
     counters <- .counters
+  }
 
   counters <- as.list(counters)
   counters <- as_coverage_with_tests(counters)
@@ -155,7 +157,9 @@ as_coverage_with_tests <- function(counters) {
 
   # unnest environment-wrapped $tests$tally as more accessible $tests
   for (i in seq_along(counters)) {
-    if (!is.environment(counters[[i]]$tests)) next
+    if (!is.environment(counters[[i]]$tests)) {
+      next
+    }
     counters[[i]]$tests <- counters[[i]]$tests$tally
   }
 
@@ -175,12 +179,21 @@ as_coverage_with_tests <- function(counters) {
 #' function_coverage(fun = add, code = NULL) # 0% coverage
 #' function_coverage(fun = add, code = add(1, 2) == 3) # 100% coverage
 #' @export
-function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()) {
+function_coverage <- function(
+  fun,
+  code = NULL,
+  env = NULL,
+  enc = parent.frame()
+) {
   if (is.function(fun)) {
     env <- environment(fun)
 
     # get name of function, stripping preceding blah:: if needed
-    fun <- rex::re_substitutes(deparse(substitute(fun)), rex::regex(".*:::?"), "")
+    fun <- rex::re_substitutes(
+      deparse(substitute(fun)),
+      rex::regex(".*:::?"),
+      ""
+    )
   }
 
   clear_counters()
@@ -198,9 +211,7 @@ function_coverage <- function(fun, code = NULL, env = NULL, enc = parent.frame()
 
   replace(replacement)
 
-  withr::with_envvar(c("R_COVR" = "true"),
-    eval(code, enc)
-  )
+  withr::with_envvar(c("R_COVR" = "true"), eval(code, enc))
 
   as_coverage(as.list(.counters))
 }
@@ -232,13 +243,12 @@ file_coverage <- function(
   test_files,
   line_exclusions = NULL,
   function_exclusions = NULL,
-  parent_env = parent.frame()) {
-
+  parent_env = parent.frame()
+) {
   env <- new.env(parent = parent_env)
 
   withr::with_options(c("keep.parse.data.pkgs" = TRUE), {
-    lapply(source_files,
-      sys.source, keep.source = TRUE, envir = env)
+    lapply(source_files, sys.source, keep.source = TRUE, envir = env)
   })
 
   trace_environment(env)
@@ -247,17 +257,19 @@ file_coverage <- function(
     clear_counters()
   })
 
-  withr::with_envvar(c("R_COVR" = "true"),
-    lapply(test_files,
-      sys.source, keep.source = TRUE, envir = env)
+  withr::with_envvar(
+    c("R_COVR" = "true"),
+    lapply(test_files, sys.source, keep.source = TRUE, envir = env)
   )
 
   coverage <- as_coverage(.counters)
 
-  exclude(coverage,
+  exclude(
+    coverage,
     line_exclusions = line_exclusions,
     function_exclusions = function_exclusions,
-    path = NULL)
+    path = NULL
+  )
 }
 
 #' Calculate coverage of code directly
@@ -275,18 +287,24 @@ file_coverage <- function(
 #' code_coverage(source, test)
 #' @export
 code_coverage <- function(
-   source_code,
-   test_code,
-   line_exclusions = NULL,
-   function_exclusions = NULL,
-   ...) {
+  source_code,
+  test_code,
+  line_exclusions = NULL,
+  function_exclusions = NULL,
+  ...
+) {
   src <- tempfile("source.R")
   test <- tempfile("test.R")
   on.exit(file.remove(src, test))
   cat(source_code, file = src)
   cat(test_code, file = test)
-  file_coverage(src, test, line_exclusions = line_exclusions,
-    function_exclusions = function_exclusions, ...)
+  file_coverage(
+    src,
+    test,
+    line_exclusions = line_exclusions,
+    function_exclusions = function_exclusions,
+    ...
+  )
 }
 
 #' Calculate coverage of an environment
@@ -298,8 +316,8 @@ environment_coverage <- function(
   env = parent.frame(),
   test_files,
   line_exclusions = NULL,
-  function_exclusions = NULL) {
-
+  function_exclusions = NULL
+) {
   exec_env <- new.env(parent = env)
 
   trace_environment(env)
@@ -308,17 +326,19 @@ environment_coverage <- function(
     clear_counters()
   })
 
-  withr::with_envvar(c("R_COVR" = "true"),
-    lapply(test_files,
-      sys.source, keep.source = TRUE, envir = exec_env)
+  withr::with_envvar(
+    c("R_COVR" = "true"),
+    lapply(test_files, sys.source, keep.source = TRUE, envir = exec_env)
   )
 
   coverage <- as_coverage(.counters)
 
-  exclude(coverage,
+  exclude(
+    coverage,
     line_exclusions = line_exclusions,
     function_exclusions = function_exclusions,
-    path = NULL)
+    path = NULL
+  )
 }
 
 #' Calculate test coverage for a package
@@ -378,24 +398,27 @@ environment_coverage <- function(
 #' @seealso [exclusions()] For details on excluding parts of the
 #' package from the coverage calculations.
 #' @export
-package_coverage <- function(path = ".",
-                             type = c("tests", "vignettes", "examples", "all", "none"),
-                             combine_types = TRUE,
-                             relative_path = TRUE,
-                             quiet = TRUE,
-                             clean = TRUE,
-                             line_exclusions = NULL,
-                             function_exclusions = NULL,
-                             code = character(),
-                             install_path = temp_file("R_LIBS"),
-                             ...,
-                             exclusions, pre_clean = TRUE,
-                             allow_failures = getOption("covr.allow_failures", FALSE)) {
-
+package_coverage <- function(
+  path = ".",
+  type = c("tests", "vignettes", "examples", "all", "none"),
+  combine_types = TRUE,
+  relative_path = TRUE,
+  quiet = TRUE,
+  clean = TRUE,
+  line_exclusions = NULL,
+  function_exclusions = NULL,
+  code = character(),
+  install_path = temp_file("R_LIBS"),
+  ...,
+  exclusions,
+  pre_clean = TRUE,
+  allow_failures = getOption("covr.allow_failures", FALSE)
+) {
   if (!missing(exclusions)) {
     warning(
       "`exclusions` is deprecated and will be removed in an upcoming release. Please use `line_exclusions` instead.",
-      call. = FALSE, domain = NA
+      call. = FALSE,
+      domain = NA
     )
     line_exclusions <- exclusions
   }
@@ -455,26 +478,34 @@ package_coverage <- function(path = ".",
     # The install directory is only removed on success, so the test output
     # files referenced in failure messages remain available for debugging.
     succeeded <- FALSE
-    on.exit({
-      clean_objects(pkg$path)
-      clean_gcov(pkg$path)
-      clean_parse_data()
-      if (succeeded) {
-        unlink(install_path, recursive = TRUE)
-      }
-    }, add = TRUE)
+    on.exit(
+      {
+        clean_objects(pkg$path)
+        clean_gcov(pkg$path)
+        clean_parse_data()
+        if (succeeded) {
+          unlink(install_path, recursive = TRUE)
+        }
+      },
+      add = TRUE
+    )
   }
 
   # clean any dlls prior to trying to install
-  if (isTRUE(pre_clean)) clean_objects(pkg$path)
+  if (isTRUE(pre_clean)) {
+    clean_objects(pkg$path)
+  }
 
   # install the package in a temporary directory
   withr::with_envvar(
     list(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep)),
     withr::with_makevars(flags, assignment = "+=", {
       args <- c(
-        "--vanilla", "CMD", "INSTALL",
-        "-l", shQuote(install_path),
+        "--vanilla",
+        "CMD",
+        "INSTALL",
+        "-l",
+        shQuote(install_path),
         "--example",
         "--install-tests",
         "--with-keep.source",
@@ -500,8 +531,11 @@ package_coverage <- function(path = ".",
   }
 
   # add hooks to the package startup
-  add_hooks(pkg$package, install_path,
-    fix_mcexit = should_enable_parallel_mcexit_fix(pkg))
+  add_hooks(
+    pkg$package,
+    install_path,
+    fix_mcexit = should_enable_parallel_mcexit_fix(pkg)
+  )
 
   libs <- env_path(install_path, .libPaths())
 
@@ -513,55 +547,74 @@ package_coverage <- function(path = ".",
   # install or runtime Sexpr blocks, which may implicitly load the package in
   # the current R session.
   withr::with_libpaths(install_path, action = "prefix", {
+    withr::with_envvar(
+      c(
+        R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
+        R_LIBS = libs,
+        R_LIBS_USER = libs,
+        R_LIBS_SITE = libs,
+        R_COVR = "true",
+        R_TESTS = file.path(R.home("share"), "R", "tests-startup.R")
+      ),
+      {
+        withCallingHandlers(
+          {
+            if ("vignettes" %in% type) {
+              type <- type[type != "vignettes"]
+              run_vignettes(pkg, install_path)
+            }
 
-  withr::with_envvar(
-    c(R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
-      R_LIBS = libs,
-      R_LIBS_USER = libs,
-      R_LIBS_SITE = libs,
-      R_COVR = "true",
-      R_TESTS = file.path(R.home("share"), "R", "tests-startup.R")), {
+            out_dir <- file.path(install_path, pkg$package)
+            if ("examples" %in% type) {
+              type <- type[type != "examples"]
+              # testInstalledPackage explicitly sets R_LIBS="" on windows, and does
+              # not restore it after, so we need to reset it ourselves.
+              withr::with_envvar(c(R_LIBS = Sys.getenv("R_LIBS")), {
+                result <- tools::testInstalledPackage(
+                  pkg$package,
+                  outDir = out_dir,
+                  types = "examples",
+                  lib.loc = install_path,
+                  ...
+                )
+                if (result != 0L) {
+                  show_failures(out_dir)
+                }
+              })
+            }
+            if ("tests" %in% type) {
+              result <- tools::testInstalledPackage(
+                pkg$package,
+                outDir = out_dir,
+                types = "tests",
+                lib.loc = install_path,
+                ...
+              )
+              if (result != 0L) {
+                show_failures(out_dir)
+              }
+            }
 
-
-    withCallingHandlers({
-      if ("vignettes" %in% type) {
-        type <- type[type != "vignettes"]
-        run_vignettes(pkg, install_path)
-      }
-
-      out_dir <- file.path(install_path, pkg$package)
-      if ("examples" %in% type) {
-        type <- type[type != "examples"]
-        # testInstalledPackage explicitly sets R_LIBS="" on windows, and does
-        # not restore it after, so we need to reset it ourselves.
-        withr::with_envvar(c(R_LIBS = Sys.getenv("R_LIBS")), {
-          result <- tools::testInstalledPackage(pkg$package, outDir = out_dir, types = "examples", lib.loc = install_path, ...)
-          if (result != 0L) {
-            show_failures(out_dir)
+            # We always run the commands file (even if empty) to load the package and
+            # initialize all the counters to 0.
+            run_commands(pkg, install_path, code)
+          },
+          message = function(e) {
+            if (quiet) invokeRestart("muffleMessage") else e
+          },
+          warning = function(e) {
+            if (quiet) invokeRestart("muffleWarning") else e
+          },
+          covr_error = function(e) {
+            if (isTRUE(allow_failures)) {
+              failures[[length(failures) + 1L]] <<- e
+              invokeRestart("covr_continue")
+            }
           }
-        })
+        )
       }
-      if ("tests" %in% type) {
-        result <- tools::testInstalledPackage(pkg$package, outDir = out_dir, types = "tests", lib.loc = install_path, ...)
-        if (result != 0L) {
-          show_failures(out_dir)
-        }
-      }
-
-      # We always run the commands file (even if empty) to load the package and
-      # initialize all the counters to 0.
-      run_commands(pkg, install_path, code)
-    },
-    message = function(e) if (quiet) invokeRestart("muffleMessage") else e,
-    warning = function(e) if (quiet) invokeRestart("muffleWarning") else e,
-    covr_error = function(e) {
-      if (isTRUE(allow_failures)) {
-        failures[[length(failures) + 1L]] <<- e
-        invokeRestart("covr_continue")
-      }
-    })
-    })
-    })
+    )
+  })
 
   for (failure in failures) {
     warning(structure(
@@ -571,7 +624,11 @@ package_coverage <- function(path = ".",
   }
 
   # read tracing files
-  trace_files <- list.files(path = install_path, pattern = "^covr_trace_[^/]+$", full.names = TRUE)
+  trace_files <- list.files(
+    path = install_path,
+    pattern = "^covr_trace_[^/]+$",
+    full.names = TRUE
+  )
   coverage <- merge_coverage(trace_files)
   if (!uses_icc()) {
     res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
@@ -603,10 +660,12 @@ package_coverage <- function(path = ".",
     withr::with_dir(root, parse_covr_ignore())
   )
 
-  coverage <- exclude(coverage,
+  coverage <- exclude(
+    coverage,
     line_exclusions = line_exclusions,
     function_exclusions = function_exclusions,
-    path = root)
+    path = root
+  )
 
   succeeded <- TRUE
   coverage
@@ -617,22 +676,30 @@ package_coverage <- function(path = ".",
 #' @param x a coverage dataset, defaults to running `package_coverage()`.
 #' @return A list containing coverage result for each individual file and the whole package
 #' @export
-coverage_to_list <- function(x = package_coverage()){
+coverage_to_list <- function(x = package_coverage()) {
   covr_df <- tally_coverage(x)
-  file_result <- tapply(covr_df$value, covr_df$filename,
-    FUN = function(x) round(sum(x > 0) / length(x) * 100, digits = 2))
-  total_result <- round(sum(covr_df$value > 0) / nrow(covr_df) * 100, digits = 2)
+  file_result <- tapply(covr_df$value, covr_df$filename, FUN = function(x) {
+    round(sum(x > 0) / length(x) * 100, digits = 2)
+  })
+  total_result <- round(
+    sum(covr_df$value > 0) / nrow(covr_df) * 100,
+    digits = 2
+  )
   return(list(filecoverage = file_result, totalcoverage = total_result))
 }
 
 show_failures <- function(dir) {
-  fail_files <- list.files(dir, pattern = "fail$", recursive = TRUE, full.names = TRUE)
+  fail_files <- list.files(
+    dir,
+    pattern = "fail$",
+    recursive = TRUE,
+    full.names = TRUE
+  )
   for (file in fail_files) {
     lines <- readLines(file)
 
     # Skip header lines (until first >)
     lines <- lines[seq(which.min(grepl("^>", lines)), length(lines))]
-
 
     # R will only show options("warning.length") number of characters in an
     # error, so show the last characters of that number
@@ -645,9 +712,16 @@ show_failures <- function(dir) {
     header_len <- nchar(error_header, "bytes")
     body_len <- nchar(error_body, "bytes")
 
-    error_body <- substr(error_body, body_len - (error_length - header_len), body_len)
+    error_body <- substr(
+      error_body,
+      body_len - (error_length - header_len),
+      body_len
+    )
 
-    cnd <- structure(list(message = paste0(error_header, error_body)), class = c("covr_error", "error", "condition"))
+    cnd <- structure(
+      list(message = paste0(error_header, error_body)),
+      class = c("covr_error", "error", "condition")
+    )
     withRestarts(stop(cnd), covr_continue = function() NULL)
   }
 }
@@ -688,7 +762,11 @@ merge_coverage_pair <- function(into, from) {
 
   if (!is.null(tests)) {
     test_idx <- match(names(tests), Filter(nchar, names(into$tests)))
-    new_test_idx <- if (!length(test_idx)) seq_along(tests) else which(is.na(test_idx))
+    new_test_idx <- if (!length(test_idx)) {
+      seq_along(tests)
+    } else {
+      which(is.na(test_idx))
+    }
     test_idx[new_test_idx] <- length(into$tests) + seq_along(new_test_idx)
 
     into$tests <- append(into$tests, tests[new_test_idx])
@@ -734,25 +812,34 @@ renumber_trace_tests <- function(trace, test_idx) {
 #
 clean_coverage_tests <- function(obj) {
   counter_has_tests_tally <- function(counter) !is.null(counter$tests)
-  if (is.na(Position(counter_has_tests_tally, obj))) return()
+  if (is.na(Position(counter_has_tests_tally, obj))) {
+    return()
+  }
 
   for (i in seq_along(obj)) {
     val <- obj[[i]]$value
-    if (length(val) == 0 || is.na(val)) next
+    if (length(val) == 0 || is.na(val)) {
+      next
+    }
     n <- nrow(obj[[i]]$tests$tally)
-    if (length(n) == 0 || is.na(n) || n < val) next
-    obj[[i]]$tests$tally <- obj[[i]]$tests$tally[seq_len(val),,drop = FALSE]
+    if (length(n) == 0 || is.na(n) || n < val) {
+      next
+    }
+    obj[[i]]$tests$tally <- obj[[i]]$tests$tally[seq_len(val), , drop = FALSE]
   }
 }
 
 parse_type <- function(type) {
-  type <- match_arg(type, choices = c("tests", "vignettes", "examples", "all", "none"), several.ok = TRUE)
+  type <- match_arg(
+    type,
+    choices = c("tests", "vignettes", "examples", "all", "none"),
+    several.ok = TRUE
+  )
   if (type %==% "all") {
     type <- c("tests", "vignettes", "examples")
   }
 
   if (length(type) > 1L) {
-
     if ("all" %in% type) {
       stop(sQuote("all"), " must be the only type specified", call. = FALSE)
     }
@@ -771,11 +858,20 @@ parse_type <- function(type) {
 # @param lib the library path to look in
 run_vignettes <- function(pkg, lib) {
   outfile <- file.path(lib, paste0(pkg$package, "-Vignette.Rout"))
-  failfile <- paste(outfile, "fail", sep = "." )
-  cat("tools::buildVignettes(dir = '", pkg$path, "')\n", file = outfile, sep = "")
-  cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
-               "CMD BATCH --vanilla --no-timing",
-               shQuote(outfile), shQuote(failfile))
+  failfile <- paste(outfile, "fail", sep = ".")
+  cat(
+    "tools::buildVignettes(dir = '",
+    pkg$path,
+    "')\n",
+    file = outfile,
+    sep = ""
+  )
+  cmd <- paste(
+    shQuote(file.path(R.home("bin"), "R")),
+    "CMD BATCH --vanilla --no-timing",
+    shQuote(outfile),
+    shQuote(failfile)
+  )
   res <- system(cmd)
   if (res != 0) {
     show_failures(dirname(failfile))
@@ -786,13 +882,20 @@ run_vignettes <- function(pkg, lib) {
 
 run_commands <- function(pkg, lib, commands) {
   outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
-  failfile <- paste(outfile, "fail", sep = "." )
-  writeLines(c(
-    paste0("library('", pkg$package, "')"),
-    commands), con = outfile)
-  cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
-               "CMD BATCH --vanilla --no-timing",
-               shQuote(outfile), shQuote(failfile))
+  failfile <- paste(outfile, "fail", sep = ".")
+  writeLines(
+    c(
+      paste0("library('", pkg$package, "')"),
+      commands
+    ),
+    con = outfile
+  )
+  cmd <- paste(
+    shQuote(file.path(R.home("bin"), "R")),
+    "CMD BATCH --vanilla --no-timing",
+    shQuote(outfile),
+    shQuote(failfile)
+  )
   res <- system(cmd)
   if (res != 0L) {
     show_failures(dirname(failfile))
@@ -813,18 +916,33 @@ run_commands <- function(pkg, lib, commands) {
 # @param pkg_name name of the package to add hooks to
 # @param lib the library path to look in
 # @param fix_mcexit whether to add the fix for mcparallel:::mcexit
-add_hooks <- function(pkg_name, lib, fix_mcexit = FALSE,
-  record_tests = isTRUE(getOption("covr.record_tests", FALSE))) {
-
+add_hooks <- function(
+  pkg_name,
+  lib,
+  fix_mcexit = FALSE,
+  record_tests = isTRUE(getOption("covr.record_tests", FALSE))
+) {
   trace_dir <- paste0("Sys.getenv(\"COVERAGE_DIR\", \"", lib, "\")")
 
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
   lines <- readLines(load_script)
-  lines <- append(lines,
-    c(paste0("setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.record_tests = ", record_tests, "))"),
+  lines <- append(
+    lines,
+    c(
+      paste0(
+        "setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.record_tests = ",
+        record_tests,
+        "))"
+      ),
       "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
-      paste0("reg.finalizer(ns, function(...) { covr:::save_trace(", trace_dir, ") }, onexit = TRUE)")),
-    length(lines) - 1L)
+      paste0(
+        "reg.finalizer(ns, function(...) { covr:::save_trace(",
+        trace_dir,
+        ") }, onexit = TRUE)"
+      )
+    ),
+    length(lines) - 1L
+  )
 
   if (fix_mcexit) {
     lines <- append(lines, sprintf("covr:::fix_mcexit('%s')", trace_dir))

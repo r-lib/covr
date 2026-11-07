@@ -1,22 +1,26 @@
 s1 <- tempfile()
 t1 <- tempfile()
-writeLines(con = s1,
-"a <- function(x) {
+writeLines(
+  con = s1,
+  "a <- function(x) {
   x + 1
 }
 
 b <- function(x) {
   if (x > 1) TRUE
   else FALSE
-}")
+}"
+)
 
-writeLines(con = t1,
-"a(1)
+writeLines(
+  con = t1,
+  "a(1)
 a(2)
 a(3)
 b(0)
 b(1)
-b(2)")
+b(2)"
+)
 
 on.exit(unlink(c(s1, t1)))
 

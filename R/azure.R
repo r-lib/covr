@@ -4,7 +4,9 @@
 #' @export
 azure <- function(
   ...,
-  coverage = package_coverage(..., quiet = quiet), filename = "coverage.xml", quiet = TRUE) {
-
+  coverage = package_coverage(..., quiet = quiet),
+  filename = "coverage.xml",
+  quiet = TRUE
+) {
   to_cobertura(coverage, filename = filename)
 }
