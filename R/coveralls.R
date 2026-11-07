@@ -1,4 +1,11 @@
 #' Run covr on a package and upload the result to coveralls
+#'
+#' On GitHub Actions, use the official
+#' [Coveralls action](https://github.com/coverallsapp/github-action) instead of
+#' this function: write the coverage with [to_cobertura()] and upload
+#' `cobertura.xml` with `coverallsapp/github-action@v2`. See the README for an
+#' example workflow.
+#'
 #' @param coverage an existing coverage object to submit, if `NULL`,
 #' [package_coverage()] will be called with the arguments from
 #' `...`
