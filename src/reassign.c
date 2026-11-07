@@ -167,9 +167,15 @@ SEXP covr_address(SEXP x) {
 // Whether `name` in `env` is a promise that has not been evaluated yet, checked
 // without forcing it.
 SEXP covr_is_unforced_promise(SEXP env, SEXP name) {
-  SEXP value = findVarInFrame3(env, installChar(STRING_ELT(name, 0)), FALSE);
+  SEXP sym = installChar(STRING_ELT(name, 0));
+#if R_VERSION >= R_Version(4, 6, 0)
+  // findVarInFrame3() and PRVALUE() are no longer in the API in R 4.6
+  return ScalarLogical(R_GetBindingType(sym, env) == R_BindingTypeDelayed);
+#else
+  SEXP value = findVarInFrame3(env, sym, FALSE);
   return ScalarLogical(TYPEOF(value) == PROMSXP &&
                        PRVALUE(value) == R_UnboundValue);
+#endif
 }
 
 /* .Call calls */
