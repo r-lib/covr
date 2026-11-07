@@ -15,6 +15,9 @@ function_coverage(fun, code = NULL, env = NULL, enc = parent.frame())
 
 \item{enc}{the enclosing environment which to run the expressions.}
 }
+\value{
+A \link{coverage} object.
+}
 \description{
 Calculate test coverage for a specific function.
 }

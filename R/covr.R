@@ -211,6 +211,7 @@ as_coverage_with_tests <- function(counters) {
 #' @param code expressions to run.
 #' @param env environment the function is defined in.
 #' @param enc the enclosing environment which to run the expressions.
+#' @return A [coverage] object.
 #' @examples
 #' add <- function(x, y) { x + y }
 #' function_coverage(fun = add, code = NULL) # 0% coverage
@@ -264,6 +265,7 @@ function_coverage <- function(
 #'   functions
 #' @param parent_env The parent environment to use when sourcing the files.
 #' @inheritParams package_coverage
+#' @return A [coverage] object.
 #' @examples
 #' # For the purpose of this example, save code containing code and tests to files
 #' cat("add <- function(x, y) { x + y }", file="add.R")
@@ -318,6 +320,7 @@ file_coverage <- function(
 #' @param test_code A character vector of test code
 #' @inheritParams file_coverage
 #' @param ... Additional arguments passed to [file_coverage()]
+#' @return A [coverage] object.
 #' @examples
 #' source <- "add <- function(x, y) { x + y }"
 #' test <- "add(1, 2) == 3"
@@ -348,6 +351,7 @@ code_coverage <- function(
 #'
 #' @param env The environment to be instrumented.
 #' @inheritParams file_coverage
+#' @return A [coverage] object.
 #' @export
 environment_coverage <- function(
   env = parent.frame(),
@@ -432,6 +436,9 @@ environment_coverage <- function(
 #'   tracked. The default, `FALSE`, throws an error (with class `covr_error`)
 #'   on the first failure. The default can be changed with the
 #'   `covr.allow_failures` option, e.g. `options(covr.allow_failures = TRUE)`.
+#' @return A [coverage] object. If `combine_types = FALSE` and more than one
+#'   `type` is run, a list of class `coverages` with one coverage object for
+#'   each type, named by type.
 #' @seealso [exclusions()] For details on excluding parts of the
 #' package from the coverage calculations.
 #' @export

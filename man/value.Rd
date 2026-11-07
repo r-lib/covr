@@ -2,15 +2,24 @@
 % Please edit documentation in R/value.R
 \name{value}
 \alias{value}
-\title{Retrieve the value from an object}
+\title{Retrieve the execution counts from a coverage object}
 \usage{
 value(x, ...)
 }
 \arguments{
-\item{x}{object from which to retrieve the value}
+\item{x}{a \link{coverage} object, or one of its elements.}
 
-\item{...}{additional arguments passed to methods}
+\item{...}{additional arguments passed to methods.}
+}
+\value{
+For a coverage object, a named numeric vector with the number of
+times each traced expression or line was executed, named like the
+elements of \code{x} (see \link{coverage}). For a single element, its count.
 }
 \description{
-Retrieve the value from an object
+Retrieve the execution counts from a coverage object
+}
+\examples{
+cov <- code_coverage("add <- function(x, y) { x + y }", "add(1, 2)")
+value(cov)
 }

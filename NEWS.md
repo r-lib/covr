@@ -1,5 +1,9 @@
 # covr (development version)
 
+* `value()` now works on coverage objects of R code; it previously errored
+  for anything but compiled code. The structure of coverage objects is now
+  documented in `?coverage`, and `as.data.frame()` on a coverage object in
+  `?as.data.frame.coverage` (#564).
 * `report()` now keeps the Files / Source tabs at the top of the page while
   scrolling, and returning to the file list restores its scroll position
   (#232).

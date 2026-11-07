@@ -69,6 +69,11 @@ tracked. The default, \code{FALSE}, throws an error (with class \code{covr_error
 on the first failure. The default can be changed with the
 \code{covr.allow_failures} option, e.g. \code{options(covr.allow_failures = TRUE)}.}
 }
+\value{
+A \link{coverage} object. If \code{combine_types = FALSE} and more than one
+\code{type} is run, a list of class \code{coverages} with one coverage object for
+each type, named by type.
+}
 \description{
 This function calculates the test coverage for a development package on the
 \code{path}. By default it runs only the package tests, but it can also run
