@@ -705,6 +705,9 @@ show_failures <- function(dir) {
   }
 }
 
+# Number of trailing output lines shown by default in the message and print()
+failure_lines <- 50L
+
 covr_error <- function(file) {
   lines <- readLines(file, warn = FALSE)
 
@@ -726,7 +729,7 @@ covr_error <- function(file) {
 }
 
 # R only shows options("warning.length") characters of an error message, so
-# keep the message within that and show as many lines from the end as fit.
+# keep the message within that (and at most `failure_lines` lines) and show as many lines from the end as fit.
 failure_message <- function(file, lines) {
   header <- paste0(
     "Failure in `",
@@ -737,6 +740,9 @@ failure_message <- function(file, lines) {
   budget <- getOption("warning.length") - 9 - nchar(header, "chars")
   if (length(lines) == 0L || budget <= 0L) {
     return(header)
+  }
+  if (length(lines) > failure_lines) {
+    lines <- lines[seq.int(length(lines) - failure_lines + 1L, length(lines))]
   }
   # characters in the last k lines, joined by newlines
   size <- rev(cumsum(rev(nchar(lines, "chars") + 1L))) - 1L
@@ -751,7 +757,7 @@ failure_message <- function(file, lines) {
 }
 
 #' @export
-format.covr_error <- function(x, n = 50, ...) {
+format.covr_error <- function(x, n = failure_lines, ...) {
   out <- x$output
   total <- length(out)
   if (total > n) {
@@ -772,7 +778,7 @@ format.covr_error <- function(x, n = 50, ...) {
 }
 
 #' @export
-print.covr_error <- function(x, n = 50, ...) {
+print.covr_error <- function(x, n = failure_lines, ...) {
   cat(format(x, n = n), "\n", sep = "")
   invisible(x)
 }

@@ -2,9 +2,9 @@
 
 * `covr_error` conditions (and the `covr_warning`s from `allow_failures`) now
   keep the whole failure output in `$output` and its file in `$file`. The
-  message is bounded by `warning.length` measured in characters (it was
-  measured inconsistently in bytes), and `print()` shows the last `n` lines
-  (#570).
+  message shows the last 50 lines and is bounded by `warning.length`
+  measured in characters (it was measured inconsistently in bytes), and
+  `print()` shows the last `n` lines, 50 by default (#570).
 
 * `package_coverage()` now only deletes `install_path` if coverage succeeds,
   so the test output referenced in failure messages can be inspected

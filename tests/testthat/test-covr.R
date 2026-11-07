@@ -120,6 +120,14 @@ test_that("covr_error keeps full output and a bounded message", {
   expect_no_match(msg, "R version header", fixed = TRUE)
 })
 
+test_that("covr_error message is capped at the default number of lines", {
+  withr::local_options(warning.length = 8170)
+  err <- covr_error_for(paste0("line ", 1:120))
+  msg <- strsplit(conditionMessage(err), "\n")[[1]]
+  expect_equal(msg[-1], paste0("line ", 71:120))
+  expect_length(err$output, 121)
+})
+
 test_that("covr_error print shows the last n lines", {
   err <- covr_error_for(paste0("line ", 1:10))
   expect_snapshot({
