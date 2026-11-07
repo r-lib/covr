@@ -367,7 +367,7 @@ bootstrap_page <- function(...) {
 html_dependency_bootstrap <- function() {
   htmltools::htmlDependency(
     name = "bootstrap",
-    version = "3.3.5",
+    version = "3.4.1",
     src = system.file(file = "www/shared/bootstrap", package = "covr"),
     meta = list(viewport = "width=device-width, initial-scale=1"),
     script = c(

@@ -1,27 +1,15 @@
-skip_on_ci <- function() {
-  if (!identical(Sys.getenv("CI"), "true")) {
-    return(invisible(TRUE))
-  }
+test_that("report() bundles bootstrap 3.4.1", {
+  skip_if_not_installed("DT")
+  skip_if_not_installed("htmltools")
 
-  skip("On CI")
-}
+  cov <- code_coverage("f <- function(x) x + 1", "f(1)")
+  file <- report(cov, file = file.path(withr::local_tempdir(), "report.html"))
 
-#test_that("it works with coverage objects", {
-#skip_on_cran()
-#skip_on_ci()
-
-#tmp <- tempfile()
-#set.seed(42)
-#cov <- package_coverage(test_path("TestS4"))
-## Shiny uses its own seed which is not affected by set.seed, so we need to
-## set that as well to have reproducibility
-#g <- shiny:::.globals
-#g$ownSeed <- .Random.seed
-#htmlwidgets::setWidgetIdSeed(42)
-#report(cov, file = tmp, browse = FALSE)
-#simplify_link <- function(x) {
-#rex::re_substitutes(x,
-#rex::rex(capture(or("src", "href")), "=", quote, non_quotes, quote), "\\1=\"\">")
-#}
-#expect_equal(simplify_link(readLines(tmp)), simplify_link(readLines("test-report.htm")))
-#})
+  html <- readLines(file)
+  expect_match(html, "lib/bootstrap-3.4.1/js/bootstrap.min.js", all = FALSE)
+  bootstrap_js <- readLines(
+    file.path(dirname(file), "lib/bootstrap-3.4.1/js/bootstrap.min.js"),
+    n = 2
+  )
+  expect_match(bootstrap_js[[2]], "Bootstrap v3.4.1", fixed = TRUE)
+})
