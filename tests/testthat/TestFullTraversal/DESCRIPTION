@@ -1,0 +1,9 @@
+Package: TestFullTraversal
+Title: Test Full Traversal
+Version: 0.0.0.9000
+Authors@R: "First Last <first.last@example.com> [aut, cre]"
+Description: Functions nested inside lists and environments.
+License: MIT
+Suggests:
+    testthat
+Config/covr/full_traversal: true
