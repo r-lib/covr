@@ -5,6 +5,7 @@
   ggproto methods, can now be traced. This is off by default; enable it for a
   package with `Config/covr/full_traversal: true` in its DESCRIPTION, or with
   `options(covr.full_traversal = TRUE)` (#113).
+
 * New `with_coverage()` measures the coverage of arbitrary code, such as
   `testthat::test_file()`, run against an environment like a package namespace
   loaded with `pkgload::load_all()`. This allows tools such as
