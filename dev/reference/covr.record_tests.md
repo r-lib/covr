@@ -90,16 +90,16 @@ cov[[3]][c("srcref", "tests")]
 
 # reconstruct the code path of a test by ordering test traces by [,"i"]
 lapply(cov, `[[`, "tests")
-#> $`source.R189a6222ae65:6:5:6:9:5:9:6:6`
+#> $`source.R1a062c0ae6a6:6:5:6:9:5:9:6:6`
 #>      test call depth i
 #> [1,]    1    1     2 4
 #> 
-#> $`source.R189a6222ae65:3:7:3:7:7:7:3:3`
+#> $`source.R1a062c0ae6a6:3:7:3:7:7:7:3:3`
 #>      test call depth i
 #> [1,]    1    1     1 1
 #> [2,]    1    1     2 3
 #> 
-#> $`source.R189a6222ae65:4:5:4:9:5:9:4:4`
+#> $`source.R1a062c0ae6a6:4:5:4:9:5:9:4:4`
 #>      test call depth i
 #> [1,]    1    1     1 2
 #> 
