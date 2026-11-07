@@ -246,3 +246,31 @@ test_that("save_trace writes an error marker when serialization fails", {
     class = "covr_error"
   )
 })
+
+test_that("package_coverage reports bad trace files", {
+  code <- paste0(
+    "writeBin(as.raw(1:5), file.path(",
+    "Sys.getenv('COVERAGE_DIR', .libPaths()[1]), 'covr_trace_corrupt'))"
+  )
+  pkg <- test_path("TestSummary")
+
+  expect_error(
+    package_coverage(pkg, type = "none", code = code, quiet = TRUE),
+    "covr_trace_corrupt",
+    class = "covr_error"
+  )
+
+  expect_warning(
+    cov <- package_coverage(
+      pkg,
+      type = "none",
+      code = code,
+      quiet = TRUE,
+      allow_failures = TRUE
+    ),
+    "covr_trace_corrupt",
+    class = "covr_warning"
+  )
+  expect_s3_class(cov, "coverage")
+  expect_gt(length(cov), 0)
+})
