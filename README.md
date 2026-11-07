@@ -146,6 +146,20 @@ packages use covr. `usethis::use_coverage()` adds it for you.
 Covr should be compatible with any testing package, it uses
 `tools::testInstalledPackage()` to run your packages tests.
 
+## Why are tests using `skip_on_cran()` not counted in my coverage? ##
+`package_coverage()` runs your tests non-interactively in a separate R
+process, so testthat assumes it is running on CRAN unless the `NOT_CRAN`
+environment variable is `"true"`. Tests that call `skip_on_cran()` are then
+skipped, and the code they exercise is reported as uncovered. To include
+them, set the variable before computing coverage:
+
+```r
+Sys.setenv(NOT_CRAN = "true")
+package_coverage()
+```
+
+`devtools::test_coverage()` sets `NOT_CRAN` for you.
+
 ## Will covr work with alternative compilers such as ICC ##
 Covr now supports Intel's `icc` compiler, thanks to work contributed by Qin
 Wang at Oracle.
