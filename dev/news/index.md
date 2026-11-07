@@ -2,6 +2,11 @@
 
 ## covr (development version)
 
+- [`report()`](https://covr.r-lib.org/dev/reference/report.md) now keeps
+  the Files / Source tabs at the top of the page while scrolling, and
+  returning to the file list restores its scroll position
+  ([\#232](https://github.com/r-lib/covr/issues/232)).
+
 - Lines of compiled code that gcov reports as only partially executed
   (e.g. `if (x) f();` when `f()` never runs) are no longer dropped from
   the coverage. They count as covered, or as not covered with
