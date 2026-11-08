@@ -56,6 +56,10 @@ result <- list(
 )
 
 if (mode == "instr") {
+  # covr versions that count in C keep pending counts there until synced.
+  if (exists("sync_counts", envir = asNamespace("covr"), inherits = FALSE)) {
+    covr:::sync_counts()
+  }
   counters <- covr:::.counters
   keys <- setdiff(ls(counters, all.names = TRUE), "tests")
   values <- vapply(
