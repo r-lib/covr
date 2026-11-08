@@ -50,3 +50,121 @@ table.table-condensed {
   z-index: 1000;
   background-color: #fff;
 }
+
+.covr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.covr-header h2 {
+  margin-right: 10px;
+}
+
+/* Dark theme, used when `theme.js` adds the `dark` class to <html> */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body,
+html.dark .tabbable > ul.nav-tabs {
+  background-color: #212529;
+  color: #dee2e6;
+}
+
+html.dark a {
+  color: #6ea8fe;
+}
+
+html.dark a:hover,
+html.dark a:focus {
+  color: #9ec5fe;
+}
+
+html.dark pre,
+html.dark div.datatables {
+  color: #dee2e6;
+}
+
+html.dark .nav-tabs {
+  border-bottom-color: #495057;
+}
+
+html.dark .nav-tabs > li > a:hover,
+html.dark .nav-tabs > li > a:focus {
+  background-color: #343a40;
+  border-color: #343a40 #343a40 #495057;
+}
+
+html.dark .nav-tabs > li.active > a,
+html.dark .nav-tabs > li.active > a:hover,
+html.dark .nav-tabs > li.active > a:focus {
+  color: #dee2e6;
+  background-color: #212529;
+  border-color: #495057 #495057 transparent;
+}
+
+html.dark .btn-default {
+  color: #dee2e6;
+  background-color: #343a40;
+  background-image: none;
+  border-color: #495057;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+html.dark .btn-default:hover,
+html.dark .btn-default:focus,
+html.dark .btn-default:active {
+  color: #fff;
+  background-color: #495057;
+  border-color: #6c757d;
+}
+
+html.dark table tbody,
+html.dark table .num,
+html.dark table td.coverage {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+html.dark table.dataTable > thead > tr > th,
+html.dark table.dataTable.no-footer {
+  border-color: #6c757d;
+}
+
+html.dark table.dataTable.row-border > tbody > tr > td {
+  border-top-color: #495057;
+}
+
+/* Based on the Tomorrow Night theme */
+html.dark pre .operator,
+html.dark pre .paren,
+html.dark pre .identifier {
+  color: #c5c8c6;
+}
+
+html.dark pre .literal,
+html.dark pre .number {
+  color: #de935f;
+}
+
+html.dark pre .comment,
+html.dark pre .doctype {
+  color: #969896;
+}
+
+html.dark pre .keyword,
+html.dark pre .id {
+  color: #b294bb;
+}
+
+html.dark pre .string,
+html.dark pre .attribute,
+html.dark pre .value {
+  color: #b5bd68;
+}
+
+html.dark pre .tag,
+html.dark pre .title {
+  color: #81a2be;
+}

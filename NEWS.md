@@ -1,5 +1,9 @@
 # covr (development version)
 
+* `report()` and `file_report()` use a dark theme when the browser prefers
+  one, and have a "Dark mode" button to switch between the light and dark
+  themes, which the browser remembers for other reports (#563).
+
 * `file_coverage()` gains a `runner` argument to choose how test files are
   run. `runner = testthat::test_file` runs them with testthat's test runner,
   so `expect_snapshot()` and other features that need it work (#501).

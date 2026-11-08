@@ -16,6 +16,11 @@
 #' ```r
 #' options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))
 #' ```
+#' @section Dark mode:
+#' The report uses a dark theme if the browser or operating system is set to
+#' prefer one. The "Dark mode" button switches between the light and dark
+#' themes; the browser remembers the choice for other reports until it is
+#' switched back.
 #' @examples
 #' \dontrun{
 #' x <- package_coverage()
@@ -59,28 +64,18 @@ report <- function(
     )
   }
 
-  tints <- coverage_tints(colors)
-
   data <- to_report_data(x)
 
-  # Color the td cells by coverage amount, like codecov.io does
-  color_coverage_callback <- DT::JS(sprintf(
+  # Color the td cells by coverage amount, like codecov.io does. The colors
+  # are CSS variables set by `report_colors_css()`, so they follow the theme.
+  color_coverage_callback <- DT::JS(
     'function(td, cellData, rowData, row, col) {
-  var percent = cellData.replace("%%", "");
-  if (percent >= 90) {
-    var grad = "linear-gradient(90deg, %s " + cellData + ", white " + cellData + ")";
-  } else if (percent >= 75) {
-    var grad = "linear-gradient(90deg, %s " + cellData + ", white " + cellData + ")";
-  } else {
-    var grad = "linear-gradient(90deg, %s " + cellData + ", white " + cellData + ")";
-  }
-  $(td).css("background", grad);
+  var percent = cellData.replace("%", "");
+  var level = percent >= 90 ? "high" : percent >= 75 ? "mid" : "low";
+  $(td).css("background", "linear-gradient(90deg, var(--covr-bar-" + level + ") " + cellData + ", transparent " + cellData + ")");
 }
-',
-    tints[["high"]],
-    tints[["mid"]],
-    tints[["low"]]
-  ))
+'
+  )
 
   # Open a new file in the source tab and switch to it, starting at the top of
   # the file
@@ -118,20 +113,13 @@ report <- function(
   table$sizingPolicy$defaultHeight <- NULL
 
   ui <- fluid_page(
-    htmltools::includeCSS(system.file("www/report.css", package = "covr")),
-    report_colors_css(colors),
+    report_head(colors),
     htmltools::includeScript(system.file("www/report.js", package = "covr")),
     column(
       8,
       offset = 2,
       size = "md",
-      htmltools::HTML(paste0(
-        "<h2>",
-        package_name,
-        " coverage - ",
-        percentage,
-        "</h2>"
-      )),
+      report_header(paste0(package_name, " coverage - ", percentage)),
       tabset_panel(
         tab_panel("Files", table),
         tab_panel("Source", addHighlight(renderSourceTable(data$full)))
@@ -182,13 +170,12 @@ file_report <- function(
   percentage <- data$file_stats$Coverage
 
   ui <- fluid_page(
-    htmltools::includeCSS(system.file("www/report.css", package = "covr")),
-    report_colors_css(colors),
+    report_head(colors),
     column(
       8,
       offset = 2,
       size = "md",
-      htmltools::HTML(paste0("<h2>", file, " - ", percentage, "</h2>")),
+      report_header(paste0(file, " - ", percentage)),
       addHighlight(
         renderSourceTable(data$full, "")
       )
@@ -260,32 +247,57 @@ rgb_alpha <- function(rgb, alpha) {
   sprintf("rgba(%d,%d,%d,%s)", rgb[[1]], rgb[[2]], rgb[[3]], alpha)
 }
 
-# Mix a color with white, keeping `amount` of the color
-rgb_tint <- function(rgb, amount) {
-  rgb_hex(round(255 - (255 - rgb) * amount))
+# Mix a color with a background, white by default, keeping `amount` of the
+# color
+rgb_tint <- function(rgb, amount, background = c(255, 255, 255)) {
+  rgb_hex(round(background - (background - rgb) * amount))
 }
+
+# The background of the dark theme in report.css
+dark_background <- c(33, 37, 41)
 
 # Background colors of the coverage bars in the file list, for files with
 # coverage above 90%, above 75% and below that. The tints of the default colors
-# were picked by hand.
-coverage_tints <- function(colors) {
+# for the light theme were picked by hand.
+coverage_tints <- function(colors, dark = FALSE) {
   covered <- colors[, "covered"]
   missed <- colors[, "missed"]
+  if (dark) {
+    tint <- function(rgb, amount) rgb_tint(rgb, amount * 3, dark_background)
+  } else {
+    tint <- rgb_tint
+  }
   res <- c(
-    high = rgb_tint(covered, 0.12),
-    mid = rgb_tint(covered, 0.06),
-    low = rgb_tint(missed, 0.12)
+    high = tint(covered, 0.12),
+    mid = tint(covered, 0.06),
+    low = tint(missed, 0.12)
   )
-  if (rgb_hex(covered) == default_report_colors[["covered"]]) {
+  if (!dark && rgb_hex(covered) == default_report_colors[["covered"]]) {
     res[c("high", "mid")] <- c("#edfde7", "#f9ffe5")
   }
-  if (rgb_hex(missed) == default_report_colors[["missed"]]) {
+  if (!dark && rgb_hex(missed) == default_report_colors[["missed"]]) {
     res[["low"]] <- "#fcece9"
   }
   if ("partial" %in% colnames(colors)) {
-    res[["mid"]] <- rgb_tint(colors[, "partial"], 0.12)
+    res[["mid"]] <- tint(colors[, "partial"], 0.12)
   }
   res
+}
+
+# CSS variables with the colors of the coverage bars, for the light theme and
+# the dark one
+coverage_tints_css <- function(colors) {
+  vars <- function(tints) {
+    paste0("  --covr-bar-", names(tints), ":", tints, ";\n", collapse = "")
+  }
+  paste0(
+    ":root{\n",
+    vars(coverage_tints(colors)),
+    "}\n",
+    "html.dark{\n",
+    vars(coverage_tints(colors, dark = TRUE)),
+    "}\n"
+  )
 }
 
 report_colors_css <- function(colors) {
@@ -321,7 +333,37 @@ report_colors_css <- function(colors) {
     },
     character(1)
   )
-  htmltools::tags$style(htmltools::HTML(paste(rules, collapse = "")))
+  htmltools::tags$style(htmltools::HTML(paste0(
+    paste(rules, collapse = ""),
+    coverage_tints_css(colors)
+  )))
+}
+
+# The styles and the script that picks the light or dark theme, which is in
+# the <head> so the page is never shown in the wrong theme
+report_head <- function(colors) {
+  htmltools::tagList(
+    htmltools::includeCSS(system.file("www/report.css", package = "covr")),
+    report_colors_css(colors),
+    htmltools::tags$head(
+      htmltools::includeScript(system.file("www/theme.js", package = "covr"))
+    )
+  )
+}
+
+report_header <- function(title) {
+  htmltools::div(
+    class = "covr-header",
+    htmltools::h2(title),
+    htmltools::tags$button(
+      type = "button",
+      class = "btn btn-default btn-sm covr-theme-toggle",
+      `aria-pressed` = "false",
+      title = "Switch between the light and dark themes",
+      htmltools::span(`aria-hidden` = "true", htmltools::HTML("&#9680;")),
+      " Dark mode"
+    )
+  )
 }
 
 to_report_data <- function(x) {

@@ -35,6 +35,14 @@ coverage, which otherwise follow \code{covered}.
 }\if{html}{\out{</div>}}
 }
 
+\section{Dark mode}{
+
+The report uses a dark theme if the browser or operating system is set to
+prefer one. The "Dark mode" button switches between the light and dark
+themes; the browser remembers the choice for other reports until it is
+switched back.
+}
+
 \examples{
 \dontrun{
 x <- package_coverage()
