@@ -426,6 +426,32 @@ test_that("save_trace writes an error marker when serialization fails", {
   )
 })
 
+test_that("save_trace does not save the environments of lazy-loaded srcfiles", {
+  # The srcfiles of installed packages have promises to lazy-load their lines
+  # and parse data, evaluated in an environment that references the
+  # environments of the package (#602).
+  pkg_env <- new.env()
+  srcfile <- srcfilecopy("R/f.R", character())
+  delayedAssign("lines", "f <- function() 1", pkg_env, srcfile)
+  delayedAssign("parseData", NULL, pkg_env, srcfile)
+  clear_counters()
+  withr::defer(clear_counters())
+  new_counter(srcref(srcfile, c(1, 1, 1, 17, 1, 17, 1, 1)), "f")
+
+  local_mocked_bindings(
+    save_rds = function(object, file) {
+      saveRDS(object, file, refhook = function(env) {
+        if (identical(env, pkg_env)) stop("saved the package environment")
+      })
+    }
+  )
+  trace <- merge_coverage(save_trace(withr::local_tempdir()))
+  expect_equal(
+    getSrcLines(attr(trace[[1]]$srcref, "srcfile"), 1, 1),
+    "f <- function() 1"
+  )
+})
+
 test_that("package_coverage reports bad trace files", {
   code <- paste0(
     "writeBin(as.raw(1:5), file.path(",
