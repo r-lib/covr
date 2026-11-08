@@ -14,6 +14,14 @@
   part of a package while its tests run, by default with
   `shinytest2::test_app()`, including the code run by the app in the R
   processes that shinytest2 starts (#277).
+* `file_coverage()` can now measure the coverage of a package's compiled code
+  in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
+  which is much faster than `package_coverage()` (#605). It loads the package
+  with `pkgload::load_all()`, builds an instrumented copy of it in the
+  session's temporary directory, and only recompiles the files that changed
+  on later runs. `environment_coverage()` and `with_coverage()` also include
+  the compiled code of packages loaded with `pkgload::load_all()`, so
+  `devtools::test_coverage_active_file()` now works for files in `src/`.
 
 * New `report_html()` and `file_report_html()` return the coverage reports of
   `report()` and `file_report()` as HTML that can be included in a larger
@@ -54,14 +62,6 @@
   `initialize()` methods of R6 classes, listed each other's lines, so Codecov
   showed line numbers past the end of the file and a different coverage than
   `print()` (#629).
-* `file_coverage()` can now measure the coverage of a package's compiled code
-  in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
-  which is much faster than `package_coverage()` (#605). It loads the package
-  with `pkgload::load_all()`, builds an instrumented copy of it in the
-  session's temporary directory, and only recompiles the files that changed
-  on later runs. `environment_coverage()` and `with_coverage()` also include
-  the compiled code of packages loaded with `pkgload::load_all()`, so
-  `devtools::test_coverage_active_file()` now works for files in `src/`.
 
 * Compiled code coverage now reads gcov's structured JSON output
   (`gcov --json-format`) when gcov supports it (gcc >= 9), instead of parsing
