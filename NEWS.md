@@ -1,5 +1,8 @@
 # covr (development version)
 
+* New `vignette("shiny")` describes how to measure the coverage of Shiny apps,
+  including tests run with shinytest2 and apps that aren't in a package (#277).
+
 * `package_coverage()` now measures the coverage of installed packages, e.g.
   `package_coverage(system.file(package = "pkg"))`, so the package source isn't
   needed. Previously it silently returned no coverage. The package must be
@@ -16,8 +19,6 @@
     loop, like tests with srcrefs. Each run was recorded as a new test, and
     finding the test got slower with every run, so the coverage of bitops
     never finished.
-* New `vignette("shiny")` describes how to measure the coverage of Shiny apps,
-  including tests run with shinytest2 and apps that aren't in a package (#277).
 
 * `to_cobertura()` now only lists the lines of a method from the file it is
   defined in. Previously methods sharing a name across files, such as the
