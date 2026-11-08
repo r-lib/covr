@@ -5,11 +5,19 @@
 #' @param parent_functions the functions which this call is a child of.
 #' @param parent_ref argument used to set the srcref of the current call during
 #'   the recursion.
+#' @param impute_ref a function returning the srcref of the current call, if it
+#'   has no srcref of its own. It is only called to impute srcrefs for nested
+#'   conditionals, so the expressions in their branches get their own counters.
 #' @seealso <http://adv-r.had.co.nz/Expressions.html>
 #' @return a modified expression with count calls inserted before each previous
 #' call.
 #' @keywords internal
-trace_calls <- function(x, parent_functions = NULL, parent_ref = NULL) {
+trace_calls <- function(
+  x,
+  parent_functions = NULL,
+  parent_ref = NULL,
+  impute_ref = NULL
+) {
   # Construct the calls by hand to avoid a NOTE from R CMD check
   count <- function(key, val) {
     call(
@@ -29,6 +37,35 @@ trace_calls <- function(x, parent_functions = NULL, parent_ref = NULL) {
   recurse <- function(y) {
     lapply(y, trace_calls, parent_functions = parent_functions)
   }
+  # `ref` is a function returning the srcref of `y`. The srcrefs of the
+  # components of `y` are only looked up in the parse data when a conditional
+  # nested in them needs one, and then only once for all of them.
+  recurse_imputed <- function(y, ref) {
+    if (is.null(ref)) {
+      return(recurse(y))
+    }
+    refs <- NULL
+    child_ref <- function(i) {
+      force(i)
+      function() {
+        if (is.null(refs)) {
+          refs <<- impute_child_srcrefs(y, ref()) %||% list()
+        }
+        if (i <= length(refs)) refs[[i]]
+      }
+    }
+    Map(
+      function(z, i) {
+        trace_calls(
+          z,
+          parent_functions = parent_functions,
+          impute_ref = child_ref(i)
+        )
+      },
+      y,
+      seq_along(y)
+    )
+  }
 
   if (is.atomic(x) || is.name(x) || is.null(x)) {
     if (is.null(parent_ref)) {
@@ -42,7 +79,10 @@ trace_calls <- function(x, parent_functions = NULL, parent_ref = NULL) {
       }
     }
   } else if (is.call(x)) {
-    src_ref <- attr(x, "srcref") %||% impute_srcref(x, parent_ref)
+    # `impute_srcref()` only evaluates its `parent_ref` argument for
+    # conditionals, so `impute_ref()` is not called for other calls.
+    src_ref <- attr(x, "srcref") %||%
+      impute_srcref(x, parent_ref %||% (if (!is.null(impute_ref)) impute_ref()))
     if (
       (identical(x[[1]], as.name("<-")) || identical(x[[1]], as.name("="))) && # nolint
         (is.call(x[[3]]) && identical(x[[3]][[1]], as.name("function")))
@@ -67,9 +107,9 @@ trace_calls <- function(x, parent_functions = NULL, parent_ref = NULL) {
       ))
     } else if (!is.null(parent_ref)) {
       key <- new_counter(parent_ref, parent_functions)
-      count(key, as.call(recurse(x)))
+      count(key, as.call(recurse_imputed(x, function() parent_ref)))
     } else {
-      as.call(recurse(x))
+      as.call(recurse_imputed(x, impute_ref))
     }
   } else if (is.function(x)) {
     # We cannot trace primitive functions
@@ -85,7 +125,14 @@ trace_calls <- function(x, parent_functions = NULL, parent_ref = NULL) {
     ) {
       src_ref <- attr(x, "srcref")
       key <- new_counter(src_ref, parent_functions)
-      fun_body <- count(key, trace_calls(fun_body, parent_functions))
+      fun_body <- count(
+        key,
+        trace_calls(
+          fun_body,
+          parent_functions,
+          impute_ref = function() impute_body_srcref(src_ref)
+        )
+      )
     } else {
       fun_body <- trace_calls(fun_body, parent_functions)
     }

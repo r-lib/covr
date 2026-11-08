@@ -3,11 +3,98 @@ impute_srcref <- function(x, parent_ref) {
   if (!is_conditional_or_loop(x)) {
     return(NULL)
   }
+  children <- parse_children(parent_ref)
+  if (is.null(children)) {
+    return(NULL)
+  }
+  pd_child <- children$pd_child
+  pd <- children$pd
+  make_srcref <- children$make_srcref
+  impute_conditional(x, pd, pd_child, make_srcref)
+}
+
+# Srcrefs for the components of a call without its own srcrefs, used only to
+# find conditionals nested in it (e.g. `x <- if (a) b else c`), so the
+# expressions in their branches get their own counters (#279).
+impute_child_srcrefs <- function(x, parent_ref) {
+  children <- parse_children(parent_ref)
+  if (is.null(children)) {
+    return(NULL)
+  }
+  pd_child <- children$pd_child
+  make_srcref <- children$make_srcref
+  token <- pd_child$token
+  n <- length(token)
+  if (n == 0 || any(token == "PIPE")) {
+    return(NULL)
+  }
+  is_expr <- token == "expr"
+
+  res <- if (token[[1]] == "FUNCTION" || token[[1]] == "'\\\\'") {
+    # function definition: only the body (the last expression) is imputed
+    list(NULL, NULL, make_srcref(max(which(is_expr))), NULL)[seq_along(x)]
+  } else if (n == 3 && is_expr[[1]] && is_expr[[3]] && !is_expr[[2]]) {
+    if (token[[2]] == "RIGHT_ASSIGN") {
+      list(NULL, make_srcref(3), make_srcref(1))
+    } else {
+      list(NULL, make_srcref(1), make_srcref(3))
+    }
+  } else if (n == 2 && is_expr[[2]]) {
+    list(NULL, make_srcref(2))
+  } else if (n == 3 && token[[1]] == "'('" && is_expr[[2]]) {
+    list(NULL, make_srcref(2))
+  } else if (n >= 3 && is_expr[[1]] && token[[2]] %in% c("'('", "'['", "LBB")) {
+    # function call or subset: one argument per separator
+    args <- list()
+    current <- NULL
+    for (i in seq(3, n)) {
+      if (token[[i]] %in% c("','", "')'", "']'")) {
+        args[length(args) + 1L] <- list(current)
+        current <- NULL
+        if (token[[i]] != "','") break
+      } else if (is_expr[[i]]) {
+        current <- make_srcref(i)
+      }
+    }
+    # `f()` has no arguments but still produces one empty slot
+    if (identical(token[[3]], "')'")) {
+      args <- list()
+    }
+    c(list(NULL), args)
+  } else {
+    NULL
+  }
+
+  if (length(res) != length(x)) {
+    return(NULL)
+  }
+  res
+}
+
+# The srcref of the body of a function, given the srcref of the function.
+impute_body_srcref <- function(fun_ref) {
+  children <- parse_children(fun_ref)
+  if (is.null(children)) {
+    return(NULL)
+  }
+  is_expr <- children$pd_child$token == "expr"
+  if (!any(is_expr)) {
+    return(NULL)
+  }
+  children$make_srcref(max(which(is_expr)))
+}
+
+# Locate `parent_ref` in the parse data and return its child tokens, along with
+# a function to create srcrefs for them.
+parse_children <- function(parent_ref) {
   if (is.null(parent_ref)) {
     return(NULL)
   }
 
   pd <- get_tokens(parent_ref)
+  if (is.null(pd)) {
+    return(NULL)
+  }
   pd_expr <-
     ((pd$line1 == parent_ref[[1L]] & pd$line2 == parent_ref[[3L]]) |
       (pd$line1 == parent_ref[[7L]] & pd$line2 == parent_ref[[8L]])) &
@@ -24,11 +111,10 @@ impute_srcref <- function(x, parent_ref) {
   }
 
   expr_id <- pd$id[pd_expr_idx]
-  pd_child <- pd[pd$parent == expr_id, ]
-  pd_child <- pd_child[order(pd_child$line1, pd_child$col1), ]
-
-  # exclude comments
-  pd_child <- pd_child[pd_child$token != "COMMENT", ]
+  # Subset the data frame once, excluding comments, as `[.data.frame` is slow
+  rows <- which(pd$parent == expr_id & pd$token != "COMMENT")
+  rows <- rows[order(pd$line1[rows], pd$col1[rows])]
+  pd_child <- pd[rows, ]
 
   # For `lhs |> call(...)` the srcref covers the whole pipe expression. Use the
   # parse data of the call on the right-hand side, with `lhs` inserted as its
@@ -79,6 +165,10 @@ impute_srcref <- function(x, parent_ref) {
     )
   }
 
+  list(pd = pd, pd_child = pd_child, make_srcref = make_srcref)
+}
+
+impute_conditional <- function(x, pd, pd_child, make_srcref) {
   switch(
     as.character(x[[1L]]),
     "if" = {
