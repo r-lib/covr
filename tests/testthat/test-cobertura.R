@@ -65,3 +65,49 @@ test_that("methods only list the lines of their own file (#629)", {
   expect_equal(method_lines(b), "13")
   expect_equal(xml2::xml_attr(method(b), "line-rate"), "0")
 })
+
+test_that("lines with branches have their condition coverage", {
+  tmp <- tempfile()
+  cov <- branch_coverage(
+    c(
+      "f <- function(x) {",
+      "  if (x > 0) 'positive'",
+      "  'done'",
+      "}",
+      "g <- function(x) switch(x, a = 1, b = 2)",
+      "h <- function() 1"
+    ),
+    "f(1); g('a')"
+  )
+  to_cobertura(cov, filename = tmp)
+  doc <- xml2::read_xml(tmp)
+
+  top <- xml2::xml_find_first(doc, "/coverage")
+  expect_equal(xml2::xml_attr(top, "branches-valid"), "5")
+  expect_equal(xml2::xml_attr(top, "branches-covered"), "2")
+  expect_equal(xml2::xml_attr(top, "branch-rate"), "0.4")
+
+  lines <- xml2::xml_find_all(doc, "//class/lines/line")
+  expect_equal(xml2::xml_attr(lines, "number"), c("2", "3", "5", "6"))
+  expect_equal(
+    xml2::xml_attr(lines, "branch"),
+    c("true", "false", "true", "false")
+  )
+  expect_equal(
+    xml2::xml_attr(lines, "condition-coverage"),
+    c("50% (1/2)", NA, "33% (1/3)", NA)
+  )
+
+  methods <- xml2::xml_find_all(doc, "//method")
+  expect_equal(xml2::xml_attr(methods, "name"), c("f", "g", "h"))
+  # Code without branches has a branch rate of one
+  expect_equal(
+    xml2::xml_attr(methods, "branch-rate"),
+    as.character(c(1 / 2, 1 / 3, 1))
+  )
+  method_lines <- xml2::xml_find_all(doc, "//method/lines/line")
+  expect_equal(
+    xml2::xml_attr(method_lines, "condition-coverage"),
+    c("50% (1/2)", NA, "33% (1/3)", NA)
+  )
+})

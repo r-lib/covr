@@ -28,6 +28,12 @@ report()
 \code{covr} uses the following \code{\link[=options]{options()}} to configure behaviour:
 
 \itemize{
+\item \code{covr.branch_coverage}: If \code{TRUE} (default \code{FALSE}), also record
+which branches of each \code{if} and \code{switch()} in R code were taken. This
+is experimental. It must be set before the code is instrumented, e.g.
+before calling \code{package_coverage()}. For more details, see
+\code{?covr.branch_coverage}.
+
 \item \code{covr.covrignore}: A filename to use as an ignore file,
 listing glob-style wildcarded paths of files to ignore for coverage
 calculations. Defaults to the value of environment variable

@@ -79,10 +79,14 @@ trace_calls <- function(
       }
     }
   } else if (is.call(x)) {
-    # `impute_srcref()` only evaluates its `parent_ref` argument for
-    # conditionals, so `impute_ref()` is not called for other calls.
-    src_ref <- attr(x, "srcref") %||%
-      impute_srcref(x, parent_ref %||% (if (!is.null(impute_ref)) impute_ref()))
+    # `impute_srcref()` only needs the srcref of conditionals, so `impute_ref()`
+    # is not called for other calls.
+    src_ref <- attr(x, "srcref")
+    own_ref <- NULL
+    if (is.null(src_ref) && is_conditional_or_loop(x)) {
+      own_ref <- parent_ref %||% (if (!is.null(impute_ref)) impute_ref())
+      src_ref <- impute_srcref(x, own_ref)
+    }
     if (
       (identical(x[[1]], as.name("<-")) || identical(x[[1]], as.name("="))) && # nolint
         (is.call(x[[3]]) && identical(x[[3]][[1]], as.name("function")))
@@ -99,12 +103,18 @@ trace_calls <- function(
     ) {
       as.call(x)
     } else if (!is.null(src_ref)) {
-      as.call(Map(
+      res <- as.call(Map(
         trace_calls,
         x,
         src_ref,
         MoreArgs = list(parent_functions = parent_functions)
       ))
+      # Branch coverage is opt-in, and only changes the instrumentation when
+      # it is enabled (#279).
+      if (!is.null(own_ref) && isTRUE(getOption("covr.branch_coverage"))) {
+        res <- trace_branches(res, x, own_ref, parent_functions)
+      }
+      res
     } else if (!is.null(parent_ref)) {
       key <- new_counter(parent_ref, parent_functions)
       count(key, as.call(recurse_imputed(x, function() parent_ref)))
@@ -137,7 +147,11 @@ trace_calls <- function(
       fun_body <- trace_calls(fun_body, parent_functions)
     }
 
-    new_formals <- trace_calls(formals(x), parent_functions)
+    new_formals <- trace_formals(
+      formals(x),
+      parent_functions,
+      attr(x, "srcref")
+    )
     if (is.null(new_formals)) {
       new_formals <- list()
     }
@@ -221,9 +235,13 @@ clear_counters <- function() {
 
 # Set the counts of all traces to zero, keeping the traces themselves.
 zero_counters <- function() {
-  for (key in setdiff(ls(.counters, all.names = TRUE), "tests")) {
+  for (key in setdiff(
+    ls(.counters, all.names = TRUE),
+    c("tests", "branches")
+  )) {
     .counters[[key]]$value <- 0
   }
+  zero_branches()
 }
 
 #' Generate a key for a  call
@@ -232,4 +250,29 @@ zero_counters <- function() {
 #' @keywords internal
 key <- function(x) {
   paste(collapse = ":", c(get_source_filename(x), x))
+}
+
+# Trace the default values of the arguments of a function whose srcref is
+# `fun_ref`, with srcrefs for conditionals in them, so their branches get
+# their own counters as in the body (see `impute_formal_srcrefs()`). The
+# parse data is only looked up if a conditional needs it.
+trace_formals <- function(x, parent_functions, fun_ref) {
+  if (is.null(x) || is.null(fun_ref)) {
+    return(trace_calls(x, parent_functions))
+  }
+  refs <- NULL
+  formal_ref <- function(i) {
+    force(i)
+    function() {
+      if (is.null(refs)) {
+        refs <<- impute_formal_srcrefs(fun_ref) %||% list()
+      }
+      if (i <= length(refs)) refs[[i]]
+    }
+  }
+  res <- lapply(seq_along(x), function(i) {
+    trace_calls(x[[i]], parent_functions, impute_ref = formal_ref(i))
+  })
+  names(res) <- names(x)
+  as.pairlist(res)
 }

@@ -120,6 +120,15 @@ exclude <- function(
   # coverage, e.g. the `# nocov` lines of a function defined in a function.
   attr(coverage, "excluded_lines") <- excluded_lines(df[!to_exclude, ], excl)
 
+  # A decision is excluded with its first line, along with all its branches.
+  if (!is.null(attr(coverage, "branches"))) {
+    attr(coverage, "branches") <- exclude_branches(
+      attr(coverage, "branches"),
+      excl,
+      function_exclusions
+    )
+  }
+
   coverage
 }
 

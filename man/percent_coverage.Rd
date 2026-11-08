@@ -9,7 +9,8 @@ percent_coverage(x, ...)
 \arguments{
 \item{x}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
 
-\item{...}{additional arguments passed to \code{\link[=tally_coverage]{tally_coverage()}}}
+\item{...}{additional arguments passed to \code{\link[=tally_coverage]{tally_coverage()}}, such as \code{by = "branch"} for the percentage of branches taken (see
+\link{covr.branch_coverage}).}
 }
 \value{
 The total percentage as a \code{numeric(1)}.

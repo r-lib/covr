@@ -11,8 +11,14 @@
 #' has a single `DA` record: when several functions share a line, the line's
 #' count is the smallest of theirs, so a line only counts as covered if all its
 #' code was run, as in [report()], [percent_coverage()] and [codecov()]. A
-#' function's count is the largest count of any of its expressions. Branch
-#' coverage is not recorded.
+#' function's count is the largest count of any of its expressions.
+#'
+#' Branches are only recorded if they were measured with
+#' `options(covr.branch_coverage = TRUE)` (see [covr.branch_coverage]). Each
+#' branch gets a `BRDA` record on the line where its `if` or `switch()`
+#' starts, numbered from zero within each `if` or `switch()`. Its count is `-`
+#' if the `if` or `switch()` never ran. `BRF` and `BRH` give the number of
+#' branches and the number of branches taken.
 #'
 #' Source file paths (`SF`) are written as covr reports them, for a package
 #' relative to the package root, so tools such as `genhtml` should be run from
@@ -33,8 +39,15 @@
 to_lcov <- function(cov, filename = "lcov.info") {
   lines <- collapse_lines(tally_coverage(cov, by = "line"))
   funs <- tally_coverage(cov, by = "function")
+  branches <- if (!is.null(attr(cov, "branches"))) {
+    tally_coverage(cov, by = "branch")
+  }
 
-  files <- sort(unique(as.character(c(lines$filename, funs$filename))))
+  files <- sort(unique(as.character(c(
+    lines$filename,
+    funs$filename,
+    branches$filename
+  ))))
 
   out <- unlist(lapply(files, function(f) {
     file_lines <- lines[lines$filename == f, , drop = FALSE]
@@ -46,6 +59,9 @@ to_lcov <- function(cov, filename = "lcov.info") {
       lcov_records("FNDA", file_funs$value, file_funs$functions),
       paste0("FNF:", NROW(file_funs)),
       paste0("FNH:", sum(file_funs$value > 0)),
+      if (!is.null(branches)) {
+        lcov_branches(branches[branches$filename == f, , drop = FALSE])
+      },
       lcov_records("DA", file_lines$line, lcov_count(file_lines$value)),
       paste0("LF:", NROW(file_lines)),
       paste0("LH:", sum(file_lines$value > 0)),
@@ -70,4 +86,29 @@ lcov_records <- function(key, count, value) {
 
 lcov_count <- function(x) {
   sprintf("%.0f", x)
+}
+
+# The `BRDA`, `BRF` and `BRH` records of the branches of one file, from
+# `tally_coverage(by = "branch")`. A branch's count is `-` if its `if` or
+# `switch()` never ran.
+lcov_branches <- function(df) {
+  decision <- paste(df$line, df$column)
+  ran <- ave(df$value, decision, FUN = sum) > 0
+  taken <- ifelse(ran, lcov_count(df$value), "-")
+  c(
+    if (NROW(df)) {
+      paste0(
+        "BRDA:",
+        df$line,
+        ",",
+        branch_blocks(df),
+        ",",
+        df$branch - 1L,
+        ",",
+        taken
+      )
+    },
+    paste0("BRF:", NROW(df)),
+    paste0("BRH:", sum(df$value > 0))
+  )
 }

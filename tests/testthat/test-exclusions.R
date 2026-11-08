@@ -281,3 +281,29 @@ describe("covrignore", {
     })
   })
 })
+
+test_that("excluding the first line of an `if` or `switch()` excludes its branches", {
+  cov <- branch_coverage(
+    c(
+      "f <- function(x) {",
+      "  if (x) 'yes' # nocov",
+      "  if (!x) 'no'",
+      "  # nocov start",
+      "  switch(x,",
+      "    a = 1",
+      "  )",
+      "  # nocov end",
+      "}",
+      "g <- function(x) if (x) 1"
+    ),
+    "f(TRUE); g(TRUE)"
+  )
+  res <- tally_coverage(cov, by = "branch")
+  expect_equal(res$line, c(3, 3, 10, 10))
+
+  res <- tally_coverage(
+    exclude(cov, function_exclusions = "^g$"),
+    by = "branch"
+  )
+  expect_equal(res$line, c(3, 3))
+})

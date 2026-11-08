@@ -2,14 +2,15 @@
 % Please edit documentation in R/summary_functions.R
 \name{tally_coverage}
 \alias{tally_coverage}
-\title{Tally coverage by line, expression or function}
+\title{Tally coverage by line, expression, function or branch}
 \usage{
-tally_coverage(x, by = c("line", "expression", "function"))
+tally_coverage(x, by = c("line", "expression", "function", "branch"))
 }
 \arguments{
 \item{x}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
 
-\item{by}{whether to tally coverage by line, expression or function}
+\item{by}{whether to tally coverage by line, expression, function or
+branch}
 }
 \value{
 A \code{data.frame}. With \code{by = "expression"} it is the same as
@@ -30,9 +31,16 @@ the columns \code{filename}, \code{functions}, \code{first_line}, \code{last_lin
 code and \code{value} is the largest execution count of its expressions, so a
 function counts as covered if any of its code was run. Compiled code has
 no function names, so it is left out.
+
+With \code{by = "branch"} it has one row for each branch measured with
+\code{options(covr.branch_coverage = TRUE)} (see \link{covr.branch_coverage}), and
+the columns \code{filename}, \code{functions}, \code{line} and \code{column} (where the \code{if}
+or \code{switch()} starts), \code{branch} (the index of the branch in its \code{if} or
+\code{switch()}), \code{label} and \code{value}, the number of times the branch was
+taken. It has no rows if branch coverage wasn't measured.
 }
 \description{
-Tally coverage by line, expression or function
+Tally coverage by line, expression, function or branch
 }
 \examples{
 cov <- code_coverage(

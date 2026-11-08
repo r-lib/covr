@@ -27,8 +27,14 @@ Each source file gets a record with its functions (\code{FN}, \code{FNDA}, \code
 has a single \code{DA} record: when several functions share a line, the line's
 count is the smallest of theirs, so a line only counts as covered if all its
 code was run, as in \code{\link[=report]{report()}}, \code{\link[=percent_coverage]{percent_coverage()}} and \code{\link[=codecov]{codecov()}}. A
-function's count is the largest count of any of its expressions. Branch
-coverage is not recorded.
+function's count is the largest count of any of its expressions.
+
+Branches are only recorded if they were measured with
+\code{options(covr.branch_coverage = TRUE)} (see \link{covr.branch_coverage}). Each
+branch gets a \code{BRDA} record on the line where its \code{if} or \code{switch()}
+starts, numbered from zero within each \code{if} or \code{switch()}. Its count is \code{-}
+if the \code{if} or \code{switch()} never ran. \code{BRF} and \code{BRH} give the number of
+branches and the number of branches taken.
 
 Source file paths (\code{SF}) are written as covr reports them, for a package
 relative to the package root, so tools such as \code{genhtml} should be run from

@@ -823,3 +823,32 @@ test_that("a line is only covered if all its expressions ran (#620)", {
 
   expect_equal(json$files$coverage[[1]], c(NA, NA, 1, 0, NA, NA, 0))
 })
+
+test_that("with branch coverage, lines with branches have the branches taken", {
+  cov <- branch_coverage(
+    c(
+      "f <- function(x) {",
+      "  if (x) 'yes' else if (!x) 'no'",
+      "  switch(as.character(x), 'TRUE' = 1)",
+      "}",
+      "g <- function(x) if (x) 1"
+    ),
+    "f(TRUE)"
+  )
+  json <- jsonlite::fromJSON(to_codecov(cov), simplifyVector = FALSE)
+
+  expect_named(json, "coverage")
+  expect_length(json$coverage, 1)
+  # Line 2 has two `if`s, of which one branch was taken
+  expect_equal(
+    json$coverage[[1]],
+    list(NULL, NULL, "1/4", "1/2", NULL, "0/2")
+  )
+})
+
+test_that("without branch coverage, the report is in the R format", {
+  cov <- code_coverage("f <- function(x) if (x) 1", "f(TRUE)")
+  json <- jsonlite::fromJSON(to_codecov(cov))
+  expect_equal(json$uploader, "R")
+  expect_equal(json$files$coverage[[1]], c(NA, 1))
+})
