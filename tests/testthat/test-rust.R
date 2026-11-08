@@ -40,25 +40,72 @@ test_that("Rust code coverage is skipped with a warning without the tools", {
   )
 })
 
-test_that("A missing profiler runtime is reported (#728)", {
-  local_mocked_bindings(
-    rust_toolchain = function(dir) {
-      list(
-        rustc = "rustc",
-        target = "x86_64-pc-windows-gnu",
-        llvm_cov = "llvm-cov",
-        llvm_profdata = "llvm-profdata"
-      )
-    }
-  )
-  expect_snapshot(
-    rust <- rust_coverage_setup(
-      test_path("TestRust"),
-      "rust/Cargo.toml",
-      withr::local_tempdir()
+test_that("Missing parts of the Rust toolchain are reported (#728)", {
+  skip_on_os("windows")
+  setup <- function(...) {
+    local_mocked_bindings(rust_toolchain = function(dir) list(...))
+    rust_coverage_setup(test_path("TestRust"), withr::local_tempdir())
+  }
+  expect_snapshot({
+    rust <- setup(
+      rustc = "rustc",
+      llvm_cov = "llvm-cov",
+      llvm_profdata = "llvm-profdata"
     )
-  )
+    # e.g. the toolchain pinned by a package's `rust-toolchain.toml`
+    rust <- setup(
+      rustc = "rustc",
+      rustup_toolchain = "1.88.0-x86_64-unknown-linux-gnu",
+      profiler_runtime = "libprofiler_builtins.rlib"
+    )
+  })
   expect_null(rust)
+})
+
+test_that("Only code compiled by the checked toolchain is instrumented (#728)", {
+  skip_on_os("windows")
+  dir <- withr::local_tempdir()
+  # A rustc that prints its sysroot, or the arguments it compiles with
+  fake_rustc <- function(toolchain) {
+    sysroot <- file.path(dir, toolchain)
+    dir.create(sysroot)
+    rustc <- file.path(sysroot, "rustc")
+    writeLines(
+      c(
+        "#!/bin/sh",
+        sprintf(
+          "if [ \"$1\" = --print ]; then echo %s; else echo \"$@\"; fi",
+          shQuote(sysroot)
+        )
+      ),
+      rustc
+    )
+    Sys.chmod(rustc, "755")
+    rustc
+  }
+  stable <- fake_rustc("stable")
+  pinned <- fake_rustc("pinned")
+  rust <- list(build_dir = file.path(dir, "build"), sysroot = dirname(stable))
+  dir.create(rust$build_dir)
+  wrapper <- rust_coverage_wrapper(rust$build_dir, rust$sysroot)
+  compile <- function(rustc) {
+    system2(wrapper, c(rustc, "--crate-name", "pkg"), stdout = TRUE)
+  }
+
+  expect_equal(compile(pinned), "--crate-name pkg")
+  expect_snapshot(
+    expect_null(rust_check_build(rust)),
+    transform = function(x) gsub(dir, "<dir>", x, fixed = TRUE)
+  )
+
+  dir.create(rust$build_dir)
+  wrapper <- rust_coverage_wrapper(rust$build_dir, rust$sysroot)
+  expect_equal(compile(stable), "--crate-name pkg -C instrument-coverage")
+  expect_equal(rust_check_build(rust), rust)
+
+  # cargo didn't compile anything, e.g. because of a prebuilt library
+  dir.create(rust$build_dir)
+  expect_snapshot(expect_null(rust_check_build(rust)))
 })
 
 test_that("The system's llvm tools need rustc's LLVM version (#728)", {

@@ -276,9 +276,9 @@ instead, e.g. `apt-get install llvm-18` if `rustc -vV` shows
 Without the tools covr warns and reports no coverage for the Rust code. Set
 `options(covr.llvm_cov = "")` to turn off the coverage of Rust code.
 
-This doesn't work on Windows on x86_64 yet, as rustup's Rust for the GNU ABI
-that Rtools uses (`x86_64-pc-windows-gnu`) doesn't include the profiler
-runtime that writes the coverage counts.
+This isn't supported on Windows, as rustup's Rust for the GNU ABI that Rtools
+uses (`x86_64-pc-windows-gnu`) doesn't include the profiler runtime that
+writes the coverage counts.
 
 ## How does covr work? ##
 `covr` tracks test coverage by modifying a package's code to add tracking calls

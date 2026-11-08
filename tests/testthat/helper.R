@@ -8,8 +8,8 @@ is_win_r41 <- function() {
 }
 
 # The tests with the TestRust package need rustc and the tools to measure the
-# coverage of Rust code (`rustup component add llvm-tools`). On Windows,
-# rustup's x86_64-pc-windows-gnu target has no profiler runtime.
+# coverage of Rust code (`rustup component add llvm-tools`), which isn't
+# supported on Windows.
 skip_if_no_rust_coverage <- function() {
   skip_on_os("windows")
   toolchain <- rust_toolchain(".")

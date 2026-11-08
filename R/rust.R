@@ -36,45 +36,48 @@ drop_rust_dependencies <- function(coverage, roots) {
 }
 
 # Find the tools needed to measure the coverage of the package's Rust code, and
-# the build options and environment for it. `manifests` are the package's
-# `Cargo.toml` files. Returns `NULL` if `options(covr.llvm_cov = "")` turns
-# this off, or the tools can't be found, which gives a warning.
-rust_coverage_setup <- function(path, manifests, install_path) {
+# the build options and environment for it. Returns `NULL` if
+# `options(covr.llvm_cov = "")` turns this off, or the tools can't be found,
+# which gives a warning.
+rust_coverage_setup <- function(path, install_path) {
   if (identical(getOption("covr.llvm_cov"), "")) {
     return(NULL)
   }
+  if (is_windows()) {
+    covr_warn(c(
+      "Can't measure the coverage of Rust code on Windows.",
+      i = "Use {.code options(covr.llvm_cov = \"\")} to turn this off."
+    ))
+    return(NULL)
+  }
 
-  # Run rustc in the directory of the crate, so a `rust-toolchain.toml` there
-  # selects the same toolchain as the one cargo builds it with.
-  crate_dir <- file.path(path, "src", dirname(manifests[[1]]))
-  toolchain <- rust_toolchain(crate_dir)
+  # Packages run cargo in `src/`, so a `rust-toolchain.toml` there or above
+  # selects the toolchain that builds the code.
+  toolchain <- rust_toolchain(file.path(path, "src"))
   llvm_cov <- getOption("covr.llvm_cov") %||% toolchain$llvm_cov
   llvm_profdata <- getOption("covr.llvm_profdata") %||% toolchain$llvm_profdata
 
-  runtime <- "the Rust profiler runtime"
-  if (!is.null(toolchain$target)) {
-    runtime <- paste(runtime, "for", toolchain$target)
-  }
-  missing <- stats::setNames(
-    c(
-      is.null(toolchain$rustc),
-      is.null(toolchain$profiler_runtime),
-      is.null(llvm_cov),
-      is.null(llvm_profdata)
-    ),
-    c("rustc", runtime, "llvm-cov", "llvm-profdata")
+  missing <- c(
+    rustc = is.null(toolchain$rustc),
+    "the Rust profiler runtime" = is.null(toolchain$profiler_runtime),
+    "llvm-cov" = is.null(llvm_cov),
+    "llvm-profdata" = is.null(llvm_profdata)
   )
   if (any(missing)) {
     llvm_tools <- any(missing[c("llvm-cov", "llvm-profdata")])
+    rustup <- toolchain$rustup_toolchain
     llvm_version <- toolchain$llvm_version %||% NA_character_
     missing <- names(missing)[missing]
     covr_warn(c(
       "Can't measure the coverage of Rust code.",
       x = "Can't find {missing}.",
-      i = if (llvm_tools) {
+      i = if (llvm_tools && !is.null(rustup)) {
+        "Install the llvm tools with
+        {.code rustup component add llvm-tools --toolchain {rustup}}."
+      } else if (llvm_tools) {
         "Install the llvm tools with {.code rustup component add llvm-tools}."
       },
-      i = if (llvm_tools && !is.na(llvm_version)) {
+      i = if (llvm_tools && is.null(rustup) && !is.na(llvm_version)) {
         "If Rust isn't installed with rustup, install those of LLVM {llvm_version}."
       },
       i = "Use {.code options(covr.llvm_cov = \"\")} to turn this off."
@@ -90,29 +93,94 @@ rust_coverage_setup <- function(path, manifests, install_path) {
     libs <- c("-Wl,-u,__llvm_profile_runtime", libs)
   }
 
-  # Instrumented proc macros, build scripts and the loading test of
-  # `R CMD INSTALL` write their counts while the package is installed, which
-  # aren't wanted.
-  build_profiles <- temp_file("rust_build_profiles")
+  # The wrapper and the counts written while the package is installed, by
+  # instrumented build scripts and proc macros and the loading test of
+  # `R CMD INSTALL`, which aren't wanted.
+  build_dir <- temp_file("rust_build")
   profiles <- file.path(install_path, "rust_profiles")
-  dir.create(build_profiles)
+  dir.create(build_dir)
   dir.create(profiles)
 
   list(
+    sysroot = toolchain$sysroot,
     llvm_cov = llvm_cov,
     llvm_profdata = llvm_profdata,
     libs = paste(libs, collapse = " "),
-    build_profiles = build_profiles,
+    build_dir = build_dir,
     build_env = c(
-      LLVM_PROFILE_FILE = file.path(build_profiles, "%p-%m.profraw")
+      RUSTC_WORKSPACE_WRAPPER = rust_coverage_wrapper(
+        build_dir,
+        toolchain$sysroot
+      ),
+      LLVM_PROFILE_FILE = file.path(build_dir, "profiles", "%p-%m.profraw")
     ),
     profiles = profiles,
     env = c(LLVM_PROFILE_FILE = file.path(profiles, "%p-%m.profraw"))
   )
 }
 
-# Add the flags needed for Rust coverage to the flags in `covr.flags`, which
-# are appended to the package's Makevars.
+# Write a script in `dir` that cargo runs instead of rustc for the crates of
+# the package's workspace (with `RUSTC_WORKSPACE_WRAPPER`), which instruments
+# them. Packages set `RUSTFLAGS` in many ways, from their Makevars, configure
+# scripts or cargo's configuration, which a wrapper doesn't interfere with,
+# and their dependencies are built as without covr. The code is only
+# instrumented if it's compiled by the toolchain with `sysroot`, whose
+# profiler runtime is linked into the package; the script logs this for each
+# crate it compiles in `rustc.log` (see `rust_check_build()`).
+rust_coverage_wrapper <- function(dir, sysroot) {
+  wrapper <- file.path(dir, "rustc")
+  # A wrapper the user has set already runs rustc
+  existing <- Sys.getenv("RUSTC_WORKSPACE_WRAPPER")
+  writeLines(
+    c(
+      "#!/bin/sh",
+      sprintf(
+        "if [ \"$(\"$1\" --print sysroot 2>/dev/null)\" = %s ]; then",
+        shQuote(sysroot)
+      ),
+      "  set -- \"$@\" -C instrument-coverage",
+      "  compiled=instrumented",
+      "else",
+      "  compiled=skipped",
+      "fi",
+      "case \" $* \" in",
+      sprintf(
+        "  *\" --crate-name \"*) echo \"$compiled $1\" >> %s ;;",
+        shQuote(file.path(dir, "rustc.log"))
+      ),
+      "esac",
+      paste("exec", if (nzchar(existing)) shQuote(existing), "\"$@\"")
+    ),
+    wrapper
+  )
+  Sys.chmod(wrapper, "755")
+  wrapper
+}
+
+# After the package is installed, check that cargo compiled its crates with
+# the instrumentation. Returns `rust`, or `NULL` with a warning if it didn't.
+rust_check_build <- function(rust) {
+  on.exit(unlink(rust$build_dir, recursive = TRUE))
+  log <- file.path(rust$build_dir, "rustc.log")
+  compiled <- if (file.exists(log)) readLines(log) else character()
+  if (any(startsWith(compiled, "instrumented "))) {
+    return(rust)
+  }
+  skipped <- sub("^skipped ", "", compiled[startsWith(compiled, "skipped ")])
+  covr_warn(c(
+    "Can't measure the coverage of Rust code.",
+    x = if (length(skipped)) {
+      "It was compiled by {.file {skipped[[1]]}}, from another toolchain than
+      {.path {rust$sysroot}}."
+    } else {
+      "cargo didn't compile it, e.g. because the package used a prebuilt
+      library."
+    }
+  ))
+  NULL
+}
+
+# Add the libraries needed for Rust coverage to the flags in `covr.flags`.
 add_rust_flags <- function(flags, rust) {
   if (is.null(rust)) {
     return(flags)
@@ -120,12 +188,7 @@ add_rust_flags <- function(flags, rust) {
   libs <- names(flags) == "PKG_LIBS"
   c(
     flags[!libs],
-    PKG_LIBS = paste(c(flags[libs], rust$libs), collapse = " "),
-    # The Makevars of packages pass the `RUSTFLAGS` environment variable on to
-    # cargo, or set it from the make variable `RUSTFLAGS`, which savvy's
-    # template first sets to "". Exporting the make variable after appending
-    # to it works for both, and keeps any `RUSTFLAGS` set by the user.
-    "export RUSTFLAGS" = "-C instrument-coverage"
+    PKG_LIBS = paste(c(flags[libs], rust$libs), collapse = " ")
   )
 }
 
@@ -136,34 +199,16 @@ find_rustc <- function() {
   }
   # Packages typically add cargo's default location to the `PATH` when they
   # build, so look there too.
-  home <- Sys.getenv(if (is_windows()) "USERPROFILE" else "HOME")
-  cargo_home <- Sys.getenv("CARGO_HOME", file.path(home, ".cargo"))
-  path <- file.path(
-    cargo_home,
-    "bin",
-    if (is_windows()) "rustc.exe" else "rustc"
+  cargo_home <- Sys.getenv(
+    "CARGO_HOME",
+    file.path(Sys.getenv("HOME"), ".cargo")
   )
+  path <- file.path(cargo_home, "bin", "rustc")
   if (file.exists(path)) path
 }
 
-# The Rust target R packages are built for, which on Windows is the GNU ABI
-# used by Rtools rather than the host's default. rustup's standard library for
-# x86_64-pc-windows-gnu has no profiler runtime, unlike the gnullvm targets.
-rust_target <- function(host) {
-  if (!is_windows()) {
-    return(host)
-  }
-  if (grepl("aarch", R.version$platform)) {
-    "aarch64-pc-windows-gnullvm"
-  } else if (grepl("clang", Sys.getenv("R_COMPILED_BY"))) {
-    "x86_64-pc-windows-gnullvm"
-  } else {
-    "x86_64-pc-windows-gnu"
-  }
-}
-
-# The paths of rustc, the profiler runtime of the target and the llvm tools
-# matching rustc's LLVM, with `NULL` for those that can't be found.
+# The paths of rustc, the profiler runtime and the llvm tools matching rustc's
+# LLVM, with `NULL` for those that can't be found, and the rustup toolchain.
 rust_toolchain <- function(dir) {
   rustc <- find_rustc()
   if (is.null(rustc)) {
@@ -186,13 +231,7 @@ rust_toolchain <- function(dir) {
   if (length(sysroot) != 1 || length(host) != 1) {
     return(list(rustc = rustc))
   }
-  target <- rust_target(host)
-  target_libdir <- rustc_output(c(
-    "--print",
-    "target-libdir",
-    "--target",
-    target
-  ))
+  target_libdir <- rustc_output(c("--print", "target-libdir"))
   llvm_major <- llvm_major_version(version)
 
   # rustup installs the llvm tools in the toolchain with
@@ -200,14 +239,16 @@ rust_toolchain <- function(dir) {
   # the system's LLVM, whose tools are installed separately.
   bin <- file.path(sysroot, "lib", "rustlib", host, "bin")
   llvm_tool <- function(name) {
-    exe <- if (is_windows()) ".exe" else ""
-    existing(file.path(bin, paste0(name, exe))) %||%
-      system_llvm_tool(name, llvm_major)
+    existing(file.path(bin, name)) %||% system_llvm_tool(name, llvm_major)
   }
 
   list(
     rustc = rustc,
-    target = target,
+    sysroot = sysroot,
+    # e.g. the toolchain pinned by a `rust-toolchain.toml`
+    rustup_toolchain = if (basename(dirname(sysroot)) == "toolchains") {
+      basename(sysroot)
+    },
     profiler_runtime = existing(Sys.glob(file.path(
       target_libdir,
       "libprofiler_builtins-*.rlib"
@@ -251,8 +292,9 @@ system_llvm_tool <- function(name, major) {
 }
 
 # Run one of the llvm tools, returning its standard output. Gives a warning with
-# the tool's error output and returns `NULL` if it fails.
-llvm_tool_run <- function(tool, args, quiet = TRUE) {
+# the tool's error output and returns `NULL` if it fails, unless its output
+# matches `empty`, which returns no output.
+llvm_tool_run <- function(tool, args, quiet = TRUE, empty = NULL) {
   if (!quiet) {
     message(wrap_command(paste(
       c(shQuote(tool), shQuote(args)),
@@ -274,6 +316,9 @@ llvm_tool_run <- function(tool, args, quiet = TRUE) {
   }
   status <- attr(output, "status")
   if (!is.null(status) && status != 0) {
+    if (!is.null(empty) && any(grepl(empty, errors, ignore.case = TRUE))) {
+      return(character())
+    }
     covr_warn(
       c(
         "Can't measure the coverage of Rust code.",
@@ -327,7 +372,10 @@ run_llvm_cov <- function(rust, path, install_path, package, quiet = TRUE) {
       objects[[1]],
       sprintf("-object=%s", objects[-1])
     ),
-    quiet = quiet
+    quiet = quiet,
+    # The package's own crates can have no code in the shared object, e.g. if
+    # it only exports the API of a dependency (like gifski's)
+    empty = "no coverage data found"
   )
   if (is.null(lcov)) {
     return()

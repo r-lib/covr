@@ -824,16 +824,16 @@ with_coverage <- function(
 #' (`rustup component add llvm-tools`), or for Rust installed by a Linux
 #' distribution, those of the LLVM version rustc uses (e.g.
 #' `apt-get install llvm-18`); without them `package_coverage()`
-#' warns and reports no coverage for the Rust code. The code is instrumented
-#' by adding `-C instrument-coverage` to the `RUSTFLAGS` make variable, which
-#' covr exports, so cargo gets it whether the package's `Makevars` uses
-#' `$(RUSTFLAGS)` (as extendr's and savvy's do) or leaves `RUSTFLAGS` in the
-#' environment. Vendored crates, including the C code they compile, and code
-#' generated in cargo's `target` directory aren't included. The code that
+#' warns and reports no coverage for the Rust code. covr instruments the
+#' crates of the package's cargo workspace by having cargo run rustc through a
+#' wrapper (with `RUSTC_WORKSPACE_WRAPPER`) that adds `-C instrument-coverage`,
+#' so it works however the package sets `RUSTFLAGS`, and dependencies are
+#' built as usual. Vendored crates, including the C code they compile, and
+#' code generated in cargo's `target` directory aren't included. The code that
 #' macros such as `#[extendr]` and `#[savvy]` generate is counted on the
 #' macro's line, so the line isn't covered if parts of the generated code
-#' never run, e.g. the handling of arguments that can't be converted. This
-#' doesn't work on Windows on x86_64, as rustup's Rust for the
+#' never run, e.g. the handling of arguments that can't be converted. The
+#' coverage of Rust code isn't measured on Windows, as rustup's Rust for the
 #' `x86_64-pc-windows-gnu` target that Rtools uses has no profiler runtime.
 #'
 #' #ifdef unix
@@ -1007,7 +1007,7 @@ package_coverage <- function(
   # Measure the coverage of Rust code, if the package has any
   manifests <- if (!installed) rust_manifests(pkg$path)
   rust <- if (length(manifests)) {
-    rust_coverage_setup(pkg$path, manifests, install_path)
+    rust_coverage_setup(pkg$path, install_path)
   }
 
   if (installed) {
@@ -1023,7 +1023,7 @@ package_coverage <- function(
       env = rust$build_env
     )
     if (!is.null(rust)) {
-      unlink(rust$build_profiles, recursive = TRUE)
+      rust <- rust_check_build(rust)
     }
   }
 
