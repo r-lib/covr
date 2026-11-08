@@ -1466,7 +1466,10 @@ run_commands <- function(pkg, lib, commands) {
 # It also registers a finalizer (with `register_trace()`) that saves the
 # tracing information when the namespace is garbage collected or the process
 # exits normally. A process that is killed does not save its trace, which
-# `package_coverage()` reports.
+# `package_coverage()` reports. Like the tracing, this runs in an onLoad hook:
+# calling covr from the load script itself loads covr while the package is
+# still being lazy-loaded, which made tracing ~4x slower when covr measures its
+# own coverage (covr is then loaded from an instrumented copy).
 # @param pkg_name name of the package to add hooks to
 # @param lib the library path to look in
 # @param fix_mcexit whether to add the fix for mcparallel:::mcexit
@@ -1495,7 +1498,11 @@ add_hooks <- function(
         "))"
       ),
       "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
-      paste0("covr:::register_trace(ns, ", trace_dir, ")")
+      paste0(
+        "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::register_trace(ns, ",
+        trace_dir,
+        "))"
+      )
     ),
     length(lines) - 1L
   )
