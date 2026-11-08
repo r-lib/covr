@@ -72,7 +72,10 @@ Suggests:
     memoise,
     pkgload,
     covr,
-    box (>= 1.2.0)
+    box (>= 1.2.0),
+    callr,
+    shiny,
+    shinytest2
 License: MIT + file LICENSE
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)

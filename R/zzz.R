@@ -69,3 +69,19 @@
 
   invisible()
 }
+
+.onAttach <- function(libname, pkgname) {
+  # covr is attached as a default package by the R processes started by
+  # `shiny_app_coverage()`, but not by the process that calls it.
+  app_dir <- Sys.getenv("COVR_SHINY_APP")
+  if (
+    nzchar(app_dir) &&
+      !identical(Sys.getenv("COVR_SHINY_PID"), as.character(Sys.getpid()))
+  ) {
+    start_shiny_app_tracing(
+      app_dir,
+      Sys.getenv("COVERAGE_DIR"),
+      as.environment(paste0("package:", pkgname))
+    )
+  }
+}
