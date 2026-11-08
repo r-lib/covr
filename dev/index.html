@@ -130,7 +130,10 @@
 <h2 id="covrignore-file">.covrignore file<a class="anchor" aria-label="anchor" href="#covrignore-file"></a>
 </h2>
 <p>A <code>.covrignore</code> file located in your package’s root directory can be used to exclude files or directories.</p>
-<p>The lines in the <code>.covrignore</code> file are interpreted as a list of file globs to ignore. It uses the globbing rules in <code><a href="https://rdrr.io/r/base/Sys.glob.html" class="external-link">Sys.glob()</a></code>. Any directories listed will ignore all the files in the directory.</p>
+<p>The lines in the <code>.covrignore</code> file are interpreted as a list of file globs to ignore. It uses the globbing rules in <code><a href="https://rdrr.io/r/base/Sys.glob.html" class="external-link">Sys.glob()</a></code>. Any directories listed will ignore all the files in the directory. Paths are relative to the package root and refer to the source files being measured (e.g. files in <code>R/</code> or <code>src/</code>), not to test files. For example, to ignore a single file, all files matching a wildcard, and every file in a directory:</p>
+<pre><code><span><span class="va">R</span><span class="op">/</span><span class="va">deprecated.R</span></span>
+<span><span class="va">R</span><span class="op">/</span><span class="va">zzz</span><span class="op">*</span><span class="va">.R</span></span>
+<span><span class="va">src</span><span class="op">/</span><span class="va">vendor</span></span></code></pre>
 <p>Alternative locations for the file can be set by the environment variable <code>COVR_COVRIGNORE</code> or the R option <code>covr.covrignore</code>.</p>
 <p>The <code>.covrignore</code> file should be added to your <code>.RBuildignore</code> file unless you want to distribute it with your package. If so it can be added to <code>inst/.covrignore</code> instead.</p>
 </div>
@@ -138,7 +141,7 @@
 <h2 id="function-exclusions">Function Exclusions<a class="anchor" aria-label="anchor" href="#function-exclusions"></a>
 </h2>
 <p>The <code>function_exclusions</code> argument to <code><a href="reference/package_coverage.html">package_coverage()</a></code> can be used to exclude functions by name. This argument takes a vector of regular expressions matching functions to exclude.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># exclude print functions</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>function_exclusions <span class="op">=</span> <span class="st">"print\\."</span><span class="op">)</span></span>
 <span></span>
@@ -149,7 +152,7 @@
 <h2 id="line-exclusions">Line Exclusions<a class="anchor" aria-label="anchor" href="#line-exclusions"></a>
 </h2>
 <p>The <code>line_exclusions</code> argument to <code><a href="reference/package_coverage.html">package_coverage()</a></code> can be used to exclude some or all of a file. This argument takes a list of filenames or named ranges to exclude.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># exclude whole file of R/test.R</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="st">"R/test.R"</span><span class="op">)</span></span>
 <span></span>
@@ -164,12 +167,12 @@
 </h2>
 <p>In addition you can exclude lines from the coverage by putting special comments in your source code.</p>
 <p>This can be done per line.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># nocov</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Or by specifying a range with a start and end.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="co"># nocov start</span></span>
 <span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">2</span></span>
 <span><span class="op">}</span> <span class="co"># nocov end</span></span></code></pre></div>
@@ -194,7 +197,7 @@
 <h2 id="why-are-tests-using-skip_on_cran-not-counted-in-my-coverage">Why are tests using <code>skip_on_cran()</code> not counted in my coverage?<a class="anchor" aria-label="anchor" href="#why-are-tests-using-skip_on_cran-not-counted-in-my-coverage"></a>
 </h2>
 <p><code><a href="reference/package_coverage.html">package_coverage()</a></code> runs your tests non-interactively in a separate R process, so testthat assumes it is running on CRAN unless the <code>NOT_CRAN</code> environment variable is <code>"true"</code>. Tests that call <code>skip_on_cran()</code> are then skipped, and the code they exercise is reported as uncovered. To include them, set the variable before computing coverage:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>NOT_CRAN <span class="op">=</span> <span class="st">"true"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><code>devtools::test_coverage()</code> sets <code>NOT_CRAN</code> for you.</p>
@@ -205,7 +208,7 @@
 <p>Covr now supports Intel’s <code>icc</code> compiler, thanks to work contributed by Qin Wang at Oracle.</p>
 <p>Covr is known to work with clang versions <code>3.5+</code> and gcc version <code>4.2+</code>.</p>
 <p>If the appropriate gcov version is not on your path you can set the appropriate location with the <code>covr.gcov</code> options. If you set this path to “” it will turn <em>off</em> coverage of compiled code.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.gcov <span class="op">=</span> <span class="st">"path/to/gcov"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -214,7 +217,7 @@
 <p><code>covr</code> tracks test coverage by modifying a package’s code to add tracking calls to each call.</p>
 <p>The vignette <a href="https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd" class="external-link">vignettes/how_it_works.Rmd</a> contains a detailed explanation of the technique and the rationale behind it.</p>
 <p>You can view the vignette from within <code>R</code> using</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"how_it_works"</span>, package <span class="op">=</span> <span class="st">"covr"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">

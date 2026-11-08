@@ -101,7 +101,15 @@ used to exclude files or directories.
 The lines in the `.covrignore` file are interpreted as a list of file
 globs to ignore. It uses the globbing rules in
 [`Sys.glob()`](https://rdrr.io/r/base/Sys.glob.html). Any directories
-listed will ignore all the files in the directory.
+listed will ignore all the files in the directory. Paths are relative to
+the package root and refer to the source files being measured
+(e.g. files in `R/` or `src/`), not to test files. For example, to
+ignore a single file, all files matching a wildcard, and every file in a
+directory:
+
+    R/deprecated.R
+    R/zzz*.R
+    src/vendor
 
 Alternative locations for the file can be set by the environment
 variable `COVR_COVRIGNORE` or the R option `covr.covrignore`.
