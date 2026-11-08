@@ -55,7 +55,7 @@ tmp <- tempfile(fileext = ".info")
 to_lcov(cov, tmp)
 cat(readLines(tmp), sep = "\n")
 #> TN:
-#> SF:/tmp/RtmpoTCB9t/source.R194c5bbbfccb
+#> SF:/tmp/RtmpjCANnM/source.R183f27e165b2
 #> FN:2,f
 #> FN:5,g
 #> FNDA:1,f

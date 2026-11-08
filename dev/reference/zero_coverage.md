@@ -40,9 +40,9 @@ cov <- code_coverage(
 )
 zero_coverage(cov)
 #>                               filename functions line value
-#> 1 /tmp/RtmpoTCB9t/source.R194c663ef777         f    2     0
-#> 2 /tmp/RtmpoTCB9t/source.R194c663ef777         g    4     0
+#> 1 /tmp/RtmpjCANnM/source.R183f7745f2d6         f    2     0
+#> 2 /tmp/RtmpjCANnM/source.R183f7745f2d6         g    4     0
 zero_coverage(cov, by = "function")
 #>                               filename functions first_line last_line value
-#> 2 /tmp/RtmpoTCB9t/source.R194c663ef777         g          4         4     0
+#> 2 /tmp/RtmpjCANnM/source.R183f7745f2d6         g          4         4     0
 ```
