@@ -63,6 +63,10 @@
 #'     reports as only partially executed (e.g. `if (x) f();` when `f()` never
 #'     runs). `"covered"` (the default) counts them as covered, `"uncovered"`
 #'     counts them as not covered, for requiring every part of a line to run.
+#'     This works with both gcc's gcov and llvm-cov (the gcov on macOS).
+#'     llvm-cov can't tell apart code that only runs when a C++ exception is
+#'     thrown, so lines that create objects with destructors may also count as
+#'     partially executed.
 #'
 #'   \item `covr.icov`:
 #'
