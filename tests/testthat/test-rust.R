@@ -28,7 +28,9 @@ test_that("Rust code coverage is skipped with a warning without the tools", {
   skip_on_cran()
   skip_if_no_rust_coverage()
 
-  local_mocked_bindings(rust_toolchain = function(dir) list(rustc = "rustc"))
+  local_mocked_bindings(
+    rust_toolchain = function(dir) list(rustc = "rustc", llvm_version = "18")
+  )
   expect_snapshot(
     cov <- package_coverage("TestRust", relative_path = TRUE)
   )
@@ -52,6 +54,26 @@ test_that("A missing profiler runtime is reported (#728)", {
     rust <- rust_coverage_setup(test_path("TestRust"), withr::local_tempdir())
   )
   expect_null(rust)
+})
+
+test_that("The system's llvm tools need rustc's LLVM version (#728)", {
+  skip_on_os("windows")
+  bin <- withr::local_tempdir()
+  tool <- function(name, version) {
+    path <- file.path(bin, name)
+    writeLines(c("#!/bin/sh", paste("echo", shQuote(version))), path)
+    Sys.chmod(path, "755")
+    path
+  }
+  withr::local_envvar(PATH = bin)
+
+  llvm_cov <- tool("llvm-cov", "Ubuntu LLVM version 17.0.6")
+  expect_equal(system_llvm_tool("llvm-cov", "17"), llvm_cov)
+  expect_null(system_llvm_tool("llvm-cov", "18"))
+
+  llvm_cov_18 <- tool("llvm-cov-18", "Ubuntu LLVM version 18.1.3")
+  expect_equal(system_llvm_tool("llvm-cov", "18"), llvm_cov_18)
+  expect_null(system_llvm_tool("llvm-cov", NA_character_))
 })
 
 test_that("Rust code coverage is skipped with a warning if llvm-cov fails", {

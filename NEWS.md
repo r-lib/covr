@@ -34,8 +34,10 @@
 * `package_coverage()` now measures the coverage of Rust code, such as the
   code of packages using extendr or savvy. It's built with LLVM's source-based
   coverage, which needs the llvm tools of the Rust toolchain
-  (`rustup component add llvm-tools`). Without them covr warns and only skips
-  the Rust code. `options(covr.llvm_cov = "")` turns this off (#728).
+  (`rustup component add llvm-tools`), or for Rust installed by a Linux
+  distribution, those of the LLVM version rustc uses (e.g. `llvm-cov-18`).
+  Without them covr warns and only skips the Rust code.
+  `options(covr.llvm_cov = "")` turns this off (#728).
 
 * New `report_html()` returns the coverage report of `report()` as HTML that
   can be included in a larger document, such as an R Markdown or Quarto

@@ -7,6 +7,7 @@
       Can't measure the coverage of Rust code.
       x Can't find the Rust profiler runtime, llvm-cov, and llvm-profdata.
       i Install the llvm tools with `rustup component add llvm-tools`.
+      i If Rust isn't installed with rustup, install those of LLVM 18.
       i Use `options(covr.llvm_cov = "")` to turn this off.
 
 # A missing profiler runtime is reported (#728)

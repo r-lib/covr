@@ -47,12 +47,16 @@ rust_coverage_setup <- function(path, install_path) {
   )
   if (any(missing)) {
     llvm_tools <- any(missing[c("llvm-cov", "llvm-profdata")])
+    llvm_version <- toolchain$llvm_version %||% NA_character_
     missing <- names(missing)[missing]
     covr_warn(c(
       "Can't measure the coverage of Rust code.",
       x = "Can't find {missing}.",
       i = if (llvm_tools) {
         "Install the llvm tools with {.code rustup component add llvm-tools}."
+      },
+      i = if (llvm_tools && !is.na(llvm_version)) {
+        "If Rust isn't installed with rustup, install those of LLVM {llvm_version}."
       },
       i = "Use {.code options(covr.llvm_cov = \"\")} to turn this off."
     ))
@@ -136,9 +140,8 @@ rust_target <- function(host) {
   }
 }
 
-# The paths of rustc, the profiler runtime of the target and the llvm tools of
-# the toolchain (installed by `rustup component add llvm-tools`), with `NULL`
-# for those that can't be found.
+# The paths of rustc, the profiler runtime of the target and the llvm tools
+# matching rustc's LLVM, with `NULL` for those that can't be found.
 rust_toolchain <- function(dir) {
   rustc <- find_rustc()
   if (is.null(rustc)) {
@@ -156,7 +159,8 @@ rust_toolchain <- function(dir) {
   }
 
   sysroot <- rustc_output(c("--print", "sysroot"))
-  host <- sub("^host: ", "", grep("^host: ", rustc_output("-vV"), value = TRUE))
+  version <- rustc_output("-vV")
+  host <- sub("^host: ", "", grep("^host: ", version, value = TRUE))
   if (length(sysroot) != 1 || length(host) != 1) {
     return(list(rustc = rustc))
   }
@@ -166,18 +170,60 @@ rust_toolchain <- function(dir) {
     "--target",
     rust_target(host)
   ))
+  llvm_major <- llvm_major_version(version)
 
-  exe <- if (is_windows()) ".exe" else ""
+  # rustup installs the llvm tools in the toolchain with
+  # `rustup component add llvm-tools`. The Rust of Linux distributions uses
+  # the system's LLVM, whose tools are installed separately.
   bin <- file.path(sysroot, "lib", "rustlib", host, "bin")
+  llvm_tool <- function(name) {
+    exe <- if (is_windows()) ".exe" else ""
+    existing(file.path(bin, paste0(name, exe))) %||%
+      system_llvm_tool(name, llvm_major)
+  }
+
   list(
     rustc = rustc,
     profiler_runtime = existing(Sys.glob(file.path(
       target_libdir,
       "libprofiler_builtins-*.rlib"
     ))),
-    llvm_cov = existing(file.path(bin, paste0("llvm-cov", exe))),
-    llvm_profdata = existing(file.path(bin, paste0("llvm-profdata", exe)))
+    llvm_cov = llvm_tool("llvm-cov"),
+    llvm_profdata = llvm_tool("llvm-profdata"),
+    llvm_version = llvm_major
   )
+}
+
+# The major version in the `LLVM version` line of `rustc -vV` or
+# `llvm-cov --version`, or `NA`.
+llvm_major_version <- function(version) {
+  version <- grep("LLVM version:? [0-9]+", version, value = TRUE)
+  if (!length(version)) {
+    return(NA_character_)
+  }
+  sub(".*LLVM version:? ([0-9]+).*", "\\1", version[[1]])
+}
+
+# An llvm tool of the system's LLVM with the major version `major`, which must
+# match rustc's for the tools to read its counts: `llvm-cov-18` (as named by
+# Debian and Ubuntu), or `llvm-cov` if it has the same version (e.g. Fedora).
+system_llvm_tool <- function(name, major) {
+  if (is.na(major)) {
+    return(NULL)
+  }
+  path <- unname(Sys.which(paste0(name, "-", major)))
+  if (nzchar(path)) {
+    return(path)
+  }
+  path <- unname(Sys.which(name))
+  if (!nzchar(path)) {
+    return(NULL)
+  }
+  version <- tryCatch(
+    system_output(path, "--version", quiet = TRUE),
+    error = function(e) character()
+  )
+  if (identical(llvm_major_version(version), major)) path
 }
 
 # Run one of the llvm tools, returning its standard output. Gives a warning with

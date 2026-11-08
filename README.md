@@ -268,7 +268,12 @@ source-based coverage. This needs the llvm tools of your Rust toolchain:
 rustup component add llvm-tools
 ```
 
-Without them covr warns and reports no coverage for the Rust code. Set
+If Rust is installed by your Linux distribution (e.g. with
+`apt-get install cargo rustc`), install the LLVM version that rustc uses
+instead, e.g. `apt-get install llvm-18` if `rustc -vV` shows
+`LLVM version: 18.1.3`.
+
+Without the tools covr warns and reports no coverage for the Rust code. Set
 `options(covr.llvm_cov = "")` to turn off the coverage of Rust code.
 
 ## How does covr work? ##

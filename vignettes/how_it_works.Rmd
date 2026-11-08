@@ -231,6 +231,9 @@ for it instead:
 `llvm-profdata` and `llvm-cov` must use the same version of LLVM as rustc,
 so **covr** uses those of the Rust toolchain, which are installed with
 `rustup component add llvm-tools`.
+The Rust of Linux distributions uses the system's LLVM instead, so for it
+**covr** looks for the tools of the LLVM version rustc reports, e.g.
+`llvm-cov-18`.
 
 # Output Formats #
 

@@ -88,11 +88,13 @@
 #'
 #'   \item `covr.llvm_cov`: Path to the `llvm-cov` used to read the coverage
 #'     of Rust code. Defaults to the one of the Rust toolchain, installed with
-#'     `rustup component add llvm-tools`. If set to `""` the Rust code isn't
-#'     instrumented, which turns off its coverage.
+#'     `rustup component add llvm-tools`, or for Rust installed without rustup
+#'     (e.g. with `apt-get install cargo rustc`), to the one on the `PATH` with
+#'     the same LLVM version as rustc, e.g. `llvm-cov-18`. If set to `""` the
+#'     Rust code isn't instrumented, which turns off its coverage.
 #'
 #'   \item `covr.llvm_profdata`: Path to the `llvm-profdata` used to merge the
-#'     coverage counts of Rust code. Defaults to the one of the Rust toolchain.
+#'     coverage counts of Rust code. Found like `covr.llvm_cov`.
 #'
 #'   \item `covr.report_colors`: A named character vector with the colors of
 #'     covered and missed lines in [report()] and [file_report()], and of the
@@ -819,7 +821,9 @@ with_coverage <- function(
 #' The coverage of Rust code, built by cargo into a static library that is
 #' linked into the package, is measured with LLVM's source-based coverage.
 #' This needs the llvm tools of the Rust toolchain
-#' (`rustup component add llvm-tools`); without them `package_coverage()`
+#' (`rustup component add llvm-tools`), or for Rust installed by a Linux
+#' distribution, those of the LLVM version rustc uses (e.g.
+#' `apt-get install llvm-18`); without them `package_coverage()`
 #' warns and reports no coverage for the Rust code. The code is instrumented
 #' by adding `-C instrument-coverage` to the `RUSTFLAGS` environment variable,
 #' so the package's `Makevars` must pass `RUSTFLAGS` on to cargo, as those of

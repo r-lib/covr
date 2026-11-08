@@ -116,7 +116,9 @@ installed from, and compiled code isn't covered.
 The coverage of Rust code, built by cargo into a static library that is
 linked into the package, is measured with LLVM's source-based coverage.
 This needs the llvm tools of the Rust toolchain
-(\verb{rustup component add llvm-tools}); without them \code{package_coverage()}
+(\verb{rustup component add llvm-tools}), or for Rust installed by a Linux
+distribution, those of the LLVM version rustc uses (e.g.
+\verb{apt-get install llvm-18}); without them \code{package_coverage()}
 warns and reports no coverage for the Rust code. The code is instrumented
 by adding \verb{-C instrument-coverage} to the \code{RUSTFLAGS} environment variable,
 so the package's \code{Makevars} must pass \code{RUSTFLAGS} on to cargo, as those of
