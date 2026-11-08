@@ -25,6 +25,9 @@
   `initialize()` methods of R6 classes, listed each other's lines, so Codecov
   showed line numbers past the end of the file and a different coverage than
   `print()` (#629).
+* New `to_badge()` writes an SVG badge with the percent coverage, so a README
+  can show coverage without uploading it to Codecov or Coveralls. The README
+  has an example GitHub Actions workflow that publishes the badge (#634).
 
 * Compiled code coverage now reads gcov's structured JSON output
   (`gcov --json-format`) when gcov supports it (gcc >= 9), instead of parsing
