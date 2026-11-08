@@ -25,11 +25,11 @@ Display covr results using a standalone report
 Covered lines are shown in green and missed lines in red. To use other
 colors, e.g. a pair that is easier to tell apart with color vision
 deficiency, set the \code{covr.report_colors} option to a named character vector
-of R colors (anything accepted by \code{\link[grDevices:col2rgb]{grDevices::col2rgb()}}) with elements
-\code{covered}, \code{missed} and/or \code{partial}. The colors are used for the
-highlighted lines and the coverage bars in the file list; \code{partial} is used
-for the bars of files with 75\% to 90\% coverage, which otherwise use a tint
-of \code{covered}.
+of R colors (anything accepted by \code{\link[grDevices:col2rgb]{grDevices::col2rgb()}}; transparency is
+ignored) with elements \code{covered}, \code{missed} and/or \code{partial}. The colors are
+used for the highlighted lines and the coverage bars in the file list;
+\code{partial} is used for the bars of files with at least 75\% but less than 90\%
+coverage, which otherwise follow \code{covered}.
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))
 }\if{html}{\out{</div>}}
@@ -42,7 +42,10 @@ report(x)
 
 # Blue and orange, which are distinguishable with most kinds of color
 # blindness
-options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))
+old <- options(
+  covr.report_colors = c(covered = "#0072B2", missed = "#E69F00")
+)
 report(x)
+options(old)
 }
 }

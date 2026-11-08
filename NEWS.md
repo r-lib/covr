@@ -5,8 +5,10 @@
   `covr.report_colors` option, e.g.
   `options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))`
   for blue and orange, which are easier to tell apart with color vision
-  deficiency than the default green and red. An optional `partial` color
-  sets the color of partial (75% to 90%) coverage (#529).
+  deficiency than the default green and red. An optional `partial` element
+  sets the color for 75% to 90% coverage. The coverage bars in `report()` now
+  use the same thresholds as the console, so files with exactly 75% or 90%
+  coverage get the higher color (#529).
 
 * When gcov fails, the error from `package_coverage()` now includes gcov's
   output, e.g. the `.gcno` version mismatch reported when the package was

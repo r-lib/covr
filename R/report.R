@@ -7,11 +7,11 @@
 #' Covered lines are shown in green and missed lines in red. To use other
 #' colors, e.g. a pair that is easier to tell apart with color vision
 #' deficiency, set the `covr.report_colors` option to a named character vector
-#' of R colors (anything accepted by [grDevices::col2rgb()]) with elements
-#' `covered`, `missed` and/or `partial`. The colors are used for the
-#' highlighted lines and the coverage bars in the file list; `partial` is used
-#' for the bars of files with 75% to 90% coverage, which otherwise use a tint
-#' of `covered`.
+#' of R colors (anything accepted by [grDevices::col2rgb()]; transparency is
+#' ignored) with elements `covered`, `missed` and/or `partial`. The colors are
+#' used for the highlighted lines and the coverage bars in the file list;
+#' `partial` is used for the bars of files with at least 75% but less than 90%
+#' coverage, which otherwise follow `covered`.
 #'
 #' ```r
 #' options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))
@@ -23,8 +23,11 @@
 #'
 #' # Blue and orange, which are distinguishable with most kinds of color
 #' # blindness
-#' options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))
+#' old <- options(
+#'   covr.report_colors = c(covered = "#0072B2", missed = "#E69F00")
+#' )
 #' report(x)
+#' options(old)
 #' }
 #' @export
 # This function was originally a shiny application, but has now been converted into
@@ -64,9 +67,9 @@ report <- function(
   color_coverage_callback <- DT::JS(sprintf(
     'function(td, cellData, rowData, row, col) {
   var percent = cellData.replace("%%", "");
-  if (percent > 90) {
+  if (percent >= 90) {
     var grad = "linear-gradient(90deg, %s " + cellData + ", white " + cellData + ")";
-  } else if (percent > 75) {
+  } else if (percent >= 75) {
     var grad = "linear-gradient(90deg, %s " + cellData + ", white " + cellData + ")";
   } else {
     var grad = "linear-gradient(90deg, %s " + cellData + ", white " + cellData + ")";

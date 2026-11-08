@@ -92,8 +92,11 @@
 #'     `c(covered = "#0072B2", missed = "#E69F00")` for blue and orange, which
 #'     are easier to tell apart than the default green and red with color
 #'     vision deficiency. Either element can be left out to keep its default.
-#'     An optional `partial` element sets the color of partial coverage
-#'     (75% to 90%), which is otherwise yellow, or `covered` if that is set.
+#'     An optional `partial` element sets the color of partial coverage (at
+#'     least 75% but less than 90%), which otherwise follows `covered`, or is
+#'     yellow in the console if `covered` isn't set either. Transparency is
+#'     ignored. In terminals with only 8 colors, the console uses the closest
+#'     of those colors.
 #'
 #'   \item `covr.rstudio_source_markers`: A logical value. If `TRUE` (the
 #'     default behavior), source markers are displayed within the RStudio IDE

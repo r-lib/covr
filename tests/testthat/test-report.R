@@ -66,7 +66,11 @@ test_that("report() and file_report() use covr.report_colors (#529)", {
   skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")
   withr::local_options(
-    covr.report_colors = c(covered = "#0072B2", missed = "orange")
+    covr.report_colors = c(
+      covered = "#0072B2",
+      missed = "orange",
+      partial = "#56B4E9"
+    )
   )
 
   cov <- code_coverage("f <- function(x) x + 1", "f(1)")
@@ -78,6 +82,7 @@ test_that("report() and file_report() use covr.report_colors (#529)", {
   expect_match(html, "box-shadow:0 -2px 0 0 #ffa500 inset", fixed = TRUE)
   expect_match(html, "linear-gradient(90deg, #e0eef6 ", fixed = TRUE)
   expect_match(html, "linear-gradient(90deg, #fff4e0 ", fixed = TRUE)
+  expect_match(html, "linear-gradient(90deg, #ebf6fc ", fixed = TRUE)
   expect_no_match(html, "95,151,68|185,73,71|#5f9744|#b94947|#edfde7|#fcece9")
 
   file <- file_report(
