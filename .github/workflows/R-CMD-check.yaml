@@ -26,8 +26,6 @@ jobs:
           - {os: macos-latest,   r: 'release'}
 
           - {os: windows-latest, r: 'release'}
-          # Check the minimum supported R version
-          - {os: windows-latest, r: '4.0'}
           # use 4.1 to check with rtools40's older compiler
           - {os: windows-latest, r: '4.1'}
 
@@ -39,6 +37,9 @@ jobs:
           - {os: ubuntu-latest,   r: 'oldrel-2'}
           - {os: ubuntu-latest,   r: 'oldrel-3'}
           - {os: ubuntu-latest,   r: 'oldrel-4'}
+          # Check the minimum supported R version. CRAN no longer has Windows
+          # binaries for R 4.0, so this runs on Linux.
+          - {os: ubuntu-22.04,    r: '4.0'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
