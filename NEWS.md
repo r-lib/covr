@@ -1,5 +1,10 @@
 # covr (development version)
 
+* `codecov()` now throws an error if the upload to codecov.io fails, so CI
+  jobs that upload coverage fail instead of silently succeeding. Rate limits
+  (HTTP 429) and Codecov outages (HTTP 5xx) give a warning instead, so they
+  don't fail CI (#565).
+
 * New `to_lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
   `genhtml` and other tools that read the LCOV format (#442, thanks to
   @MichaelChirico for the initial implementation in #637).
@@ -10,10 +15,6 @@
 
 * `package_coverage()` no longer reports 0% coverage for packages whose last
   file in `R/` is empty (#522).
-* `codecov()` now throws an error if the upload to codecov.io fails, so CI
-  jobs that upload coverage fail instead of silently succeeding. Rate limits
-  (HTTP 429) and Codecov outages (HTTP 5xx) give a warning instead, so they
-  don't fail CI (#565).
 
 * New `coverage_to_markdown()` formats coverage as a markdown table, optionally
   compared against a baseline, for GitHub Actions job summaries or pull
