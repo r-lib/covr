@@ -1,5 +1,9 @@
 # covr (development version)
 
+* `c()` now combines coverage objects, e.g. from runs of tests in different
+  directories. The counts of traces in several objects are added, and recorded
+  tests are combined as well (#439).
+
 * When gcov fails, the error from `package_coverage()` now includes gcov's
   output, e.g. the `.gcno` version mismatch reported when the package was
   compiled with a different version of gcc than the gcov used (#537).
