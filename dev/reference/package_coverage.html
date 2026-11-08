@@ -78,7 +78,7 @@ vignette and example code.</p>
 
 
 <dl><dt id="arg-path">path<a class="anchor" aria-label="anchor" href="#arg-path"></a></dt>
-<dd><p>file path to the package.</p></dd>
+<dd><p>file path to the package, or to an installed package.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
@@ -184,6 +184,12 @@ exits normally, so the coverage is lost if a process is killed (e.g. with
 processes gracefully and wait for them to exit, e.g. call <code>$stop()</code> on a
 <span class="pkg">shinytest2</span> <code>AppDriver</code>, which waits longer for the app to exit when
 run by covr.</p>
+<p><code>path</code> can also be an installed package, e.g.
+<code>system.file(package = "pkg")</code>, to compute coverage without the package
+source. The package must have been installed with its tests and source
+references, e.g. with
+<code>remotes::install_github("user/pkg", INSTALL_opts = c("--install-tests", "--with-keep.source"))</code>. File names are those of the source it was
+installed from, and compiled code isn't covered.</p>
 <p>Parallelized code using <span class="pkg">parallel</span>'s <code>mcparallel()</code> needs to
 use a patched <code>parallel:::mcexit</code>. This is done automatically if the
 package depends on <span class="pkg">parallel</span>, but can also be explicitly set using the

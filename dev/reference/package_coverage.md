@@ -30,7 +30,7 @@ package_coverage(
 
 - path:
 
-  file path to the package.
+  file path to the package, or to an installed package.
 
 - type:
 
@@ -138,6 +138,14 @@ normally, so the coverage is lost if a process is killed (e.g. with
 processes gracefully and wait for them to exit, e.g. call `$stop()` on a
 shinytest2 `AppDriver`, which waits longer for the app to exit when run
 by covr.
+
+`path` can also be an installed package, e.g.
+`system.file(package = "pkg")`, to compute coverage without the package
+source. The package must have been installed with its tests and source
+references, e.g. with
+`remotes::install_github("user/pkg", INSTALL_opts = c("--install-tests", "--with-keep.source"))`.
+File names are those of the source it was installed from, and compiled
+code isn't covered.
 
 Parallelized code using parallel's `mcparallel()` needs to use a patched
 `parallel:::mcexit`. This is done automatically if the package depends

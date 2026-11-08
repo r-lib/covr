@@ -2,6 +2,16 @@
 
 ## covr (development version)
 
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  now measures the coverage of installed packages, e.g.
+  `package_coverage(system.file(package = "pkg"))`, so the package
+  source isn’t needed. Previously it silently returned no coverage. The
+  package must be installed with `--install-tests` and
+  `--with-keep.source`, and
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  errors if it wasn’t
+  ([\#638](https://github.com/r-lib/covr/issues/638)).
+
 - Two fixes for `options(covr.record_tests = TRUE)`
   ([\#627](https://github.com/r-lib/covr/issues/627)):
 

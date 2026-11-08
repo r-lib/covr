@@ -43,7 +43,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="covr-development-version">covr (development version)<a class="anchor" aria-label="anchor" href="#covr-development-version"></a></h2>
-<ul><li>
+<ul><li><p><code><a href="../reference/package_coverage.html">package_coverage()</a></code> now measures the coverage of installed packages, e.g. <code>package_coverage(system.file(package = "pkg"))</code>, so the package source isn’t needed. Previously it silently returned no coverage. The package must be installed with <code>--install-tests</code> and <code>--with-keep.source</code>, and <code><a href="../reference/package_coverage.html">package_coverage()</a></code> errors if it wasn’t (<a href="https://github.com/r-lib/covr/issues/638" class="external-link">#638</a>).</p></li>
+<li>
 <p>Two fixes for <code>options(covr.record_tests = TRUE)</code> (<a href="https://github.com/r-lib/covr/issues/627" class="external-link">#627</a>):</p>
 <ul><li>Objects used in tests can now be garbage collected. covr kept the environment of the last test call, which made tests that check that objects are finalized fail, e.g. in websocket.</li>
 <li>Tests without srcrefs, such as the scripts in <code>tests/</code> that don’t use testthat, are now recorded once and counted when they run again, e.g. in a loop, like tests with srcrefs. Each run was recorded as a new test, and finding the test got slower with every run, so the coverage of bitops never finished.</li>
