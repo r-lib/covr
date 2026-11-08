@@ -146,25 +146,21 @@ parse_exclusions <- function(
 
   if (length(starts) > 0) {
     if (length(starts) != length(ends)) {
-      describe <- function(x, singular, plural) {
+      describe <- function(x, what) {
         if (length(x) == 0) {
-          return(paste0("0 ", plural))
+          return(paste0("0 ", what, "s"))
         }
-        sprintf(
-          ngettext(length(x), "%d %s (line %s)", "%d %s (lines %s)"),
-          length(x),
-          if (length(x) == 1) singular else plural,
-          toString(x)
-        )
+        cli::pluralize(paste0("{length(x)} ", what, "{?s} (line{?s} {x})"))
       }
-      stop(
-        if (!is.null(file)) paste0(file, " has "),
-        describe(starts, "range start", "range starts"),
-        if (length(ends) < length(starts)) " but only " else " but ",
-        describe(ends, "range end", "range ends"),
-        " for exclusion from code coverage!",
-        call. = FALSE
-      )
+      found <- paste(describe(starts, "start"), "and", describe(ends, "end"))
+      covr_abort(c(
+        "Each exclusion range start must have a matching range end.",
+        x = if (is.null(file)) {
+          "Found {found}."
+        } else {
+          "{.file {file}} has {found}."
+        }
+      ))
     }
 
     for (i in seq_along(starts)) {
@@ -205,12 +201,12 @@ normalize_exclusions <- function(x, path = NULL) {
       })
 
       if (any(bad)) {
-        stop(
-          "Full file exclusions must be character vectors of length 1. items: ",
-          paste(collapse = ", ", which(bad)),
-          " are not!",
-          call. = FALSE
-        )
+        # Character, so cli pluralizes by the number of elements
+        bad <- as.character(which(bad))
+        covr_abort(c(
+          "Each unnamed element of {.arg line_exclusions} must be a single file path.",
+          x = "Element{?s} {bad} {?isn't/aren't}."
+        ))
       }
       names(x)[unnamed] <- x[unnamed]
       x[unnamed] <- Inf

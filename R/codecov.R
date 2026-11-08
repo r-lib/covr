@@ -146,12 +146,10 @@ codecov <- function(
   }
   info$git_service <- info$git_service %||% "github"
   if (is.null(info$slug) || !grepl("^[^/ ]+(/[^/ ]+)+$", info$slug)) {
-    stop(
-      "Can't determine the repository (`owner/repo`) to upload coverage for. ",
-      "Run `codecov()` on a CI service or in a git repository with an ",
-      "`origin` remote.",
-      call. = FALSE
-    )
+    covr_abort(c(
+      "Can't determine the repository ({.code owner/repo}) to upload coverage for.",
+      i = "Run {.fn codecov} on a CI service or in a git repository with an {.code origin} remote."
+    ))
   }
 
   url <- paste0(
@@ -193,7 +191,7 @@ codecov <- function(
       if (!is.null(token)) c("Authorization" = paste("token", token))
     )
   )
-  if (!codecov_response_ok(res, "Failed to request an upload from Codecov.")) {
+  if (!codecov_response_ok(res, "Can't request an upload from Codecov.")) {
     return(invisible(NULL))
   }
   upload <- tryCatch(
@@ -204,10 +202,12 @@ codecov <- function(
     error = function(e) NULL
   )
   if (!is.character(upload$raw_upload_location)) {
-    stop(
-      "Codecov did not return a location to upload the coverage to.\n",
-      content(res, as = "text", encoding = "UTF-8"),
-      call. = FALSE
+    covr_abort(
+      c(
+        "Can't find an upload location in Codecov's reply.",
+        i = "Codecov replied:"
+      ),
+      output = content(res, as = "text", encoding = "UTF-8")
     )
   }
 
@@ -216,7 +216,7 @@ codecov <- function(
     upload$raw_upload_location,
     body = codecov_payload(to_codecov(coverage), git_files())
   )
-  if (!codecov_response_ok(res, "Failed to send coverage to Codecov.")) {
+  if (!codecov_response_ok(res, "Can't send coverage to Codecov.")) {
     return(invisible(NULL))
   }
 
@@ -301,27 +301,25 @@ codecov_response_ok <- function(res, what) {
     return(TRUE)
   }
   status <- httr::status_code(res)
-  message <- paste0(
-    what,
-    " ",
-    httr::http_status(res)$message,
-    "\n",
-    content(res, as = "text", encoding = "UTF-8")
+  body <- content(res, as = "text", encoding = "UTF-8")
+  details <- c(
+    x = "{httr::http_status(res)$message}.",
+    i = if (nzchar(body)) "Codecov replied:"
   )
   if (status == 429L || status >= 500L) {
-    warning(
-      structure(
-        class = c("covr_codecov_warning", "warning", "condition"),
-        list(message = message, call = NULL, status = status)
-      )
+    covr_warn(
+      c(what, details),
+      output = body,
+      status = status,
+      class = "covr_codecov_warning"
     )
     return(FALSE)
   }
-  stop(
-    structure(
-      class = c("covr_codecov_error", "error", "condition"),
-      list(message = message, call = NULL, status = status)
-    )
+  covr_abort(
+    c(what, details),
+    output = body,
+    status = status,
+    class = "covr_codecov_error"
   )
 }
 

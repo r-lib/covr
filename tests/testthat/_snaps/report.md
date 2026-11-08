@@ -4,7 +4,8 @@
       report(cov, browse = FALSE)
     Condition
       Error:
-      ! `covr.report_colors` must be a named character vector with elements `covered`, `missed` and/or `partial`, e.g. c(covered = "#0072B2", missed = "#E69F00").
+      ! `covr.report_colors` must be a named character vector.
+      i Use the names "covered", "missed" and/or "partial", e.g. `c(covered = "#0072B2", missed = "#E69F00")`.
 
 ---
 
@@ -12,7 +13,8 @@
       report(cov, browse = FALSE)
     Condition
       Error:
-      ! `covr.report_colors` must be a named character vector with elements `covered`, `missed` and/or `partial`, e.g. c(covered = "#0072B2", missed = "#E69F00").
+      ! `covr.report_colors` must be a named character vector.
+      i Use the names "covered", "missed" and/or "partial", e.g. `c(covered = "#0072B2", missed = "#E69F00")`.
 
 ---
 
@@ -20,7 +22,8 @@
       report(cov, browse = FALSE)
     Condition
       Error:
-      ! `covr.report_colors` must be a named character vector with elements `covered`, `missed` and/or `partial`, e.g. c(covered = "#0072B2", missed = "#E69F00").
+      ! `covr.report_colors` must be a named character vector.
+      i Use the names "covered", "missed" and/or "partial", e.g. `c(covered = "#0072B2", missed = "#E69F00")`.
 
 ---
 
@@ -28,7 +31,8 @@
       report(cov, browse = FALSE)
     Condition
       Error:
-      ! `covr.report_colors` must contain valid R colors: invalid color name 'notacolor'
+      ! `covr.report_colors` must contain valid R colors.
+      x Can't find color "notacolor".
 
 ---
 
@@ -36,5 +40,6 @@
       file_report(cov, browse = FALSE)
     Condition
       Error:
-      ! `covr.report_colors` must contain valid R colors: invalid color name 'notacolor'
+      ! `covr.report_colors` must contain valid R colors.
+      x Can't find color "notacolor".
 

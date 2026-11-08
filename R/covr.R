@@ -209,7 +209,7 @@ save_trace <- function(directory) {
     }
   )
   if (!file.rename(tmp_file, final_file)) {
-    stop("Could not write trace file: ", final_file, call. = FALSE)
+    covr_abort("Can't write trace file {.path {final_file}}.")
   }
   invisible(final_file)
 }
@@ -335,30 +335,6 @@ pending_pattern <- function(pid) {
 unsaved_traces <- function(directory) {
   markers <- list.files(directory, pattern = "^covr_pending_")
   markers[!grepl(pending_pattern(Sys.getpid()), markers)]
-}
-
-unsaved_traces_warning <- function(package, n) {
-  structure(
-    list(
-      message = paste0(
-        sprintf(
-          ngettext(
-            n,
-            "%d R process loaded %s but did not save its coverage, so it is missing from the results.",
-            "%d R processes loaded %s but did not save their coverage, so it is missing from the results."
-          ),
-          n,
-          package
-        ),
-        "\nCoverage is saved when R exits normally; it is lost if a process is killed ",
-        "(e.g. with SIGKILL or SIGTERM) or is still running when the tests finish.",
-        "\nStop background processes started by the tests, such as Shiny apps, ",
-        "callr sessions or future workers, gracefully and wait for them to exit."
-      ),
-      call = NULL
-    ),
-    class = c("covr_unsaved_trace", "warning", "condition")
-  )
 }
 
 #' Convert a counters object to a coverage object
@@ -819,11 +795,10 @@ package_coverage <- function(
   allow_failures = getOption("covr.allow_failures", FALSE)
 ) {
   if (!missing(exclusions)) {
-    warning(
-      "`exclusions` is deprecated and will be removed in an upcoming release. Please use `line_exclusions` instead.",
-      call. = FALSE,
-      domain = NA
-    )
+    covr_warn(c(
+      "{.arg exclusions} is deprecated.",
+      i = "Use {.arg line_exclusions} instead."
+    ))
     line_exclusions <- exclusions
   }
 
@@ -875,7 +850,7 @@ package_coverage <- function(
     unlink(file.path(pkg$path, "src", "*.dyn"))
     unlink(file.path(pkg$path, "src", "pgopti.*"))
   } else {
-    stop("icc is not available")
+    covr_abort("Can't find icc.")
   }
 
   if (isTRUE(clean)) {
@@ -931,7 +906,7 @@ package_coverage <- function(
   )
 
   if (res != 0) {
-    stop("Package installation did not succeed.")
+    covr_abort("Can't install {.pkg {pkg$package}}.")
   }
 
   # add hooks to the package startup
@@ -1064,7 +1039,15 @@ package_coverage <- function(
 
   unsaved <- unsaved_traces(install_path)
   if (length(unsaved) > 0) {
-    warning(unsaved_traces_warning(pkg$package, length(unsaved)))
+    n <- length(unsaved)
+    covr_warn(
+      c(
+        "Can't find coverage from {n} R process{?es} that loaded {.pkg {pkg$package}}.",
+        i = "Coverage is lost if a process is killed or outlives the tests.",
+        i = "Did a test leave a Shiny app, callr session, or future worker running?"
+      ),
+      class = "covr_unsaved_trace"
+    )
   }
 
   if (!uses_icc()) {
@@ -1264,9 +1247,11 @@ covr_error <- function(file) {
 # as many lines from the end as fit.
 failure_message <- function(file, lines) {
   header <- paste0(
-    "Failure in `",
-    file,
-    "` (full output is in that file and in the `$output` of this condition)\n"
+    cli::format_error(c(
+      "Code run to compute coverage failed.",
+      i = "Its full output is in {.file {file}} and in the {.code $output} of this condition."
+    )),
+    "\n"
   )
   # 9 is the length of `Error: ` + newline + NUL maybe?
   budget <- getOption("warning.length") - 9 - nchar(header, "chars")
@@ -1334,18 +1319,17 @@ merge_coverage.character <- function(x) {
 # error marker written by `save_trace()`.
 read_trace <- function(file) {
   fail <- function(reason) {
-    cnd <- structure(
-      list(
-        message = sprintf(
-          "Failed to read coverage trace file '%s': %s\nCoverage will be incomplete.",
-          file,
-          reason
+    withRestarts(
+      covr_abort(
+        c(
+          "Can't read coverage trace file {.file {file}}.",
+          x = "{reason}",
+          i = "Coverage will be incomplete."
         ),
-        call = NULL
+        class = "covr_error"
       ),
-      class = c("covr_error", "error", "condition")
+      covr_continue = function() NULL
     )
-    withRestarts(stop(cnd), covr_continue = function() NULL)
   }
 
   trace <- tryCatch(
@@ -1465,11 +1449,11 @@ parse_type <- function(type) {
 
   if (length(type) > 1L) {
     if ("all" %in% type) {
-      stop(sQuote("all"), " must be the only type specified", call. = FALSE)
+      covr_abort('{.arg type} can\'t combine "all" with other types.')
     }
 
     if ("none" %in% type) {
-      stop(sQuote("none"), " must be the only type specified", call. = FALSE)
+      covr_abort('{.arg type} can\'t combine "none" with other types.')
     }
   }
   type
@@ -1637,16 +1621,22 @@ add_hooks <- function(
 c.coverage <- function(...) {
   covs <- Filter(Negate(is.null), list(...))
   if (!all(vlapply(covs, inherits, "coverage"))) {
-    combine_error("All arguments to `c()` must be coverage objects.")
+    covr_abort(
+      "All arguments to {.fn c} must be coverage objects.",
+      class = "covr_combine_error"
+    )
   }
   packages <- unique(vcapply(covs, function(x) {
     attr(x, "package")$package %||% NA_character_
   }))
   if (length(packages) > 1L) {
-    combine_error(sprintf(
-      "Can't combine coverage of different packages: %s.",
-      paste(packages, collapse = ", ")
-    ))
+    covr_abort(
+      c(
+        "Can't combine coverage of different packages.",
+        x = "Packages: {.pkg {packages}}."
+      ),
+      class = "covr_combine_error"
+    )
   }
 
   merged <- merge_coverage(lapply(covs, coverage_to_counters))
@@ -1695,13 +1685,6 @@ union_excluded_lines <- function(excluded) {
   lapply(split(excluded, names(excluded)), function(lines) {
     sort(unique(unlist(lines)))
   })
-}
-
-combine_error <- function(message) {
-  stop(structure(
-    list(message = message, call = NULL),
-    class = c("covr_combine_error", "error", "condition")
-  ))
 }
 
 #' Determine if code is being run in covr

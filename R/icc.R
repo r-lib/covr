@@ -97,13 +97,13 @@ run_icov <- function(
   }
 
   if (!nzchar(icov_path)) {
-    warning("icc codecov not available")
+    covr_warn("Can't find icc codecov.")
     return()
   }
 
   icov_profmerge <- getOption("covr.icov_prof", "")
   if (!nzchar(icov_profmerge)) {
-    warning("icc profmerge not available")
+    covr_warn("Can't find icc profmerge.")
     return()
   }
 
@@ -114,7 +114,7 @@ run_icov <- function(
     full.names = TRUE
   )
   if (length(icov_inputs) == 0L) {
-    warning("no icc .dyn files are generated")
+    covr_warn("Can't find any icc {.file .dyn} files.")
     return()
   }
 

@@ -13,7 +13,8 @@
       codecov(coverage = cov)
     Condition
       Error:
-      ! Can't determine the repository (`owner/repo`) to upload coverage for. Run `codecov()` on a CI service or in a git repository with an `origin` remote.
+      ! Can't determine the repository (`owner/repo`) to upload coverage for.
+      i Run `codecov()` on a CI service or in a git repository with an `origin` remote.
 
 # it errors if the upload can't be requested, but only warns on 429 and 5xx
 
@@ -21,7 +22,9 @@
       codecov(coverage = cov)
     Condition
       Error:
-      ! Failed to request an upload from Codecov. Client error: (400) Bad Request
+      ! Can't request an upload from Codecov.
+      x Client error: (400) Bad Request.
+      i Codecov replied:
       Missing repository upload token
 
 ---
@@ -30,7 +33,9 @@
       res <- codecov(coverage = cov)
     Condition
       Warning:
-      Failed to request an upload from Codecov. Client error: (429) Too Many Requests (RFC 6585)
+      Can't request an upload from Codecov.
+      x Client error: (429) Too Many Requests (RFC 6585).
+      i Codecov replied:
       Rate limit reached
 
 ---
@@ -39,7 +44,9 @@
       res <- codecov(coverage = cov)
     Condition
       Warning:
-      Failed to request an upload from Codecov. Server error: (503) Service Unavailable
+      Can't request an upload from Codecov.
+      x Server error: (503) Service Unavailable.
+      i Codecov replied:
       Service unavailable
 
 # it only sends coverage if an upload was requested
@@ -48,7 +55,8 @@
       codecov(coverage = cov)
     Condition
       Error:
-      ! Codecov did not return a location to upload the coverage to.
+      ! Can't find an upload location in Codecov's reply.
+      i Codecov replied:
       {"url": "https://app.codecov.io"}
 
 # it errors if the coverage can't be sent, but only warns on 429 and 5xx
@@ -57,7 +65,9 @@
       codecov(coverage = cov)
     Condition
       Error:
-      ! Failed to send coverage to Codecov. Client error: (403) Forbidden
+      ! Can't send coverage to Codecov.
+      x Client error: (403) Forbidden.
+      i Codecov replied:
       <Error><Code>AccessDenied</Code></Error>
 
 ---
@@ -69,7 +79,9 @@
       R/TestS4.R: 100.00%
     Condition
       Warning:
-      Failed to send coverage to Codecov. Client error: (429) Too Many Requests (RFC 6585)
+      Can't send coverage to Codecov.
+      x Client error: (429) Too Many Requests (RFC 6585).
+      i Codecov replied:
       Rate limit reached
 
 ---
@@ -78,6 +90,8 @@
       res <- codecov(coverage = cov)
     Condition
       Warning:
-      Failed to send coverage to Codecov. Server error: (503) Service Unavailable
+      Can't send coverage to Codecov.
+      x Server error: (503) Service Unavailable.
+      i Codecov replied:
       Service unavailable
 

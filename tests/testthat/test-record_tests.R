@@ -282,7 +282,7 @@ test_that("covr.record_tests: safely handles extremely large calls", {
     withr::with_options(c("covr.record_tests" = TRUE), {
       cov <- code_coverage(fcode, "do.call('f', as.list(rep_len(1L, 1e6)))")
     }),
-    "large call .* truncated"
+    "Truncated a large call"
   )
 
   # expect that all calls in recorded test call stacks are under call length limit

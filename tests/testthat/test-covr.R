@@ -124,7 +124,7 @@ test_that("covr_error message is capped at the default number of lines", {
   withr::local_options(warning.length = 8170)
   err <- covr_error_for(paste0("line ", 1:120))
   msg <- strsplit(conditionMessage(err), "\n")[[1]]
-  expect_equal(msg[-1], paste0("line ", 71:120))
+  expect_equal(grep("^line ", msg, value = TRUE), paste0("line ", 71:120))
   expect_length(err$output, 121)
 })
 
@@ -132,7 +132,7 @@ test_that("covr.failure_lines sets the number of lines in the message and print"
   withr::local_options(warning.length = 8170, covr.failure_lines = 5)
   err <- covr_error_for(paste0("line ", 1:120))
   msg <- strsplit(conditionMessage(err), "\n")[[1]]
-  expect_equal(msg[-1], paste0("line ", 116:120))
+  expect_equal(grep("^line ", msg, value = TRUE), paste0("line ", 116:120))
   expect_equal(
     utils::tail(strsplit(format(err), "\n")[[1]], 5),
     paste0("line ", 116:120)

@@ -1,5 +1,5 @@
 test_that("it throws error if no package", {
-  expect_error(as_package("arst11234"), "`path` is invalid:.*arst11234")
+  expect_error(as_package("arst11234"), "must be an existing directory")
 })
 
 test_that("it returns the package if given the root or child directory", {

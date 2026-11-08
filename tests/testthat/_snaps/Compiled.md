@@ -3,14 +3,15 @@
     Code
       package_coverage("TestCompiled", relative_path = TRUE)
     Condition
-      Error in `run_gcov()`:
-      ! gcov not found
+      Error:
+      ! Can't find gcov.
+      i Set its path with `options(covr.gcov = )`.
 
 # Warning thrown for empty gcov output
 
     Code
       . <- package_coverage("TestCompiled", relative_path = TRUE)
     Condition
-      Warning in `run_gcov()`:
-      parsed gcov output was empty
+      Warning:
+      Can't find any coverage in the gcov output.
 

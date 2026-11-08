@@ -167,15 +167,59 @@ is_windows <- function() {
   .Platform$OS.type == "windows"
 }
 
+# Signal errors and warnings formatted by cli without needing rlang. `message`
+# is a cli bullet vector interpolated in `.envir`; `output` lines (e.g. from an
+# external command or server) are appended as is; `...` adds condition fields.
+covr_abort <- function(
+  message,
+  ...,
+  output = NULL,
+  class = NULL,
+  .envir = parent.frame()
+) {
+  stop(structure(
+    list(
+      message = cnd_message(cli::format_error, message, output, .envir),
+      call = NULL,
+      ...
+    ),
+    class = c(class, "error", "condition")
+  ))
+}
+
+covr_warn <- function(
+  message,
+  ...,
+  output = NULL,
+  class = NULL,
+  .envir = parent.frame()
+) {
+  warning(structure(
+    list(
+      message = cnd_message(cli::format_warning, message, output, .envir),
+      call = NULL,
+      ...
+    ),
+    class = c(class, "warning", "condition")
+  ))
+}
+
+cnd_message <- function(format, message, output, .envir) {
+  paste(c(format(message, .envir = .envir), output), collapse = "\n")
+}
+
 as_package <- function(path) {
   path <- normalize_path(path)
   if (!file.exists(path)) {
-    stop("`path` is invalid: ", path, call. = FALSE)
+    covr_abort(c(
+      "{.arg path} must be an existing directory.",
+      x = "{.path {path}} doesn't exist."
+    ))
   }
   root <- package_root(path)
 
   if (is.null(root)) {
-    stop(sQuote(path), " does not contain a package!", call. = FALSE)
+    covr_abort("Can't find a package in {.path {path}}.")
   }
 
   res <- read_description(file.path(root, "DESCRIPTION"))
@@ -208,7 +252,7 @@ package_root <- function(path) {
 
 read_description <- function(path) {
   if (!length(path) || !file.exists(path)) {
-    stop("DESCRIPTION file not found at ", sQuote(path), call. = FALSE)
+    covr_abort("Can't find a DESCRIPTION file at {.path {path}}.")
   }
 
   res <- as.list(read.dcf(path)[1, ])

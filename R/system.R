@@ -37,7 +37,7 @@ system_check <- function(
   )
 
   if (!identical(as.character(status), "0")) {
-    stop("Command ", sQuote(full), " failed (", status, ")", call. = FALSE)
+    covr_abort(c("Can't run {.code {full}}.", x = "Exit status {status}."))
   }
 
   invisible(TRUE)
