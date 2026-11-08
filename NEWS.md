@@ -1,6 +1,12 @@
 # covr (development version)
 
 * covr now requires R 4.0.0 or later.
+* New `report_html()` returns the coverage report of `report()` as HTML that
+  can be included in a larger document, such as an R Markdown or Quarto
+  document. The report's styles and scripts only apply to the report, and it
+  no longer uses Bootstrap's JavaScript or replaces the document's
+  highlight.js, so a document can include several reports without changing
+  the rest of the page (#316).
 
 * New `to_badge()` writes an SVG badge with the percent coverage, so a README
   can show coverage without uploading it to Codecov or Coveralls. The README
@@ -8,12 +14,6 @@
 
 * New `vignette("shiny")` describes how to measure the coverage of Shiny apps,
   including tests run with shinytest2 and apps that aren't in a package (#277).
-* New `report_html()` returns the coverage report of `report()` as HTML that
-  can be included in a larger document, such as an R Markdown or Quarto
-  document. The report's styles and scripts only apply to the report, and it
-  no longer uses Bootstrap's JavaScript or replaces the document's
-  highlight.js, so a document can include several reports without changing
-  the rest of the page (#316).
 
 * `package_coverage()` now measures the coverage of installed packages, e.g.
   `package_coverage(system.file(package = "pkg"))`, so the package source isn't
