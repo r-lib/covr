@@ -392,6 +392,40 @@ as_coverage_with_tests <- function(counters) {
   )
 }
 
+# Merge the traces saved in `directory` by other processes, into `counters` if
+# given.
+merge_traces <- function(directory, counters = NULL) {
+  trace_files <- list.files(
+    directory,
+    pattern = "^covr_trace_",
+    full.names = TRUE
+  )
+  traces <- merge_coverage(trace_files)
+  if (is.null(counters)) {
+    traces
+  } else if (is.null(traces)) {
+    counters
+  } else {
+    merge_coverage(list(counters, traces))
+  }
+}
+
+# Warn, with class `covr_unsaved_trace`, about the processes in `directory`
+# that did not save their trace. `subject` says what they did.
+warn_unsaved_traces <- function(directory, subject, hint) {
+  n <- length(unsaved_traces(directory))
+  if (n > 0) {
+    covr_warn(
+      c(
+        "Can't find coverage from {n} R process{?es} that {subject}.",
+        i = "Coverage is lost if a process is killed or outlives the tests.",
+        i = hint
+      ),
+      class = "covr_unsaved_trace"
+    )
+  }
+}
+
 # Evaluate `code` and return the coverage it produced from the current traces.
 # Unless disabled (see should_enable_parallel_mcexit_fix()), this includes code
 # run in processes forked by parallel's mclapply(), mcparallel() etc.
@@ -412,15 +446,7 @@ collect_coverage <- function(code) {
   withr::with_envvar(c("R_COVR" = "true"), code)
 
   counters <- as.list(.counters)
-  trace_files <- list.files(
-    trace_dir,
-    pattern = "^covr_trace_",
-    full.names = TRUE
-  )
-  if (length(trace_files) > 0) {
-    counters <- merge_coverage(list(counters, merge_coverage(trace_files)))
-  }
-  as_coverage(counters)
+  as_coverage(merge_traces(trace_dir, counters))
 }
 
 #' Calculate test coverage for a specific function.
@@ -691,28 +717,11 @@ environment_coverage <- function(
 ) {
   exec_env <- new.env(parent = env)
 
-  compiled <- start_compiled_coverage(env)
-  on.exit(stop_compiled_coverage(compiled), add = TRUE)
-
-  trace_environment(env)
-  on.exit(
-    {
-      reset_traces()
-      clear_counters()
-    },
-    add = TRUE
-  )
-
-  coverage <- collect_coverage(
-    lapply(test_files, sys.source, keep.source = TRUE, envir = exec_env)
-  )
-  coverage <- add_compiled_coverage(coverage, compiled)
-
-  exclude(
-    coverage,
+  with_coverage(
+    lapply(test_files, sys.source, keep.source = TRUE, envir = exec_env),
+    env = env,
     line_exclusions = line_exclusions,
-    function_exclusions = function_exclusions,
-    path = NULL
+    function_exclusions = function_exclusions
   )
 }
 
@@ -1135,13 +1144,8 @@ package_coverage <- function(
   })
 
   # read tracing files
-  trace_files <- list.files(
-    path = install_path,
-    pattern = "^covr_trace_[^/]+$",
-    full.names = TRUE
-  )
   coverage <- withCallingHandlers(
-    merge_coverage(trace_files),
+    merge_traces(install_path),
     covr_error = function(e) {
       if (isTRUE(allow_failures)) {
         failures[[length(failures) + 1L]] <<- e
@@ -1162,18 +1166,11 @@ package_coverage <- function(
     ))
   }
 
-  unsaved <- unsaved_traces(install_path)
-  if (length(unsaved) > 0) {
-    n <- length(unsaved)
-    covr_warn(
-      c(
-        "Can't find coverage from {n} R process{?es} that loaded {.pkg {pkg$package}}.",
-        i = "Coverage is lost if a process is killed or outlives the tests.",
-        i = "Did a test leave a Shiny app, callr session, or future worker running?"
-      ),
-      class = "covr_unsaved_trace"
-    )
-  }
+  warn_unsaved_traces(
+    install_path,
+    cli::format_inline("loaded {.pkg {pkg$package}}"),
+    "Did a test leave a Shiny app, callr session, or future worker running?"
+  )
 
   if (installed) {
     # `R CMD INSTALL` copies an installed package rather than building it, so

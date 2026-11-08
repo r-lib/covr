@@ -216,13 +216,7 @@ file_table <- function(stats) {
     number <- as.numeric(sub("%", "", value, fixed = TRUE))
     style <- NULL
     if (col == "Coverage" && !is.na(number)) {
-      level <- if (number >= 90) {
-        "high"
-      } else if (number >= 75) {
-        "mid"
-      } else {
-        "low"
-      }
+      level <- coverage_level(number)
       style <- sprintf(
         "background:linear-gradient(90deg, var(--covr-bar-%s) %s, transparent %s)",
         level,

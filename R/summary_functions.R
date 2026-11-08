@@ -16,7 +16,22 @@ percent_coverage <- function(x, ...) {
     res <- collapse_lines(res)
   }
 
-  (sum(res$value > 0) / length(res$value)) * 100
+  percent_covered(res$value)
+}
+
+percent_covered <- function(x) {
+  sum(x > 0) / length(x) * 100
+}
+
+# The "high" (>= 90%), "mid" (>= 75%) or "low" level of a coverage percentage.
+coverage_level <- function(percent) {
+  if (percent >= 90) {
+    "high"
+  } else if (percent >= 75) {
+    "mid"
+  } else {
+    "low"
+  }
 }
 
 #' Tally coverage by line, expression, function or branch
@@ -373,9 +388,7 @@ print.coverage <- function(
   } else {
     df
   }
-  percents <- tapply(counted$value, counted[[group]], FUN = function(x) {
-    (sum(x > 0) / length(x)) * 100
-  })
+  percents <- tapply(counted$value, counted[[group]], FUN = percent_covered)
 
   overall_percentage <- percent_coverage(df, by = by)
   styles <- console_styles()
@@ -459,15 +472,7 @@ console_styles <- function() {
 }
 
 format_percentage <- function(x, styles = console_styles()) {
-  style <- if (x >= 90) {
-    styles$high
-  } else if (x >= 75) {
-    styles$mid
-  } else {
-    styles$low
-  }
-
-  style(sprintf("%02.2f%%", x))
+  styles[[coverage_level(x)]](sprintf("%02.2f%%", x))
 }
 
 rstudio_has_source_markers <- function() {

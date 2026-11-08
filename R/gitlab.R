@@ -20,14 +20,7 @@ gitlab <- function(
     print(coverage)
   }
 
-  out_file <- file.path(tempfile(), file)
-  on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
-
-  out_dir <- dirname(out_file)
-
   pkg_path <- attributes(coverage)$package$path
 
-  report(coverage, file = out_file, browse = FALSE)
-
-  file.copy(out_dir, pkg_path, recursive = TRUE)
+  invisible(report(coverage, file = file.path(pkg_path, file), browse = FALSE))
 }

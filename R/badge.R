@@ -54,13 +54,12 @@ badge_color <- function(percent) {
   if (is.nan(percent)) {
     return("#9f9f9f")
   }
-  if (percent >= 90) {
-    return("#4c1")
-  }
-  if (percent >= 75) {
-    return("#dfb317")
-  }
-  "#e05d44"
+  switch(
+    coverage_level(percent),
+    high = "#4c1",
+    mid = "#dfb317",
+    low = "#e05d44"
+  )
 }
 
 # A flat badge with `label` on a gray background on the left and `value` on a
