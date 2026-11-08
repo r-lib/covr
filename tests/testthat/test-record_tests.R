@@ -341,6 +341,27 @@ test_that("covr.record_tests: records multiple calls to the same test expr", {
   expect_equal(cov[[trace_f2]]$tests[, "call"], c(1, 2, 3))
 })
 
+test_that("covr.record_tests: records repeated calls of tests without srcrefs once (#627)", {
+  # The code is run with `R CMD BATCH`, without srcrefs, so the tests are
+  # identified by their calls
+  cov <- withr::with_options(
+    c("covr.record_tests" = TRUE),
+    package_coverage(
+      test_path("TestFunctional"),
+      type = "none",
+      code = "for (i in 1:3) { a(); b() }"
+    )
+  )
+
+  expect_length(attr(cov, "tests"), 2L)
+  srcrefs <- vcapply(cov, function(x) {
+    paste(as.character(x$srcref), collapse = "")
+  })
+  trace_a <- cov[[which(srcrefs == "return(TRUE)")]]
+  expect_equal(trace_a$tests[, "test"], c(1, 1, 1))
+  expect_equal(trace_a$tests[, "call"], c(1, 2, 3))
+})
+
 test_that("covr.record_tests: doesn't record environments of functions in calls", {
   skip_if_not_installed("R6")
   # When covr measures its own coverage, the outer instrumentation changes the
@@ -375,4 +396,39 @@ test_that("covr.record_tests: doesn't record environments of functions in calls"
   calls <- lapply(attr(cov, "tests"), function(trace) trace[[length(trace)]])
   fns <- Filter(is.function, do.call(c, lapply(unname(calls), as.list)))
   expect_equal(unname(lapply(fns, environment)), rep(list(emptyenv()), 3))
+})
+
+test_that("covr.record_tests: objects used in tests can be garbage collected (#627)", {
+  skip_if_not_installed("R6")
+  fcode <- '
+  Counter <- R6::R6Class("Counter",
+    public = list(add = function() invisible(self)),
+    active = list(size = function() 1)
+  )
+  '
+  events <- character()
+
+  withr::with_options(c("covr.record_tests" = TRUE), {
+    code_coverage(
+      fcode,
+      'local({
+        counter <- Counter$new()
+        reg.finalizer(counter, function(e) events <<- c(events, "method"))
+        counter$add()
+      })
+      invisible(gc())
+      events <<- c(events, "gc")
+      local({
+        counter <- Counter$new()
+        reg.finalizer(counter, function(e) events <<- c(events, "active"))
+        counter$size
+      })
+      invisible(gc())
+      events <<- c(events, "gc")',
+      parent_env = environment()
+    )
+  })
+
+  # each object is collected by the `gc()` right after it is used
+  expect_equal(events, c("method", "gc", "active", "gc"))
 })
