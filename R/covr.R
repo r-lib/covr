@@ -1469,6 +1469,7 @@ add_hooks <- function(
 #' @param ... Coverage objects, e.g. from [package_coverage()] or
 #'   [file_coverage()]. They must all be for the same package, or all have no
 #'   package, like the results of [file_coverage()] and [code_coverage()].
+#'   `NULL` arguments are dropped.
 #' @return A coverage object.
 #' @export
 #' @examples
@@ -1494,7 +1495,7 @@ add_hooks <- function(
 #' percent_coverage(add_cov)
 #' percent_coverage(c(add_cov, subtract_cov))
 c.coverage <- function(...) {
-  covs <- list(...)
+  covs <- Filter(Negate(is.null), list(...))
   if (!all(vlapply(covs, inherits, "coverage"))) {
     combine_error("All arguments to `c()` must be coverage objects.")
   }

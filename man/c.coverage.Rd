@@ -9,7 +9,8 @@
 \arguments{
 \item{...}{Coverage objects, e.g. from \code{\link[=package_coverage]{package_coverage()}} or
 \code{\link[=file_coverage]{file_coverage()}}. They must all be for the same package, or all have no
-package, like the results of \code{\link[=file_coverage]{file_coverage()}} and \code{\link[=code_coverage]{code_coverage()}}.}
+package, like the results of \code{\link[=file_coverage]{file_coverage()}} and \code{\link[=code_coverage]{code_coverage()}}.
+\code{NULL} arguments are dropped.}
 }
 \value{
 A coverage object.

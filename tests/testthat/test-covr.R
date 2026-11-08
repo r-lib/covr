@@ -259,6 +259,11 @@ test_that("c() errors if an argument isn't a coverage object", {
   )
 })
 
+test_that("c() drops NULL arguments", {
+  cov <- structure(list(t1 = list(value = 1L)), class = "coverage")
+  expect_equal(c(cov, NULL, cov)$t1$value, 2L)
+})
+
 test_that("re-tracing an already traced namespace keeps the counts (#641)", {
   cov <- package_coverage(
     test_path("TestSummary"),
