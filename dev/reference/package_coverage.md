@@ -21,7 +21,8 @@ package_coverage(
   ...,
   exclusions,
   pre_clean = TRUE,
-  allow_failures = getOption("covr.allow_failures", FALSE)
+  allow_failures = getOption("covr.allow_failures", FALSE),
+  show_code_output = FALSE
 )
 ```
 
@@ -107,6 +108,12 @@ package_coverage(
   first failure. The default can be changed with the
   `covr.allow_failures` option, e.g.
   `options(covr.allow_failures = TRUE)`.
+
+- show_code_output:
+
+  If `TRUE`, the output of `code` is shown on the console while it runs,
+  e.g. to follow it in the logs of a CI job. The default, `FALSE`, only
+  saves it to a file in `install_path`, which is shown if `code` fails.
 
 ## Value
 

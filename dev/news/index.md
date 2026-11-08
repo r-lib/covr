@@ -47,6 +47,13 @@
   which are no longer saved, so it is also smaller
   ([\#602](https://github.com/r-lib/covr/issues/602)).
 
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  gains a `show_code_output` argument. If `TRUE`, the output of `code`
+  is shown on the console while it runs, e.g. to follow it in the logs
+  of a CI job, rather than only being shown when `code` fails
+  ([@gergness](https://github.com/gergness),
+  [\#558](https://github.com/r-lib/covr/issues/558)).
+
 - [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
   now highlights the syntax of the source code, which failed with
   JavaScript errors because the report didn’t include jQuery.
