@@ -18,15 +18,22 @@ to_cobertura <- function(cov, filename = "cobertura.xml") {
   loadNamespace("xml2")
 
   df <- tally_coverage(cov, by = "line")
+  # Methods list the lines of each function, while the totals and the lines of
+  # each file count every line once.
+  file_lines <- collapse_lines(df)
   percent_overall <- percent_coverage(df, by = "line") / 100
-  percent_per_file <- tapply(df$value, df$filename, FUN = function(x) {
-    (sum(x > 0) / length(x))
-  })
+  percent_per_file <- tapply(
+    file_lines$value,
+    file_lines$filename,
+    FUN = function(x) {
+      (sum(x > 0) / length(x))
+    }
+  )
   percent_per_function <- tapply(df$value, df$functions, FUN = function(x) {
     (sum(x > 0) / length(x))
   })
-  lines_valid <- nrow(df)
-  lines_covered <- sum(df$value > 0)
+  lines_valid <- nrow(file_lines)
+  lines_covered <- sum(file_lines$value > 0)
 
   d <- xml2::xml_new_document()
 
@@ -58,7 +65,7 @@ to_cobertura <- function(cov, filename = "cobertura.xml") {
     xml2::xml_add_child(sources, "source", xml2::xml_cdata(source_pth))
   }
 
-  files <- unique(df$filename)
+  files <- unique(file_lines$filename)
   #for (f in files){
   #xml2::xml_add_child(sources, "source", f)
   #}
@@ -119,9 +126,8 @@ to_cobertura <- function(cov, filename = "cobertura.xml") {
 
     # Add lines for "class"
     class_lines <- xml2::xml_add_child(class, "lines")
-    file_lines <- which(df$filename == f)
-    for (i in file_lines) {
-      line <- df[i, ]
+    for (i in which(file_lines$filename == f)) {
+      line <- file_lines[i, ]
       xml2::xml_add_child(
         class_lines,
         "line",

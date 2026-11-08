@@ -56,6 +56,16 @@ test_that("per_line removes blank lines and lines with only punctuation (#387)",
   )
 })
 
+test_that("per_line counts lines as tally_coverage does (#620)", {
+  cov <- shared_line_coverage()
+
+  expect_equal(per_line(cov)[[1]]$coverage, c(NA, 1, 0, NA, NA, 0))
+
+  stats <- to_report_data(cov)$file_stats
+  expect_equal(stats$Relevant, 3)
+  expect_equal(stats$Covered, 1)
+})
+
 test_that("split_on_line_directives returns NULL for input without directive (#588)", {
   expect_identical(
     split_on_line_directives(NULL),

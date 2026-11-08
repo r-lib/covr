@@ -26,8 +26,9 @@ Each source file gets a record with its functions (\code{FN}, \code{FNDA}, \code
 \code{\link[=tally_coverage]{tally_coverage()}} with \code{by = "line"}, combined so that each source line
 has a single \code{DA} record: when several functions share a line, the line's
 count is the smallest of theirs, so a line only counts as covered if all its
-code was run, as in \code{\link[=report]{report()}} and \code{\link[=codecov]{codecov()}}. A function's count is the
-largest count of any of its expressions. Branch coverage is not recorded.
+code was run, as in \code{\link[=report]{report()}}, \code{\link[=percent_coverage]{percent_coverage()}} and \code{\link[=codecov]{codecov()}}. A
+function's count is the largest count of any of its expressions. Branch
+coverage is not recorded.
 
 Source file paths (\code{SF}) are written as covr reports them, for a package
 relative to the package root, so tools such as \code{genhtml} should be run from

@@ -10,8 +10,9 @@
 #' [tally_coverage()] with `by = "line"`, combined so that each source line
 #' has a single `DA` record: when several functions share a line, the line's
 #' count is the smallest of theirs, so a line only counts as covered if all its
-#' code was run, as in [report()] and [codecov()]. A function's count is the
-#' largest count of any of its expressions. Branch coverage is not recorded.
+#' code was run, as in [report()], [percent_coverage()] and [codecov()]. A
+#' function's count is the largest count of any of its expressions. Branch
+#' coverage is not recorded.
 #'
 #' Source file paths (`SF`) are written as covr reports them, for a package
 #' relative to the package root, so tools such as `genhtml` should be run from
@@ -30,7 +31,7 @@
 #' cat(readLines(tmp), sep = "\n")
 #' @export
 to_lcov <- function(cov, filename = "lcov.info") {
-  lines <- lcov_lines(tally_coverage(cov, by = "line"))
+  lines <- collapse_lines(tally_coverage(cov, by = "line"))
   funs <- tally_coverage(cov, by = "function")
 
   files <- sort(unique(as.character(c(lines$filename, funs$filename))))
@@ -56,21 +57,6 @@ to_lcov <- function(cov, filename = "lcov.info") {
   writeLines(out, filename)
 
   invisible(out)
-}
-
-# tally_coverage() has a row for each function on a line; LCOV wants one row for
-# each line, with the smallest count.
-lcov_lines <- function(lines) {
-  if (!NROW(lines)) {
-    return(lines[c("filename", "line", "value")])
-  }
-  res <- aggregate(
-    value ~ filename + line,
-    data = lines,
-    FUN = min,
-    na.action = na.pass
-  )
-  res[order(res$filename, res$line), ]
 }
 
 # One `KEY:count,value` line for each element; `count` is a double, so avoid

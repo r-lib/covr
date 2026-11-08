@@ -7,6 +7,9 @@
 #' @export
 percent_coverage <- function(x, ...) {
   res <- tally_coverage(x, ...)
+  if (!is.null(res$line)) {
+    res <- collapse_lines(res)
+  }
 
   (sum(res$value > 0) / length(res$value)) * 100
 }
@@ -17,10 +20,15 @@ percent_coverage <- function(x, ...) {
 #' @param by whether to tally coverage by line, expression or function
 #' @return A `data.frame`. With `by = "expression"` it is the same as
 #'   [as.data.frame.coverage()]. With `by = "line"` it has one row for each
-#'   line of code (excluding blank and comment lines of R code) and the
-#'   columns `filename`, `functions`, `line` and `value`, where `value` is the
-#'   smallest execution count of the expressions on that line, so a line only
-#'   counts as covered if all its expressions were run.
+#'   function on each line of code (excluding blank lines, comments and lines
+#'   with only punctuation such as `}`) and the columns `filename`,
+#'   `functions`, `line` and `value`, where `value` is the smallest execution
+#'   count of the expressions on that line, so a line only counts as covered
+#'   if all its expressions were run. An expression spanning several lines,
+#'   such as a loop, only counts for the lines that none of the expressions
+#'   inside it are on. [percent_coverage()], [report()] and the other line
+#'   based outputs count each line once, with the smallest count of its
+#'   functions.
 #'
 #'   With `by = "function"` it has one row for each top level R function and
 #'   the columns `filename`, `functions`, `first_line`, `last_line` and
@@ -60,17 +68,30 @@ tally_coverage <- function(x, by = c("line", "expression", "function")) {
 }
 
 # `x` is the object passed to tally_coverage(); if it is a coverage object its
-# source files are used to drop blank lines.
+# source files are used to drop lines that aren't code.
 tally_lines <- function(df, x) {
   # if it already has a line column it has already been tallied.
   if (!is.null(df$line)) {
     return(df)
   }
 
+  # Expressions without source references, such as code generated on load,
+  # have no lines.
+  df <- df[!is.na(df$first_line), , drop = FALSE]
+  if (!NROW(df)) {
+    return(data.frame(
+      filename = character(),
+      functions = character(),
+      line = integer(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+
   # results with NA functions (such as from compiled code) are dropped
   # unless NA is a level.
   df$functions <- addNA(df$functions)
-  res <- expand_lines(df)
+  res <- innermost_lines(df)
 
   res <- aggregate(
     value ~ filename + functions + line,
@@ -81,25 +102,84 @@ tally_lines <- function(df, x) {
   res$functions <- as.character(res$functions)
 
   if (inherits(x, "coverage")) {
-    res <- drop_lines(res, source_blank_lines(x))
+    res <- drop_lines(res, non_code_lines(x))
     res <- drop_lines(res, attr(x, "excluded_lines"))
   }
   res[order(res$filename, res$line), ]
 }
 
-source_blank_lines <- function(x) {
-  srcfiles <- unique(lapply(x, function(x) attr(x$srcref, "srcfile")))
-  srcfile_names <- vcapply(srcfiles, `[[`, "filename")
-  srcfile_names <- to_relative_path(srcfile_names, attr(x, "root"))
+# Expands each expression to the lines it spans, keeping on each line only the
+# innermost expressions on it. An expression spanning several lines, such as a
+# loop or a function defined inside another, would otherwise lower the counts
+# of the expressions inside it, which can run more often, or, for a function
+# created when the package was installed, run when the outer one never did.
+innermost_lines <- function(df) {
+  rows <- rep(seq_len(NROW(df)), df$last_line - df$first_line + 1L)
+  res <- df[rows, c("filename", "functions", "value")]
+  res$line <- unlist(Map(seq, df$first_line, df$last_line))
+  res$row <- rows
+  rownames(res) <- NULL
 
-  compact(
-    setNames(
-      lapply(srcfiles, function(srcfile) {
-        attr(srcfile_lines(srcfile), "blanks")
-      }),
-      srcfile_names
-    )
+  pairs <- merge(
+    res[c("filename", "line", "row")],
+    res[c("filename", "line", "row")],
+    by = c("filename", "line")
   )
+  outer <- pairs[which(contains(df, pairs$row.x, pairs$row.y)), ]
+  keep <- !paste(res$row, res$line) %in% paste(outer$row.x, outer$line)
+
+  res[keep, c("filename", "functions", "line", "value")]
+}
+
+# Whether expression `i` of `df` contains a different expression `j`.
+contains <- function(df, i, j) {
+  starts_before <- df$first_line[i] < df$first_line[j] |
+    (df$first_line[i] == df$first_line[j] &
+      df$first_byte[i] <= df$first_byte[j])
+  ends_after <- df$last_line[i] > df$last_line[j] |
+    (df$last_line[i] == df$last_line[j] & df$last_byte[i] >= df$last_byte[j])
+  same <- df$first_line[i] == df$first_line[j] &
+    df$first_byte[i] == df$first_byte[j] &
+    df$last_line[i] == df$last_line[j] &
+    df$last_byte[i] == df$last_byte[j]
+
+  starts_before & ends_after & !same
+}
+
+# The lines of each traced file that aren't code, named by filename: blank
+# lines, comments and lines with only punctuation, such as `}` or `} else {`
+# (#387).
+non_code_lines <- function(x) {
+  compact(lapply(traced_files(x), function(file) {
+    which(
+      rex::re_matches(
+        file$file_lines,
+        rex::rex(start, any_spaces, maybe("#", anything), end)
+      ) |
+        rex::re_matches(file$file_lines, "^(?:[[:punct:][:space:]]|else)*$")
+    )
+  }))
+}
+
+# tally_coverage(by = "line") has a row for each function on a line; this
+# combines them into one row for each line with the smallest count, so a line
+# only counts as covered if all its code was run.
+collapse_lines <- function(lines) {
+  if (!NROW(lines)) {
+    return(data.frame(
+      filename = character(),
+      line = integer(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  res <- aggregate(
+    value ~ filename + line,
+    data = lines,
+    FUN = min,
+    na.action = na.pass
+  )
+  res[order(res$filename, res$line), ]
 }
 
 # Drops the rows of `res` for the lines in `lines`, a list of line numbers named
@@ -243,7 +323,13 @@ print.coverage <- function(
     return(invisible())
   }
 
-  percents <- tapply(df$value, df[[group]], FUN = function(x) {
+  # Each line counts once for its file, but once for each function on it.
+  counted <- if (group == "filename" && !is.null(df$line)) {
+    collapse_lines(df)
+  } else {
+    df
+  }
+  percents <- tapply(counted$value, counted[[group]], FUN = function(x) {
     (sum(x > 0) / length(x)) * 100
   })
 
@@ -363,16 +449,4 @@ markers.data.frame <- function(x, ..., type = "test") {
     x$first_column %||% rep(list(NULL), NROW(x)),
     USE.NAMES = FALSE
   )
-}
-
-# Expand lines given as start and end ranges to enumerate each line
-expand_lines <- function(x) {
-  repeats <- (x$last_line - x$first_line) + 1L
-
-  lines <- unlist(Map(seq, x$first_line, x$last_line)) %||% integer()
-
-  res <- x[rep(seq_len(NROW(x)), repeats), c("filename", "functions", "value")]
-  res$line <- lines
-  rownames(res) <- NULL
-  res
 }

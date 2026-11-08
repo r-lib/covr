@@ -15,13 +15,15 @@
 to_sonarqube <- function(cov, filename = "sonarqube.xml", path_prefix = NULL) {
   loadNamespace("xml2")
 
+  # Compiled code has no functions, and isn't reported.
   df <- tally_coverage(cov, by = "line")
+  lines <- collapse_lines(df[!is.na(df$functions), , drop = FALSE])
 
   d <- xml2::xml_new_document()
 
   top <- xml2::xml_add_child(d, "coverage", version = "1")
 
-  files <- unique(df$filename)
+  files <- unique(lines$filename)
 
   for (f in files) {
     path <- as.character(f)
@@ -30,17 +32,14 @@ to_sonarqube <- function(cov, filename = "sonarqube.xml", path_prefix = NULL) {
     }
     file <- xml2::xml_add_child(top, "file", path = path)
 
-    for (fun_name in unique(na.omit(df[df$filename == f, "functions"]))) {
-      fun_lines <- which(df$functions == fun_name & df$filename == f)
-      for (i in fun_lines) {
-        line <- df[i, ]
-        xml2::xml_add_child(
-          file,
-          "lineToCover",
-          lineNumber = as.character(line$line),
-          covered = tolower(as.character(line$value > 0))
-        )
-      }
+    for (i in which(lines$filename == f)) {
+      line <- lines[i, ]
+      xml2::xml_add_child(
+        file,
+        "lineToCover",
+        lineNumber = as.character(line$line),
+        covered = tolower(as.character(line$value > 0))
+      )
     }
   }
 

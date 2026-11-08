@@ -57,7 +57,19 @@ test_that("percent_coverage", {
   cov <- function_coverage("fun", env = environment(fun), fun())
 
   res <- percent_coverage(cov)
-  expect_equal(res, 83.333333, tolerance = .01)
+  expect_equal(res, 80)
+})
+
+test_that("a line is only covered if all its expressions ran (#620)", {
+  cov <- shared_line_coverage()
+
+  res <- tally_coverage(cov)
+  expect_equal(res$line, c(2, 3, 6, 6))
+  expect_equal(res$value, c(1, 0, 1, 0))
+
+  expect_equal(percent_coverage(cov), 100 / 3)
+  expect_equal(coverage_to_list(cov)$totalcoverage, 33.33)
+  expect_equal(as.vector(coverage_to_list(cov)$filecoverage), 33.33)
 })
 
 test_that("coverage_to_markdown() formats totals, files and differences", {
