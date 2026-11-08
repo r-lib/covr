@@ -22,6 +22,8 @@
   `initialize()` methods of R6 classes, listed each other's lines, so Codecov
   showed line numbers past the end of the file and a different coverage than
   `print()` (#629).
+* New `vignette("shiny")` describes how to measure the coverage of Shiny apps,
+  including tests run with shinytest2 and apps that aren't in a package (#277).
 
 * Compiled code coverage now reads gcov's structured JSON output
   (`gcov --json-format`) when gcov supports it (gcc >= 9), instead of parsing

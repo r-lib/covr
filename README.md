@@ -191,6 +191,16 @@ package_coverage()
 
 `devtools::test_coverage()` sets `NOT_CRAN` for you.
 
+## Can covr measure the coverage of a Shiny app? ##
+Yes, including tests that run the app with shinytest2, if the app is part of a
+package. The vignette
+[vignettes/shiny.Rmd](https://github.com/r-lib/covr/blob/main/vignettes/shiny.Rmd)
+describes how to measure the coverage of apps in and outside of packages.
+
+```r
+vignette("shiny", package = "covr")
+```
+
 ## Will covr work with alternative compilers such as ICC ##
 Covr now supports Intel's `icc` compiler, thanks to work contributed by Qin
 Wang at Oracle.
