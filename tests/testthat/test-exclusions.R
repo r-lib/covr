@@ -53,7 +53,37 @@ test_that("it ignores exclude coverage lines within start and end", {
 
 test_that("it throws an error if start and end are unpaired", {
   t1 <- c("this #TeSt_NoLiNt_StArT", "is #TeSt_NoLiNt", "a", "test")
-  expect_error(do.call(parse_exclusions, c(list(t1), exclude_ops)), "but only")
+  expect_snapshot(
+    do.call(parse_exclusions, c(list(t1), exclude_ops)),
+    error = TRUE
+  )
+  expect_snapshot(
+    do.call(parse_exclusions, c(list(t1), exclude_ops, file = "R/foo.R")),
+    error = TRUE
+  )
+
+  t2 <- c(
+    "this #TeSt_NoLiNt_StArT",
+    "is #TeSt_NoLiNt_EnD",
+    "a #TeSt_NoLiNt_EnD",
+    "test"
+  )
+  expect_snapshot(
+    do.call(parse_exclusions, c(list(t2), exclude_ops, file = "R/foo.R")),
+    error = TRUE
+  )
+})
+
+test_that("unpaired start and end errors give the file name", {
+  f <- withr::local_tempfile(
+    fileext = ".R",
+    lines = c("f <- function(x) { # nocov start", "  x", "} # nocov start")
+  )
+  expect_snapshot(
+    file_coverage(f, character()),
+    error = TRUE,
+    transform = function(x) gsub(f, "<file>", x, fixed = TRUE)
+  )
 })
 
 expect_equal_vals <- function(x, y) {
