@@ -2,6 +2,12 @@
 
 ## covr (development version)
 
+- When gcov fails, the error from
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  now includes gcov’s output, e.g. the `.gcno` version mismatch reported
+  when the package was compiled with a different version of gcc than the
+  gcov used ([\#537](https://github.com/r-lib/covr/issues/537)).
+
 - [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   no longer discards the coverage measured so far, or fails with “‘from’
   must be a finite number”, when `code` loads the package again with
