@@ -1,5 +1,13 @@
 # covr (development version)
 
+* New `to_lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
+  `genhtml` and other tools that read the LCOV format (#442, thanks to
+  @MichaelChirico for the initial implementation in #637).
+
+* New `to_lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
+  `genhtml` and other tools that read the LCOV format (#442, thanks to
+  @MichaelChirico for the initial implementation in #637).
+
 * `package_coverage()` no longer reports 0% coverage for packages whose last
   file in `R/` is empty (#522).
 
