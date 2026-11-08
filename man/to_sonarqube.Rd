@@ -3,15 +3,21 @@
 \name{to_sonarqube}
 \alias{to_sonarqube}
 \title{Create a SonarQube Generic XML file for test coverage according to
-https://docs.sonarqube.org/latest/analysis/generic-test/
+\url{https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/test-coverage/generic-test-data}
 Based on cobertura.R}
 \usage{
-to_sonarqube(cov, filename = "sonarqube.xml")
+to_sonarqube(cov, filename = "sonarqube.xml", path_prefix = NULL)
 }
 \arguments{
 \item{cov}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
 
 \item{filename}{the name of the SonarQube Generic XML file}
+
+\item{path_prefix}{SonarQube expects file paths relative to the project's
+base directory. By default the paths are relative to the package root
+(e.g. \code{R/foo.R}), which is correct when the package is the root of the
+SonarQube project. If the package is in a subdirectory of the project,
+set \code{path_prefix} to that subdirectory (e.g. \code{"pkg"} gives \code{pkg/R/foo.R}).}
 }
 \description{
 This functionality requires the xml2 package be installed.
