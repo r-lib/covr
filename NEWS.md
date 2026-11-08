@@ -10,6 +10,10 @@
   e.g. `f <- function(x) if (x) 1 else 2` tested only with `f(TRUE)` drops from
   100% to 0% line coverage. This is more complete expression coverage, not
   branch coverage (#279).
+* With `options(covr.record_tests = TRUE)`, functions in the recorded test
+  calls, such as those of R6 active bindings, no longer keep their environment.
+  Saving the coverage of tests that used an active binding of an R6 object
+  holding data read with arrow crashed R (#573).
 
 * `print.coverage()` gains an `n` argument to limit the number of files or
   functions printed, showing the least covered first (#215).
@@ -40,10 +44,6 @@
   processes forked by parallel's `mclapply()`, `mcparallel()` and related
   functions, as `package_coverage()` already did. Set
   `options(covr.fix_parallel_mcexit = FALSE)` to turn this off (#410).
-* With `options(covr.record_tests = TRUE)`, functions in the recorded test
-  calls, such as those of R6 active bindings, no longer keep their environment.
-  Saving the coverage of tests that used an active binding of an R6 object
-  holding data read with arrow crashed R (#573).
 
 * `package_coverage()` now warns when an R process started by the tests, such
   as a Shiny app, callr session or future worker, loaded the package but did
