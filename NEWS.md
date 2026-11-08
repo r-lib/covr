@@ -10,6 +10,11 @@
     loop, like tests with srcrefs. Each run was recorded as a new test, and
     finding the test got slower with every run, so the coverage of bitops
     never finished.
+* `package_coverage()` now measures the coverage of installed packages, e.g.
+  `package_coverage(system.file(package = "pkg"))`, so the package source isn't
+  needed. Previously it silently returned no coverage. The package must be
+  installed with `--install-tests` and `--with-keep.source`, and
+  `package_coverage()` errors if it wasn't (#638).
 
 * `to_cobertura()` now only lists the lines of a method from the file it is
   defined in. Previously methods sharing a name across files, such as the

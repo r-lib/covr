@@ -310,6 +310,34 @@ test_that("package_coverage passes outDir to testInstalledPackage", {
   )
 })
 
+test_that("package_coverage measures installed packages (#638)", {
+  pkg <- local_installed_package(
+    "TestSummary",
+    c("--install-tests", "--with-keep.source")
+  )
+  df <- as.data.frame(package_coverage(pkg))
+  expect_equal(unique(df$filename), "R/TestSummary.R")
+  expect_equal(df$first_line, c(5, 6, 8, 13))
+  expect_equal(df$value, c(1, 1, 0, 0))
+})
+
+test_that("package_coverage needs tests and srcrefs of installed packages", {
+  install_path <- file.path(withr::local_tempdir(), "lib")
+  pkg <- local_installed_package("TestSummary", "--with-keep.source")
+  expect_snapshot(
+    package_coverage(pkg, install_path = install_path),
+    error = TRUE
+  )
+  pkg <- local_installed_package(
+    "TestSummary",
+    c("--install-tests", "--without-keep.source")
+  )
+  expect_snapshot(
+    package_coverage(pkg, install_path = install_path),
+    error = TRUE
+  )
+})
+
 test_that("package_coverage errors carry the full testthat output", {
   err <- expect_error(
     package_coverage(test_path("TestFailure")),

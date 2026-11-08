@@ -726,6 +726,14 @@ with_coverage <- function(
 #' \pkg{shinytest2} `AppDriver`, which waits longer for the app to exit when
 #' run by covr.
 #'
+#' `path` can also be an installed package, e.g.
+#' `system.file(package = "pkg")`, to compute coverage without the package
+#' source. The package must have been installed with its tests and source
+#' references, e.g. with
+#' `remotes::install_github("user/pkg", INSTALL_opts = c("--install-tests",
+#' "--with-keep.source"))`. File names are those of the source it was
+#' installed from, and compiled code isn't covered.
+#'
 #' #ifdef unix
 #' Parallelized code using \pkg{parallel}'s [mcparallel()] needs to
 #' use a patched `parallel:::mcexit`. This is done automatically if the
@@ -734,7 +742,7 @@ with_coverage <- function(
 #' `covr.fix_parallel_mcexit`.
 #' #endif
 #'
-#' @param path file path to the package.
+#' @param path file path to the package, or to an installed package.
 #' @param type run the package \sQuote{tests}, \sQuote{vignettes},
 #' \sQuote{examples}, \sQuote{all}, or \sQuote{none}. The default is
 #' \sQuote{tests}.
@@ -808,12 +816,24 @@ package_coverage <- function(
   }
 
   pkg <- as_package(path)
+  installed <- is_installed_package(pkg$path)
 
   if (missing(type)) {
     type <- "tests"
   }
 
   type <- parse_type(type)
+
+  if (
+    installed &&
+      "tests" %in% type &&
+      !dir.exists(file.path(pkg$path, "tests"))
+  ) {
+    covr_abort(c(
+      "Can't find tests in the installed package {.pkg {pkg$package}}.",
+      i = "Install it with {.code R CMD INSTALL --install-tests}."
+    ))
+  }
 
   run_separately <- !isTRUE(combine_types) && length(type) > 1
   if (run_separately) {
@@ -864,8 +884,10 @@ package_coverage <- function(
     succeeded <- FALSE
     on.exit(
       {
-        clean_objects(pkg$path)
-        clean_gcov(pkg$path)
+        if (!installed) {
+          clean_objects(pkg$path)
+          clean_gcov(pkg$path)
+        }
         clean_parse_data()
         if (succeeded) {
           unlink(install_path, recursive = TRUE)
@@ -876,7 +898,7 @@ package_coverage <- function(
   }
 
   # clean any dlls prior to trying to install
-  if (isTRUE(pre_clean)) {
+  if (isTRUE(pre_clean) && !installed) {
     clean_objects(pkg$path)
   }
 
@@ -1067,7 +1089,23 @@ package_coverage <- function(
     )
   }
 
-  if (!uses_icc()) {
+  if (installed) {
+    # `R CMD INSTALL` copies an installed package rather than building it, so
+    # its R code is only available from the srcrefs kept when it was
+    # installed, whose file names are in the source it was installed from.
+    # Its compiled code isn't instrumented (#638).
+    pkg$path <- installed_source_path(coverage)
+    if (is.null(pkg$path)) {
+      covr_abort(c(
+        "Can't find source references in the installed package {.pkg {pkg$package}}.",
+        i = "Install it with {.code R CMD INSTALL --with-keep.source}."
+      ))
+    }
+    if (isTRUE(relative_path)) {
+      root <- pkg$path
+    }
+    res <- NULL
+  } else if (!uses_icc()) {
     res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
   } else {
     res <- run_icov(pkg$path, quiet = quiet)
@@ -1109,10 +1147,12 @@ package_coverage <- function(
   line_exclusions <- c(
     generated_files,
     line_exclusions,
-    withr::with_dir(
-      pkg$path,
-      normalize_path(as.character(parse_covr_ignore()))
-    )
+    if (!installed) {
+      withr::with_dir(
+        pkg$path,
+        normalize_path(as.character(parse_covr_ignore()))
+      )
+    }
   )
 
   coverage <- exclude(

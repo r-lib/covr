@@ -40,3 +40,23 @@ capture_streams <- function(code) {
   )
   list(stdout = sub("\r$", "", stdout), stderr = sub("\r$", "", stderr))
 }
+
+# Installs a copy of a test package with `R CMD INSTALL` options `args` and
+# removes the copy, like `remotes::install_github()` removes the source it
+# installs from. Returns the installed package directory.
+local_installed_package <- function(name, args, frame = parent.frame()) {
+  dir <- withr::local_tempdir(.local_envir = frame)
+  file.copy(test_path(name), dir, recursive = TRUE)
+  src <- file.path(dir, name)
+  lib <- file.path(dir, "lib")
+  dir.create(lib)
+  status <- system2(
+    file.path(R.home("bin"), "R"),
+    c("CMD", "INSTALL", "-l", shQuote(lib), args, shQuote(src)),
+    stdout = FALSE,
+    stderr = FALSE
+  )
+  stopifnot(status == 0)
+  unlink(src, recursive = TRUE)
+  file.path(lib, name)
+}
