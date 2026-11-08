@@ -8,7 +8,8 @@
   request comments (#519).
 
 * New `to_lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
-  `genhtml` and other tools that read the LCOV format (#442).
+  `genhtml` and other tools that read the LCOV format (#442, thanks to
+  @MichaelChirico for the initial implementation in #637).
 * Functions nested inside lists and environments, such as
   `fns <- list(a = function(x) x)`, functions defined inside `local()` and
   ggproto methods, can now be traced. This is off by default; enable it for a

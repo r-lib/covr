@@ -23,7 +23,10 @@ plugins such as Coverage Gutters.
 \details{
 Each source file gets a record with its functions (\code{FN}, \code{FNDA}, \code{FNF},
 \code{FNH}) and lines (\code{DA}, \code{LF}, \code{LH}). Line counts are those of
-\code{\link[=tally_coverage]{tally_coverage()}} with \code{by = "line"}, and a function's count is the
+\code{\link[=tally_coverage]{tally_coverage()}} with \code{by = "line"}, combined so that each source line
+has a single \code{DA} record: when several functions share a line, the line's
+count is the smallest of theirs, so a line only counts as covered if all its
+code was run, as in \code{\link[=report]{report()}} and \code{\link[=codecov]{codecov()}}. A function's count is the
 largest count of any of its expressions. Branch coverage is not recorded.
 
 Source file paths (\code{SF}) are written as covr reports them, for a package
