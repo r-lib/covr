@@ -84,29 +84,29 @@ R process that loads it.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># R/app.R</span></span>
 <span><span class="va">app_ui</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu">shiny</span><span class="fu">::</span><span class="fu">fluidPage</span><span class="op">(</span></span>
-<span>    <span class="fu">shiny</span><span class="fu">::</span><span class="fu">numericInput</span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"n"</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>    <span class="fu">shiny</span><span class="fu">::</span><span class="fu">textOutput</span><span class="op">(</span><span class="st">"out"</span><span class="op">)</span></span>
+<span>  <span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/fluidPage.html" class="external-link">fluidPage</a></span><span class="op">(</span></span>
+<span>    <span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/numericInput.html" class="external-link">numericInput</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"n"</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    <span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/textOutput.html" class="external-link">textOutput</a></span><span class="op">(</span><span class="st">"out"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">app_server</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">input</span>, <span class="va">output</span>, <span class="va">session</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">output</span><span class="op">$</span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">shiny</span><span class="fu">::</span><span class="fu">renderText</span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">n</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span></span>
+<span>  <span class="va">output</span><span class="op">$</span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderPrint.html" class="external-link">renderText</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">n</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">run_app</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu">shiny</span><span class="fu">::</span><span class="fu">shinyApp</span><span class="op">(</span><span class="fu">app_ui</span><span class="op">(</span><span class="op">)</span>, <span class="va">app_server</span><span class="op">)</span></span>
+<span>  <span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/shinyApp.html" class="external-link">shinyApp</a></span><span class="op">(</span><span class="fu">app_ui</span><span class="op">(</span><span class="op">)</span>, <span class="va">app_server</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="server-tests-with-testserver">Server tests with <code>testServer()</code><a class="anchor" aria-label="anchor" href="#server-tests-with-testserver"></a>
 </h3>
-<p><code>shiny::testServer()</code> runs the server function in the same
+<p><code><a href="https://rdrr.io/pkg/shiny/man/testServer.html" class="external-link">shiny::testServer()</a></code> runs the server function in the same
 R process as the tests, so the code it runs counts towards the coverage
 like any other test:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># tests/testthat/test-server.R</span></span>
 <span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_that.html" class="external-link">test_that</a></span><span class="op">(</span><span class="st">"the server doubles n"</span>, <span class="op">{</span></span>
-<span>  <span class="fu">shiny</span><span class="fu">::</span><span class="fu">testServer</span><span class="op">(</span><span class="va">app_server</span>, <span class="op">{</span></span>
+<span>  <span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/testServer.html" class="external-link">testServer</a></span><span class="op">(</span><span class="va">app_server</span>, <span class="op">{</span></span>
 <span>    <span class="va">session</span><span class="op">$</span><span class="fu">setInputs</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span>    <span class="fu"><a href="https://testthat.r-lib.org/reference/equality-expectations.html" class="external-link">expect_equal</a></span><span class="op">(</span><span class="va">output</span><span class="op">$</span><span class="va">out</span>, <span class="st">"4"</span><span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span></span>
@@ -123,7 +123,7 @@ to the driver:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># tests/testthat/test-app.R</span></span>
 <span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_that.html" class="external-link">test_that</a></span><span class="op">(</span><span class="st">"the app doubles n"</span>, <span class="op">{</span></span>
-<span>  <span class="va">app</span> <span class="op">&lt;-</span> <span class="fu">shinytest2</span><span class="fu">::</span><span class="va">AppDriver</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="fu">run_app</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">app</span> <span class="op">&lt;-</span> <span class="fu">shinytest2</span><span class="fu">::</span><span class="va"><a href="https://rstudio.github.io/shinytest2/reference/AppDriver.html" class="external-link">AppDriver</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="fu">run_app</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">app</span><span class="op">$</span><span class="fu">set_inputs</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://testthat.r-lib.org/reference/equality-expectations.html" class="external-link">expect_equal</a></span><span class="op">(</span><span class="va">app</span><span class="op">$</span><span class="fu">get_value</span><span class="op">(</span>output <span class="op">=</span> <span class="st">"out"</span><span class="op">)</span>, <span class="st">"4"</span><span class="op">)</span></span>
 <span>  <span class="va">app</span><span class="op">$</span><span class="kw">stop</span><span class="op">(</span><span class="op">)</span></span>
@@ -154,40 +154,51 @@ before measuring the coverage:</p>
 <div class="section level2">
 <h2 id="apps-that-are-not-in-a-package">Apps that are not in a package<a class="anchor" aria-label="anchor" href="#apps-that-are-not-in-a-package"></a>
 </h2>
-<p>covr can only instrument the code of an app that isn’t in a package
-when it is run in the R session measuring the coverage. Use
-<code><a href="../reference/file_coverage.html">file_coverage()</a></code> to source the app’s files and run tests
-that call its server function with <code>testServer()</code>:</p>
+<p>Use <code><a href="../reference/shiny_app_coverage.html">shiny_app_coverage()</a></code> for an app that isn’t part of a
+package, e.g. one tested with shinytest2’s <code>test_app()</code>, with
+its tests in the app’s <code>tests/testthat/</code> directory:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># app.R</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://shiny.posit.co/" class="external-link">shiny</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">ui</span> <span class="op">&lt;-</span> <span class="fu">fluidPage</span><span class="op">(</span></span>
-<span>  <span class="fu">numericInput</span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"n"</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  <span class="fu">textOutput</span><span class="op">(</span><span class="st">"out"</span><span class="op">)</span></span>
+<span><span class="va">ui</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/fluidPage.html" class="external-link">fluidPage</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/numericInput.html" class="external-link">numericInput</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"n"</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/textOutput.html" class="external-link">textOutput</a></span><span class="op">(</span><span class="st">"out"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">server</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">input</span>, <span class="va">output</span>, <span class="va">session</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">output</span><span class="op">$</span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">renderText</span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">n</span> <span class="op">*</span> <span class="fl">3</span><span class="op">)</span></span>
+<span>  <span class="va">output</span><span class="op">$</span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderPrint.html" class="external-link">renderText</a></span><span class="op">(</span><span class="fu">triple</span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
-<span><span class="fu">shinyApp</span><span class="op">(</span><span class="va">ui</span>, <span class="va">server</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/shinyApp.html" class="external-link">shinyApp</a></span><span class="op">(</span><span class="va">ui</span>, <span class="va">server</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># tests/testthat/test-server.R</span></span>
-<span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_that.html" class="external-link">test_that</a></span><span class="op">(</span><span class="st">"the server triples n"</span>, <span class="op">{</span></span>
-<span>  <span class="fu">testServer</span><span class="op">(</span><span class="va">server</span>, <span class="op">{</span></span>
-<span>    <span class="va">session</span><span class="op">$</span><span class="fu">setInputs</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span>    <span class="fu"><a href="https://testthat.r-lib.org/reference/equality-expectations.html" class="external-link">expect_equal</a></span><span class="op">(</span><span class="va">output</span><span class="op">$</span><span class="va">out</span>, <span class="st">"6"</span><span class="op">)</span></span>
-<span>  <span class="op">}</span><span class="op">)</span></span>
-<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># R/triple.R</span></span>
+<span><span class="va">triple</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">x</span> <span class="op">*</span> <span class="fl">3</span></span>
+<span><span class="op">}</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://testthat.r-lib.org" class="external-link">testthat</a></span><span class="op">)</span></span>
-<span><span class="fu">covr</span><span class="fu">::</span><span class="fu"><a href="../reference/file_coverage.html">file_coverage</a></span><span class="op">(</span><span class="st">"app.R"</span>, <span class="st">"tests/testthat/test-server.R"</span><span class="op">)</span></span></code></pre></div>
-<p>Add any other files that define the app’s functions, such as those in
-its <code>R/</code> directory, to the <code>source_files</code>. Tests
-that run the app in another R process, like shinytest2’s
-<code>AppDriver</code>, don’t count towards the coverage of such an app.
-To measure them, move the app into a package.</p>
+<code class="sourceCode R"><span><span class="co"># tests/testthat/test-app.R</span></span>
+<span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_that.html" class="external-link">test_that</a></span><span class="op">(</span><span class="st">"the app triples n"</span>, <span class="op">{</span></span>
+<span>  <span class="va">app</span> <span class="op">&lt;-</span> <span class="fu">shinytest2</span><span class="fu">::</span><span class="va"><a href="https://rstudio.github.io/shinytest2/reference/AppDriver.html" class="external-link">AppDriver</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">app</span><span class="op">$</span><span class="fu">set_inputs</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://testthat.r-lib.org/reference/equality-expectations.html" class="external-link">expect_equal</a></span><span class="op">(</span><span class="va">app</span><span class="op">$</span><span class="fu">get_value</span><span class="op">(</span>output <span class="op">=</span> <span class="st">"out"</span><span class="op">)</span>, <span class="st">"6"</span><span class="op">)</span></span>
+<span>  <span class="va">app</span><span class="op">$</span><span class="kw">stop</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>NOT_CRAN <span class="op">=</span> <span class="st">"true"</span><span class="op">)</span></span>
+<span><span class="fu">covr</span><span class="fu">::</span><span class="fu"><a href="../reference/shiny_app_coverage.html">shiny_app_coverage</a></span><span class="op">(</span><span class="st">"path/to/app"</span><span class="op">)</span></span></code></pre></div>
+<p>By default <code><a href="../reference/shiny_app_coverage.html">shiny_app_coverage()</a></code> runs
+<code><a href="https://rstudio.github.io/shinytest2/reference/test_app.html" class="external-link">shinytest2::test_app()</a></code>. Use its <code>code</code> argument
+to run the tests in another way.</p>
+<p>covr instruments the functions defined in the app’s files
+(<code>app.R</code>, <code>ui.R</code>, <code>server.R</code>,
+<code>global.R</code> and <code>R/</code>) when Shiny loads them, both
+in the R session running the tests, e.g. for tests that call
+<code>testServer("../../")</code>, and in the R processes that run the
+app. To do this it adds itself to the default packages of these
+processes and relies on hooks internal to Shiny. As with apps in a
+package, call <code>app$stop()</code> so that the app saves its
+coverage, and set <code>NOT_CRAN</code>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

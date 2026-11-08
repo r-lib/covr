@@ -3,6 +3,14 @@
 ## covr (development version)
 
 - New
+  [`shiny_app_coverage()`](https://covr.r-lib.org/dev/reference/shiny_app_coverage.md)
+  measures the coverage of a Shiny app that isn’t part of a package
+  while its tests run, by default with
+  [`shinytest2::test_app()`](https://rstudio.github.io/shinytest2/reference/test_app.html),
+  including the code run by the app in the R processes that shinytest2
+  starts ([\#277](https://github.com/r-lib/covr/issues/277)).
+
+- New
   [`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md)
   and
   [`file_report_html()`](https://covr.r-lib.org/dev/reference/file_report.md)

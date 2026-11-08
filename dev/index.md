@@ -264,11 +264,13 @@ package_coverage()
 
 ## Can covr measure the coverage of a Shiny app?
 
-Yes, including tests that run the app with shinytest2, if the app is
-part of a package. The vignette
+Yes, including tests that run the app with shinytest2. Use
+[`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+for an app in a package, and
+[`shiny_app_coverage()`](https://covr.r-lib.org/dev/reference/shiny_app_coverage.md)
+for other apps. The vignette
 [vignettes/shiny.Rmd](https://github.com/r-lib/covr/blob/main/vignettes/shiny.Rmd)
-describes how to measure the coverage of apps in and outside of
-packages.
+describes both.
 
 ``` r
 

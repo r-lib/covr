@@ -95,6 +95,9 @@
 - [`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md)
   : A coverage report to include in other documents
 
+- [`shiny_app_coverage()`](https://covr.r-lib.org/dev/reference/shiny_app_coverage.md)
+  : Calculate test coverage for a Shiny app
+
 - [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
   : Tally coverage by line, expression or function
 

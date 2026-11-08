@@ -31,9 +31,9 @@ run_app <- function() {
 
 ### Server tests with `testServer()`
 
-`shiny::testServer()` runs the server function in the same R process as
-the tests, so the code it runs counts towards the coverage like any
-other test:
+[`shiny::testServer()`](https://rdrr.io/pkg/shiny/man/testServer.html)
+runs the server function in the same R process as the tests, so the code
+it runs counts towards the coverage like any other test:
 
 ``` r
 
@@ -89,11 +89,11 @@ The app process saves its coverage when it exits, so:
 
 ## Apps that are not in a package
 
-covr can only instrument the code of an app that isn’t in a package when
-it is run in the R session measuring the coverage. Use
-[`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md)
-to source the app’s files and run tests that call its server function
-with `testServer()`:
+Use
+[`shiny_app_coverage()`](https://covr.r-lib.org/dev/reference/shiny_app_coverage.md)
+for an app that isn’t part of a package, e.g. one tested with
+shinytest2’s `test_app()`, with its tests in the app’s `tests/testthat/`
+directory:
 
 ``` r
 
@@ -106,7 +106,7 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  output$out <- renderText(input$n * 3)
+  output$out <- renderText(triple(input$n))
 }
 
 shinyApp(ui, server)
@@ -114,23 +114,39 @@ shinyApp(ui, server)
 
 ``` r
 
-# tests/testthat/test-server.R
-test_that("the server triples n", {
-  testServer(server, {
-    session$setInputs(n = 2)
-    expect_equal(output$out, "6")
-  })
+# R/triple.R
+triple <- function(x) {
+  x * 3
+}
+```
+
+``` r
+
+# tests/testthat/test-app.R
+test_that("the app triples n", {
+  app <- shinytest2::AppDriver$new()
+  app$set_inputs(n = 2)
+  expect_equal(app$get_value(output = "out"), "6")
+  app$stop()
 })
 ```
 
 ``` r
 
-library(testthat)
-covr::file_coverage("app.R", "tests/testthat/test-server.R")
+Sys.setenv(NOT_CRAN = "true")
+covr::shiny_app_coverage("path/to/app")
 ```
 
-Add any other files that define the app’s functions, such as those in
-its `R/` directory, to the `source_files`. Tests that run the app in
-another R process, like shinytest2’s `AppDriver`, don’t count towards
-the coverage of such an app. To measure them, move the app into a
-package.
+By default
+[`shiny_app_coverage()`](https://covr.r-lib.org/dev/reference/shiny_app_coverage.md)
+runs
+[`shinytest2::test_app()`](https://rstudio.github.io/shinytest2/reference/test_app.html).
+Use its `code` argument to run the tests in another way.
+
+covr instruments the functions defined in the app’s files (`app.R`,
+`ui.R`, `server.R`, `global.R` and `R/`) when Shiny loads them, both in
+the R session running the tests, e.g. for tests that call
+`testServer("../../")`, and in the R processes that run the app. To do
+this it adds itself to the default packages of these processes and
+relies on hooks internal to Shiny. As with apps in a package, call
+`app$stop()` so that the app saves its coverage, and set `NOT_CRAN`.
