@@ -9,3 +9,16 @@ test_that("R6 methods coverage is reported", {
   expect_equal(cov$last_line, c(5, 6, 8, 16, 19, 27))
   expect_true("some_method" %in% cov$functions)
 })
+
+test_that("active bindings are not read when looking for R6 classes", {
+  skip_if_not_installed("R6")
+  src <- paste(
+    "makeActiveBinding('ab', function() stop('boom'), environment())",
+    "Gen <- R6::R6Class('Gen', public = list(f = function() {",
+    "  1",
+    "}))",
+    sep = "\n"
+  )
+  cov <- as.data.frame(code_coverage(src, "Gen$new()$f()"))
+  expect_equal(cov$value, 1)
+})

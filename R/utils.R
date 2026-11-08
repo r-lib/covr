@@ -393,3 +393,19 @@ vcapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = character(1))
 vdapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = numeric(1))
 viapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = integer(1))
 vlapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = logical(1))
+
+# Names of the bindings in `env` that can be read without side effects: active
+# bindings run arbitrary code (which can fail) when they are read.
+inactive_names <- function(env) {
+  nms <- ls(env, all.names = TRUE)
+  nms[!vlapply(nms, bindingIsActive, env = env)]
+}
+
+# Like `eapply(env, FUN, all.names = TRUE)`, but without reading active
+# bindings.
+eapply_inactive <- function(env, FUN) {
+  nms <- inactive_names(env)
+  res <- lapply(nms, function(nm) FUN(get(nm, envir = env, inherits = FALSE)))
+  names(res) <- nms
+  res
+}

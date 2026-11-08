@@ -174,7 +174,7 @@ trace_environment <- function(env) {
     replacements_R6(env),
     replacements_S7(env),
     replacements_box(env),
-    lapply(ls(env, all.names = TRUE), replacement, env = env)
+    lapply(inactive_names(env), replacement, env = env)
   ))
   if (isTRUE(getOption("covr.full_traversal", FALSE))) {
     replacements <- c(replacements, replacements_nested(env, replacements))

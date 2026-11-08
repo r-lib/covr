@@ -21,6 +21,10 @@
   distribution, those of the LLVM version rustc uses (e.g. `llvm-cov-18`).
   Without them covr warns and only skips the Rust code.
   `options(covr.llvm_cov = "")` turns this off (#728).
+* covr no longer reads active bindings (which could fail, e.g. with
+  `makeActiveBinding('x', function() stop('boom'), environment())`) when looking
+  for functions to trace in packages, R6 classes, S7 objects and box modules.
+
 * `codecov()` outside a git repository now gives its "Can't determine the
   repository" error instead of a git failure, as covr's failed git commands
   could escape its error handlers.

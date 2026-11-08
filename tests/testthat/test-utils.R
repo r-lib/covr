@@ -147,3 +147,13 @@ test_that("get_package_name() uses the package of the coverage, or a default", {
   )
   expect_equal(get_package_name(list()), "coverage")
 })
+
+test_that("inactive_names() and eapply_inactive() skip active bindings", {
+  env <- new.env()
+  makeActiveBinding("ab", function() stop("boom"), env)
+  assign("x", 1, env)
+  assign(".y", 2, env)
+
+  expect_equal(inactive_names(env), c(".y", "x"))
+  expect_equal(eapply_inactive(env, identity), list(.y = 2, x = 1))
+})

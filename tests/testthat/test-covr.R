@@ -652,3 +652,39 @@ test_that("unsaved_traces ignores the markers of the current process", {
 
   expect_equal(unsaved_traces(dir), paste0("covr_pending_", pid, "0_b"))
 })
+
+test_that("active bindings are not read when looking for functions", {
+  src <- paste(
+    "makeActiveBinding('ab', function() stop('boom'), environment())",
+    "f <- function() {",
+    "  1",
+    "}",
+    sep = "\n"
+  )
+  for (full in c(FALSE, TRUE)) {
+    withr::local_options(covr.full_traversal = full)
+    cov <- as.data.frame(code_coverage(src, "f()"))
+    expect_equal(cov$functions, "f")
+    expect_equal(cov$value, 1)
+  }
+})
+
+test_that("active bindings in a package are not read", {
+  dir <- withr::local_tempdir()
+  file.copy("TestFullTraversal", dir, recursive = TRUE)
+  pkg <- file.path(dir, "TestFullTraversal")
+  # Active bindings can't be defined at the top level of an installed package,
+  # as saving them for lazy loading evaluates them.
+  cat(
+    ".onLoad <- function(libname, pkgname) {\n",
+    "  makeActiveBinding('ab', function() stop('boom'), topenv())\n",
+    "}\n",
+    file = file.path(pkg, "R", "TestFullTraversal.R"),
+    append = TRUE
+  )
+  for (full in c(FALSE, TRUE)) {
+    withr::local_options(covr.full_traversal = full)
+    cov <- as.data.frame(package_coverage(pkg))
+    expect_true("api" %in% cov$functions)
+  }
+})
