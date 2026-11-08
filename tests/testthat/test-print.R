@@ -48,3 +48,17 @@ test_that("print.coverage prints by = \"line\" by default", {
     rex::rex("test_me", anything, "66.67%")
   )
 })
+
+test_that("print.coverage limits the files or functions printed with n", {
+  cov <- code_coverage(
+    "f <- function(x) x + 1\ng <- function(x) x - 1\nh <- function(x) 0",
+    "f(1)"
+  )
+  attr(cov, "package") <- list(package = "pkg")
+
+  expect_snapshot({
+    print(cov, group = "functions", n = 1)
+    print(cov, group = "functions", n = 3)
+    print(cov, n = 0)
+  })
+})

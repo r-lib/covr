@@ -1,5 +1,8 @@
 # covr (development version)
 
+* `print.coverage()` gains an `n` argument to limit the number of files or
+  functions printed, showing the least covered first (#215).
+
 * The error for unpaired `# nocov start` and `# nocov end` comments now gives
   the name of the file along with the line numbers of the comments (#409).
 

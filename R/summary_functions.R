@@ -208,13 +208,22 @@ zero_coverage <- function(x, ...) {
 #' @param x the coverage object to be printed
 #' @param group whether to group coverage by filename or function
 #' @param by whether to count coverage by line, expression or function
+#' @param n the maximum number of files or functions to print. They are
+#'   sorted from least to most covered, so the least covered are shown first.
 #' @param ... additional arguments ignored
 #' @return The coverage object (invisibly).
+#' @examples
+#' cov <- code_coverage(
+#'   "f <- function(x) x + 1; g <- function(x) x - 1; h <- function(x) 0",
+#'   "f(1)"
+#' )
+#' print(cov, group = "functions", n = 2)
 #' @export
 print.coverage <- function(
   x,
   group = c("filename", "functions"),
   by = "line",
+  n = Inf,
   ...
 ) {
   if (length(x) == 0) {
@@ -249,7 +258,7 @@ print.coverage <- function(
   message(msg)
   by_coverage <- percents[order(percents, names(percents))]
 
-  for (i in seq_along(by_coverage)) {
+  for (i in seq_len(min(n, length(by_coverage)))) {
     msg <- cli::format_message(
       paste0(
         cli::style_bold(names(by_coverage)[i], ": "),
@@ -257,6 +266,18 @@ print.coverage <- function(
       )
     )
     message(msg)
+  }
+  if (length(by_coverage) > n) {
+    rest <- length(by_coverage) - n
+    noun <- if (group == "filename") "file" else "function"
+    message(
+      "... and ",
+      rest,
+      " more ",
+      noun,
+      if (rest != 1) "s",
+      "; use `print(x, n = Inf)` to show all"
+    )
   }
   invisible(x)
 }
