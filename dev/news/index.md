@@ -2,6 +2,12 @@
 
 ## covr (development version)
 
+- [`report()`](https://covr.r-lib.org/dev/reference/report.md) and
+  [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
+  use a dark theme when the browser prefers one, and have a button to
+  switch between the light and dark themes, which the browser remembers
+  for other reports ([\#563](https://github.com/r-lib/covr/issues/563)).
+
 - [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md)
   gains a `runner` argument to choose how test files are run.
   `runner = testthat::test_file` runs them with testthat’s test runner,

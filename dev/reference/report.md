@@ -42,6 +42,13 @@ with at least 75% but less than 90% coverage, which otherwise follow
 
     options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))
 
+## Dark mode
+
+The report uses a dark theme if the browser or operating system is set
+to prefer one. The moon (or sun) button at the top right switches
+between the light and dark themes; the browser remembers the choice for
+other reports until it is switched back.
+
 ## Examples
 
 ``` r
