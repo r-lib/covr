@@ -593,7 +593,8 @@ package_coverage <- function(
     fix_mcexit = should_enable_parallel_mcexit_fix(pkg),
     full_traversal = getOption(
       "covr.full_traversal",
-      isTRUE(as.logical(pkg[["config/covr/full_traversal"]]))
+      # DESCRIPTION field names are lowercased by `read_description()`
+      isTRUE(as.logical(pkg[[tolower("Config/covr/full_traversal")]]))
     )
   )
 
