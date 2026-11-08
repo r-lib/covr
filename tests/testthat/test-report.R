@@ -32,5 +32,6 @@ test_that("report() works with empty coverage (#540)", {
     )
   )
   file <- withr::local_tempfile(fileext = ".html")
-  expect_equal(report(x, file = file, browse = FALSE), file)
+  report(x, file = file, browse = FALSE)
+  expect_true(file.exists(file))
 })
