@@ -54,6 +54,11 @@ directory, the entire call stack is collected.
 These calls are subsequently subset for only those up until the call to
 \link{covr}'s internal \code{count} function, and will always include the last call in
 the call stack prior to a call to \code{count}.
+
+Functions in the recorded calls, such as the function of an R6 active
+binding or a function passed to \code{\link[=do.call]{do.call()}}, have their environment replaced
+with \code{\link[=emptyenv]{emptyenv()}}, so that the objects they enclose aren't saved with the
+coverage.
 }
 
 \examples{

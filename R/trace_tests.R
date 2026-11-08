@@ -46,6 +46,11 @@
 #' [covr]'s internal `count` function, and will always include the last call in
 #' the call stack prior to a call to `count`.
 #'
+#' Functions in the recorded calls, such as the function of an R6 active
+#' binding or a function passed to [do.call()], have their environment replaced
+#' with [emptyenv()], so that the objects they enclose aren't saved with the
+#' coverage.
+#'
 #' @examples
 #' fcode <- '
 #' f <- function(x) {
@@ -222,7 +227,7 @@ update_current_test <- function() {
   exec_frames <- unique(c(test_frames, syscall_first_count - 1L))
 
   # build updated current test data, isolating relevant frames
-  .current_test$trace <- syscalls[exec_frames]
+  .current_test$trace <- lapply(syscalls[exec_frames], strip_function_envs)
   .current_test$i <- 0L
   .current_test$frames <- exec_frames
   .current_test$last_frame <- exec_frames[[Position(
@@ -348,6 +353,33 @@ truncate_call <- function(call_obj, limit = 1e4) {
   call_obj <- head(call_obj, limit)
   call_obj[[length(call_obj)]] <- quote(`<truncated>`)
   call_obj
+}
+
+# Calls from `sys.calls()` can contain functions rather than their names. R
+# evaluates active bindings, such as those of R6 classes, by calling the
+# binding's function directly, and `do.call()` inlines function objects passed
+# to it. Their environments, which can hold anything, such as the fields of an
+# R6 object, would be saved with the recorded test, and serializing some
+# objects (e.g. data read with arrow) crashes R (#573). They aren't needed to
+# report the test, so they are replaced with the empty environment.
+#
+# Elements are only reassigned if they change, as `[[<-` on a call has to walk
+# its arguments, and calls can be very long (see `truncate_call()`).
+strip_function_envs <- function(x) {
+  if (typeof(x) == "closure") {
+    environment(x) <- emptyenv()
+  } else if (is.call(x)) {
+    elts <- as.list(x)
+    nested <- vapply(elts, is.call, logical(1L)) |
+      vapply(elts, is.function, logical(1L))
+    for (i in which(nested)) {
+      elt <- strip_function_envs(elts[[i]])
+      if (!identical(elt, elts[[i]])) {
+        x[[i]] <- elt
+      }
+    }
+  }
+  x
 }
 
 #' Returns TRUE if we've moved on from test reflected in .current_test
