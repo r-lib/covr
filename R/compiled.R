@@ -320,28 +320,38 @@ run_gcov <- function(
     return()
   }
 
-  if (gcov_json_supported(gcov_path, gcov_args)) {
-    format_args <- "--json-format"
-    output_pattern <- rex::rex(".gcov.json.gz", end)
-    parse_output <- parse_gcov_json
-  } else {
+  text_format <- function() {
     unexecuted_block <- gcov_unexecuted_block(gcov_path, gcov_args)
-    format_args <- "-a"
-    output_pattern <- rex::rex(".gcov", end)
-    parse_output <- function(file, package_path) {
-      parse_gcov(file, package_path, unexecuted_block = unexecuted_block)
-    }
+    list(
+      fallible = FALSE,
+      args = "-a",
+      pattern = rex::rex(".gcov", end),
+      parse = function(file, package_path) {
+        parse_gcov(file, package_path, unexecuted_block = unexecuted_block)
+      }
+    )
+  }
+  json_format <- list(
+    fallible = TRUE,
+    args = "--json-format",
+    pattern = rex::rex(".gcov.json.gz", end),
+    parse = parse_gcov_json
+  )
+  format <- if (gcov_json_supported(gcov_path, gcov_args)) {
+    json_format
+  } else {
+    text_format()
   }
 
-  run_gcov_one <- function(src) {
+  run_gcov_format <- function(src, format) {
     gcov_run(
       gcov_path,
-      args = c(gcov_args, src, format_args, "-p", "-o", dirname(src)),
+      args = c(gcov_args, src, format$args, "-p", "-o", dirname(src)),
       quiet = quiet
     )
     gcov_outputs <- list.files(
       ".",
-      pattern = output_pattern,
+      pattern = format$pattern,
       recursive = TRUE,
       full.names = TRUE
     )
@@ -375,14 +385,35 @@ run_gcov <- function(
       })
     }
 
-    unlist(
-      lapply(
-        gcov_outputs,
-        parse_output,
+    parse <- function(file) {
+      format$parse(
+        file,
         package_path = c(path, getOption("covr.gcov_additional_paths", NULL))
-      ),
-      recursive = FALSE
+      )
+    }
+    coverage <- tryCatch(
+      unlist(lapply(gcov_outputs, parse), recursive = FALSE),
+      error = function(e) if (format$fallible) e else stop(e)
     )
+    list(outputs = gcov_outputs, coverage = coverage)
+  }
+
+  run_gcov_one <- function(src) {
+    res <- run_gcov_format(src, format)
+    # The JSON output of gcov versions we haven't seen might be named or
+    # structured differently, so if gcov wrote no JSON for this file, or it
+    # can't be parsed, use the text output instead. Errors from gcov itself
+    # are still reported.
+    if (
+      format$fallible &&
+        (!length(res$outputs) || inherits(res$coverage, "error"))
+    ) {
+      if (!quiet) {
+        message("Falling back to gcov's text output for ", src)
+      }
+      res <- run_gcov_format(src, text_format())
+    }
+    res$coverage
   }
 
   res <- compact(unlist(lapply(gcov_inputs, run_gcov_one), recursive = FALSE))
