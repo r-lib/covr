@@ -199,7 +199,7 @@ save_trace <- function(directory) {
   on.exit(unlink(tmp_file), add = TRUE)
 
   tryCatch(
-    save_rds(.counters, tmp_file),
+    save_rds(portable_srcfiles(.counters), tmp_file),
     error = function(e) {
       marker <- structure(
         list(message = conditionMessage(e), pid = Sys.getpid()),
@@ -216,6 +216,76 @@ save_trace <- function(directory) {
 
 save_rds <- function(object, file) {
   saveRDS(object, file = file)
+}
+
+# Returns a copy of `x` in which the srcfiles are replaced by `copy_srcfile()`.
+#
+# The srcfiles of an installed package are restored from its lazy-load
+# database, with promises to load their `lines` and `parseData`. These are
+# evaluated in an environment that references every environment restored from
+# the database, such as environments in the package namespace and the closure
+# environments of objects created when the package was built. Saving the
+# promises would save the contents of all of these environments too, which can
+# be large, and crashes R if they hold objects that were already finalized when
+# the trace is saved on exit, e.g. data read with arrow (#602).
+#
+# The srcfiles are found by the reference hook of `serialize()`, so they are
+# replaced wherever they are, e.g. in the calls of recorded tests.
+portable_srcfiles <- function(x) {
+  srcfiles <- list()
+  serialized <- serialize(x, NULL, refhook = function(env) {
+    if (inherits(env, "srcfile")) {
+      id <- address(env)
+      srcfiles[[id]] <<- env
+      id
+    }
+  })
+  copies <- new.env(parent = emptyenv())
+  unserialize(serialized, refhook = function(id) {
+    copy_srcfile(srcfiles[[id]], copies)
+  })
+}
+
+# A copy of `srcfile` that only holds what is needed to report coverage: its
+# atomic values, such as its file name and lines, and copies of the srcfiles it
+# references, such as the `original` of a `srcfilealias`. Its parse data and
+# anything packages added to it are left out, e.g. this.path adds an
+# environment with a promise referencing the srcfile. Only R's promise to
+# load `lines` is forced; other promises and active bindings could run
+# arbitrary code while R exits.
+#
+# `copies` holds the copies made so far by the address of their srcfile, so
+# the srcfiles of the files of a package share the copy of the srcfile they are
+# an alias of, which holds the lines of all the files. A copy is added before
+# its bindings are copied, so srcfiles that reference each other don't recurse
+# forever.
+copy_srcfile <- function(srcfile, copies) {
+  id <- address(srcfile)
+  if (!is.null(copies[[id]])) {
+    return(copies[[id]])
+  }
+  copy <- new.env(parent = emptyenv())
+  class(copy) <- class(srcfile)
+  copies[[id]] <- copy
+  for (name in setdiff(ls(srcfile, all.names = TRUE), "parseData")) {
+    if (
+      bindingIsActive(name, srcfile) ||
+        (name != "lines" && is_unforced_promise(srcfile, name))
+    ) {
+      next
+    }
+    value <- get(name, envir = srcfile, inherits = FALSE)
+    if (is.environment(value) && inherits(value, "srcfile")) {
+      assign(name, copy_srcfile(value, copies), envir = copy)
+    } else if (
+      is.null(value) ||
+        is.atomic(value) &&
+          all(vapply(attributes(value), is.atomic, logical(1)))
+    ) {
+      assign(name, value, envir = copy)
+    }
+  }
+  copy
 }
 
 # Called from the loader script of the instrumented package (see `add_hooks()`)
