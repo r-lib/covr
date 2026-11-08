@@ -1,5 +1,11 @@
 # covr (development version)
 
+* `package_coverage()` now measures the coverage of installed packages, e.g.
+  `package_coverage(system.file(package = "pkg"))`, so the package source isn't
+  needed. Previously it silently returned no coverage. The package must be
+  installed with `--install-tests` and `--with-keep.source`, and
+  `package_coverage()` errors if it wasn't (#638).
+
 * Two fixes for `options(covr.record_tests = TRUE)` (#627):
 
   - Objects used in tests can now be garbage collected. covr kept the
@@ -10,11 +16,6 @@
     loop, like tests with srcrefs. Each run was recorded as a new test, and
     finding the test got slower with every run, so the coverage of bitops
     never finished.
-* `package_coverage()` now measures the coverage of installed packages, e.g.
-  `package_coverage(system.file(package = "pkg"))`, so the package source isn't
-  needed. Previously it silently returned no coverage. The package must be
-  installed with `--install-tests` and `--with-keep.source`, and
-  `package_coverage()` errors if it wasn't (#638).
 
 * `to_cobertura()` now only lists the lines of a method from the file it is
   defined in. Previously methods sharing a name across files, such as the
@@ -49,6 +50,7 @@
   with arrow in an environment of its namespace, e.g. in a fastmap. The
   coverage saved by each R process included the contents of the package's
   environments, which are no longer saved, so it is also smaller (#602).
+
 * `package_coverage()` gains a `show_code_output` argument. If `TRUE`, the
   output of `code` is shown on the console while it runs, e.g. to follow it in
   the logs of a CI job, rather than only being shown when `code` fails
@@ -70,6 +72,7 @@
   library paths to the R processes running the tests as site libraries, which
   renv removes from the library paths when it is loaded, so covr, the package
   and its dependencies could no longer be found (#560).
+
 * `report()`, `file_report()` and the coverage percentages printed in the
   console can use other colors for covered and missed code, set with the new
   `covr.report_colors` option, e.g.
@@ -79,6 +82,7 @@
   sets the color for 75% to 90% coverage. The coverage bars in `report()` now
   use the same thresholds as the console, so files with exactly 75% or 90%
   coverage get the higher color (#529).
+
 * `codecov()` now uploads with Codecov's current upload protocol, a request to
   `https://ingest.codecov.io` for an upload followed by sending the coverage to
   the location it returns, instead of the legacy `/upload/v2` endpoint, which
@@ -92,6 +96,7 @@
   returns the response of Codecov, which includes the `url` of the upload, and
   errors with class `covr_codecov_error` or, for HTTP 429 and 5xx, warns with
   class `covr_codecov_warning`, if either request fails.
+
 * `c()` now combines coverage objects, e.g. from runs of tests in different
   directories. The counts of traces in several objects are added, and recorded
   tests are combined as well (#439).
