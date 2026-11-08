@@ -1539,11 +1539,15 @@ run_r_live <- function(infile, outfile) {
   out <- file(outfile, "w")
   on.exit(close(out))
   con <- pipe(cmd, "r")
+  # Close the pipe if reading is interrupted; normally it is closed below to
+  # get the exit status.
+  on.exit(if (!is.null(con)) close(con), add = TRUE)
   while (length(line <- readLines(con, n = 1L, warn = FALSE)) > 0L) {
     writeLines(line)
     writeLines(line, out)
   }
   status <- close(con)
+  con <- NULL
   if (is.null(status)) 0L else status
 }
 
