@@ -1,5 +1,8 @@
 # covr (development version)
 
+* The error for unpaired `# nocov start` and `# nocov end` comments now gives
+  the name of the file along with the line numbers of the comments (#409).
+
 * `coveralls()` now submits the git commit, branch and remote when
   `service_name = "github-actions"` and a `repo_token` is given, so the
   Coveralls badge is updated for the right branch (#535).
@@ -23,8 +26,6 @@
   processes forked by parallel's `mclapply()`, `mcparallel()` and related
   functions, as `package_coverage()` already did. Set
   `options(covr.fix_parallel_mcexit = FALSE)` to turn this off (#410).
-* The error for unpaired `# nocov start` and `# nocov end` comments now gives
-  the name of the file along with the line numbers of the comments (#409).
 
 * `package_coverage()` now warns when an R process started by the tests, such
   as a Shiny app, callr session or future worker, loaded the package but did
