@@ -71,6 +71,10 @@
 * `c()` now combines coverage objects, e.g. from runs of tests in different
   directories. The counts of traces in several objects are added, and recorded
   tests are combined as well (#439).
+* `package_coverage()` gains a `code_stdout` argument. If `TRUE`, the output of
+  `code` is shown on the console while it runs, e.g. to follow it in the logs
+  of a CI job, rather than only being shown when `code` fails (@gergness,
+  #558).
 
 * When gcov fails, the error from `package_coverage()` now includes gcov's
   output, e.g. the `.gcno` version mismatch reported when the package was

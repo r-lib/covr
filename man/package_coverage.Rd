@@ -18,7 +18,8 @@ package_coverage(
   ...,
   exclusions,
   pre_clean = TRUE,
-  allow_failures = getOption("covr.allow_failures", FALSE)
+  allow_failures = getOption("covr.allow_failures", FALSE),
+  code_stdout = FALSE
 )
 }
 \arguments{
@@ -72,6 +73,11 @@ in this case, as code which would have run after the failure is not
 tracked. The default, \code{FALSE}, throws an error (with class \code{covr_error})
 on the first failure. The default can be changed with the
 \code{covr.allow_failures} option, e.g. \code{options(covr.allow_failures = TRUE)}.}
+
+\item{code_stdout}{If \code{TRUE}, the output of \code{code} (including messages,
+warnings and errors) is shown on the console while it runs, e.g. to follow
+it in the logs of a CI job. The default, \code{FALSE}, only saves it to a file in
+\code{install_path}, which is shown if \code{code} fails.}
 }
 \value{
 A \link{coverage} object. If \code{combine_types = FALSE} and more than one

@@ -41,3 +41,41 @@ test_that("package_coverage runs additional test code", {
 
   expect_gt(percent_coverage(cov), 0.00)
 })
+
+test_that("package_coverage can show the output of code while it runs", {
+  expect_output(
+    cov <- package_coverage(
+      "TestS4",
+      type = "none",
+      code = c("a(1)", "message('from code')"),
+      code_stdout = TRUE
+    ),
+    "> a(1)\n[1] 1\n> message('from code')\nfrom code",
+    fixed = TRUE
+  )
+  expect_gt(percent_coverage(cov), 0.00)
+})
+
+test_that("package_coverage reports failures of code shown while it runs", {
+  expect_output(
+    err <- expect_error(
+      package_coverage(
+        "TestS4",
+        type = "none",
+        code = "stop('boom')",
+        code_stdout = TRUE
+      ),
+      class = "covr_error"
+    ),
+    "Error: boom"
+  )
+  expect_equal(
+    err$output,
+    c(
+      "> library('TestS4')",
+      "> stop('boom')",
+      "Error: boom",
+      "Execution halted"
+    )
+  )
+})
