@@ -335,6 +335,9 @@ test_that("package_coverage reports bad trace files", {
 })
 
 test_that("package_coverage warns about processes that did not save a trace", {
+  # Killing the process with SIGKILL relies on POSIX signals
+  skip_on_os("windows")
+
   rscript <- function(code) {
     paste0(
       "system2(file.path(R.home('bin'), 'Rscript'), ",
