@@ -1,5 +1,8 @@
 # covr (development version)
 
+* `file_report()` now highlights the syntax of the source code, which failed
+  with JavaScript errors because the report didn't include jQuery.
+
 * `report()` and `file_report()` use a dark theme when the browser prefers
   one, and have a button to switch between the light and dark themes, which
   the browser remembers for other reports (#563).

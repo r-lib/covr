@@ -59,6 +59,12 @@ table.table-condensed {
 
 .covr-header h2 {
   margin-right: 10px;
+  min-width: 0;
+  word-wrap: break-word;
+}
+
+.covr-theme-toggle {
+  flex-shrink: 0;
 }
 
 .covr-theme-toggle svg {

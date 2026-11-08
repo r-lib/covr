@@ -170,6 +170,7 @@ file_report <- function(
   percentage <- data$file_stats$Coverage
 
   ui <- fluid_page(
+    js = FALSE,
     report_head(colors),
     column(
       8,
@@ -522,8 +523,8 @@ renderSourceTable <- function(data, class = "hidden") {
       file = names(data)
     ),
     htmltools::tags$script(
-      "$('div#files pre').each(function(i, block) {
-    hljs.highlightBlock(block);
+      "document.querySelectorAll('div#files pre').forEach(function(block) {
+  hljs.highlightBlock(block);
 });"
     )
   )
@@ -571,31 +572,34 @@ tab_panel <- function(title, ..., value = title) {
   htmltools::div(class = "tab-pane", title = title, `data-value` = value, ...)
 }
 
-fluid_page <- function(...) {
+# `js = FALSE` leaves out Bootstrap's JavaScript, which needs jQuery and is
+# only used for the tabs in `report()`
+fluid_page <- function(..., js = TRUE) {
   bootstrap_page(
-    htmltools::div(class = "container-fluid", ...)
+    htmltools::div(class = "container-fluid", ...),
+    js = js
   )
 }
 
-bootstrap_page <- function(...) {
+bootstrap_page <- function(..., js = TRUE) {
   htmltools::attachDependencies(
     htmltools::tagList(list(...)),
-    html_dependency_bootstrap()
+    html_dependency_bootstrap(js = js)
   )
 }
 
 # from htmldeps::html_dependency_bootstrap (not yet on CRAN)
-html_dependency_bootstrap <- function() {
+html_dependency_bootstrap <- function(js = TRUE) {
+  script <- c("shim/html5shiv.min.js", "shim/respond.min.js")
+  if (js) {
+    script <- c("js/bootstrap.min.js", script)
+  }
   htmltools::htmlDependency(
     name = "bootstrap",
     version = "3.4.1",
     src = system.file(file = "www/shared/bootstrap", package = "covr"),
     meta = list(viewport = "width=device-width, initial-scale=1"),
-    script = c(
-      "js/bootstrap.min.js",
-      "shim/html5shiv.min.js",
-      "shim/respond.min.js"
-    ),
+    script = script,
     stylesheet = c("css/bootstrap.min.css", "css/bootstrap-theme.min.css")
   )
 }
