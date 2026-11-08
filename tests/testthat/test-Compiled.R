@@ -186,3 +186,36 @@ test_that("tally_coverage includes compiled code", {
     )
   )
 })
+
+test_that("gcov's text output is used if its JSON output can't be used (#609)", {
+  skip_on_cran()
+  skip_if(is_win_r41())
+  skip_if_not(gcov_json_supported(getOption("covr.gcov")))
+
+  compiled <- function() {
+    cov <- as.data.frame(package_coverage(test_path("TestCompiled")))
+    cov <- cov[grepl("[.](c|cc|cpp|h)$", cov$filename), ]
+    rownames(cov) <- NULL
+    cov
+  }
+  local_mocked_bindings(gcov_json_supported = function(...) FALSE)
+  text <- compiled()
+  expect_gt(nrow(text), 0)
+
+  # The JSON can't be parsed
+  local_mocked_bindings(
+    gcov_json_supported = function(...) TRUE,
+    parse_gcov_json = function(...) stop("unexpected JSON")
+  )
+  expect_equal(compiled(), text)
+
+  # gcov wrote no JSON output
+  run <- gcov_run
+  local_mocked_bindings(
+    gcov_json_supported = function(...) TRUE,
+    gcov_run = function(gcov_path, args, ...) {
+      run(gcov_path, setdiff(args, "--json-format"), ...)
+    }
+  )
+  expect_equal(compiled(), text)
+})

@@ -3,7 +3,8 @@
 * Compiled code coverage now reads gcov's structured JSON output
   (`gcov --json-format`) when gcov supports it (gcc >= 9), instead of parsing
   its text output with regular expressions. covr still parses the text output
-  of llvm-cov, the gcov on macOS, and older gcc (#609).
+  of llvm-cov, the gcov on macOS, and older gcc, and falls back to it for any
+  file whose JSON output is missing or can't be read (#609).
 
   - Lines of C++ templates instantiated more than once in a file are no
     longer counted twice, which also stopped
