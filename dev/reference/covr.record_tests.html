@@ -96,6 +96,10 @@ directory, the entire call stack is collected.</p></li>
 </ol><p>These calls are subsequently subset for only those up until the call to
 <a href="covr-package.html">covr</a>'s internal <code>count</code> function, and will always include the last call in
 the call stack prior to a call to <code>count</code>.</p>
+<p>Functions in the recorded calls, such as the function of an R6 active
+binding or a function passed to <code><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call()</a></code>, have their environment replaced
+with <code><a href="https://rdrr.io/r/base/environment.html" class="external-link">emptyenv()</a></code>, so that the objects they enclose aren't saved with the
+coverage.</p>
     </div>
 
     <div class="section level2">
@@ -122,11 +126,12 @@ the call stack prior to a call to <code>count</code>.</p>
 <span class="r-in"><span><span class="co"># extract test itemization per trace</span></span></span>
 <span class="r-in"><span><span class="va">cov</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"srcref"</span>, <span class="st">"tests"</span><span class="op">)</span><span class="op">]</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $srcref</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> f(!x)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $tests</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      test call depth i</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1    1     1 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1    1     1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]    1    1     2 3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="co"># $srcref</span></span></span>
 <span class="r-in"><span><span class="co"># f(!x)</span></span></span>
@@ -137,18 +142,18 @@ the call stack prior to a call to <code>count</code>.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># reconstruct the code path of a test by ordering test traces by [,"i"]</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">cov</span>, <span class="va">`[[`</span>, <span class="st">"tests"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R19464316dd4a:6:5:6:9:5:9:6:6`</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R18471c1a7c3a:6:5:6:9:5:9:6:6`</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      test call depth i</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1    1     2 4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R19464316dd4a:3:7:3:7:7:7:3:3`</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R18471c1a7c3a:4:5:4:9:5:9:4:4`</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      test call depth i</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1    1     1 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R18471c1a7c3a:3:7:3:7:7:7:3:3`</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      test call depth i</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1    1     1 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [2,]    1    1     2 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $`source.R19464316dd4a:4:5:4:9:5:9:4:4`</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      test call depth i</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1    1     1 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="co"># $`source.Ref2326138c55:4:6:4:10:6:10:4:4`</span></span></span>
 <span class="r-in"><span><span class="co">#      test call depth i</span></span></span>

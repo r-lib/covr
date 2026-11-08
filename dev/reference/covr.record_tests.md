@@ -50,6 +50,13 @@ These calls are subsequently subset for only those up until the call to
 `count` function, and will always include the last call in the call
 stack prior to a call to `count`.
 
+Functions in the recorded calls, such as the function of an R6 active
+binding or a function passed to
+[`do.call()`](https://rdrr.io/r/base/do.call.html), have their
+environment replaced with
+[`emptyenv()`](https://rdrr.io/r/base/environment.html), so that the
+objects they enclose aren't saved with the coverage.
+
 ## Examples
 
 ``` r
@@ -75,11 +82,12 @@ tail(attr(cov, "tests")[[1L]], 1L)
 # extract test itemization per trace
 cov[[3]][c("srcref", "tests")]
 #> $srcref
-#> f(!x)
+#> x
 #> 
 #> $tests
 #>      test call depth i
-#> [1,]    1    1     1 2
+#> [1,]    1    1     1 1
+#> [2,]    1    1     2 3
 #> 
 # $srcref
 # f(!x)
@@ -90,18 +98,18 @@ cov[[3]][c("srcref", "tests")]
 
 # reconstruct the code path of a test by ordering test traces by [,"i"]
 lapply(cov, `[[`, "tests")
-#> $`source.R19464316dd4a:6:5:6:9:5:9:6:6`
+#> $`source.R18471c1a7c3a:6:5:6:9:5:9:6:6`
 #>      test call depth i
 #> [1,]    1    1     2 4
 #> 
-#> $`source.R19464316dd4a:3:7:3:7:7:7:3:3`
+#> $`source.R18471c1a7c3a:4:5:4:9:5:9:4:4`
+#>      test call depth i
+#> [1,]    1    1     1 2
+#> 
+#> $`source.R18471c1a7c3a:3:7:3:7:7:7:3:3`
 #>      test call depth i
 #> [1,]    1    1     1 1
 #> [2,]    1    1     2 3
-#> 
-#> $`source.R19464316dd4a:4:5:4:9:5:9:4:4`
-#>      test call depth i
-#> [1,]    1    1     1 2
 #> 
 # $`source.Ref2326138c55:4:6:4:10:6:10:4:4`
 #      test call depth i
