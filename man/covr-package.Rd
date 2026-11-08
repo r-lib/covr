@@ -16,7 +16,7 @@ C/C++/FORTRAN code.
 }
 \details{
 A coverage report can be used to inspect coverage for each line in your
-package. Using \code{report()} requires the additional dependencies \code{DT} and \code{htmltools}.
+package. Using \code{report()} requires the additional dependency \code{htmltools}.
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{# If run with no arguments `report()` implicitly calls `package_coverage()`
 report()
@@ -168,10 +168,6 @@ Other contributors:
   \item Qin Wang [contributor]
   \item Doug Kelkhoff [contributor]
   \item Ivan Sagalaev (highlight.js library) [contributor, copyright holder]
-  \item Mark Otto (Bootstrap library) [contributor]
-  \item Jacob Thornton (Bootstrap library) [contributor]
-  \item  Bootstrap contributors (Bootstrap library) [contributor]
-  \item  Twitter, Inc (Bootstrap library) [copyright holder]
 }
 
 }

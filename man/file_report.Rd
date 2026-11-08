@@ -2,6 +2,7 @@
 % Please edit documentation in R/report.R
 \name{file_report}
 \alias{file_report}
+\alias{file_report_html}
 \title{A coverage report for a specific file}
 \usage{
 file_report(
@@ -10,6 +11,8 @@ file_report(
   out_file = file.path(tempdir(), paste0(get_package_name(x), "-file-report.html")),
   browse = interactive()
 )
+
+file_report_html(x = package_coverage(), file = NULL)
 }
 \arguments{
 \item{x}{a coverage dataset, defaults to running \code{package_coverage()}.}
@@ -21,6 +24,12 @@ coverage output.}
 
 \item{browse}{whether to open a browser to view the report.}
 }
+\value{
+\code{file_report_html()} returns an \code{\link[htmltools:tagList]{htmltools::tagList()}}, with the
+dependencies of the report attached.
+}
 \description{
-A coverage report for a specific file
+\code{file_report()} saves the coverage of one file as a standalone HTML file and
+opens it. \code{file_report_html()} creates the same report as HTML that can be
+included in a larger document, like \code{\link[=report_html]{report_html()}}.
 }

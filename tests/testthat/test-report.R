@@ -1,21 +1,58 @@
-test_that("report() bundles bootstrap 3.4.1", {
-  skip_if_not_installed("DT")
+test_that("report_html() lists the files in a sortable table (#316)", {
   skip_if_not_installed("htmltools")
 
-  cov <- code_coverage("f <- function(x) x + 1", "f(1)")
-  file <- report(cov, file = file.path(withr::local_tempdir(), "report.html"))
-
-  html <- readLines(file)
-  expect_match(html, "lib/bootstrap-3.4.1/css/bootstrap.min.css", all = FALSE)
-  bootstrap_css <- readLines(
-    file.path(dirname(file), "lib/bootstrap-3.4.1/css/bootstrap.min.css"),
-    n = 2
+  stats <- data.frame(
+    File = c("b.R", "a.R", "c.R"),
+    Lines = c(10L, 20L, 5L),
+    Relevant = c(4L, 2L, 0L),
+    Covered = c(1L, 2L, 0L),
+    Missed = c(3L, 0L, 0L),
+    `Hits / Line` = c("1", "3", "NaN"),
+    Coverage = c("33.33%", "100.00%", "NaN%"),
+    check.names = FALSE,
+    stringsAsFactors = FALSE
   )
-  expect_match(bootstrap_css[[2]], "Bootstrap v3.4.1", fixed = TRUE)
+  # The sort keys are read by JavaScript, so need a decimal point
+  withr::local_options(OutDec = ",")
+  html <- as.character(file_table(stats))
+
+  sorts <- regmatches(html, gregexpr('data-sort="[^"]*"', html))[[1]]
+  expect_equal(
+    sorts,
+    sprintf(
+      'data-sort="%s"',
+      c(
+        "b.R",
+        "10",
+        "4",
+        "1",
+        "3",
+        "1",
+        "33.33",
+        "a.R",
+        "20",
+        "2",
+        "2",
+        "0",
+        "3",
+        "100.00",
+        "c.R",
+        "5",
+        "0",
+        "0",
+        "0",
+        "",
+        ""
+      )
+    )
+  )
+  expect_match(html, "var(--covr-bar-low) 33.33%", fixed = TRUE)
+  expect_match(html, "var(--covr-bar-high) 100.00%", fixed = TRUE)
+  expect_length(gregexpr("covr-bar-", html, fixed = TRUE)[[1]], 2)
+  expect_match(html, '<a href="#" class="covr-file-link">b.R</a>', fixed = TRUE)
 })
 
 test_that("report() works with empty coverage (#540)", {
-  skip_if_not_installed("DT")
   x <- structure(list(), class = "coverage", package = list(package = "p"))
   data <- to_report_data(x)
   expect_equal(nrow(data$file_stats), 0)
@@ -37,7 +74,6 @@ test_that("report() works with empty coverage (#540)", {
 })
 
 test_that("report_html() can include several reports in a document (#316)", {
-  skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")
 
   count <- function(x, pattern) {
@@ -61,12 +97,11 @@ test_that("report_html() can include several reports in a document (#316)", {
     expect_equal(count(head, paste0("/", asset, '"')), 1)
   }
 
-  # Bootstrap would replace the version used by the document
-  expect_no_match(html, "bootstrap", ignore.case = TRUE)
+  # Bootstrap and jQuery would replace the versions used by the document
+  expect_no_match(html, "bootstrap|jquery|datatables", ignore.case = TRUE)
 })
 
 test_that("report_html() keeps the colors of each report in a document (#316)", {
-  skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")
 
   cov <- code_coverage("f <- function(x) x + 1", "f(1)")
@@ -125,7 +160,6 @@ test_that("report_html() styles only the report (#316)", {
 })
 
 test_that("report() uses the default colors (#529)", {
-  skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")
   withr::local_options(covr.report_colors = NULL)
 
@@ -158,7 +192,6 @@ test_that("report() uses the default colors (#529)", {
 })
 
 test_that("report() and file_report() use covr.report_colors (#529)", {
-  skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")
   withr::local_options(
     covr.report_colors = c(
@@ -227,7 +260,6 @@ test_that("coverage_tints() mixes the colors with the dark background (#563)", {
 })
 
 test_that("report() and file_report() can switch to a dark theme (#563)", {
-  skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")
 
   cov <- code_coverage("f <- function(x) x + 1", "f(1)")
@@ -257,8 +289,7 @@ test_that("report() and file_report() can switch to a dark theme (#563)", {
   }
 })
 
-test_that("file_report() doesn't load scripts that need jQuery", {
-  skip_if_not_installed("DT")
+test_that("file_report() doesn't load jQuery or Bootstrap", {
   skip_if_not_installed("htmltools")
 
   cov <- code_coverage("f <- function(x) x + 1", "f(1)")
@@ -268,16 +299,11 @@ test_that("file_report() doesn't load scripts that need jQuery", {
     browse = FALSE
   )
   html <- paste(readLines(file), collapse = "\n")
-  expect_no_match(
-    html,
-    "jquery|bootstrap\\.min\\.js|\\$\\(",
-    ignore.case = TRUE
-  )
+  expect_no_match(html, "jquery|bootstrap|datatables", ignore.case = TRUE)
   expect_match(html, "covrHljs.highlightBlock", fixed = TRUE)
 })
 
 test_that("covr.report_colors is validated (#529)", {
-  skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")
   cov <- code_coverage("f <- function(x) x + 1", "f(1)")
   local_report_colors <- function(colors) {

@@ -1,3 +1,12 @@
+.covr-report table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.covr-report pre {
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
 .covr-report table tr:hover td {
   font-weight:bold;text-decoration:none
 }
@@ -22,6 +31,81 @@
   border-right: 1px solid rgba(0,0,0,0.1);
   font-weight: bold;
   text-align: center;
+}
+
+/* The list of files, styled like DataTables' tables with borders between the
+   rows */
+.covr-report table.covr-file-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.covr-report table.covr-file-table > tbody {
+  border: 0;
+}
+
+.covr-report table.covr-file-table > thead > tr > th {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.covr-report table.covr-file-table > tbody > tr > td {
+  padding: 8px 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.covr-report table.covr-file-table > tbody > tr:first-child > td {
+  border-top: 0;
+}
+
+.covr-report table.covr-file-table .covr-num {
+  text-align: right;
+}
+
+/* The numeric columns are as narrow as their content, so the file column
+   takes the rest of the width, and long paths wrap rather than make the table
+   wider than the report */
+.covr-report table.covr-file-table .covr-num {
+  width: 1%;
+}
+
+.covr-report table.covr-file-table td.covr-num {
+  white-space: nowrap;
+}
+
+.covr-report table.covr-file-table td.covr-file {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.covr-report button.covr-sort {
+  padding: 0;
+  font: inherit;
+  font-weight: bold;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.covr-report button.covr-sort::after {
+  display: inline-block;
+  width: 1em;
+  margin-left: 4px;
+  opacity: 0.3;
+  content: "\2195";
+}
+
+.covr-report th[aria-sort="ascending"] button.covr-sort::after {
+  opacity: 0.8;
+  content: "\25B2";
+}
+
+.covr-report th[aria-sort="descending"] button.covr-sort::after {
+  opacity: 0.8;
+  content: "\25BC";
 }
 .covr-report table.table-condensed pre {
   background-color: transparent;
@@ -216,8 +300,7 @@ html.covr-dark .covr-report a:focus {
   color: #9ec5fe;
 }
 
-html.covr-dark .covr-report pre,
-html.covr-dark .covr-report div.datatables {
+html.covr-dark .covr-report pre {
   color: #dee2e6;
 }
 
@@ -258,18 +341,13 @@ html.covr-dark .covr-report table td.coverage {
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-html.covr-dark .covr-report table.dataTable > thead > tr > th,
-html.covr-dark .covr-report table.dataTable.no-footer {
+html.covr-dark .covr-report table.covr-file-table,
+html.covr-dark .covr-report table.covr-file-table > thead > tr > th {
   border-color: #6c757d;
 }
 
-html.covr-dark .covr-report table.dataTable.row-border > tbody > tr > td {
+html.covr-dark .covr-report table.covr-file-table > tbody > tr > td {
   border-top-color: #495057;
-}
-
-/* Older versions of DataTables make the rows white */
-html.covr-dark .covr-report table.dataTable tbody tr {
-  background-color: transparent;
 }
 
 /* Based on the Tomorrow Night theme */
