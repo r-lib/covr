@@ -146,6 +146,13 @@ clear_counters <- function() {
   .current_test$record <- isTRUE(getOption("covr.record_tests", FALSE))
 }
 
+# Set the counts of all traces to zero, keeping the traces themselves.
+zero_counters <- function() {
+  for (key in setdiff(ls(.counters, all.names = TRUE), "tests")) {
+    .counters[[key]]$value <- 0
+  }
+}
+
 #' Generate a key for a  call
 #'
 #' @param x the srcref of the call to create a key for

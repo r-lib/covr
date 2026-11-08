@@ -33,6 +33,11 @@
 * New `coverage_to_markdown()` formats coverage as a markdown table, optionally
   compared against a baseline, for GitHub Actions job summaries or pull
   request comments (#519).
+* `file_coverage()`, `code_coverage()`, `environment_coverage()`,
+  `function_coverage()` and `with_coverage()` now include code run in
+  processes forked by parallel's `mclapply()`, `mcparallel()` and related
+  functions, as `package_coverage()` already did. Set
+  `options(covr.fix_parallel_mcexit = FALSE)` to turn this off (#410).
 
 * Functions nested inside lists and environments, such as
   `fns <- list(a = function(x) x)`, functions defined inside `local()` and

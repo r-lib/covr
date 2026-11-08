@@ -44,6 +44,65 @@ test_that("mcparallel workers that load the package after forking do not warn", 
 })
 
 
+test_that("file_coverage() includes code run in forked processes", {
+  skip_on_os("windows")
+  src <- withr::local_tempfile(fileext = ".R")
+  test <- withr::local_tempfile(fileext = ".R")
+  writeLines(
+    c(
+      "a <- function(x) {",
+      "  x + 1",
+      "}",
+      "b <- function(x) {",
+      "  x * 2",
+      "}"
+    ),
+    src
+  )
+  writeLines(
+    c(
+      "a(0)",
+      "parallel::mclapply(1:4, a, mc.cores = 2)",
+      "parallel::mccollect(parallel::mcparallel(b(1)))"
+    ),
+    test
+  )
+
+  # a(0) runs before forking, but is only counted once
+  cov <- file_coverage(src, test)
+  expect_equal(as.data.frame(cov)$value, c(5, 1))
+
+  withr::local_options(covr.fix_parallel_mcexit = FALSE)
+  cov <- file_coverage(src, test)
+  expect_equal(as.data.frame(cov)$value, c(1, 0))
+})
+
+
+test_that("file_coverage() restores parallel's functions when code fails", {
+  skip_on_os("windows")
+  ns <- asNamespace("parallel")
+  mcfork <- ns$mcfork
+  mcexit <- ns$mcexit
+  src <- withr::local_tempfile(fileext = ".R")
+  test <- withr::local_tempfile(fileext = ".R")
+  writeLines("a <- function(x) x", src)
+  writeLines(
+    c(
+      "parallel::mclapply(1:2, a, mc.cores = 2)",
+      paste0(
+        "stop(structure(list(message = 'boom', call = NULL), ",
+        "class = c('covr_test_error', 'error', 'condition')))"
+      )
+    ),
+    test
+  )
+
+  expect_error(file_coverage(src, test), class = "covr_test_error")
+  expect_identical(ns$mcfork, mcfork)
+  expect_identical(ns$mcexit, mcexit)
+})
+
+
 test_that("uses_parallel", {
   pkg <- covr:::as_package("TestParallel")
   expect_true(covr:::uses_parallel(pkg))

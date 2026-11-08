@@ -54,7 +54,14 @@ shown in the message and \code{print()} method of a \code{covr_error} when tests
 vignettes, examples or \code{code} fail (default \code{50}). The full output is
 always available in the condition's \verb{$output} field.
 
-\item \code{covr.fix_parallel_mcexit}:
+\item \code{covr.fix_parallel_mcexit}: Whether to include code run in processes
+forked by \pkg{parallel}'s \code{mclapply()}, \code{mcparallel()} and related
+functions, by patching \code{parallel:::mcexit}. By default
+\code{package_coverage()} does this if the package uses \pkg{parallel}, and
+the functions that measure coverage in the current session, such as
+\code{file_coverage()}, always do. The environment variable
+\code{COVR_FIX_PARALLEL_MCEXIT} takes precedence over this option. Not
+supported on Windows.
 
 \item \code{covr.flags}:
 

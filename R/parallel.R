@@ -30,6 +30,35 @@ fix_mcexit <- function(trace_dir) {
   replace_binding('parallel', 'mcexit', mcexit)
 }
 
+# Patch parallel's mcfork() and mcexit() in the current session, so processes
+# forked by mclapply(), mcparallel() etc. save their counts to `trace_dir` when
+# they exit. Each child zeroes its counts after forking, so the counts the
+# parent had at that point are not counted twice. Returns a function that
+# restores the original functions.
+trace_forks <- function(trace_dir) {
+  ns <- asNamespace("parallel")
+  mcfork <- ns$mcfork
+  mcexit <- ns$mcexit
+
+  replace_binding("parallel", "mcfork", function(...) {
+    process <- mcfork(...)
+    if (inherits(process, "masterProcess")) {
+      zero_counters()
+    }
+    process
+  })
+  replace_binding("parallel", "mcexit", function(...) {
+    # An error here would keep the child from exiting, e.g. if it outlives
+    # `trace_dir`
+    try(save_trace(trace_dir), silent = TRUE)
+    mcexit(...)
+  })
+
+  function() {
+    replace_binding("parallel", "mcfork", mcfork)
+    replace_binding("parallel", "mcexit", mcexit)
+  }
+}
 
 uses_parallel <- function(pkg) {
   any(grepl(
@@ -44,13 +73,17 @@ on_windows <- function() {
 
 # consider in that order: the environment variable COVR_FIX_PARALLEL_MCEXIT,
 # the option covr.fix_parallel_mcexit, or auto-detection of the usage of
-# parallel by the package (cf uses_parallel()).
-should_enable_parallel_mcexit_fix <- function(pkg) {
+# parallel by the package (cf uses_parallel()). Without a package, i.e. for
+# coverage measured in the current session, it is enabled by default.
+should_enable_parallel_mcexit_fix <- function(pkg = NULL) {
   isTRUE(
     !on_windows() &&
       as.logical(Sys.getenv(
         "COVR_FIX_PARALLEL_MCEXIT",
-        getOption("covr.fix_parallel_mcexit", uses_parallel(pkg))
+        getOption(
+          "covr.fix_parallel_mcexit",
+          is.null(pkg) || uses_parallel(pkg)
+        )
       ))
   )
 }

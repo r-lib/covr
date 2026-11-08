@@ -33,6 +33,17 @@ This function is useful for testing, and is a thin wrapper around
 \code{\link[=file_coverage]{file_coverage()}} because parseData is not populated properly
 unless the functions are defined in a file.
 }
+\section{Parallel code}{
+
+Code run in processes forked by \code{\link[parallel:mclapply]{parallel::mclapply()}},
+\code{\link[parallel:mcparallel]{parallel::mcparallel()}} and related functions (not available on Windows)
+is included in the coverage. While the code runs, \code{parallel:::mcfork} and
+\code{parallel:::mcexit} are patched so that the forked processes save their
+counts when they exit. To turn this off, set the environment variable
+\code{COVR_FIX_PARALLEL_MCEXIT} or the option \code{covr.fix_parallel_mcexit} to
+\code{FALSE}.
+}
+
 \examples{
 source <- "add <- function(x, y) { x + y }"
 test <- "add(1, 2) == 3"
