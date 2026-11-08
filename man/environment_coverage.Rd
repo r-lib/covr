@@ -35,9 +35,6 @@ the working directory (which \code{\link[testthat:test_path]{testthat::test_path
 while testing), should instead be run with \code{\link[testthat:test_file]{testthat::test_file()}} inside
 \code{\link[=with_coverage]{with_coverage()}}.
 }
-\seealso{
-\code{\link[=with_coverage]{with_coverage()}}
-}
 \section{Parallel code}{
 
 Code run in processes forked by \code{\link[parallel:mclapply]{parallel::mclapply()}},
@@ -49,3 +46,6 @@ counts when they exit. To turn this off, set the environment variable
 \code{FALSE}.
 }
 
+\seealso{
+\code{\link[=with_coverage]{with_coverage()}}
+}
