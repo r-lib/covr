@@ -1,31 +1,6 @@
 table tr:hover td {
   font-weight:bold;text-decoration:none
 }
-table tr.covered td{
-  background-color:rgba(95,151,68,0.3)
-}
-
-table tr:hover.covered .num{
-  background-color:rgba(95,151,68,0.7)
-}
-table tr.missed td{
-  background-color:rgba(185,73,71,0.3)
-}
-table tr:hover.missed .num{
-  background-color:rgba(185,73,71,0.7)
-}
-
-table tr.missed:hover td{
-  -webkit-box-shadow:0 -2px 0 0 #b94947 inset;
-  -moz-box-shadow:0 -2px 0 0 #b94947 inset;
-  box-shadow:0 -2px 0 0 #b94947 inset
-}
-table tr.covered:hover td{
-  -webkit-box-shadow:0 -2px 0 0 #5f9744 inset;
-  -moz-box-shadow:0 -2px 0 0 #5f9744 inset;
-  box-shadow:0 -2px 0 0 #5f9744 inset
-}
-
 table tr.never td{
   background-color:transparent
 }

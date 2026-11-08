@@ -46,6 +46,7 @@ Depends:
     methods
 Imports:
     digest,
+    grDevices,
     stats,
     utils,
     jsonlite,

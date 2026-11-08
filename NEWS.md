@@ -1,5 +1,11 @@
 # covr (development version)
 
+* `report()` and `file_report()` can use other colors for covered and missed
+  lines, set with the new `covr.report_colors` option, e.g.
+  `options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))`
+  for blue and orange, which are easier to tell apart with color vision
+  deficiency than the default green and red (#529).
+
 * When gcov fails, the error from `package_coverage()` now includes gcov's
   output, e.g. the `.gcno` version mismatch reported when the package was
   compiled with a different version of gcc than the gcov used (#537).

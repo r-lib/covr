@@ -93,6 +93,12 @@ partially executed.
 
 \item \code{covr.icov_prof}:
 
+\item \code{covr.report_colors}: A named character vector with the colors of
+covered and missed lines in \code{\link[=report]{report()}} and \code{\link[=file_report]{file_report()}}, e.g.
+\code{c(covered = "#0072B2", missed = "#E69F00")} for blue and orange, which
+are easier to tell apart than the default green and red with color
+vision deficiency. Either element can be left out to keep its default.
+
 \item \code{covr.rstudio_source_markers}: A logical value. If \code{TRUE} (the
 default behavior), source markers are displayed within the RStudio IDE
 when using \code{zero_coverage}.
