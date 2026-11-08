@@ -66,20 +66,24 @@ start_compiled_coverage <- function(env, required = FALSE) {
   state$path <- path
   state$build <- build
   state$dll_dir <- dll_dir
-  state$dlls <- dlls[built]
-  state$original <- vcapply(state$dlls, function(dll) {
-    getNamespaceInfo(env, "DLLs")[[dll]][["path"]]
-  })
-  state$instrumented <- instrumented[built]
-  for (i in seq_along(state$dlls)) {
-    swap_namespace_dll(
-      env,
-      state$dlls[[i]],
-      state$original[[i]],
-      state$instrumented[[i]]
-    )
-  }
+  state$dlls <- character()
+  state$original <- character()
+  state$instrumented <- character()
   state$swapped <- TRUE
+  # Record each swapped DLL, so a failure restores the ones already swapped
+  tryCatch(
+    for (i in which(built)) {
+      original <- getNamespaceInfo(env, "DLLs")[[dlls[[i]]]][["path"]]
+      swap_namespace_dll(env, dlls[[i]], original, instrumented[[i]])
+      state$dlls <- c(state$dlls, dlls[[i]])
+      state$original <- c(state$original, original)
+      state$instrumented <- c(state$instrumented, instrumented[[i]])
+    },
+    error = function(e) {
+      stop_compiled_coverage(state)
+      stop(e)
+    }
+  )
   state
 }
 
@@ -296,10 +300,38 @@ swap_namespace_dll <- function(env, name, from, to) {
   # Run finalizers that may call into the old DLL while it is still loaded
   gc()
   dyn.unload(from)
-  dll <- dyn.load(to)
+  dll <- tryCatch(
+    load_namespace_dll(env, to),
+    error = function(e) {
+      # Put the old DLL back, so the namespace keeps working
+      use_namespace_dll(env, name, load_namespace_dll(env, from))
+      stop(e)
+    }
+  )
+  use_namespace_dll(env, name, dll)
+}
 
+# Loads a DLL of the namespace `env`. Loading runs its `R_init_<name>()`,
+# which can assign to the namespace (e.g. Rcpp's `.rcpp_cache`), so the
+# bindings that are locked once the namespace is loaded are unlocked meanwhile.
+load_namespace_dll <- function(env, path) {
+  unlock <- get("unlockBinding") # to fool R CMD check
+  lock <- get("lockBinding")
+  bindings <- ls(env, all.names = TRUE)
+  locked <- bindings[vlapply(bindings, bindingIsLocked, env = env)]
+  for (binding in locked) {
+    unlock(binding, env)
+  }
+  on.exit(
+    for (binding in locked) {
+      lock(binding, env)
+    }
+  )
+  dyn.load(path)
+}
+
+use_namespace_dll <- function(env, name, dll) {
   rebind_native_routines(env, name, dll)
-
   dlls <- getNamespaceInfo(env, "DLLs")
   dlls[[name]] <- dll
   setNamespaceInfo(env, "DLLs", dlls)

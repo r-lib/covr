@@ -1,0 +1,6 @@
+Package: TestCompiledInit
+Title: Compiled Code That Assigns to Its Namespace When Loaded
+Version: 0.0.0.9000
+Authors@R: "First Last <first.last@example.com> [aut, cre]"
+Description: Like Rcpp, its init function assigns to its namespace.
+License: MIT

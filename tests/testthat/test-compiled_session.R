@@ -81,6 +81,50 @@ test_that("with_coverage() measures compiled code and restores the DLL on error"
   expect_equal(ns$simple(-1), -1)
 })
 
+test_that("compiled coverage works if loading the DLL assigns to the namespace", {
+  skip_on_cran()
+  skip_if(is_win_r41())
+  skip_if_not_installed("pkgload")
+  local_compiled_package("TestCompiledInit")
+  ns <- asNamespace("TestCompiledInit")
+
+  cov <- with_coverage(ns$sign_of(-1), env = ns)
+
+  expect_equal(
+    compiled_counts(cov, "init.c")[c("7", "9")],
+    c(1, 0),
+    ignore_attr = TRUE
+  )
+  expect_identical(bindingIsLocked(".loaded", ns), TRUE)
+  expect_equal(ns$sign_of(2), 1L)
+})
+
+test_that("the package's DLL is restored if loading the instrumented one fails", {
+  skip_on_cran()
+  skip_if(is_win_r41())
+  skip_if_not_installed("pkgload")
+  local_compiled_package()
+  ns <- asNamespace("TestCompiled")
+  original_dll <- getNamespaceInfo(ns, "DLLs")$TestCompiled[["path"]]
+  original_load <- load_namespace_dll
+  local_mocked_bindings(load_namespace_dll = function(env, path) {
+    if (grepl("covr_dll", path, fixed = TRUE)) {
+      stop(errorCondition("Can't load.", class = "test_load_error"))
+    }
+    original_load(env, path)
+  })
+
+  expect_error(
+    with_coverage(ns$simple(1), env = ns),
+    class = "test_load_error"
+  )
+  expect_equal(
+    getNamespaceInfo(ns, "DLLs")$TestCompiled[["path"]],
+    original_dll
+  )
+  expect_equal(ns$simple(-1), -1)
+})
+
 test_that("file_coverage() measures compiled files of a package (#605)", {
   skip_on_cran()
   skip_if(is_win_r41())
