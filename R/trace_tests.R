@@ -230,16 +230,22 @@ update_current_test <- function() {
   .current_test$trace <- lapply(syscalls[exec_frames], strip_function_envs)
   .current_test$i <- 0L
   .current_test$frames <- exec_frames
-  .current_test$last_frame <- exec_frames[[Position(
+  last <- Position(
     has_srcref,
     .current_test$trace,
     right = TRUE,
     nomatch = length(exec_frames)
-  )]]
+  )
+  .current_test$last_frame <- exec_frames[[last]]
 
+  # The frame is only referenced weakly, and the functions in the call have no
+  # environment, so that the objects in them can be garbage collected once the
+  # test is done with them (#627).
+  .current_test$src_env <- weakref(
+    sys.frame(which = .current_test$last_frame - 1L)
+  )
+  .current_test$src_call <- .current_test$trace[[last]]
   # might be NULL if srcrefs aren't kept during building / sourcing
-  .current_test$src_env <- sys.frame(which = .current_test$last_frame - 1L)
-  .current_test$src_call <- syscalls[[.current_test$last_frame]]
   .current_test$srcref <- getSrcref(.current_test$src_call)
   .current_test$src <- .current_test$srcref %||% .current_test$src_call
 
@@ -311,9 +317,13 @@ current_test_index <- function() {
       nomatch = length(.counters$tests) + 1L
     )
   } else {
-    # otherwise we compare call stacks
+    # otherwise we compare call stacks, ignoring the "call_count" attribute of
+    # the recorded ones
     Position(
-      function(t) identical(t[], .current_test$trace), # t[] to ignore attr
+      function(t) {
+        attr(t, "call_count") <- NULL
+        identical(t, .current_test$trace)
+      },
       .counters$tests,
       right = TRUE,
       nomatch = length(.counters$tests) + 1L
@@ -364,16 +374,16 @@ truncate_call <- function(call_obj, limit = 1e4) {
 # objects (e.g. data read with arrow) crashes R (#573). They aren't needed to
 # report the test, so they are replaced with the empty environment.
 #
-# Elements are only reassigned if they change, as `[[<-` on a call has to walk
-# its arguments, and calls can be very long (see `truncate_call()`).
+# This runs for every frame of each test, so only the calls that contain
+# functions are walked, which is checked in C (#627). Elements are only
+# reassigned if they change, as `[[<-` on a call has to walk its arguments, and
+# calls can be very long (see `truncate_call()`).
 strip_function_envs <- function(x) {
   if (typeof(x) == "closure") {
     environment(x) <- emptyenv()
-  } else if (is.call(x)) {
+  } else if (has_closure(x)) {
     elts <- as.list(x)
-    nested <- vapply(elts, is.call, logical(1L)) |
-      vapply(elts, is.function, logical(1L))
-    for (i in which(nested)) {
+    for (i in which(vapply(elts, has_closure, logical(1L)))) {
       elt <- strip_function_envs(elts[[i]])
       if (!identical(elt, elts[[i]])) {
         x[[i]] <- elt
@@ -381,6 +391,10 @@ strip_function_envs <- function(x) {
     }
   }
   x
+}
+
+has_closure <- function(x) {
+  .Call(covr_has_closure, x)
 }
 
 #' Returns TRUE if we've moved on from test reflected in .current_test
@@ -394,14 +408,25 @@ strip_function_envs <- function(x) {
 is_current_test_finished <- function() {
   is.null(.current_test$src) ||
     .current_test$last_frame > sys.nframe() ||
+    # `src_call` has the environments of its functions removed
     !identical(
       .current_test$src_call,
-      sys.call(which = .current_test$last_frame)
+      sys.call(which = .current_test$last_frame),
+      ignore.environment = TRUE
     ) ||
     !identical(
-      .current_test$src_env,
+      weakref_key(.current_test$src_env),
       sys.frame(which = .current_test$last_frame - 1L)
     )
+}
+
+weakref <- function(x) {
+  .Call(covr_weakref, x)
+}
+
+# The object referenced by `ref`, or `NULL` if it was garbage collected.
+weakref_key <- function(ref) {
+  .Call(covr_weakref_key, ref)
 }
 
 #' Is the source bound to the expression

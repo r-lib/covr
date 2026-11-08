@@ -178,17 +178,50 @@ SEXP covr_is_unforced_promise(SEXP env, SEXP name) {
 #endif
 }
 
+// A weak reference to the environment `x`, which doesn't keep `x` from being
+// garbage collected.
+SEXP covr_weakref(SEXP x) {
+  return R_MakeWeakRef(x, R_NilValue, R_NilValue, FALSE);
+}
+
+// The environment referenced by `ref`, or `NULL` if it was garbage collected.
+SEXP covr_weakref_key(SEXP ref) { return R_WeakRefKey(ref); }
+
+static Rboolean has_closure(SEXP x) {
+  switch (TYPEOF(x)) {
+  case CLOSXP:
+    return TRUE;
+  case LANGSXP:
+    for (; x != R_NilValue; x = CDR(x)) {
+      if (has_closure(CAR(x))) return TRUE;
+    }
+    return FALSE;
+  default:
+    return FALSE;
+  }
+}
+
+// Whether `x` is a function (other than a primitive), or a call containing one
+// in any of its nested calls.
+SEXP covr_has_closure(SEXP x) { return ScalarLogical(has_closure(x)); }
+
 /* .Call calls */
 extern SEXP covr_duplicate_(SEXP);
 extern SEXP covr_reassign_function(SEXP, SEXP);
 extern SEXP covr_address(SEXP);
 extern SEXP covr_is_unforced_promise(SEXP, SEXP);
+extern SEXP covr_weakref(SEXP);
+extern SEXP covr_weakref_key(SEXP);
+extern SEXP covr_has_closure(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"covr_duplicate_", (DL_FUNC)&covr_duplicate_, 1},
     {"covr_reassign_function", (DL_FUNC)&covr_reassign_function, 2},
     {"covr_address", (DL_FUNC)&covr_address, 1},
     {"covr_is_unforced_promise", (DL_FUNC)&covr_is_unforced_promise, 2},
+    {"covr_weakref", (DL_FUNC)&covr_weakref, 1},
+    {"covr_weakref_key", (DL_FUNC)&covr_weakref_key, 1},
+    {"covr_has_closure", (DL_FUNC)&covr_has_closure, 1},
     {NULL, NULL, 0}};
 
 void R_init_covr(DllInfo *dll) {
