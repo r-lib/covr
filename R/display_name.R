@@ -23,17 +23,8 @@ to_relative_path <- function(path, base) {
 }
 
 filter_non_package_files <- function(x) {
-  path <- attr(x, "package")$path
-  in_package <- function(filenames) {
-    rex::re_matches(filenames, rex::rex(path, "/"), "")
-  }
   filenames <- vcapply(x, function(x) {
     get_source_filename(x$srcref, full.names = TRUE)
   })
-  branches <- attr(x, "branches")
-  x <- x[in_package(filenames)]
-  if (!is.null(branches)) {
-    attr(x, "branches") <- branches[in_package(branch_filenames(branches))]
-  }
-  x
+  x[rex::re_matches(filenames, rex::rex(attr(x, "package")$path, "/"), "")]
 }

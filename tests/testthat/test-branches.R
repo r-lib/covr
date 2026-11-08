@@ -103,6 +103,16 @@ test_that("`switch()` with arms in `...` has no branches", {
   expect_equal(NROW(tally_coverage(cov, by = "branch")), 0)
 })
 
+test_that("numbers that select no arm of `switch()` count as no match", {
+  cov <- branch_coverage(
+    "f <- function(x) switch(x, a = 1, b = 2)",
+    "f(1); f(0); f(-1); f(3); f(4); f(NA_real_); f('z')"
+  )
+  res <- tally_coverage(cov, by = "branch")
+  expect_equal(res$label, c("a", "b", "<no match>"))
+  expect_equal(res$value, c(1, 0, 6))
+})
+
 test_that("conditions `if` rejects signal the same conditions and aren't counted", {
   lines <- "f <- function(x) if (x) 'yes' else 'no'"
   plain <- local_branch_env(lines)
@@ -136,6 +146,33 @@ test_that("conditions `if` accepts are counted as `if` interprets them", {
     "f(2); f(0); f('T'); f('false'); f(factor('a')); f(c(a = TRUE))"
   )
   expect_equal(tally_coverage(cov, by = "branch")$value, c(4, 2))
+})
+
+test_that("classed conditions don't dispatch methods `if` doesn't use", {
+  assign(
+    "length.covr_test_cond",
+    function(x) stop("length dispatched"),
+    envir = globalenv()
+  )
+  assign(
+    "is.na.covr_test_cond",
+    function(x) stop("is.na dispatched"),
+    envir = globalenv()
+  )
+  withr::defer(
+    rm(
+      list = c("length.covr_test_cond", "is.na.covr_test_cond"),
+      envir = globalenv()
+    )
+  )
+  env <- local_branch_env("f <- function(x) if (x) 'yes' else 'no'")
+  withr::local_options(covr.branch_coverage = TRUE)
+  cov <- with_coverage(
+    res <- env$f(structure(TRUE, class = "covr_test_cond")),
+    env = env
+  )
+  expect_equal(res, "yes")
+  expect_equal(attr(cov, "branches")[[1]]$value, c(1, 0))
 })
 
 test_that("conditions that use the calling frame work", {
@@ -267,4 +304,17 @@ test_that("package_coverage() measures branches", {
     )
   )
   expect_equal(percent_coverage(cov, by = "branch"), 600 / 9)
+})
+
+test_that("subsetting coverage subsets its branches", {
+  cov <- branch_coverage(
+    c("f <- function(x) if (x) 1", "g <- function(x) if (x) 2"),
+    "f(TRUE)"
+  )
+  expect_equal(NROW(tally_coverage(cov[0], by = "branch")), 0)
+
+  functions <- as.data.frame(cov, sort = FALSE)$functions
+  res <- tally_coverage(cov[functions == "g"], by = "branch")
+  expect_equal(res$functions, c("g", "g"))
+  expect_equal(res$value, c(0, 0))
 })

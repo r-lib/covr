@@ -27,10 +27,14 @@ the arm. Arms that fall through to the next arm (\code{switch(x, a = , b = 1)})
 share its branch, labelled \code{"a, b"}. An unnamed arm is labelled
 \code{"<default>"}, or with its position if all arms are unnamed. A \code{switch()}
 without a default arm has another branch, \code{"<no match>"}, taken when no
-arm matches. A \code{switch()} with arms in \code{...} has no branches.
+arm matches, including a number that selects no arm. A \code{switch()} with
+arms in \code{...} has no branches.
 }
 
-\code{&&}, \code{||} and loops have no branches, nor does compiled code.
+\code{&&}, \code{||} and loops have no branches, nor does compiled code. An \code{if} or
+\code{switch()} in the default value of an argument only has branches if the
+default is in braces, \verb{function(x = \{ if (y) 1 else 2 \})}, as for line
+coverage.
 
 If the line where an \code{if} or \code{switch()} starts is excluded, e.g. with
 \verb{# nocov} (see \link{exclusions}), all its branches are excluded too.

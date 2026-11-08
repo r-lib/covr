@@ -21,9 +21,13 @@
 #'   share its branch, labelled `"a, b"`. An unnamed arm is labelled
 #'   `"<default>"`, or with its position if all arms are unnamed. A `switch()`
 #'   without a default arm has another branch, `"<no match>"`, taken when no
-#'   arm matches. A `switch()` with arms in `...` has no branches.
+#'   arm matches, including a number that selects no arm. A `switch()` with
+#'   arms in `...` has no branches.
 #'
-#' `&&`, `||` and loops have no branches, nor does compiled code.
+#' `&&`, `||` and loops have no branches, nor does compiled code. An `if` or
+#' `switch()` in the default value of an argument only has branches if the
+#' default is in braces, `function(x = { if (y) 1 else 2 })`, as for line
+#' coverage.
 #'
 #' If the line where an `if` or `switch()` starts is excluded, e.g. with
 #' `# nocov` (see [exclusions]), all its branches are excluded too.
@@ -136,6 +140,14 @@ trace_switch <- function(traced, x, src_ref, parent_functions) {
     )
   }
   if (add_default) {
+    # The added default only catches a numeric `EXPR` of `n + 1`, so
+    # `branch_switch()` counts the other numbers that select no arm.
+    traced[[2L]] <- as.call(list(
+      covr_call("branch_switch"),
+      key,
+      traced[[2L]],
+      n
+    ))
     traced <- as.call(c(
       as.list(traced),
       list(as.call(list(covr_call("branch_miss"), key)))
@@ -180,8 +192,12 @@ new_branch <- function(src_ref, parent_functions, labels) {
 # Nothing is recorded for these conditions, or if `cond` signals an error.
 branch <- function(key, cond) {
   # Runs for every `if`, so the common case of `TRUE` or `FALSE` avoids
-  # calling other closures, including `record_branch()`.
-  i <- if (is.logical(cond) && length(cond) == 1L && !is.na(cond)) {
+  # calling other closures, including `record_branch()`. Objects take the
+  # slow path, as `length()` and `is.na()` would dispatch on their class,
+  # which `if` doesn't.
+  i <- if (
+    is.logical(cond) && !is.object(cond) && length(cond) == 1L && !is.na(cond)
+  ) {
     if (cond) 1L else 2L
   } else {
     branch_index(cond)
@@ -214,6 +230,26 @@ branch_arm <- function(key, i) {
 branch_miss <- function(key) {
   record_branch(key, length(.counters$branches[[key]]$value))
   invisible(NULL)
+}
+
+# Counts the "no match" branch of a `switch()` with `n` arms and an added
+# default for a non-character `EXPR` that selects no arm, e.g. `0` or `NA`,
+# and returns `expr` unchanged. `switch()` itself finds whether it selects an
+# arm, so `EXPR` is converted as `switch()` does it. An `EXPR` of `n + 1`
+# selects the added default, which counts it. Only atomic vectors are
+# checked, as other objects can't be inlined in the call.
+branch_switch <- function(key, expr, n) {
+  if (is.atomic(expr) && !is.character(expr)) {
+    probe <- as.call(c(as.name("switch"), list(expr), rep(list(TRUE), n + 1L)))
+    selected <- tryCatch(
+      suppressWarnings(eval(probe, baseenv())),
+      error = function(e) TRUE
+    )
+    if (is.null(selected)) {
+      branch_miss(key)
+    }
+  }
+  expr
 }
 
 record_branch <- function(key, i) {
@@ -263,10 +299,38 @@ merge_branches <- function(into, from) {
   as_branch_list(c(into, from[added]))
 }
 
-branch_filenames <- function(branches) {
-  vcapply(branches, function(x) {
+# The file names of the srcrefs of a list of traces or decisions.
+srcref_filenames <- function(x) {
+  vcapply(x, function(x) {
     get_source_filename(x$srcref, full.names = TRUE)
   })
+}
+
+# Keep the decisions in `branches` that contain one of the traces in
+# `counters`, e.g. the trace of the condition of an `if`, so subsetting a
+# coverage object (see `[.coverage`) subsets its branches too.
+subset_branches <- function(branches, counters) {
+  if (!length(branches) || !length(counters)) {
+    return(branches[0])
+  }
+  position <- function(refs, line, byte) {
+    vapply(refs, function(x) x$srcref[[line]] * 1e6 + x$srcref[[byte]], 0)
+  }
+  counter_files <- srcref_filenames(counters)
+  counter_start <- position(counters, 1L, 2L)
+  counter_end <- position(counters, 3L, 4L)
+  files <- srcref_filenames(branches)
+  start <- position(branches, 1L, 2L)
+  end <- position(branches, 3L, 4L)
+  keep <- vlapply(seq_along(branches), function(i) {
+    any(
+      counter_files == files[[i]] &
+        counter_start >= start[[i]] &
+        counter_end <= end[[i]],
+      na.rm = TRUE
+    )
+  })
+  branches[keep]
 }
 
 # Drop the decisions in `branches` whose first line is excluded in `excl`
@@ -276,7 +340,7 @@ exclude_branches <- function(branches, excl, function_exclusions = NULL) {
   if (!length(branches)) {
     return(branches)
   }
-  files <- normalize_path(branch_filenames(branches))
+  files <- normalize_path(srcref_filenames(branches))
   lines <- vapply(branches, function(x) x$srcref[[1L]], integer(1))
   excluded <- vlapply(seq_along(branches), function(i) {
     file_excl <- excl[[files[[i]]]]
@@ -310,7 +374,7 @@ tally_branches <- function(x) {
   }
   n <- vapply(branches, function(x) length(x$value), integer(1))
   idx <- rep(seq_along(branches), n)
-  filenames <- to_relative_path(branch_filenames(branches), attr(x, "root"))
+  filenames <- to_relative_path(srcref_filenames(branches), attr(x, "root"))
   df <- data.frame(
     filename = filenames[idx],
     functions = vcapply(branches, function(x) x$functions[1L])[idx],

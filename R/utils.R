@@ -37,6 +37,9 @@ current_commit <- function(dir = ".") {
   attrs$names <- attrs$names[i]
   res <- unclass(x)
   res <- res[i]
+  if (!is.null(attrs$branches)) {
+    attrs$branches <- subset_branches(attrs$branches, res)
+  }
   attributes(res) <- attrs
   res
 }
