@@ -418,6 +418,9 @@ By contributing to this project, you agree to abide by its terms.
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md) : Display
   covr results using a standalone report
 
+- [`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md)
+  : A coverage report to include in other documents
+
 - [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
   : Tally coverage by line, expression or function
 

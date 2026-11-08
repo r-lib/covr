@@ -2,6 +2,17 @@
 
 ## covr (development version)
 
+- New
+  [`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md)
+  returns the coverage report of
+  [`report()`](https://covr.r-lib.org/dev/reference/report.md) as HTML
+  that can be included in a larger document, such as an R Markdown or
+  Quarto document. The report’s styles and scripts only apply to the
+  report, and it no longer uses Bootstrap’s JavaScript or replaces the
+  document’s highlight.js, so a document can include several reports
+  without changing the rest of the page
+  ([\#316](https://github.com/r-lib/covr/issues/316)).
+
 - covr now requires R 4.0.0 or later.
 
 - New [`to_badge()`](https://covr.r-lib.org/dev/reference/to_badge.md)

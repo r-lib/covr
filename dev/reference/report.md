@@ -1,6 +1,10 @@
 # Display covr results using a standalone report
 
-Display covr results using a standalone report
+`report()` saves the coverage report as a standalone HTML file and opens
+it. To include the report in a larger document, such as an R Markdown or
+Quarto document, use
+[`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md)
+instead.
 
 ## Usage
 
