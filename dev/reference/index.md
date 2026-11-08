@@ -56,6 +56,7 @@
   : Calculate test coverage for sets of files
 
 - [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
+  [`file_report_html()`](https://covr.r-lib.org/dev/reference/file_report.md)
   : A coverage report for a specific file
 
 - [`function_coverage()`](https://covr.r-lib.org/dev/reference/function_coverage.md)

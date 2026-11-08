@@ -51,18 +51,6 @@
 - **Ivan Sagalaev**. Contributor, copyright holder.  
   highlight.js library
 
-- **Mark Otto**. Contributor.  
-  Bootstrap library
-
-- **Jacob Thornton**. Contributor.  
-  Bootstrap library
-
-- **Bootstrap contributors**. Contributor.  
-  Bootstrap library
-
-- **Twitter, Inc**. Copyright holder.  
-  Bootstrap library
-
 ## Citation
 
 Source:

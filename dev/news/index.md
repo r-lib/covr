@@ -4,14 +4,19 @@
 
 - New
   [`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md)
-  returns the coverage report of
-  [`report()`](https://covr.r-lib.org/dev/reference/report.md) as HTML
-  that can be included in a larger document, such as an R Markdown or
-  Quarto document. The report’s styles and scripts only apply to the
-  report, and it no longer uses Bootstrap’s JavaScript or replaces the
-  document’s highlight.js, so a document can include several reports
-  without changing the rest of the page
-  ([\#316](https://github.com/r-lib/covr/issues/316)).
+  and
+  [`file_report_html()`](https://covr.r-lib.org/dev/reference/file_report.md)
+  return the coverage reports of
+  [`report()`](https://covr.r-lib.org/dev/reference/report.md) and
+  [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
+  as HTML that can be included in a larger document, such as an R
+  Markdown or Quarto document. The reports’ styles and scripts only
+  apply to the report, so a document can include several reports without
+  changing the rest of the page. The reports no longer need the DT
+  package, jQuery or Bootstrap, and the list of files is now shown
+  sorted with the least covered files first
+  ([\#316](https://github.com/r-lib/covr/issues/316),
+  [\#709](https://github.com/r-lib/covr/issues/709)).
 
 - covr now requires R 4.0.0 or later.
 

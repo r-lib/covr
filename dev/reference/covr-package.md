@@ -13,7 +13,7 @@ tracks coverage of both R code and compiled C/C++/FORTRAN code.
 A coverage report can be used to inspect coverage for each line in your
 package. Using
 [`report()`](https://covr.r-lib.org/dev/reference/report.md) requires
-the additional dependencies `DT` and `htmltools`.
+the additional dependency `htmltools`.
 
     # If run with no arguments `report()` implicitly calls `package_coverage()`
     report()
@@ -195,11 +195,3 @@ Other contributors:
 - Doug Kelkhoff \[contributor\]
 
 - Ivan Sagalaev (highlight.js library) \[contributor, copyright holder\]
-
-- Mark Otto (Bootstrap library) \[contributor\]
-
-- Jacob Thornton (Bootstrap library) \[contributor\]
-
-- Bootstrap contributors (Bootstrap library) \[contributor\]
-
-- Twitter, Inc (Bootstrap library) \[copyright holder\]
