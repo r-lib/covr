@@ -1,5 +1,9 @@
 # covr (development version)
 
+* `traced_files()`, and so `percent_coverage()`, `tally_coverage()` and the
+  exclusion handling, now split the package source once rather than once per
+  file, which is much faster for packages with many files.
+
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
   which is much faster than `package_coverage()` (#605). It loads the package

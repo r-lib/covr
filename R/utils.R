@@ -88,6 +88,9 @@ split_on_line_directives <- function(lines) {
 traced_files <- function(x) {
   res <- list()
   filenames <- display_name(x)
+  # The (concatenated) source is shared by many files, so read and split it
+  # once per original srcfile rather than once per file.
+  originals <- new.env(parent = emptyenv())
   for (i in seq_along(x)) {
     src_file <- attr(x[[i]]$srcref, "srcfile")
     filename <- filenames[[i]]
@@ -99,38 +102,21 @@ traced_files <- function(x) {
       next
     }
 
-    lines <- getSrcLines(src_file, 1, Inf)
-    matches <- rex::re_matches(
-      lines,
-      rex::rex(
-        start,
-        any_spaces,
-        "#line",
-        spaces,
-        capture(name = "line_number", digit),
-        spaces,
-        quotes,
-        capture(name = "filename", anything),
-        quotes
-      )
-    )
-
-    matches <- na.omit(matches)
-
-    filename_match <- which(matches$filename == src_file$filename)
-
-    if (length(filename_match) == 1) {
-      start <- as.numeric(rownames(matches)[filename_match]) + 1
-      end <- if (!is.na(rownames(matches)[filename_match + 1])) {
-        as.numeric(rownames(matches)[filename_match + 1]) - 1
-      } else {
-        length(lines)
-      }
-    } else {
-      start <- 1
-      end <- length(lines)
+    id <- address(src_file$original %||% src_file)
+    source <- originals[[id]]
+    if (is.null(source)) {
+      lines <- getSrcLines(src_file, 1, Inf)
+      source <- list(lines = lines, split = split_on_line_directives(lines))
+      originals[[id]] <- source
     }
-    src_file$file_lines <- lines[seq(start, end)]
+
+    # Use the section for this file only if it is unambiguous
+    split <- source$split
+    if (sum(names(split) == src_file$filename) == 1) {
+      src_file$file_lines <- split[[src_file$filename]]
+    } else {
+      src_file$file_lines <- source$lines
+    }
 
     res[[filename]] <- src_file
   }
