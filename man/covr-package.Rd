@@ -93,6 +93,16 @@ partially executed.
 
 \item \code{covr.icov_prof}:
 
+\item \code{covr.llvm_cov}: Path to the \code{llvm-cov} used to read the coverage
+of Rust code. Defaults to the one of the Rust toolchain, installed with
+\verb{rustup component add llvm-tools}, or for Rust installed without rustup
+(e.g. with \verb{apt-get install cargo rustc}), to the one on the \code{PATH} with
+the same LLVM version as rustc, e.g. \code{llvm-cov-18}. If set to \code{""} the
+Rust code isn't instrumented, which turns off its coverage.
+
+\item \code{covr.llvm_profdata}: Path to the \code{llvm-profdata} used to merge the
+coverage counts of Rust code. Found like \code{covr.llvm_cov}.
+
 \item \code{covr.report_colors}: A named character vector with the colors of
 covered and missed lines in \code{\link[=report]{report()}} and \code{\link[=file_report]{file_report()}}, and of the
 coverage percentages printed in the console, e.g.

@@ -7,6 +7,20 @@ is_win_r41 <- function() {
   is_windows() && x$major == 4 && x$minor == 1
 }
 
+# The tests with the TestRust package need rustc and the tools to measure the
+# coverage of Rust code (`rustup component add llvm-tools`), which isn't
+# supported on Windows.
+skip_if_no_rust_coverage <- function() {
+  skip_on_os("windows")
+  toolchain <- rust_toolchain(".")
+  skip_if(
+    is.null(toolchain$profiler_runtime) ||
+      is.null(toolchain$llvm_cov) ||
+      is.null(toolchain$llvm_profdata),
+    "The Rust toolchain or its llvm-tools aren't installed"
+  )
+}
+
 # Line 3 has three expressions on it, inside the multi-line `lapply()` call,
 # and the middle one, `any(x)`, never runs; line 6 has two functions, and only
 # `g()` runs (#620).

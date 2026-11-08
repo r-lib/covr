@@ -1,0 +1,2 @@
+useDynLib(TestRust, .registration = TRUE)
+export(rust_sign)

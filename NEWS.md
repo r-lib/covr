@@ -1,5 +1,13 @@
 # covr (development version)
 
+* `package_coverage()` now measures the coverage of Rust code, such as the
+  code of packages using extendr or savvy. It's built with LLVM's source-based
+  coverage, which needs the llvm tools of the Rust toolchain
+  (`rustup component add llvm-tools`), or for Rust installed by a Linux
+  distribution, those of the LLVM version rustc uses (e.g. `llvm-cov-18`).
+  Without them covr warns and only skips the Rust code.
+  `options(covr.llvm_cov = "")` turns this off (#728).
+
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
   which is much faster than `package_coverage()` (#605). It loads the package
