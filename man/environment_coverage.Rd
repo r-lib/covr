@@ -27,5 +27,14 @@ names to exclude. Example \verb{print\\\\\\.} to match print methods.}
 A \link{coverage} object.
 }
 \description{
-Calculate coverage of an environment
+The functions in \code{env} are instrumented, then the files in \code{test_files} are
+run with \code{\link[=sys.source]{sys.source()}} in a child environment of \code{env}, from the current
+working directory. Nothing else is set up, so testthat tests that rely on
+its test runner, e.g. for setup files, snapshots, or the test directory as
+the working directory (which \code{\link[testthat:test_path]{testthat::test_path()}} uses to find fixtures
+while testing), should instead be run with \code{\link[testthat:test_file]{testthat::test_file()}} inside
+\code{\link[=with_coverage]{with_coverage()}}.
+}
+\seealso{
+\code{\link[=with_coverage]{with_coverage()}}
 }

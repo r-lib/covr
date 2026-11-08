@@ -1,0 +1,8 @@
+Package: TestFixtures
+Title: Package Whose Tests Use Fixture Files
+Version: 0.0.0.9000
+Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
+Description: Used to test coverage of tests that read fixture files with
+    testthat::test_path().
+License: MIT
+Suggests: testthat

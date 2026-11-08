@@ -167,6 +167,18 @@ test_that("with_coverage() works with R6 classes", {
   )
 })
 
+test_that("with_coverage() works with tests that read fixtures with test_path() (#551)", {
+  skip_if_not_installed("pkgload")
+
+  ns <- local_load_all("TestFixtures")
+  cov <- with_coverage(
+    quiet_test_file("TestFixtures", stop_on_failure = TRUE),
+    env = ns
+  )
+
+  expect_equal(percent_coverage(cov), 100)
+})
+
 test_that("with_coverage() cleans up when a test file fails", {
   skip_if_not_installed("pkgload")
 
