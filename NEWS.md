@@ -7,6 +7,9 @@
   a trace is hit. Code instrumented with `options(covr.record_tests = TRUE)`
   calls a separate `covr:::count_and_record()`, so `covr:::count()` is about 40%
   cheaper when tests are not recorded.
+* `report()` and `report_html()` build the source tables with string operations
+  rather than htmltools tag objects, which makes them much faster for large
+  packages (e.g. Luminescence, from about 354 s to a few seconds).
 
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
