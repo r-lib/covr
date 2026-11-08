@@ -1,5 +1,12 @@
 # covr (development version)
 
+* New `report_html()` returns the coverage report of `report()` as HTML that
+  can be included in a larger document, such as an R Markdown or Quarto
+  document. The report's styles and scripts only apply to the report, and it
+  no longer uses Bootstrap's JavaScript or replaces the document's
+  highlight.js, so a document can include several reports without changing
+  the rest of the page (#316).
+
 * covr now requires R 4.0.0 or later.
 
 * New `to_badge()` writes an SVG badge with the percent coverage, so a README
