@@ -101,6 +101,106 @@ test_that("with_coverage() restores functions and counters on error", {
   expect_length(ls(.counters), 0)
 })
 
+test_that("tracing env again keeps the counts and traces new functions (#641)", {
+  env <- local_fixture_env()
+  sub <- local_r_file(c("sub <- function(x, y) {", "  x - y", "}"))
+
+  cov <- with_coverage(
+    {
+      env$add(1, 2)
+      sys.source(sub, envir = env, keep.source = TRUE)
+      trace_environment(env)
+      env$add(-1, 2)
+      env$sub(1, 2)
+    },
+    env = env
+  )
+
+  df <- as.data.frame(cov)
+  df <- df[order(df$functions, df$first_line), ]
+  expect_equal(df$functions, c("add", "add", "add", "sub"))
+  expect_equal(df$first_line, c(2, 3, 5, 2))
+  expect_equal(df$value, c(2, 1, 1, 1))
+  expect_identical(is_traced(env$sub), FALSE)
+})
+
+test_that("tracing env again traces functions replaced since (#641)", {
+  env <- local_fixture_env()
+  new_add <- local_r_file(c("add <- function(x, y) {", "  x - y", "}"))
+
+  cov <- with_coverage(
+    {
+      env$add(1, 2)
+      sys.source(new_add, envir = env, keep.source = TRUE)
+      trace_environment(env)
+      env$add(1, 2)
+      env$add(1, 2)
+    },
+    env = env
+  )
+
+  df <- as.data.frame(cov)
+  df <- df[order(df$filename == attr(env, "src"), df$first_line), ]
+  expect_equal(df$first_line, c(2, 2, 3, 5))
+  expect_equal(df$value, c(2, 1, 1, 0))
+  expect_identical(is_traced(env$add), FALSE)
+})
+
+test_that("tracing env again traces nested functions added since (#641)", {
+  withr::local_options(covr.full_traversal = TRUE)
+  env <- new.env(parent = globalenv())
+  fns <- local_r_file(c("fns <- list(", "  a = function() 1", ")"))
+  add_b <- local_r_file("fns$b <- function() 2")
+  sys.source(fns, envir = env, keep.source = TRUE)
+
+  cov <- with_coverage(
+    {
+      env$fns$a()
+      sys.source(add_b, envir = env, keep.source = TRUE)
+      trace_environment(env)
+      env$fns$a()
+      env$fns$b()
+    },
+    env = env
+  )
+
+  df <- as.data.frame(cov)
+  df <- df[order(df$functions), ]
+  expect_equal(df$functions, c("fns$a", "fns$b"))
+  expect_equal(df$value, c(2, 1))
+})
+
+test_that("traces can be reset and reused after tracing env again with record_tests (#641)", {
+  withr::local_options(covr.record_tests = TRUE)
+  env <- local_fixture_env()
+  original <- body(env$add)
+
+  trace_environment(env)
+  trace_environment(env)
+  reset_traces()
+  clear_counters()
+  expect_identical(body(env$add), original)
+
+  cov <- with_coverage(
+    {
+      env$add(1, 2)
+      trace_environment(env)
+      env$add(-1, 2)
+    },
+    env = env
+  )
+  expect_identical(body(env$add), original)
+  expect_equal(as.data.frame(cov)$value, c(2, 1, 1))
+  # Each hit, before and after tracing again, is recorded
+  expect_equal(
+    vapply(cov, function(x) nrow(x$tests), integer(1)),
+    vapply(cov, function(x) as.integer(x$value), integer(1))
+  )
+
+  cov <- with_coverage(env$add(1, 2), env = env)
+  expect_equal(as.data.frame(cov)$value, c(1, 1, 0))
+})
+
 local_load_all <- function(pkg, frame = parent.frame()) {
   pkgload::load_all(test_path(pkg), quiet = TRUE, export_all = TRUE)
   withr::defer(pkgload::unload(pkg), envir = frame)

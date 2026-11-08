@@ -166,10 +166,17 @@ trace_calls <- function(
 #' @keywords internal
 new_counter <- function(src_ref, parent_functions) {
   key <- key(src_ref)
-  .counters[[key]]$value <- 0
+  # Keep the counts of a trace that already exists, e.g. when a function is
+  # replaced in an environment that is traced again (#641).
+  if (is.null(.counters[[key]]$value)) {
+    .counters[[key]]$value <- 0
+  }
   .counters[[key]]$srcref <- src_ref
   .counters[[key]]$functions <- parent_functions
-  if (isTRUE(getOption("covr.record_tests", FALSE))) {
+  if (
+    isTRUE(getOption("covr.record_tests", FALSE)) &&
+      is.null(.counters[[key]]$tests)
+  ) {
     new_test_counter(key)
   }
   key
@@ -182,6 +189,25 @@ new_counter <- function(src_ref, parent_functions) {
 count <- function(key) {
   .counters[[key]]$value <- .counters[[key]]$value + 1L
   if (isTRUE(.current_test$record)) count_test(key)
+}
+
+# Whether the body of `fun` was already instrumented by `trace_calls()`.
+is_traced <- function(fun) {
+  if (!is.function(fun) || is.primitive(fun)) {
+    return(FALSE)
+  }
+  x <- body(fun)
+  # `all.names()` is fast, so only search functions that might be traced.
+  nms <- all.names(x)
+  "count" %in% nms && "covr" %in% nms && has_count_call(x)
+}
+
+has_count_call <- function(x) {
+  # Constructed by hand like in `trace_calls()`, to avoid a NOTE from R CMD
+  # check
+  is.call(x) &&
+    (identical(x[[1]], call(":::", as.symbol("covr"), as.symbol("count"))) ||
+      any(vapply(as.list(x), has_count_call, logical(1))))
 }
 
 #' clear all previous counters
