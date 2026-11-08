@@ -220,7 +220,9 @@ gcov can't read the coverage of Rust code, so **covr** uses
 for it instead:
 
 1. The package is installed with `-C instrument-coverage` added to the
-   `RUSTFLAGS` environment variable, which cargo passes to rustc.
+   `RUSTFLAGS` make variable, which **covr** exports from its Makevars, so
+   cargo passes it to rustc whether or not the package's Makevars sets
+   `RUSTFLAGS` itself.
 1. Static libraries don't include the profiler runtime that writes the counts,
    so **covr** links the runtime of the Rust toolchain into the shared object.
 1. The `LLVM_PROFILE_FILE` environment variable has each R process that runs

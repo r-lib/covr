@@ -426,8 +426,9 @@ run_gcov <- function(
 }
 
 line_coverages <- function(source_file, matches, values, functions) {
-  # create srcfile reference from the source file
-  src_file <- srcfilecopy(source_file, readLines(source_file))
+  # create srcfile reference from the source file, which may not end with a
+  # newline
+  src_file <- srcfilecopy(source_file, readLines(source_file, warn = FALSE))
 
   line_lengths <- vapply(
     src_file$lines[as.numeric(matches$line)],

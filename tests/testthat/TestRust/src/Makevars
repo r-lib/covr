@@ -2,12 +2,17 @@ LIBDIR = rust/target/release
 STATLIB = $(LIBDIR)/libtestrust.a
 PKG_LIBS = -L$(LIBDIR) -ltestrust
 
+# Like savvy's template, which overrides RUSTFLAGS from the environment
+RUSTFLAGS =
+
 all: $(SHLIB) rust_clean
 
 $(SHLIB): $(STATLIB)
 
 $(STATLIB):
-	PATH="$(PATH):$(HOME)/.cargo/bin" cargo build --release --offline --manifest-path=rust/Cargo.toml
+	export PATH="$(PATH):$(HOME)/.cargo/bin" && \
+	  export RUSTFLAGS="$(RUSTFLAGS)" && \
+	  cargo build --release --offline --manifest-path=rust/Cargo.toml
 
 rust_clean: $(SHLIB)
 	rm -Rf rust/target

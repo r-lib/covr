@@ -185,3 +185,34 @@ test_that("The C code of vendored crates isn't included (#728)", {
     files[[1]]
   )
 })
+
+test_that("Cleaning the objects keeps cargo's build output (#728)", {
+  pkg <- withr::local_tempdir()
+  touch <- function(files) {
+    files <- file.path(pkg, "src", files)
+    for (file in files) {
+      dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+      file.create(file)
+    }
+  }
+  objects <- c("init.o", "vendor/lib/foo.o")
+  cargo <- c(
+    "rust/target/release/libpkg.a",
+    "rust/target/release/build/savvy-1/out/libunwind_protect.a"
+  )
+  touch(c(objects, cargo))
+
+  # Without Rust code, all objects are removed
+  clean_objects(pkg)
+  expect_equal(
+    file.exists(file.path(pkg, "src", c(objects, cargo))),
+    rep(FALSE, 4)
+  )
+
+  touch(c("rust/Cargo.toml", objects, cargo))
+  clean_objects(pkg)
+  expect_equal(
+    file.exists(file.path(pkg, "src", c(objects, cargo))),
+    c(FALSE, TRUE, TRUE, TRUE)
+  )
+})

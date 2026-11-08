@@ -825,11 +825,15 @@ with_coverage <- function(
 #' distribution, those of the LLVM version rustc uses (e.g.
 #' `apt-get install llvm-18`); without them `package_coverage()`
 #' warns and reports no coverage for the Rust code. The code is instrumented
-#' by adding `-C instrument-coverage` to the `RUSTFLAGS` environment variable,
-#' so the package's `Makevars` must pass `RUSTFLAGS` on to cargo, as those of
-#' packages using extendr or savvy do. Vendored crates, including the C code
-#' they compile, and code generated in cargo's `target` directory aren't
-#' included. This doesn't work on Windows on x86_64, as rustup's Rust for the
+#' by adding `-C instrument-coverage` to the `RUSTFLAGS` make variable, which
+#' covr exports, so cargo gets it whether the package's `Makevars` uses
+#' `$(RUSTFLAGS)` (as extendr's and savvy's do) or leaves `RUSTFLAGS` in the
+#' environment. Vendored crates, including the C code they compile, and code
+#' generated in cargo's `target` directory aren't included. The code that
+#' macros such as `#[extendr]` and `#[savvy]` generate is counted on the
+#' macro's line, so the line isn't covered if parts of the generated code
+#' never run, e.g. the handling of arguments that can't be converted. This
+#' doesn't work on Windows on x86_64, as rustup's Rust for the
 #' `x86_64-pc-windows-gnu` target that Rtools uses has no profiler runtime.
 #'
 #' #ifdef unix

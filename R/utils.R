@@ -281,9 +281,15 @@ clean_objects <- function(path) {
   files <- list.files(
     file.path(path, "src"),
     pattern = rex::rex(".", or("o", "sl", "so", "dylib", "a", "dll"), end),
-    full.names = TRUE,
     recursive = TRUE
   )
+  # cargo rebuilds what it needs, but doesn't notice when the libraries built
+  # by build scripts (e.g. savvy's) are removed from its `target` directory, so
+  # leave the directories of Rust code's dependencies and build output alone.
+  if (length(rust_manifests(path))) {
+    files <- files[!in_rust_dependency_dir(files)]
+  }
+  files <- file.path(path, "src", files)
   unlink(files)
 
   invisible(files)

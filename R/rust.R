@@ -104,10 +104,6 @@ rust_coverage_setup <- function(path, manifests, install_path) {
     libs = paste(libs, collapse = " "),
     build_profiles = build_profiles,
     build_env = c(
-      RUSTFLAGS = trimws(paste(
-        Sys.getenv("RUSTFLAGS"),
-        "-C instrument-coverage"
-      )),
       LLVM_PROFILE_FILE = file.path(build_profiles, "%p-%m.profraw")
     ),
     profiles = profiles,
@@ -115,7 +111,8 @@ rust_coverage_setup <- function(path, manifests, install_path) {
   )
 }
 
-# Add the libraries needed for Rust coverage to the flags in `covr.flags`.
+# Add the flags needed for Rust coverage to the flags in `covr.flags`, which
+# are appended to the package's Makevars.
 add_rust_flags <- function(flags, rust) {
   if (is.null(rust)) {
     return(flags)
@@ -123,7 +120,12 @@ add_rust_flags <- function(flags, rust) {
   libs <- names(flags) == "PKG_LIBS"
   c(
     flags[!libs],
-    PKG_LIBS = paste(c(flags[libs], rust$libs), collapse = " ")
+    PKG_LIBS = paste(c(flags[libs], rust$libs), collapse = " "),
+    # The Makevars of packages pass the `RUSTFLAGS` environment variable on to
+    # cargo, or set it from the make variable `RUSTFLAGS`, which savvy's
+    # template first sets to "". Exporting the make variable after appending
+    # to it works for both, and keeps any `RUSTFLAGS` set by the user.
+    "export RUSTFLAGS" = "-C instrument-coverage"
   )
 }
 
