@@ -785,7 +785,7 @@ coverage_to_markdown <- function(x = package_coverage(), base = NULL) {
   head <- coverage_to_list(x)
   files <- names(head$filecoverage)
   head_pct <- c(head$totalcoverage, unname(head$filecoverage))
-  rows <- c("Total", files)
+  rows <- c("Total", markdown_escape(files))
   fmt <- function(p) ifelse(is.na(p), "", sprintf("%.2f%%", p))
 
   if (is.null(base)) {
@@ -823,6 +823,15 @@ coverage_to_markdown <- function(x = package_coverage(), base = NULL) {
     )
   }
   structure(lines, class = "covr_markdown")
+}
+
+# Escape text for use in a GitHub markdown table cell
+markdown_escape <- function(x) {
+  x <- gsub("&", "&amp;", x, fixed = TRUE)
+  x <- gsub("<", "&lt;", x, fixed = TRUE)
+  x <- gsub(">", "&gt;", x, fixed = TRUE)
+  x <- gsub("\\", "\\\\", x, fixed = TRUE)
+  gsub("|", "\\|", x, fixed = TRUE)
 }
 
 #' @export
