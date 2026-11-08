@@ -27,6 +27,9 @@
 * `report()` now keeps the Files / Source tabs at the top of the page while
   scrolling, and returning to the file list restores its scroll position
   (#232).
+* Fix "argument is missing, with no default" errors when tracing a `switch()`
+  call with fall-through cases (`a = ,`) whose subject is piped in with the
+  base pipe (`x |> switch(...)`) (#630).
 
 * Lines of compiled code that gcov reports as only partially executed (e.g.
   `if (x) f();` when `f()` never runs) are no longer dropped from the
