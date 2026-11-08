@@ -46,6 +46,30 @@ counts when they exit. To turn this off, set the environment variable
 \code{FALSE}.
 }
 
+\section{testthat tests}{
+
+The test files are run with \code{\link[=sys.source]{sys.source()}}, not with testthat's test
+runner, so features that need the runner don't work. In particular,
+\code{testthat::expect_snapshot()} is skipped ("Can't compare snapshot to
+reference when testing interactively"), and testthat uses its 2nd edition
+unless the tests call \code{testthat::local_edition(3)}.
+
+To use these features, source the files yourself and run the tests with
+\code{\link[testthat:test_file]{testthat::test_file()}} inside \code{\link[=with_coverage]{with_coverage()}}:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{env <- new.env()
+sys.source("R/my_functions.R", envir = env, keep.source = TRUE)
+cov <- with_coverage(
+  testthat::test_file("tests/test-my_functions.R", env = env),
+  env = env
+)
+}\if{html}{\out{</div>}}
+
+Snapshots are then saved in a \verb{_snaps} directory next to the test file.
+\code{expect_snapshot()} also needs the 3rd edition, and is skipped unless the
+\code{NOT_CRAN} environment variable is \code{"true"}.
+}
+
 \examples{
 # For the purpose of this example, save code containing code and tests to files
 cat("add <- function(x, y) { x + y }", file="add.R")
