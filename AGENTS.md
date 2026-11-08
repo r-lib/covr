@@ -35,8 +35,10 @@ Windows behaves differently in ways that matter to covr, e.g. `normalizePath()` 
 
 - Give it Windows paths (`C:/...`), and run it from a directory on the Windows filesystem; UNC paths to the WSL filesystem don't work as working directories.
 - Copy the source to the Windows filesystem first, e.g. `git archive HEAD | tar -x -C /mnt/c/Users/<user>/AppData/Local/Temp/covr-win/src`.
-- Its library may not have covr's dependencies; install them (and testthat) into a temporary library with `install.packages()`, then `R.exe CMD INSTALL -l <lib> <src>`. Building covr and source packages needs Rtools.
+- Its library may not have covr's dependencies; install them (and testthat and devtools) into a temporary library with `install.packages()`, then `R.exe CMD INSTALL -l <lib> <src>`. Building covr and source packages needs Rtools (`rig add rtools`).
+- Environment variables set in WSL aren't passed to Windows programs unless listed in `WSLENV`, e.g. `R_LIBS=C:/... WSLENV=R_LIBS R.exe CMD INSTALL ...`; otherwise `R CMD INSTALL` can't find dependencies in the temporary library. In scripts, call `.libPaths()` instead.
 - `Rscript -e` can segfault on multiline or complex code on Windows; write the code to a `.R` file instead.
+- Don't set options such as `covr.record_tests` globally in a script that then runs the test suite; some tests rely on them being unset. Use `withr::with_options()`.
 
 ### Releases
 
