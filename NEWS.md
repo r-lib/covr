@@ -42,14 +42,11 @@
 * `covr_error` conditions (and the `covr_warning`s from `allow_failures`) now
   keep the whole failure output in `$output` and its file in `$file`. The
   message shows the last 50 lines and is bounded by `warning.length`
-  measured in characters (it was measured inconsistently in bytes), and
-  `print()` shows the last `n` lines, 50 by default. The number of lines can be
-  set with `options(covr.failure_lines)` (#570).
-
   measured in characters (it was measured inconsistently in bytes, so
   multibyte output could leave the message empty), and `print()` shows the
   last `n` lines, 50 by default. The number of lines can be set with
   `options(covr.failure_lines)` (#570, #642).
+
 * The RStudio addin now prints a message when it starts calculating coverage,
   so there is feedback before the report opens (#404).
 
