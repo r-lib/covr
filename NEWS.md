@@ -1,5 +1,14 @@
 # covr (development version)
 
+* `report()`, `file_report()` and the coverage percentages printed in the
+  console can use other colors for covered and missed code, set with the new
+  `covr.report_colors` option, e.g.
+  `options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))`
+  for blue and orange, which are easier to tell apart with color vision
+  deficiency than the default green and red. An optional `partial` element
+  sets the color for 75% to 90% coverage. The coverage bars in `report()` now
+  use the same thresholds as the console, so files with exactly 75% or 90%
+  coverage get the higher color (#529).
 * `codecov()` now uploads with Codecov's current upload protocol, a request to
   `https://ingest.codecov.io` for an upload followed by sending the coverage to
   the location it returns, instead of the legacy `/upload/v2` endpoint, which

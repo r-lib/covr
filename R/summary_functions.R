@@ -367,12 +367,13 @@ print.coverage <- function(
   })
 
   overall_percentage <- percent_coverage(df, by = by)
+  styles <- console_styles()
 
   msg <- cli::format_message(paste0(
     cli::style_bold(
       "{attr(x, 'package')$package} {to_title(type)} Coverage: "
     ),
-    format_percentage(overall_percentage)
+    format_percentage(overall_percentage, styles)
   ))
   message(msg)
   by_coverage <- percents[order(percents, names(percents))]
@@ -381,7 +382,7 @@ print.coverage <- function(
     msg <- cli::format_message(
       paste0(
         cli::style_bold(names(by_coverage)[i], ": "),
-        format_percentage(by_coverage[i])
+        format_percentage(by_coverage[i], styles)
       )
     )
     message(msg)
@@ -413,16 +414,49 @@ print.coverages <- function(x, ...) {
   invisible(x)
 }
 
-format_percentage <- function(x) {
-  color <- if (x >= 90) {
-    cli::col_green
-  } else if (x >= 75) {
-    cli::col_yellow
-  } else {
-    cli::col_red
+# The styles of the coverage percentages, following `covr.report_colors`.
+# Colors that aren't set keep the default green (>= 90%), yellow (>= 75%;
+# `partial`, or `covered` if only that is set) and red. An invalid option only
+# warns, so it doesn't stop coverage objects from printing.
+console_styles <- function() {
+  colors <- tryCatch(report_colors(), error = function(e) {
+    warning(
+      "Using the default colors. ",
+      conditionMessage(e),
+      call. = FALSE
+    )
+    NULL
+  })
+  custom <- if (is.null(colors)) character() else colnames(colors)
+  custom <- intersect(custom, names(getOption("covr.report_colors")))
+  style <- function(type, default) {
+    if (type %in% custom) {
+      cli::make_ansi_style(rgb_hex(colors[, type]))
+    } else {
+      default
+    }
   }
 
-  color(sprintf("%02.2f%%", x))
+  list(
+    high = style("covered", cli::col_green),
+    mid = style(
+      if ("partial" %in% custom) "partial" else "covered",
+      cli::col_yellow
+    ),
+    low = style("missed", cli::col_red)
+  )
+}
+
+format_percentage <- function(x, styles = console_styles()) {
+  style <- if (x >= 90) {
+    styles$high
+  } else if (x >= 75) {
+    styles$mid
+  } else {
+    styles$low
+  }
+
+  style(sprintf("%02.2f%%", x))
 }
 
 markers <- function(x, ...) UseMethod("markers")

@@ -1,3 +1,11 @@
+# an invalid covr.report_colors only warns in the console (#529)
+
+    Code
+      styles <- console_styles()
+    Condition
+      Warning:
+      Using the default colors. `covr.report_colors` must contain valid R colors: invalid color name 'notacolor'
+
 # print.coverage limits the files or functions printed with n
 
     Code

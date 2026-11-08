@@ -3,10 +3,31 @@
 #' @param x a coverage dataset, defaults to running `package_coverage()`.
 #' @param file The report filename.
 #' @param browse whether to open a browser to view the report.
+#' @section Colors:
+#' Covered lines are shown in green and missed lines in red. To use other
+#' colors, e.g. a pair that is easier to tell apart with color vision
+#' deficiency, set the `covr.report_colors` option to a named character vector
+#' of R colors (anything accepted by [grDevices::col2rgb()]; transparency is
+#' ignored) with elements `covered`, `missed` and/or `partial`. The colors are
+#' used for the highlighted lines and the coverage bars in the file list;
+#' `partial` is used for the bars of files with at least 75% but less than 90%
+#' coverage, which otherwise follow `covered`.
+#'
+#' ```r
+#' options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))
+#' ```
 #' @examples
 #' \dontrun{
 #' x <- package_coverage()
 #' report(x)
+#'
+#' # Blue and orange, which are distinguishable with most kinds of color
+#' # blindness
+#' old <- options(
+#'   covr.report_colors = c(covered = "#0072B2", missed = "#E69F00")
+#' )
+#' report(x)
+#' options(old)
 #' }
 #' @export
 # This function was originally a shiny application, but has now been converted into
@@ -16,6 +37,9 @@ report <- function(
   file = file.path(tempdir(), paste0(get_package_name(x), "-report.html")),
   browse = interactive()
 ) {
+  # Check the colors before running package_coverage()
+  colors <- report_colors()
+
   # Create any directories as needed
   dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
 
@@ -35,23 +59,28 @@ report <- function(
     )
   }
 
+  tints <- coverage_tints(colors)
+
   data <- to_report_data(x)
 
   # Color the td cells by coverage amount, like codecov.io does
-  color_coverage_callback <- DT::JS(
+  color_coverage_callback <- DT::JS(sprintf(
     'function(td, cellData, rowData, row, col) {
-  var percent = cellData.replace("%", "");
-  if (percent > 90) {
-    var grad = "linear-gradient(90deg, #edfde7 " + cellData + ", white " + cellData + ")";
-  } else if (percent > 75) {
-    var grad = "linear-gradient(90deg, #f9ffe5 " + cellData + ", white " + cellData + ")";
+  var percent = cellData.replace("%%", "");
+  if (percent >= 90) {
+    var grad = "linear-gradient(90deg, %s " + cellData + ", white " + cellData + ")";
+  } else if (percent >= 75) {
+    var grad = "linear-gradient(90deg, %s " + cellData + ", white " + cellData + ")";
   } else {
-    var grad = "linear-gradient(90deg, #fcece9 " + cellData + ", white " + cellData + ")";
+    var grad = "linear-gradient(90deg, %s " + cellData + ", white " + cellData + ")";
   }
   $(td).css("background", grad);
 }
-'
-  )
+',
+    tints[["high"]],
+    tints[["mid"]],
+    tints[["low"]]
+  ))
 
   # Open a new file in the source tab and switch to it, starting at the top of
   # the file
@@ -90,6 +119,7 @@ report <- function(
 
   ui <- fluid_page(
     htmltools::includeCSS(system.file("www/report.css", package = "covr")),
+    report_colors_css(colors),
     htmltools::includeScript(system.file("www/report.js", package = "covr")),
     column(
       8,
@@ -136,6 +166,8 @@ file_report <- function(
   loadNamespace("htmltools")
   loadNamespace("DT")
 
+  colors <- report_colors()
+
   files <- display_name(x)
 
   if (is.null(file)) {
@@ -151,6 +183,7 @@ file_report <- function(
 
   ui <- fluid_page(
     htmltools::includeCSS(system.file("www/report.css", package = "covr")),
+    report_colors_css(colors),
     column(
       8,
       offset = 2,
@@ -169,6 +202,126 @@ file_report <- function(
   }
 
   invisible(out_file)
+}
+
+default_report_colors <- c(covered = "#5f9744", missed = "#b94947")
+
+report_color_names <- c("covered", "missed", "partial")
+
+# The colors from `getOption("covr.report_colors")`, as a 3 column matrix of
+# red, green and blue values (0-255), with columns `covered` and `missed`, and
+# `partial` if it is set. `partial` has no default; without it, the colors of
+# files with partial coverage follow the defaults or `covered`.
+report_colors <- function(colors = getOption("covr.report_colors")) {
+  if (is.null(colors)) {
+    colors <- default_report_colors
+  }
+  nms <- names(colors)
+  if (
+    !is.character(colors) ||
+      length(colors) == 0 ||
+      length(colors) > 3 ||
+      is.null(nms) ||
+      !all(nms %in% report_color_names) ||
+      anyDuplicated(nms) > 0 ||
+      anyNA(colors)
+  ) {
+    stop(
+      "`covr.report_colors` must be a named character vector with elements ",
+      "`covered`, `missed` and/or `partial`, e.g. ",
+      'c(covered = "#0072B2", missed = "#E69F00").',
+      call. = FALSE
+    )
+  }
+
+  res <- default_report_colors
+  res[nms] <- colors
+  res <- res[intersect(report_color_names, names(res))]
+
+  rgb <- tryCatch(
+    grDevices::col2rgb(res),
+    error = function(e) {
+      stop(
+        "`covr.report_colors` must contain valid R colors: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
+    }
+  )
+  colnames(rgb) <- names(res)
+  rgb
+}
+
+rgb_hex <- function(rgb) {
+  sprintf("#%02x%02x%02x", rgb[[1]], rgb[[2]], rgb[[3]])
+}
+
+rgb_alpha <- function(rgb, alpha) {
+  sprintf("rgba(%d,%d,%d,%s)", rgb[[1]], rgb[[2]], rgb[[3]], alpha)
+}
+
+# Mix a color with white, keeping `amount` of the color
+rgb_tint <- function(rgb, amount) {
+  rgb_hex(round(255 - (255 - rgb) * amount))
+}
+
+# Background colors of the coverage bars in the file list, for files with
+# coverage above 90%, above 75% and below that. The tints of the default colors
+# were picked by hand.
+coverage_tints <- function(colors) {
+  covered <- colors[, "covered"]
+  missed <- colors[, "missed"]
+  res <- c(
+    high = rgb_tint(covered, 0.12),
+    mid = rgb_tint(covered, 0.06),
+    low = rgb_tint(missed, 0.12)
+  )
+  if (rgb_hex(covered) == default_report_colors[["covered"]]) {
+    res[c("high", "mid")] <- c("#edfde7", "#f9ffe5")
+  }
+  if (rgb_hex(missed) == default_report_colors[["missed"]]) {
+    res[["low"]] <- "#fcece9"
+  }
+  if ("partial" %in% colnames(colors)) {
+    res[["mid"]] <- rgb_tint(colors[, "partial"], 0.12)
+  }
+  res
+}
+
+report_colors_css <- function(colors) {
+  rules <- vapply(
+    c("covered", "missed"),
+    function(type) {
+      rgb <- colors[, type]
+      hex <- rgb_hex(rgb)
+      paste0(
+        "table tr.",
+        type,
+        " td{\n  background-color:",
+        rgb_alpha(rgb, 0.3),
+        "\n}\n",
+        "table tr:hover.",
+        type,
+        " .num{\n  background-color:",
+        rgb_alpha(rgb, 0.7),
+        "\n}\n",
+        "table tr.",
+        type,
+        ":hover td{\n",
+        "  -webkit-box-shadow:0 -2px 0 0 ",
+        hex,
+        " inset;\n",
+        "  -moz-box-shadow:0 -2px 0 0 ",
+        hex,
+        " inset;\n",
+        "  box-shadow:0 -2px 0 0 ",
+        hex,
+        " inset\n}\n"
+      )
+    },
+    character(1)
+  )
+  htmltools::tags$style(htmltools::HTML(paste(rules, collapse = "")))
 }
 
 to_report_data <- function(x) {

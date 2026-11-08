@@ -10,6 +10,43 @@ test_that("format_percentage works as expected", {
   expect_equal(format_percentage(86.5), cli::col_yellow("86.50%"))
 
   expect_equal(format_percentage(96.5), cli::col_green("96.50%"))
+
+  expect_equal(format_percentage(75), cli::col_yellow("75.00%"))
+
+  expect_equal(format_percentage(90), cli::col_green("90.00%"))
+})
+
+test_that("format_percentage uses covr.report_colors (#529)", {
+  withr::local_options(
+    cli.num_colors = 256,
+    covr.report_colors = c(covered = "#0072B2", missed = "#E69F00")
+  )
+  covered <- cli::make_ansi_style("#0072B2")
+  missed <- cli::make_ansi_style("#E69F00")
+  expect_equal(format_percentage(96.5), covered("96.50%"))
+  expect_equal(format_percentage(76.5), covered("76.50%"))
+  expect_equal(format_percentage(51), missed("51.00%"))
+
+  withr::local_options(covr.report_colors = c(missed = "#E69F00"))
+  expect_equal(format_percentage(96.5), cli::col_green("96.50%"))
+  expect_equal(format_percentage(76.5), cli::col_yellow("76.50%"))
+  expect_equal(format_percentage(51), missed("51.00%"))
+
+  withr::local_options(
+    covr.report_colors = c(covered = "#0072B2", partial = "#56B4E9")
+  )
+  expect_equal(format_percentage(96.5), covered("96.50%"))
+  expect_equal(
+    format_percentage(76.5),
+    cli::make_ansi_style("#56B4E9")("76.50%")
+  )
+  expect_equal(format_percentage(51), cli::col_red("51.00%"))
+})
+
+test_that("an invalid covr.report_colors only warns in the console (#529)", {
+  withr::local_options(covr.report_colors = c(covered = "notacolor"))
+  expect_snapshot(styles <- console_styles())
+  expect_equal(styles$high("90.00%"), cli::col_green("90.00%"))
 })
 
 test_that("print.coverage prints by = \"line\" by default", {
