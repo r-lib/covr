@@ -969,7 +969,7 @@ package_coverage <- function(
 #' @return A list containing coverage result for each individual file and the whole package
 #' @export
 coverage_to_list <- function(x = package_coverage()) {
-  covr_df <- tally_coverage(x)
+  covr_df <- collapse_lines(tally_coverage(x))
   file_result <- tapply(covr_df$value, covr_df$filename, FUN = function(x) {
     round(sum(x > 0) / length(x) * 100, digits = 2)
   })

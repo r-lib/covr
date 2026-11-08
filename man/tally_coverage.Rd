@@ -14,10 +14,15 @@ tally_coverage(x, by = c("line", "expression", "function"))
 \value{
 A \code{data.frame}. With \code{by = "expression"} it is the same as
 \code{\link[=as.data.frame.coverage]{as.data.frame.coverage()}}. With \code{by = "line"} it has one row for each
-line of code (excluding blank and comment lines of R code) and the
-columns \code{filename}, \code{functions}, \code{line} and \code{value}, where \code{value} is the
-smallest execution count of the expressions on that line, so a line only
-counts as covered if all its expressions were run.
+function on each line of code (excluding blank lines, comments and lines
+with only punctuation such as \verb{\}}) and the columns \code{filename},
+\code{functions}, \code{line} and \code{value}, where \code{value} is the smallest execution
+count of the expressions on that line, so a line only counts as covered
+if all its expressions were run. An expression spanning several lines,
+such as a loop, only counts for the lines that none of the expressions
+inside it are on. \code{\link[=percent_coverage]{percent_coverage()}}, \code{\link[=report]{report()}} and the other line
+based outputs count each line once, with the smallest count of its
+functions.
 
 With \code{by = "function"} it has one row for each top level R function and
 the columns \code{filename}, \code{functions}, \code{first_line}, \code{last_line} and

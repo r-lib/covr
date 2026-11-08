@@ -481,3 +481,18 @@ test_that("it works with GitLab", {
 test_that("httr is not a load time dependency of covr (#623)", {
   expect_false("httr" %in% names(getNamespaceImports("covr")))
 })
+
+test_that("a line is only covered if all its expressions ran (#620)", {
+  withr::local_envvar(ci_vars)
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
+    content = identity,
+    local_branch = function(dir) "master",
+    current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+  )
+  res <- codecov(coverage = shared_line_coverage())
+  json <- jsonlite::fromJSON(res$body)
+
+  expect_equal(json$files$coverage[[1]], c(NA, NA, 1, 0, NA, NA, 0))
+})

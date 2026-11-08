@@ -12,3 +12,13 @@ test_that("it works with coverage objects", {
     all = FALSE
   )
 })
+
+test_that("each line is covered once, as uncovered if any of its code didn't run (#620)", {
+  tmp <- tempfile()
+  to_sonarqube(shared_line_coverage(), filename = tmp)
+  doc <- xml2::read_xml(tmp)
+
+  lines <- xml2::xml_find_all(doc, "//lineToCover")
+  expect_equal(xml2::xml_attr(lines, "lineNumber"), c("2", "3", "6"))
+  expect_equal(xml2::xml_attr(lines, "covered"), c("true", "false", "false"))
+})

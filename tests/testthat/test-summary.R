@@ -57,7 +57,39 @@ test_that("percent_coverage", {
   cov <- function_coverage("fun", env = environment(fun), fun())
 
   res <- percent_coverage(cov)
-  expect_equal(res, 83.333333, tolerance = .01)
+  expect_equal(res, 80)
+})
+
+test_that("a line is only covered if all its expressions ran (#620)", {
+  cov <- shared_line_coverage()
+
+  res <- tally_coverage(cov)
+  expect_equal(res$line, c(2, 3, 6, 6))
+  expect_equal(res$value, c(1, 0, 1, 0))
+
+  expect_equal(percent_coverage(cov), 100 / 3)
+  expect_equal(coverage_to_list(cov)$totalcoverage, 33.33)
+  expect_equal(as.vector(coverage_to_list(cov)$filecoverage), 33.33)
+  expect_equal(unclass(coverage_to_markdown(cov))[[3]], "| Total | 33.33% |")
+})
+
+test_that("tally_coverage() is fast with thousands of expressions on a line (#620)", {
+  skip_on_cran()
+  n <- 2000
+  df <- data.frame(
+    filename = "a.R",
+    functions = "f",
+    first_line = c(1, rep(2, n)),
+    first_byte = c(1, seq(1, by = 5, length.out = n)),
+    last_line = c(3, rep(2, n)),
+    last_byte = c(10, seq(4, by = 5, length.out = n)),
+    value = c(1, rep(2, n - 1), 0),
+    stringsAsFactors = FALSE
+  )
+
+  time <- system.time(res <- tally_coverage(df))[["elapsed"]]
+  expect_lt(time, 2)
+  expect_equal(res$value, c(1, 0, 1))
 })
 
 test_that("coverage_to_markdown() formats totals, files and differences", {

@@ -1,5 +1,15 @@
 # covr (development version)
 
+* Line coverage is now computed the same way everywhere, so `print()`,
+  `percent_coverage()`, `tally_coverage()`, `report()`, `codecov()`,
+  `coveralls()`, `to_cobertura()`, `to_sonarqube()` and `to_lcov()` agree. A
+  line only counts as covered if all its expressions ran, e.g. `if (x) a else
+  b` on one line where `a` never ran is now uncovered in `report()`, `codecov()`
+  and `coveralls()`. Lines shared by several functions, such as
+  `f <- function() 1; g <- function() 2`, are counted once, and `print()` and
+  `percent_coverage()` no longer count lines with only punctuation such as `}`.
+  Reported line coverage may decrease slightly (#620).
+
 * `report()` no longer fails with "invalid argument to unary operator" when
   the coverage object has no traces (#540).
 
