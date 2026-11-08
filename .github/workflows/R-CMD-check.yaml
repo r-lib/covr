@@ -64,15 +64,12 @@ jobs:
           extra-packages: any::rcmdcheck${{ matrix.config.s7 == 'dev' && ', github::RConsortium/S7' || '' }}
           needs: check
 
-      # Lets the tests measure the coverage of Rust code. Windows R builds Rust
-      # code for the GNU ABI of Rtools.
+      # Lets the tests measure the coverage of Rust code. rustup's Rust for
+      # the GNU ABI of Rtools has no profiler runtime, so this isn't possible
+      # on Windows.
       - name: Install Rust's llvm-tools
-        run: |
-          rustup component add llvm-tools
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            rustup target add x86_64-pc-windows-gnu
-          fi
-        shell: bash
+        if: runner.os != 'Windows'
+        run: rustup component add llvm-tools
 
       - uses: r-lib/actions/check-r-package@v2
         with:

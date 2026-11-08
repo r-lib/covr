@@ -17,7 +17,7 @@
     Condition
       Warning:
       Can't measure the coverage of Rust code.
-      x Can't find the Rust profiler runtime.
+      x Can't find the Rust profiler runtime for x86_64-pc-windows-gnu.
       i Use `options(covr.llvm_cov = "")` to turn this off.
 
 # Rust code coverage is skipped with a warning if llvm-cov fails

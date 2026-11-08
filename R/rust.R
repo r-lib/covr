@@ -51,11 +51,18 @@ rust_coverage_setup <- function(path, manifests, install_path) {
   llvm_cov <- getOption("covr.llvm_cov") %||% toolchain$llvm_cov
   llvm_profdata <- getOption("covr.llvm_profdata") %||% toolchain$llvm_profdata
 
-  missing <- c(
-    rustc = is.null(toolchain$rustc),
-    "the Rust profiler runtime" = is.null(toolchain$profiler_runtime),
-    "llvm-cov" = is.null(llvm_cov),
-    "llvm-profdata" = is.null(llvm_profdata)
+  runtime <- "the Rust profiler runtime"
+  if (!is.null(toolchain$target)) {
+    runtime <- paste(runtime, "for", toolchain$target)
+  }
+  missing <- stats::setNames(
+    c(
+      is.null(toolchain$rustc),
+      is.null(toolchain$profiler_runtime),
+      is.null(llvm_cov),
+      is.null(llvm_profdata)
+    ),
+    c("rustc", runtime, "llvm-cov", "llvm-profdata")
   )
   if (any(missing)) {
     llvm_tools <- any(missing[c("llvm-cov", "llvm-profdata")])
@@ -138,7 +145,8 @@ find_rustc <- function() {
 }
 
 # The Rust target R packages are built for, which on Windows is the GNU ABI
-# used by Rtools rather than the host's default.
+# used by Rtools rather than the host's default. rustup's standard library for
+# x86_64-pc-windows-gnu has no profiler runtime, unlike the gnullvm targets.
 rust_target <- function(host) {
   if (!is_windows()) {
     return(host)
@@ -176,11 +184,12 @@ rust_toolchain <- function(dir) {
   if (length(sysroot) != 1 || length(host) != 1) {
     return(list(rustc = rustc))
   }
+  target <- rust_target(host)
   target_libdir <- rustc_output(c(
     "--print",
     "target-libdir",
     "--target",
-    rust_target(host)
+    target
   ))
   llvm_major <- llvm_major_version(version)
 
@@ -196,6 +205,7 @@ rust_toolchain <- function(dir) {
 
   list(
     rustc = rustc,
+    target = target,
     profiler_runtime = existing(Sys.glob(file.path(
       target_libdir,
       "libprofiler_builtins-*.rlib"

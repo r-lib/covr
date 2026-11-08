@@ -45,6 +45,7 @@ test_that("A missing profiler runtime is reported (#728)", {
     rust_toolchain = function(dir) {
       list(
         rustc = "rustc",
+        target = "x86_64-pc-windows-gnu",
         llvm_cov = "llvm-cov",
         llvm_profdata = "llvm-profdata"
       )

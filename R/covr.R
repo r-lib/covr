@@ -829,7 +829,8 @@ with_coverage <- function(
 #' so the package's `Makevars` must pass `RUSTFLAGS` on to cargo, as those of
 #' packages using extendr or savvy do. Vendored crates, including the C code
 #' they compile, and code generated in cargo's `target` directory aren't
-#' included.
+#' included. This doesn't work on Windows on x86_64, as rustup's Rust for the
+#' `x86_64-pc-windows-gnu` target that Rtools uses has no profiler runtime.
 #'
 #' #ifdef unix
 #' Parallelized code using \pkg{parallel}'s [mcparallel()] needs to
