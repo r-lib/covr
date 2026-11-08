@@ -6,7 +6,7 @@ AST.
 ## Usage
 
 ``` r
-trace_calls(x, parent_functions = NULL, parent_ref = NULL)
+trace_calls(x, parent_functions = NULL, parent_ref = NULL, impute_ref = NULL)
 ```
 
 ## Arguments
@@ -23,6 +23,13 @@ trace_calls(x, parent_functions = NULL, parent_ref = NULL)
 
   argument used to set the srcref of the current call during the
   recursion.
+
+- impute_ref:
+
+  a function returning the srcref of the current call, if it has no
+  srcref of its own. It is only called to impute srcrefs for nested
+  conditionals, so the expressions in their branches get their own
+  counters.
 
 ## Value
 

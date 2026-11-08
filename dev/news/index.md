@@ -2,6 +2,19 @@
 
 ## covr (development version)
 
+- Expressions in `if` and `switch` branches written without braces now
+  get their own counters when the conditional is the body of a function
+  or is nested in another call, such as `x <- if (a) b else c` or
+  `function(x) if (x) 1 else 2`, like they already did when the
+  conditional is a statement in braces. Previously the whole expression
+  shared one counter, so a branch that never ran was reported as
+  covered. This changes reported coverage: code with such branches may
+  now have lower coverage percentages,
+  e.g. `f <- function(x) if (x) 1 else 2` tested only with `f(TRUE)`
+  drops from 100% to 0% line coverage. This is more complete expression
+  coverage, not branch coverage
+  ([\#279](https://github.com/r-lib/covr/issues/279)).
+
 - [`print.coverage()`](https://covr.r-lib.org/dev/reference/print.coverage.md)
   gains an `n` argument to limit the number of files or functions
   printed, showing the least covered first

@@ -48,7 +48,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">trace_calls</span><span class="op">(</span><span class="va">x</span>, parent_functions <span class="op">=</span> <span class="cn">NULL</span>, parent_ref <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">trace_calls</span><span class="op">(</span><span class="va">x</span>, parent_functions <span class="op">=</span> <span class="cn">NULL</span>, parent_ref <span class="op">=</span> <span class="cn">NULL</span>, impute_ref <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -66,6 +66,12 @@
 <dt id="arg-parent-ref">parent_ref<a class="anchor" aria-label="anchor" href="#arg-parent-ref"></a></dt>
 <dd><p>argument used to set the srcref of the current call during
 the recursion.</p></dd>
+
+
+<dt id="arg-impute-ref">impute_ref<a class="anchor" aria-label="anchor" href="#arg-impute-ref"></a></dt>
+<dd><p>a function returning the srcref of the current call, if it
+has no srcref of its own. It is only called to impute srcrefs for nested
+conditionals, so the expressions in their branches get their own counters.</p></dd>
 
 </dl></div>
     <div class="section level2">
