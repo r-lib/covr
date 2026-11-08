@@ -6,12 +6,12 @@ test_that("report() bundles bootstrap 3.4.1", {
   file <- report(cov, file = file.path(withr::local_tempdir(), "report.html"))
 
   html <- readLines(file)
-  expect_match(html, "lib/bootstrap-3.4.1/js/bootstrap.min.js", all = FALSE)
-  bootstrap_js <- readLines(
-    file.path(dirname(file), "lib/bootstrap-3.4.1/js/bootstrap.min.js"),
+  expect_match(html, "lib/bootstrap-3.4.1/css/bootstrap.min.css", all = FALSE)
+  bootstrap_css <- readLines(
+    file.path(dirname(file), "lib/bootstrap-3.4.1/css/bootstrap.min.css"),
     n = 2
   )
-  expect_match(bootstrap_js[[2]], "Bootstrap v3.4.1", fixed = TRUE)
+  expect_match(bootstrap_css[[2]], "Bootstrap v3.4.1", fixed = TRUE)
 })
 
 test_that("report() works with empty coverage (#540)", {
@@ -34,6 +34,52 @@ test_that("report() works with empty coverage (#540)", {
   file <- withr::local_tempfile(fileext = ".html")
   report(x, file = file, browse = FALSE)
   expect_true(file.exists(file))
+})
+
+test_that("report_html() can include several reports in a document (#316)", {
+  skip_if_not_installed("DT")
+  skip_if_not_installed("htmltools")
+
+  count <- function(x, pattern) {
+    lengths(regmatches(x, gregexpr(pattern, x, fixed = TRUE)))
+  }
+  cov <- code_coverage("f <- function(x) x + 1", "f(1)")
+  file <- file.path(withr::local_tempdir(), "page.html")
+  htmltools::save_html(
+    htmltools::tagList(report_html(cov), report_html(cov)),
+    file
+  )
+  html <- paste(readLines(file), collapse = "\n")
+  head <- sub("</head>.*", "", html)
+
+  expect_equal(count(html, 'class="covr-report"'), 2)
+  ids <- regmatches(html, gregexpr(' id="[^"]+"', html))[[1]]
+  expect_equal(anyDuplicated(ids), 0)
+
+  # The scripts and styles are included once, in the <head>
+  for (asset in c("theme.js", "report.js", "report.css")) {
+    expect_equal(count(head, paste0("/", asset, '"')), 1)
+  }
+  expect_equal(count(html, "covr-bar-high:#edfde7"), 1)
+
+  # Bootstrap would replace the version used by the document
+  expect_no_match(html, "bootstrap", ignore.case = TRUE)
+})
+
+test_that("report_html() styles only the report (#316)", {
+  skip_if_not_installed("htmltools")
+
+  css <- paste(
+    c(
+      readLines(system.file("www/report.css", package = "covr")),
+      report_colors_css(report_colors(NULL))$children[[1]]
+    ),
+    collapse = "\n"
+  )
+  css <- gsub("(?s)/\\*.*?\\*/", "", css, perl = TRUE)
+  selectors <- regmatches(css, gregexpr("[^{}]+(?=\\{)", css, perl = TRUE))
+  selectors <- trimws(unlist(strsplit(selectors[[1]], ",")))
+  expect_all_true(grepl("^(html\\.covr-dark )?\\.covr-report\\b", selectors))
 })
 
 test_that("report() uses the default colors (#529)", {
@@ -59,12 +105,12 @@ test_that("report() uses the default colors (#529)", {
   expect_match(html, "box-shadow:0 -2px 0 0 #b94947 inset", fixed = TRUE)
   expect_match(
     html,
-    ":root{\n  --covr-bar-high:#edfde7;\n  --covr-bar-mid:#f9ffe5;\n  --covr-bar-low:#fcece9;\n}",
+    ".covr-report{\n  --covr-bar-high:#edfde7;\n  --covr-bar-mid:#f9ffe5;\n  --covr-bar-low:#fcece9;\n}",
     fixed = TRUE
   )
   expect_match(
     html,
-    "html.dark{\n  --covr-bar-high:#374e33;\n  --covr-bar-mid:#2c3a2e;\n  --covr-bar-low:#583234;\n}",
+    "html.covr-dark .covr-report{\n  --covr-bar-high:#374e33;\n  --covr-bar-mid:#2c3a2e;\n  --covr-bar-low:#583234;\n}",
     fixed = TRUE
   )
 })
@@ -154,7 +200,17 @@ test_that("report() and file_report() can switch to a dark theme (#563)", {
   for (file in files) {
     html <- paste(readLines(file), collapse = "\n")
     head <- sub("</head>.*", "", html)
-    expect_match(head, "prefers-color-scheme: dark", fixed = TRUE)
+    theme_js <- regmatches(
+      head,
+      regexpr('[^"]+/theme\\.js(?=")', head, perl = TRUE)
+    )
+    expect_length(theme_js, 1)
+    expect_match(
+      readLines(file.path(dirname(file), theme_js)),
+      "prefers-color-scheme: dark",
+      fixed = TRUE,
+      all = FALSE
+    )
     expect_match(html, "<button[^>]+covr-theme-toggle[^>]+>")
   }
 })
@@ -175,7 +231,7 @@ test_that("file_report() doesn't load scripts that need jQuery", {
     "jquery|bootstrap\\.min\\.js|\\$\\(",
     ignore.case = TRUE
   )
-  expect_match(html, "hljs.highlightBlock", fixed = TRUE)
+  expect_match(html, "covrHljs.highlightBlock", fixed = TRUE)
 })
 
 test_that("covr.report_colors is validated (#529)", {

@@ -1,5 +1,9 @@
 #' Display covr results using a standalone report
 #'
+#' `report()` saves the coverage report as a standalone HTML file and opens it.
+#' To include the report in a larger document, such as an R Markdown or Quarto
+#' document, use [report_html()] instead.
+#'
 #' @param x a coverage dataset, defaults to running `package_coverage()`.
 #' @param file The report filename.
 #' @param browse whether to open a browser to view the report.
@@ -42,8 +46,9 @@ report <- function(
   file = file.path(tempdir(), paste0(get_package_name(x), "-report.html")),
   browse = interactive()
 ) {
-  # Check the colors before running package_coverage()
-  colors <- report_colors()
+  # Before `file`, which runs `package_coverage()` by default, so the colors
+  # and dependencies are checked first
+  html <- report_html(x)
 
   # Create any directories as needed
   dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
@@ -53,6 +58,52 @@ report <- function(
     normalizePath(dirname(file), mustWork = TRUE),
     basename(file)
   )
+
+  ui <- fluid_page(column(8, offset = 2, size = "md", html))
+
+  htmltools::save_html(ui, file)
+  viewer <- getOption("viewer", utils::browseURL)
+  if (browse) {
+    viewer(file)
+  }
+  invisible(file)
+}
+
+#' A coverage report to include in other documents
+#'
+#' `report_html()` creates the coverage report shown by [report()] as HTML that
+#' can be included in a larger document, such as an R Markdown or Quarto
+#' document or a page made with htmltools. Printing it in an R Markdown or
+#' Quarto chunk includes the report in the document; printing it in the console
+#' shows it in the viewer.
+#'
+#' The report takes the width of the element it is in, and its styles and
+#' scripts only apply to the report, so they don't change the rest of the
+#' document. A document can include several reports.
+#'
+#' The colors and the dark theme can be changed as described in [report()].
+#'
+#' @inheritParams report
+#' @return An [htmltools::tagList()], with the dependencies of the report
+#'   attached.
+#' @examples
+#' \dontrun{
+#' # In an R Markdown or Quarto chunk
+#' report_html(package_coverage())
+#'
+#' # Save it with other content
+#' htmltools::save_html(
+#'   htmltools::tagList(
+#'     htmltools::h1("Package review"),
+#'     report_html(package_coverage())
+#'   ),
+#'   "review.html"
+#' )
+#' }
+#' @export
+report_html <- function(x = package_coverage()) {
+  # Check the colors before running package_coverage()
+  colors <- report_colors()
 
   if (
     !(requireNamespace("htmltools", quietly = TRUE) &&
@@ -77,19 +128,6 @@ report <- function(
 '
   )
 
-  # Open a new file in the source tab and switch to it, starting at the top of
-  # the file
-  file_choice_callback <- DT::JS(
-    "table.on('click.dt', 'a', function(e) {
-  e.preventDefault();
-  files = $('div#files div');
-  files.not('div.hidden').addClass('hidden');
-  id = $(this).text();
-  files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');
-  $('ul.nav a[data-value=Source]').removeData('scroll').text(id).tab('show');
-});"
-  )
-
   package_name <- attr(x, "package")$package
   percentage <- sprintf("%02.2f%%", data$overall)
 
@@ -106,33 +144,23 @@ report <- function(
       )
     ),
     rownames = FALSE,
-    class = "row-border",
-    callback = file_choice_callback
+    class = "row-border"
   )
   table$sizingPolicy$defaultWidth <- "100%"
-  table$sizingPolicy$defaultHeight <- NULL
 
-  ui <- fluid_page(
+  # The tabs and the links to the files are handled by `report.js`, which is
+  # in `report_head()`
+  htmltools::browsable(htmltools::tagList(
     report_head(colors),
-    htmltools::includeScript(system.file("www/report.js", package = "covr")),
-    column(
-      8,
-      offset = 2,
-      size = "md",
+    htmltools::div(
+      class = "covr-report",
       report_header(paste0(package_name, " coverage - ", percentage)),
       tabset_panel(
         tab_panel("Files", table),
         tab_panel("Source", addHighlight(renderSourceTable(data$full)))
       )
     )
-  )
-
-  htmltools::save_html(ui, file)
-  viewer <- getOption("viewer", utils::browseURL)
-  if (browse) {
-    viewer(file)
-  }
-  invisible(file)
+  ))
 }
 
 #' A coverage report for a specific file
@@ -170,15 +198,17 @@ file_report <- function(
   percentage <- data$file_stats$Coverage
 
   ui <- fluid_page(
-    js = FALSE,
     report_head(colors),
     column(
       8,
       offset = 2,
       size = "md",
-      report_header(paste0(file, " - ", percentage)),
-      addHighlight(
-        renderSourceTable(data$full, "")
+      htmltools::div(
+        class = "covr-report",
+        report_header(paste0(file, " - ", percentage)),
+        addHighlight(
+          renderSourceTable(data$full, "")
+        )
       )
     )
   )
@@ -291,10 +321,10 @@ coverage_tints_css <- function(colors) {
     paste0("  --covr-bar-", names(tints), ":", tints, ";\n", collapse = "")
   }
   paste0(
-    ":root{\n",
+    ".covr-report{\n",
     vars(coverage_tints(colors)),
     "}\n",
-    "html.dark{\n",
+    "html.covr-dark .covr-report{\n",
     vars(coverage_tints(colors, dark = TRUE)),
     "}\n"
   )
@@ -307,17 +337,17 @@ report_colors_css <- function(colors) {
       rgb <- colors[, type]
       hex <- rgb_hex(rgb)
       paste0(
-        "table tr.",
+        ".covr-report table tr.",
         type,
         " td{\n  background-color:",
         rgb_alpha(rgb, 0.3),
         "\n}\n",
-        "table tr:hover.",
+        ".covr-report table tr:hover.",
         type,
         " .num{\n  background-color:",
         rgb_alpha(rgb, 0.7),
         "\n}\n",
-        "table tr.",
+        ".covr-report table tr.",
         type,
         ":hover td{\n",
         "  -webkit-box-shadow:0 -2px 0 0 ",
@@ -339,14 +369,22 @@ report_colors_css <- function(colors) {
   )))
 }
 
-# The styles and the script that picks the light or dark theme, which is in
-# the <head> so the page is never shown in the wrong theme
+# The styles and scripts of the reports, including the script that picks the
+# light or dark theme, which is in the <head> so the page is never shown in the
+# wrong theme. As a dependency, they are included once in a document with
+# several reports, and R Markdown keeps them, which it doesn't do with
+# `tags$head()`.
 report_head <- function(colors) {
-  htmltools::tagList(
-    htmltools::includeCSS(system.file("www/report.css", package = "covr")),
-    report_colors_css(colors),
-    htmltools::tags$head(
-      htmltools::includeScript(system.file("www/theme.js", package = "covr"))
+  htmltools::attachDependencies(
+    htmltools::tagList(),
+    htmltools::htmlDependency(
+      name = "covr-report",
+      version = as.character(utils::packageVersion("covr")),
+      src = system.file("www", package = "covr"),
+      script = c("theme.js", "report.js"),
+      stylesheet = "report.css",
+      head = as.character(report_colors_css(colors)),
+      all_files = FALSE
     )
   )
 }
@@ -357,7 +395,7 @@ report_header <- function(title) {
     htmltools::h2(title),
     htmltools::tags$button(
       type = "button",
-      class = "btn btn-default btn-sm covr-theme-toggle",
+      class = "covr-theme-toggle",
       `aria-pressed` = "false",
       `aria-label` = "Dark mode",
       title = "Toggle dark mode",
@@ -366,13 +404,13 @@ report_header <- function(title) {
   )
 }
 
-# The moon is shown in the light theme and the sun in the dark one
+# The moon is shown in the light theme and the sun in the dark one. The moon is
+# a path rather than a masked circle, as the id of a mask would be repeated in
+# a document with several reports.
 theme_icons <- paste0(
   '<svg class="covr-icon-moon" aria-hidden="true" width="16" height="16" ',
-  'viewBox="0 0 16 16"><mask id="covr-moon-cut"><rect width="16" height="16" ',
-  'fill="white"/><circle cx="11.5" cy="4.5" r="4.5" fill="black"/></mask>',
-  '<circle cx="8" cy="8" r="6.5" fill="currentColor" ',
-  'mask="url(#covr-moon-cut)"/></svg>',
+  'viewBox="0 0 16 16"><path fill="currentColor" ',
+  'd="M8.14 1.5A6.5 6.5 0 1 0 14.5 7.86A4.5 4.5 0 0 1 8.14 1.5Z"/></svg>',
   '<svg class="covr-icon-sun" aria-hidden="true" width="16" height="16" ',
   'viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.2" fill="currentColor"/>',
   '<path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" ',
@@ -468,17 +506,17 @@ sort_file_stats <- function(stats) {
 
 add_link <- function(files) {
   vcapply(files, function(file) {
-    as.character(htmltools::a(href = "#", file))
+    as.character(htmltools::a(href = "#", class = "covr-file-link", file))
   })
 }
 
-renderSourceTable <- function(data, class = "hidden") {
+renderSourceTable <- function(data, class = "covr-hidden") {
   htmltools::div(
-    id = "files",
+    class = "covr-files",
     Map(
       function(lines, file) {
         htmltools::div(
-          id = file,
+          `data-file` = file,
           class = class,
           htmltools::tags$table(
             class = "table-condensed",
@@ -506,7 +544,7 @@ renderSourceTable <- function(data, class = "hidden") {
                   htmltools::tags$td(class = "num", lines[row_num, "line"]),
                   htmltools::tags$td(class = "coverage", cov_value),
                   htmltools::tags$td(
-                    class = "col-sm-12",
+                    class = "covr-source",
                     htmltools::pre(
                       class = "language-r",
                       lines[row_num, "source"]
@@ -521,21 +559,27 @@ renderSourceTable <- function(data, class = "hidden") {
       lines = data,
       file = names(data)
     ),
+    # Only the code of this report, if a document includes several
     htmltools::tags$script(
-      "document.querySelectorAll('div#files pre').forEach(function(block) {
-  hljs.highlightBlock(block);
-});"
+      "(function(script) {
+  var files = script ? script.parentNode : document;
+  files.querySelectorAll('div.covr-files pre').forEach(function(block) {
+    covrHljs.highlightBlock(block);
+  });
+})(document.currentScript);"
     )
   )
 }
 
+# covr's copy of highlight.js sets `covrHljs` rather than `hljs`, so it doesn't
+# replace the version used by a document that includes a report. Its colors
+# are in `report.css`.
 addHighlight <- function(x = list()) {
   highlight <- htmltools::htmlDependency(
-    "highlight.js",
+    "covr-highlight.js",
     "6.2",
     system.file(package = "covr", "www/shared/highlight.js"),
-    script = "highlight.pack.js",
-    stylesheet = "rstudio.css"
+    script = "highlight.pack.js"
   )
 
   htmltools::attachDependencies(
@@ -567,88 +611,67 @@ column <- function(width, ..., offset = 0, size = c("xs", "sm", "md", "lg")) {
   htmltools::div(class = col_class, ...)
 }
 
-tab_panel <- function(title, ..., value = title) {
-  htmltools::div(class = "tab-pane", title = title, `data-value` = value, ...)
+tab_panel <- function(title, ...) {
+  list(title = title, content = list(...))
 }
 
-# `js = FALSE` leaves out Bootstrap's JavaScript, which needs jQuery and is
-# only used for the tabs in `report()`
-fluid_page <- function(..., js = TRUE) {
+# The page of a standalone report. It only uses Bootstrap's CSS, so it doesn't
+# need jQuery.
+fluid_page <- function(...) {
   bootstrap_page(
-    htmltools::div(class = "container-fluid", ...),
-    js = js
+    htmltools::includeCSS(system.file("www/page.css", package = "covr")),
+    htmltools::div(class = "container-fluid", ...)
   )
 }
 
-bootstrap_page <- function(..., js = TRUE) {
+bootstrap_page <- function(...) {
   htmltools::attachDependencies(
     htmltools::tagList(list(...)),
-    html_dependency_bootstrap(js = js)
+    html_dependency_bootstrap()
   )
 }
 
 # from htmldeps::html_dependency_bootstrap (not yet on CRAN)
-html_dependency_bootstrap <- function(js = TRUE) {
-  script <- c("shim/html5shiv.min.js", "shim/respond.min.js")
-  if (js) {
-    script <- c("js/bootstrap.min.js", script)
-  }
+html_dependency_bootstrap <- function() {
   htmltools::htmlDependency(
     name = "bootstrap",
     version = "3.4.1",
     src = system.file(file = "www/shared/bootstrap", package = "covr"),
     meta = list(viewport = "width=device-width, initial-scale=1"),
-    script = script,
+    script = c("shim/html5shiv.min.js", "shim/respond.min.js"),
     stylesheet = c("css/bootstrap.min.css", "css/bootstrap-theme.min.css")
   )
 }
 
+# The tabs of the report, which are switched by `report.js` rather than
+# Bootstrap, so the report works in documents without Bootstrap 3
 tabset_panel <- function(...) {
-  tabset <- build_tabset(list(...))
-  htmltools::div(class = "tabbable", tabset$nav_list, tabset$content)
-}
-
-build_tabset <- function(tabs) {
-  tabset_id <- "covr"
-  tabs <- lapply(
-    seq_len(length(tabs)),
-    build_tab_item,
-    tabs = tabs,
-    tabset_id = tabset_id
-  )
-  list(
-    nav_list = ul(
-      class = "nav nav-tabs",
-      `data-tabsetid` = tabset_id,
-      lapply(tabs, "[[", 1)
+  tabs <- list(...)
+  active <- function(i) if (i == 1) "active"
+  htmltools::div(
+    class = "covr-tabset",
+    htmltools::tags$ul(
+      class = "covr-tabs",
+      lapply(seq_along(tabs), function(i) {
+        htmltools::tags$li(
+          class = active(i),
+          htmltools::a(
+            href = "#",
+            `data-value` = tabs[[i]]$title,
+            tabs[[i]]$title
+          )
+        )
+      })
     ),
-    content = htmltools::div(
-      class = "tab-content",
-      `data-tabsetid` = tabset_id,
-      lapply(tabs, "[[", 2)
+    htmltools::div(
+      class = "covr-tab-content",
+      lapply(seq_along(tabs), function(i) {
+        htmltools::div(
+          class = paste(c("covr-tab-pane", active(i)), collapse = " "),
+          `data-value` = tabs[[i]]$title,
+          tabs[[i]]$content
+        )
+      })
     )
   )
 }
-
-build_tab_item <- function(i, tabs, tabset_id) {
-  div_tag <- tabs[[i]]
-  tab_id <- paste("tab", tabset_id, i, sep = "-")
-  li_tag <- li(
-    htmltools::a(
-      href = paste0("#", tab_id),
-      `data-toggle` = "tab",
-      `data-value` = div_tag$attribs$`data-value`,
-      div_tag$attribs$title
-    )
-  )
-  if (i == 1) {
-    li_tag$attribs$class <- "active"
-    div_tag$attribs$class <- paste(div_tag$attribs$class, "active")
-  }
-  div_tag$attribs$id <- tab_id
-
-  list(li_tag = li_tag, div_tag = div_tag)
-}
-
-li <- function(...) htmltools::tag("li", list(...))
-ul <- function(...) htmltools::tag("ul", list(...))

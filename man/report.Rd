@@ -18,7 +18,9 @@ report(
 \item{browse}{whether to open a browser to view the report.}
 }
 \description{
-Display covr results using a standalone report
+\code{report()} saves the coverage report as a standalone HTML file and opens it.
+To include the report in a larger document, such as an R Markdown or Quarto
+document, use \code{\link[=report_html]{report_html()}} instead.
 }
 \section{Colors}{
 

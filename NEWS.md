@@ -31,6 +31,12 @@
   `initialize()` methods of R6 classes, listed each other's lines, so Codecov
   showed line numbers past the end of the file and a different coverage than
   `print()` (#629).
+* New `report_html()` returns the coverage report of `report()` as HTML that
+  can be included in a larger document, such as an R Markdown or Quarto
+  document. The report's styles and scripts only apply to the report, and it
+  no longer uses Bootstrap's JavaScript or replaces the document's
+  highlight.js, so a document can include several reports without changing
+  the rest of the page (#316).
 
 * Compiled code coverage now reads gcov's structured JSON output
   (`gcov --json-format`) when gcov supports it (gcc >= 9), instead of parsing

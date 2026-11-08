@@ -28,10 +28,11 @@
     return choice === "dark" || choice === "light" ? choice : preferred();
   }
 
-  // DataTables styles its tables for a dark background with `html.dark`
+  // The class is namespaced, so a report doesn't change the styles of a
+  // document it is included in
   function apply() {
     var dark = current() === "dark";
-    document.documentElement.classList.toggle("dark", dark);
+    document.documentElement.classList.toggle("covr-dark", dark);
     var buttons = document.querySelectorAll(".covr-theme-toggle");
     for (var i = 0; i < buttons.length; i++) {
       buttons[i].setAttribute("aria-pressed", dark ? "true" : "false");

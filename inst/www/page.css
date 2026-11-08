@@ -1,0 +1,10 @@
+/* The page of a standalone report, which uses the dark theme along with the
+   report */
+html.covr-dark {
+  color-scheme: dark;
+}
+
+html.covr-dark body {
+  background-color: #212529;
+  color: #dee2e6;
+}
