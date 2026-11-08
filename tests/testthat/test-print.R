@@ -27,6 +27,16 @@ test_that("format_percentage uses covr.report_colors (#529)", {
   expect_equal(format_percentage(96.5), cli::col_green("96.50%"))
   expect_equal(format_percentage(76.5), cli::col_yellow("76.50%"))
   expect_equal(format_percentage(51), missed("51.00%"))
+
+  withr::local_options(
+    covr.report_colors = c(covered = "#0072B2", partial = "#56B4E9")
+  )
+  expect_equal(format_percentage(96.5), covered("96.50%"))
+  expect_equal(
+    format_percentage(76.5),
+    cli::make_ansi_style("#56B4E9")("76.50%")
+  )
+  expect_equal(format_percentage(51), cli::col_red("51.00%"))
 })
 
 test_that("print.coverage prints by = \"line\" by default", {

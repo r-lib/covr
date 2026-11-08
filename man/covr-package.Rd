@@ -99,6 +99,8 @@ coverage percentages printed in the console, e.g.
 \code{c(covered = "#0072B2", missed = "#E69F00")} for blue and orange, which
 are easier to tell apart than the default green and red with color
 vision deficiency. Either element can be left out to keep its default.
+An optional \code{partial} element sets the color of partial coverage
+(75\% to 90\%), which is otherwise yellow, or \code{covered} if that is set.
 
 \item \code{covr.rstudio_source_markers}: A logical value. If \code{TRUE} (the
 default behavior), source markers are displayed within the RStudio IDE

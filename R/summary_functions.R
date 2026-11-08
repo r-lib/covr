@@ -414,7 +414,8 @@ print.coverages <- function(x, ...) {
 }
 
 # Colors follow `covr.report_colors`; colors that aren't set keep the default
-# green (>= 90%), yellow (>= 75%) and red.
+# green (>= 90%), yellow (>= 75%, `partial`, or `covered` if only that is set)
+# and red.
 format_percentage <- function(x) {
   rgb <- report_colors()
   custom <- names(getOption("covr.report_colors"))
@@ -429,7 +430,11 @@ format_percentage <- function(x) {
   color <- if (x >= 90) {
     console_color("covered", cli::col_green)
   } else if (x >= 75) {
-    console_color("covered", cli::col_yellow)
+    if ("partial" %in% custom) {
+      console_color("partial", cli::col_yellow)
+    } else {
+      console_color("covered", cli::col_yellow)
+    }
   } else {
     console_color("missed", cli::col_red)
   }

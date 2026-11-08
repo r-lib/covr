@@ -4,7 +4,7 @@
       report(cov, browse = FALSE)
     Condition
       Error:
-      ! `covr.report_colors` must be a named character vector with elements `covered` and/or `missed`, e.g. c(covered = "#0072B2", missed = "#E69F00").
+      ! `covr.report_colors` must be a named character vector with elements `covered`, `missed` and/or `partial`, e.g. c(covered = "#0072B2", missed = "#E69F00").
 
 ---
 
@@ -12,7 +12,7 @@
       report(cov, browse = FALSE)
     Condition
       Error:
-      ! `covr.report_colors` must be a named character vector with elements `covered` and/or `missed`, e.g. c(covered = "#0072B2", missed = "#E69F00").
+      ! `covr.report_colors` must be a named character vector with elements `covered`, `missed` and/or `partial`, e.g. c(covered = "#0072B2", missed = "#E69F00").
 
 ---
 
@@ -20,7 +20,7 @@
       report(cov, browse = FALSE)
     Condition
       Error:
-      ! `covr.report_colors` must be a named character vector with elements `covered` and/or `missed`, e.g. c(covered = "#0072B2", missed = "#E69F00").
+      ! `covr.report_colors` must be a named character vector with elements `covered`, `missed` and/or `partial`, e.g. c(covered = "#0072B2", missed = "#E69F00").
 
 ---
 

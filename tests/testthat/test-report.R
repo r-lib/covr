@@ -100,6 +100,16 @@ test_that("covr.report_colors can set only one color (#529)", {
   )
 })
 
+test_that("covr.report_colors can set the partial color (#529)", {
+  colors <- report_colors(c(partial = "#E69F00"))
+  expect_equal(colnames(colors), c("covered", "missed", "partial"))
+  expect_equal(
+    coverage_tints(colors),
+    c(high = "#edfde7", mid = "#fcf3e0", low = "#fcece9")
+  )
+  expect_equal(colnames(report_colors(NULL)), c("covered", "missed"))
+})
+
 test_that("covr.report_colors is validated (#529)", {
   skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")

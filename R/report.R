@@ -8,8 +8,10 @@
 #' colors, e.g. a pair that is easier to tell apart with color vision
 #' deficiency, set the `covr.report_colors` option to a named character vector
 #' of R colors (anything accepted by [grDevices::col2rgb()]) with elements
-#' `covered` and/or `missed`. The colors are used for the highlighted lines and
-#' the coverage bars in the file list.
+#' `covered`, `missed` and/or `partial`. The colors are used for the
+#' highlighted lines and the coverage bars in the file list; `partial` is used
+#' for the bars of files with 75% to 90% coverage, which otherwise use a tint
+#' of `covered`.
 #'
 #' ```r
 #' options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))
@@ -201,9 +203,12 @@ file_report <- function(
 
 default_report_colors <- c(covered = "#5f9744", missed = "#b94947")
 
-# The covered and missed colors from `getOption("covr.report_colors")`, as a
-# 3 x 2 matrix of red, green and blue values (0-255), with columns `covered`
-# and `missed`.
+report_color_names <- c("covered", "missed", "partial")
+
+# The colors from `getOption("covr.report_colors")`, as a 3 column matrix of
+# red, green and blue values (0-255), with columns `covered` and `missed`, and
+# `partial` if it is set. `partial` has no default; without it, the colors of
+# files with partial coverage follow the defaults or `covered`.
 report_colors <- function(colors = getOption("covr.report_colors")) {
   if (is.null(colors)) {
     colors <- default_report_colors
@@ -212,15 +217,15 @@ report_colors <- function(colors = getOption("covr.report_colors")) {
   if (
     !is.character(colors) ||
       length(colors) == 0 ||
-      length(colors) > 2 ||
+      length(colors) > 3 ||
       is.null(nms) ||
-      !all(nms %in% names(default_report_colors)) ||
+      !all(nms %in% report_color_names) ||
       anyDuplicated(nms) > 0 ||
       anyNA(colors)
   ) {
     stop(
       "`covr.report_colors` must be a named character vector with elements ",
-      "`covered` and/or `missed`, e.g. ",
+      "`covered`, `missed` and/or `partial`, e.g. ",
       'c(covered = "#0072B2", missed = "#E69F00").',
       call. = FALSE
     )
@@ -228,6 +233,7 @@ report_colors <- function(colors = getOption("covr.report_colors")) {
 
   res <- default_report_colors
   res[nms] <- colors
+  res <- res[intersect(report_color_names, names(res))]
 
   rgb <- tryCatch(
     grDevices::col2rgb(res),
@@ -273,12 +279,15 @@ coverage_tints <- function(colors) {
   if (rgb_hex(missed) == default_report_colors[["missed"]]) {
     res[["low"]] <- "#fcece9"
   }
+  if ("partial" %in% colnames(colors)) {
+    res[["mid"]] <- rgb_tint(colors[, "partial"], 0.12)
+  }
   res
 }
 
 report_colors_css <- function(colors) {
   rules <- vapply(
-    colnames(colors),
+    c("covered", "missed"),
     function(type) {
       rgb <- colors[, type]
       hex <- rgb_hex(rgb)
