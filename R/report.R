@@ -206,6 +206,18 @@ to_report_data <- function(x) {
 }
 
 compute_file_stats <- function(files) {
+  if (length(files) == 0) {
+    return(data.frame(
+      Coverage = character(),
+      Lines = integer(),
+      Relevant = integer(),
+      Covered = integer(),
+      Missed = integer(),
+      `Hits / Line` = character(),
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    ))
+  }
   do.call(
     "rbind",
     lapply(files, function(file) {
