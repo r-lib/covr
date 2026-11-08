@@ -56,7 +56,8 @@ package_coverage(
 - clean:
 
   whether to clean temporary output files after running, mainly useful
-  for debugging errors. If coverage fails, `install_path` is kept even
+  for debugging errors. If coverage fails, or failures are reported as
+  warnings with `allow_failures = TRUE`, `install_path` is kept even
   when `clean = TRUE`, so the test output can be inspected.
 
 - line_exclusions:

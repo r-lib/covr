@@ -2,6 +2,11 @@
 
 ## covr (development version)
 
+- `package_coverage(allow_failures = TRUE)` now also keeps
+  `install_path` when failures are reported as warnings, so the output
+  files they refer to can be inspected
+  ([\#554](https://github.com/r-lib/covr/issues/554)).
+
 - [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md),
   [`code_coverage()`](https://covr.r-lib.org/dev/reference/code_coverage.md),
   [`environment_coverage()`](https://covr.r-lib.org/dev/reference/environment_coverage.md),
