@@ -149,6 +149,11 @@ html.dark table.dataTable.row-border > tbody > tr > td {
   border-top-color: #495057;
 }
 
+/* Older versions of DataTables make the rows white */
+html.dark table.dataTable tbody tr {
+  background-color: transparent;
+}
+
 /* Based on the Tomorrow Night theme */
 html.dark pre .operator,
 html.dark pre .paren,
