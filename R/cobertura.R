@@ -29,9 +29,6 @@ to_cobertura <- function(cov, filename = "cobertura.xml") {
       (sum(x > 0) / length(x))
     }
   )
-  percent_per_function <- tapply(df$value, df$functions, FUN = function(x) {
-    (sum(x > 0) / length(x))
-  })
   lines_valid <- nrow(file_lines)
   lines_covered <- sum(file_lines$value > 0)
 
@@ -85,6 +82,7 @@ to_cobertura <- function(cov, filename = "cobertura.xml") {
 
   # Add classes (for which we will use files for now)
   for (f in files) {
+    file_df <- df[df$filename == f, , drop = FALSE]
     class <- xml2::xml_add_child(
       classes,
       "class",
@@ -95,25 +93,27 @@ to_cobertura <- function(cov, filename = "cobertura.xml") {
       complexity = "0"
     )
 
-    # Add methods for all lines with functions
+    # Add methods for all lines with functions. Functions are matched within
+    # the file, as methods of different classes can share a name, e.g. the
+    # `initialize()` methods of R6 classes (#629).
     methods <- xml2::xml_add_child(class, "methods")
 
-    for (fun_name in unique(na.omit(df[df$filename == f, "functions"]))) {
+    for (fun_name in unique(na.omit(file_df$functions))) {
+      fun_df <- file_df[file_df$functions %in% fun_name, , drop = FALSE]
       fun <- xml2::xml_add_child(
         methods,
         "method",
         name = fun_name,
         signature = "",
-        "line-rate" = as.character(percent_per_function[fun_name]),
+        "line-rate" = as.character(sum(fun_df$value > 0) / nrow(fun_df)),
         "branch-rate" = "0",
         "complexity" = "0"
       )
 
       # Add lines
       lines <- xml2::xml_add_child(fun, "lines")
-      fun_lines <- which(df$functions == fun_name)
-      for (i in fun_lines) {
-        line <- df[i, ]
+      for (i in seq_len(nrow(fun_df))) {
+        line <- fun_df[i, ]
         xml2::xml_add_child(
           lines,
           "line",
