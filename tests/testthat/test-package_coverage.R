@@ -81,3 +81,24 @@ test_that("package_coverage reports failures of code shown while it runs", {
   expect_equal(stderr, c("Error: boom", "Execution halted"))
   expect_contains(err$output, c("> stop('boom')", "Error: boom"))
 })
+
+test_that("package_coverage reports killed code shown while it runs", {
+  # Killing the process with SIGKILL relies on POSIX signals
+  skip_on_os("windows")
+  stderr <- capture.output(
+    stdout <- capture.output(
+      err <- expect_error(
+        package_coverage(
+          "TestS4",
+          type = "none",
+          code = "tools::pskill(Sys.getpid(), tools::SIGKILL)",
+          show_code_output = TRUE
+        ),
+        class = "covr_error"
+      )
+    ),
+    type = "message"
+  )
+  expect_match(stderr, "SIGNAL", all = FALSE)
+  expect_match(err$output, "SIGNAL", all = FALSE)
+})

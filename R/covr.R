@@ -1547,11 +1547,19 @@ run_r_live <- function(infile, outfile) {
     }
   }
   name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
-  sys::exec_wait(
-    file.path(R.home("bin"), name),
-    c("--vanilla", "--quiet", "-f", infile),
-    std_out = show(stdout()),
-    std_err = show(stderr())
+  tryCatch(
+    sys::exec_wait(
+      file.path(R.home("bin"), name),
+      c("--vanilla", "--quiet", "-f", infile),
+      std_out = show(stdout()),
+      std_err = show(stderr())
+    ),
+    # sys signals an error if the process is killed, e.g. by a segfault; report
+    # it as a failure, as `R CMD BATCH` does.
+    error = function(e) {
+      show(stderr())(charToRaw(paste0(conditionMessage(e), "\n")))
+      1L
+    }
   )
 }
 

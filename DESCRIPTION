@@ -53,7 +53,7 @@ Imports:
     rex,
     httr,
     cli (>= 2.5.0),
-    sys,
+    sys (>= 3.0),
     withr (>= 1.0.2),
     yaml
 Suggests:
