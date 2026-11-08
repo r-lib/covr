@@ -13,6 +13,9 @@
   returns the response of Codecov, which includes the `url` of the upload, and
   errors with class `covr_codecov_error` or, for HTTP 429 and 5xx, warns with
   class `covr_codecov_warning`, if either request fails.
+* `c()` now combines coverage objects, e.g. from runs of tests in different
+  directories. The counts of traces in several objects are added, and recorded
+  tests are combined as well (#439).
 
 * When gcov fails, the error from `package_coverage()` now includes gcov's
   output, e.g. the `.gcno` version mismatch reported when the package was
