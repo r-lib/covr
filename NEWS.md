@@ -36,6 +36,9 @@
 * `package_coverage()` no longer reports 0% coverage for packages whose last
   file in `R/` is empty (#522).
 
+* `package_coverage()` now accepts `outDir` in `...` to save the test and
+  example output to a directory of your choice, instead of failing with
+  "formal argument "outDir" matched by multiple actual arguments" (#518).
 * New `coverage_to_markdown()` formats coverage as a markdown table, optionally
   compared against a baseline, for GitHub Actions job summaries or pull
   request comments (#519).

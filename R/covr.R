@@ -643,6 +643,9 @@ with_coverage <- function(
 #' names to exclude. Example `print\\\.` to match print methods.
 #' @param code A character vector of additional test code to run.
 #' @param ... Additional arguments passed to [tools::testInstalledPackage()].
+#'   Use `outDir` to save the output of the tests and examples to a directory
+#'   which is kept after coverage finishes; by default it is written to
+#'   `install_path`.
 #' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
 #' @param pre_clean whether to delete all objects present in the src directory before recompiling
 #' @param install_path The path the instrumented package will be installed to
@@ -833,35 +836,34 @@ package_coverage <- function(
               run_vignettes(pkg, install_path)
             }
 
-            out_dir <- file.path(install_path, pkg$package)
+            test_installed <- function(
+              types,
+              outDir = file.path(install_path, pkg$package),
+              ...
+            ) {
+              dir.create(outDir, showWarnings = FALSE, recursive = TRUE)
+              outDir <- normalize_path(outDir)
+              result <- tools::testInstalledPackage(
+                pkg$package,
+                outDir = outDir,
+                types = types,
+                lib.loc = install_path,
+                ...
+              )
+              if (result != 0L) {
+                show_failures(outDir)
+              }
+            }
             if ("examples" %in% type) {
               type <- type[type != "examples"]
               # testInstalledPackage explicitly sets R_LIBS="" on windows, and does
               # not restore it after, so we need to reset it ourselves.
               withr::with_envvar(c(R_LIBS = Sys.getenv("R_LIBS")), {
-                result <- tools::testInstalledPackage(
-                  pkg$package,
-                  outDir = out_dir,
-                  types = "examples",
-                  lib.loc = install_path,
-                  ...
-                )
-                if (result != 0L) {
-                  show_failures(out_dir)
-                }
+                test_installed("examples", ...)
               })
             }
             if ("tests" %in% type) {
-              result <- tools::testInstalledPackage(
-                pkg$package,
-                outDir = out_dir,
-                types = "tests",
-                lib.loc = install_path,
-                ...
-              )
-              if (result != 0L) {
-                show_failures(out_dir)
-              }
+              test_installed("tests", ...)
             }
 
             # We always run the commands file (even if empty) to load the package and
