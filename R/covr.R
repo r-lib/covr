@@ -737,24 +737,25 @@ with_coverage <- function(
 #' #endif
 #'
 #' @section Coverage of test files:
-#' With `include_tests = TRUE`, the coverage also includes the files that run
-#' the tests: the scripts in `tests/` and the test, helper, setup and teardown
-#' files in `tests/testthat/`. This shows test helpers that are never used, and
-#' tests that don't run, e.g. because they are skipped. Other files, such as
-#' fixtures in subdirectories of `tests/testthat/` or files sourced by the
-#' tests, are not included. The test files are named in the coverage like the
-#' package files (e.g. `tests/testthat/test-foo.R`), so they can be told apart
-#' in the coverage report, or by Codecov components or flags based on paths.
+#' With `include_tests = TRUE`, the coverage also includes the R files in
+#' `tests/` and its subdirectories, whatever framework runs them. This shows
+#' test helpers that are never used, and tests that don't run, e.g. because
+#' they are skipped. The test files are named in the coverage like the package
+#' files (e.g. `tests/testthat/test-foo.R`), so they can be told apart in the
+#' coverage report, or by Codecov components or flags based on paths.
 #'
 #' The installed copy of each test file is replaced by a call that runs an
-#' instrumented version of its code, which is otherwise run as before. The
-#' arguments of calls that quote code, such as `quote()`, `bquote()` and
-#' `testthat::expect_snapshot()`, are not instrumented, so they are unchanged,
-#' e.g. when they are deparsed. Code within other calls which capture their
-#' code with [substitute()] is instrumented, so when deparsed it shows the
-#' extra calls that count it. The functions of the coverage of a test file
-#' (see [as.data.frame.coverage()]) are the descriptions of the tests, the
-#' names of the functions it defines, or `"(top level)"` for other code.
+#' instrumented version of its code, so R files the tests read as data, rather
+#' than run (e.g. fixtures, or snapshots saved by
+#' `testthat::expect_snapshot_file()`), must be listed in `.covrignore`. The
+#' arguments of calls that quote code (`quote()`, `bquote()`, `expression()`,
+#' `alist()`, `substitute()` and `testthat::expect_snapshot()`) are not
+#' instrumented. Code within other calls which capture their code is
+#' instrumented, so when deparsed it shows the extra calls that count it.
+#' Test frameworks may report the location of failures in test files as their
+#' first line. The functions of the coverage of a test file (see
+#' [as.data.frame.coverage()]) are the names of the functions it defines, or
+#' `"(top level)"` for other code.
 #'
 #' @param path file path to the package.
 #' @param type run the package \sQuote{tests}, \sQuote{vignettes},

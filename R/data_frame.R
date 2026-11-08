@@ -13,9 +13,8 @@
 #'   * `filename`: the source file, relative to the `root` attribute of `x`
 #'     (the package directory, for [package_coverage()]) if there is one.
 #'   * `functions`: the name of the function containing the expression, or
-#'     `NA` for compiled code. For the code of test files (see
-#'     `include_tests` in [package_coverage()]), the description of the test
-#'     or `"(top level)"` for code outside of tests and functions.
+#'     `NA` for compiled code. For code outside of functions in test files
+#'     (see `include_tests` in [package_coverage()]), `"(top level)"`.
 #'   * `first_line`, `last_line`: the lines the expression starts and ends on.
 #'   * `first_byte`, `last_byte`: the bytes of those lines the expression
 #'     starts and ends at.

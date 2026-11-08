@@ -1,10 +1,11 @@
 # covr (development version)
 
 * `package_coverage()` gains an `include_tests` argument to also measure the
-  coverage of the test files: the scripts in `tests/` and the test, helper,
-  setup and teardown files in `tests/testthat/`. This shows unused test
-  helpers and tests that don't run, e.g. because they are skipped, and the
-  test files can be given their own Codecov components or flags (#541).
+  coverage of the R files in `tests/`, whatever framework runs them. This
+  shows unused test helpers and tests that don't run, e.g. because they are
+  skipped, and the test files can be given their own Codecov components or
+  flags. Files the tests read as data can be left out with `.covrignore`
+  (#541).
 
 * `to_cobertura()` now only lists the lines of a method from the file it is
   defined in. Previously methods sharing a name across files, such as the

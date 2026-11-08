@@ -16,21 +16,18 @@
 
 .test_counters <- new.env(parent = emptyenv())
 
-# The files run by `R CMD check` and testthat. Subdirectories, such as fixtures
-# under `tests/testthat`, are not run directly, so they are not included.
+# All the R files in `tests/`, except those in `.covrignore`, e.g. data files
+# or fixtures that the tests read rather than run.
 test_file_paths <- function(path) {
-  testthat <- file.path("tests", "testthat")
-  paths <- c(
-    file.path("tests", list.files(file.path(path, "tests"), "\\.[rR]$")),
-    file.path(
-      testthat,
-      list.files(
-        file.path(path, testthat),
-        "^(test|helper|setup|teardown).*\\.[rR]$"
-      )
-    )
+  paths <- file.path(
+    "tests",
+    list.files(file.path(path, "tests"), "\\.[rR]$", recursive = TRUE)
   )
-  paths[utils::file_test("-f", file.path(path, paths))]
+  ignored <- withr::with_dir(
+    path,
+    normalize_path(as.character(parse_covr_ignore()))
+  )
+  paths[!normalize_path(file.path(path, paths)) %in% ignored]
 }
 
 # Instrument the test files of `pkg` installed in `lib`, replacing each with a
@@ -129,47 +126,31 @@ test_file_counter <- function(tracer, src_ref, parent_functions) {
   key
 }
 
-# The "function" of a top level expression of a test file: the description of
-# a test, the name of a function, or "(top level)" for other code.
+# The "function" of a top level expression of a test file: the name of the
+# function it defines, or "(top level)" for other code.
 test_code_name <- function(x) {
-  if (is.call(x)) {
-    name <- call_name(x)
-    if (
-      name %in%
-        c("<-", "=") &&
-        is.call(x[[3]]) &&
-        identical(x[[3]][[1]], as.name("function"))
-    ) {
-      # `trace_calls()` adds the name of the function
-      return(character())
-    }
-    if (
-      name %in%
-        c("test_that", "describe", "it") &&
-        length(x) >= 2 &&
-        is.character(x[[2]]) &&
-        length(x[[2]]) == 1
-    ) {
-      return(x[[2]])
-    }
+  if (
+    is.call(x) &&
+      call_name(x) %in% c("<-", "=") &&
+      is.call(x[[3]]) &&
+      identical(x[[3]][[1]], as.name("function"))
+  ) {
+    # `trace_calls()` adds the name of the function
+    return(character())
   }
   "(top level)"
 }
 
-# The arguments of these functions are code that is used as data, e.g. deparsed
-# in a snapshot, so they are not instrumented.
+# The arguments of these functions are code used as data, so they are not
+# instrumented. Instrumenting the code of `testthat::expect_snapshot()` would
+# change it in the snapshot, which would then fail.
 quoting_functions <- c(
   "quote",
   "bquote",
   "expression",
   "alist",
   "substitute",
-  "expect_snapshot",
-  "verify_output",
-  "expr",
-  "exprs",
-  "quo",
-  "quos"
+  "expect_snapshot"
 )
 
 is_quoting_call <- function(x) {
@@ -216,18 +197,6 @@ run_traced_file <- function(
   }
 
   exprs <- readRDS(file)
-  # testthat finds the location of failures and skips in the file it runs by
-  # its path, so the code gets the same path when testthat runs the stub.
-  srcfile <- attr(exprs, "srcfile")
-  path <- getOption("testthat_path")
-  if (
-    is.environment(srcfile) &&
-      is.character(path) &&
-      identical(basename(path), basename(srcfile$filename))
-  ) {
-    srcfile$filename <- path
-  }
-
   refs <- attr(exprs, "srcref")
   for (i in seq_along(exprs)) {
     # Evaluated as an expression vector with its srcref, so calls in it have

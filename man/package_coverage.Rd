@@ -120,24 +120,25 @@ environment variable \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
 }
 \section{Coverage of test files}{
 
-With \code{include_tests = TRUE}, the coverage also includes the files that run
-the tests: the scripts in \verb{tests/} and the test, helper, setup and teardown
-files in \verb{tests/testthat/}. This shows test helpers that are never used, and
-tests that don't run, e.g. because they are skipped. Other files, such as
-fixtures in subdirectories of \verb{tests/testthat/} or files sourced by the
-tests, are not included. The test files are named in the coverage like the
-package files (e.g. \code{tests/testthat/test-foo.R}), so they can be told apart
-in the coverage report, or by Codecov components or flags based on paths.
+With \code{include_tests = TRUE}, the coverage also includes the R files in
+\verb{tests/} and its subdirectories, whatever framework runs them. This shows
+test helpers that are never used, and tests that don't run, e.g. because
+they are skipped. The test files are named in the coverage like the package
+files (e.g. \code{tests/testthat/test-foo.R}), so they can be told apart in the
+coverage report, or by Codecov components or flags based on paths.
 
 The installed copy of each test file is replaced by a call that runs an
-instrumented version of its code, which is otherwise run as before. The
-arguments of calls that quote code, such as \code{quote()}, \code{bquote()} and
-\code{testthat::expect_snapshot()}, are not instrumented, so they are unchanged,
-e.g. when they are deparsed. Code within other calls which capture their
-code with \code{\link[=substitute]{substitute()}} is instrumented, so when deparsed it shows the
-extra calls that count it. The functions of the coverage of a test file
-(see \code{\link[=as.data.frame.coverage]{as.data.frame.coverage()}}) are the descriptions of the tests, the
-names of the functions it defines, or \code{"(top level)"} for other code.
+instrumented version of its code, so R files the tests read as data, rather
+than run (e.g. fixtures, or snapshots saved by
+\code{testthat::expect_snapshot_file()}), must be listed in \code{.covrignore}. The
+arguments of calls that quote code (\code{quote()}, \code{bquote()}, \code{expression()},
+\code{alist()}, \code{substitute()} and \code{testthat::expect_snapshot()}) are not
+instrumented. Code within other calls which capture their code is
+instrumented, so when deparsed it shows the extra calls that count it.
+Test frameworks may report the location of failures in test files as their
+first line. The functions of the coverage of a test file (see
+\code{\link[=as.data.frame.coverage]{as.data.frame.coverage()}}) are the names of the functions it defines, or
+\code{"(top level)"} for other code.
 }
 
 \seealso{

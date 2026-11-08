@@ -20,3 +20,7 @@ test_that("quoted code is not instrumented", {
     x
   })
 })
+
+test_that("files in .covrignore are not instrumented", {
+  expect_equal(readLines("fixtures/value.R"), "42")
+})
