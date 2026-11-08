@@ -59,3 +59,38 @@ test_that("percent_coverage", {
   res <- percent_coverage(cov)
   expect_equal(res, 83.333333, tolerance = .01)
 })
+
+test_that("coverage_to_markdown() formats totals, files and differences", {
+  src <- "f <- function(x) {\n  if (x) {\n    1\n  }\n  2\n}"
+  dir <- withr::local_tempdir()
+  writeLines(src, file.path(dir, "f.R"))
+  writeLines("f(TRUE)", file.path(dir, "full.R"))
+  writeLines("f(FALSE)", file.path(dir, "part.R"))
+  withr::local_dir(dir)
+  full <- file_coverage("f.R", "full.R")
+  part <- file_coverage("f.R", "part.R")
+  expect_snapshot(
+    {
+      coverage_to_markdown(part)
+      coverage_to_markdown(full, base = part)
+    }
+  )
+})
+
+test_that("coverage_to_markdown() escapes file names and handles missing/lower base", {
+  skip_on_os("windows")
+  src <- "f <- function(x) {\n  if (x) {\n    1\n  }\n  2\n}"
+  dir <- withr::local_tempdir()
+  writeLines(src, file.path(dir, "a|b<c>.R"))
+  writeLines(sub("^f", "g", src), file.path(dir, "new.R"))
+  writeLines("f(TRUE)\ng(TRUE)", file.path(dir, "full.R"))
+  writeLines("f(FALSE)", file.path(dir, "part.R"))
+  withr::local_dir(dir)
+  full <- file_coverage(c("a|b<c>.R", "new.R"), "full.R")
+  part <- file_coverage("a|b<c>.R", "part.R")
+  expect_snapshot({
+    coverage_to_markdown(full)
+    coverage_to_markdown(full, base = part)
+    coverage_to_markdown(part, base = full)
+  })
+})
