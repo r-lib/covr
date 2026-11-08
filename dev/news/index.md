@@ -2,6 +2,14 @@
 
 ## covr (development version)
 
+- [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/to_sonarqube.md)
+  now writes file paths relative to the package root (e.g. `R/foo.R`)
+  instead of prefixing them with the package name, so the report works
+  when the package is the root of the SonarQube project. Use the new
+  `path_prefix` argument if the package is in a subdirectory of the
+  project, e.g. `path_prefix = "mypkg"` restores the previous paths
+  ([\#636](https://github.com/r-lib/covr/issues/636)).
+
 - [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   now accepts `outDir` in `...` to save the test and example output to a
   directory of your choice, instead of failing with “formal
