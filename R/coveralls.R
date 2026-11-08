@@ -16,6 +16,10 @@
 #' If set to NULL, it is assumed that the job is running on travis-ci
 #' @param service_name the CI service to use, if environment variable
 #' \sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.
+#' When `repo_token` is set and `service_name` is \sQuote{drone},
+#' \sQuote{jenkins}, \sQuote{travis-pro} or \sQuote{github-actions},
+#' information about the current git commit, branch and remote is also
+#' submitted.
 #' @param quiet if `FALSE`, print the coverage before submission.
 #' @export
 coveralls <- function(
@@ -93,11 +97,15 @@ to_coveralls <- function(
     USE.NAMES = FALSE
   )
 
-  git_info <- switch(
+  git <- switch(
     service_name,
-    drone = jenkins_git_info(), # drone has the same env vars as jenkins
-    jenkins = jenkins_git_info(),
-    'travis-pro' = jenkins_git_info(),
+    drone = git_info(), # drone has the same env vars as jenkins
+    jenkins = git_info(),
+    'travis-pro' = git_info(),
+    'github-actions' = git_info(
+      branch = github_actions_branch(),
+      remote = system_output("git", c("config", "--get", "remote.origin.url"))
+    ),
     list(NULL)
   )
 
@@ -113,14 +121,17 @@ to_coveralls <- function(
       "service_name" = jsonlite::unbox(service_name),
       "source_files" = res
     )
-    tmp$git <- git_info
+    tmp$git <- git
     tmp
   }
 
   jsonlite::toJSON(na = "null", payload)
 }
 
-jenkins_git_info <- function() {
+git_info <- function(
+  branch = Sys.getenv("CI_BRANCH"),
+  remote = Sys.getenv("CI_REMOTE")
+) {
   # check https://coveralls.zendesk.com/hc/en-us/articles/201350799-API-Reference
   # for why and how we are doing this
   formats <- c(
@@ -154,12 +165,22 @@ jenkins_git_info <- function() {
 
   remotes <- list(list(
     name = jsonlite::unbox("origin"),
-    url = jsonlite::unbox(Sys.getenv("CI_REMOTE"))
+    url = jsonlite::unbox(remote)
   ))
 
   c(
-    list(branch = jsonlite::unbox(Sys.getenv("CI_BRANCH"))),
+    list(branch = jsonlite::unbox(branch)),
     head = list(head),
     remotes = list(remotes)
   )
+}
+
+# `GITHUB_REF_NAME` is `<pr_number>/merge` for pull requests, so use the source
+# branch in `GITHUB_HEAD_REF` when it is set.
+github_actions_branch <- function() {
+  branch <- Sys.getenv("GITHUB_HEAD_REF")
+  if (nzchar(branch)) {
+    return(branch)
+  }
+  Sys.getenv("GITHUB_REF_NAME")
 }

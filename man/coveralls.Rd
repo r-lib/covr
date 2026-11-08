@@ -25,7 +25,11 @@ if your job is running on a service Coveralls doesn't support out-of-the-box.
 If set to NULL, it is assumed that the job is running on travis-ci}
 
 \item{service_name}{the CI service to use, if environment variable
-\sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.}
+\sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.
+When \code{repo_token} is set and \code{service_name} is \sQuote{drone},
+\sQuote{jenkins}, \sQuote{travis-pro} or \sQuote{github-actions},
+information about the current git commit, branch and remote is also
+submitted.}
 
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }

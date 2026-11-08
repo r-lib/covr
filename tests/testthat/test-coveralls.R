@@ -25,6 +25,8 @@ ci_vars <- c(
   "DRONE_BUILD_NUMBER" = NA,
   "DRONE_BUILD_URL" = NA,
   "DRONE_COMMIT" = NA,
+  "GITHUB_HEAD_REF" = NA,
+  "GITHUB_REF_NAME" = NA,
   "GIT_BRANCH" = NA,
   "GIT_COMMIT" = NA,
   "JENKINS_URL" = NA,
@@ -206,7 +208,7 @@ test_that("generates correct payload for Drone and Jenkins", {
       paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
     }
   )
-  git <- jenkins_git_info()
+  git <- git_info()
 
   expect_equal(git$head$id, jsonlite::unbox("a"))
   expect_equal(git$head$author_name, jsonlite::unbox("b"))
@@ -217,6 +219,42 @@ test_that("generates correct payload for Drone and Jenkins", {
   expect_equal(git$branch, jsonlite::unbox("fakebranch"))
   expect_equal(git$remotes[[1]]$name, jsonlite::unbox("origin"))
   expect_equal(git$remotes[[1]]$url, jsonlite::unbox("covr"))
+})
+
+test_that("coveralls submits git info on GitHub Actions #535", {
+  withr::local_envvar(c(
+    ci_vars,
+    "CI_NAME" = "github-actions",
+    "GITHUB_REF_NAME" = "main"
+  ))
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity,
+    upload_file = function(file) readChar(file, file.info(file)$size),
+    system_output = function(cmd, args, ...) {
+      if (args[[1]] == "config") {
+        return("https://github.com/r-lib/covr")
+      }
+      paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
+    }
+  )
+  res <- coveralls(coverage = cov, repo_token = "mytoken")
+  json <- jsonlite::fromJSON(res$body$json_file)
+
+  expect_equal(json$service_name, "github-actions")
+  expect_equal(json$git$branch, "main")
+  expect_equal(json$git$head$id, "a")
+  expect_equal(json$git$remotes$name, "origin")
+  expect_equal(json$git$remotes$url, "https://github.com/r-lib/covr")
+
+  # Pull requests use the source branch rather than `<number>/merge`
+  withr::local_envvar(
+    "GITHUB_HEAD_REF" = "feature",
+    "GITHUB_REF_NAME" = "123/merge"
+  )
+  res <- coveralls(coverage = cov, repo_token = "mytoken")
+  json <- jsonlite::fromJSON(res$body$json_file)
+  expect_equal(json$git$branch, "feature")
 })
 
 test_that("coveralls can spawn a job using repo_token - travis-pro #285", {
