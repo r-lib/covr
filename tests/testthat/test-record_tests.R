@@ -207,6 +207,7 @@ test_that("covr.record_tests: tests tally is pruned even when no tests are hit",
   expect_true(is.matrix(cov[[1L]]$tests))
   expect_equal(cov[[1L]]$value, 0L)
   expect_equal(nrow(cov[[1L]]$tests), 0L)
+  expect_equal(nrow(tally_tests(cov)), 0L)
 })
 
 

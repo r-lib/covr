@@ -136,13 +136,16 @@ NULL
 #' unique(tests[tests$line %in% 1:2, c("test_file", "test_line")])
 #' @export
 tally_tests <- function(x) {
+  # Without any test hits the `tests` attribute is dropped, but each element
+  # still has an empty `tests` matrix.
   tests <- attr(x, "tests")
-  if (is.null(tests)) {
-    stop(
-      "`x` has no recorded tests, compute coverage with ",
-      "`options(covr.record_tests = TRUE)`.",
-      call. = FALSE
-    )
+  recorded <- !is.null(tests) ||
+    any(vlapply(unclass(x), function(xx) !is.null(xx$tests)))
+  if (!recorded) {
+    covr_abort(c(
+      "{.arg x} has no recorded tests.",
+      i = "Compute coverage with {.code options(covr.record_tests = TRUE)}."
+    ))
   }
 
   res <- data.frame(
@@ -164,7 +167,7 @@ tally_tests <- function(x) {
     }
     tally[, "test"]
   })
-  element <- rep(seq_along(hits), lengths(hits))
+  element <- rep(seq_along(hits), viapply(hits, length))
   test <- unlist(hits, use.names = FALSE)
   if (!length(test)) {
     return(res)
