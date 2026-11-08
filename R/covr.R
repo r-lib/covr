@@ -184,8 +184,9 @@ save_rds <- function(object, file) {
 # namespace is garbage collected or R exits normally. Until then a
 # `covr_pending_<pid>_*` marker exists in `directory`, so `package_coverage()`
 # can report processes that loaded the package but never saved their trace,
-# e.g. because they were killed (#438). Forked children inherit the finalizer
-# but did not create the marker, so they leave it alone.
+# e.g. because they were killed (#438). Markers are owned by the process whose
+# pid is in their name; forked children inherit the finalizer but not the
+# parent's markers, so `save_trace_and_clear()` leaves those alone.
 #
 # `directory` (from `COVERAGE_DIR`) is fixed when the package loads, so the
 # marker and the trace end up in the same place. A marker that can't be created
@@ -196,15 +197,27 @@ register_trace <- function(ns, directory) {
   suppressWarnings(file.create(pending))
   reg.finalizer(
     ns,
-    function(...) {
-      save_trace(directory)
-      if (Sys.getpid() == pid) {
-        unlink(pending)
-      }
-    },
+    function(...) save_trace_and_clear(directory),
     onexit = TRUE
   )
   invisible(pending)
+}
+
+# Also used by the patched `parallel:::mcexit()` (see `fix_mcexit()`), as forked
+# workers exit without running finalizers. A worker that loads the package after
+# forking creates its own marker, which is removed here.
+save_trace_and_clear <- function(directory) {
+  res <- save_trace(directory)
+  unlink(list.files(
+    directory,
+    pattern = pending_pattern(Sys.getpid()),
+    full.names = TRUE
+  ))
+  invisible(res)
+}
+
+pending_pattern <- function(pid) {
+  paste0("^covr_pending_", pid, "_")
 }
 
 # The markers of processes that loaded the package but did not save their
@@ -212,7 +225,7 @@ register_trace <- function(ns, directory) {
 # package (e.g. for a `\Sexpr` in an example) but only saves its trace on exit.
 unsaved_traces <- function(directory) {
   markers <- list.files(directory, pattern = "^covr_pending_")
-  markers[!grepl(paste0("^covr_pending_", Sys.getpid(), "_"), markers)]
+  markers[!grepl(pending_pattern(Sys.getpid()), markers)]
 }
 
 unsaved_traces_warning <- function(package, n) {
