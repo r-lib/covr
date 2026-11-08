@@ -83,7 +83,7 @@ For more control, source the files yourself and use \code{\link[=with_coverage]{
 To make the package's other functions available, load the package (e.g.
 with \code{pkgload::load_all()}) and use \code{parent_env = asNamespace("pkg")}.
 Calls from other package files use the namespace's untraced functions, so
-don't count. \code{\link[devtools:test_coverage_active_file]{devtools::test_coverage_active_file()}} measures the coverage
+don't count. \code{devtools::test_coverage_active_file()} measures the coverage
 of one file of a package without this limitation.
 }
 

@@ -463,7 +463,7 @@ function_coverage <- function(
 #' To make the package's other functions available, load the package (e.g.
 #' with `pkgload::load_all()`) and use `parent_env = asNamespace("pkg")`.
 #' Calls from other package files use the namespace's untraced functions, so
-#' don't count. [devtools::test_coverage_active_file()] measures the coverage
+#' don't count. `devtools::test_coverage_active_file()` measures the coverage
 #' of one file of a package without this limitation.
 #' @return A [coverage] object.
 #' @examples
