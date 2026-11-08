@@ -2,6 +2,12 @@
 
 ## covr (development version)
 
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  now accepts `outDir` in `...` to save the test and example output to a
+  directory of your choice, instead of failing with “formal
+  argument”outDir” matched by multiple actual arguments”
+  ([\#518](https://github.com/r-lib/covr/issues/518)).
+
 - `package_coverage(allow_failures = TRUE)` now also keeps
   `install_path` when failures are reported as warnings, so the output
   files they refer to can be inspected

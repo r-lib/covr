@@ -84,6 +84,9 @@ package_coverage(
 
   Additional arguments passed to
   [`tools::testInstalledPackage()`](https://rdrr.io/r/tools/testInstalledPackage.html).
+  Use `outDir` to save the output of the tests and examples to a
+  directory which is kept after coverage finishes; by default it is
+  written to `install_path`.
 
 - exclusions:
 
