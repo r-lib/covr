@@ -416,12 +416,17 @@ function_coverage <- function(
 #'
 #' The files in `source_files` are first sourced into a new environment
 #' to define functions to be checked. Then they are instrumented to track
-#' coverage and the files in `test_files` are sourced.
+#' coverage and the files in `test_files` are run with `runner`.
 #' @param source_files Character vector of source files with function
 #'   definitions to measure coverage
 #' @param test_files Character vector of test files with code to test the
 #'   functions
 #' @param parent_env The parent environment to use when sourcing the files.
+#' @param runner A function used to run each test file, called as
+#'   `runner(file, env = env)`, where `env` is the environment the
+#'   `source_files` were sourced into. The default sources the file into `env`
+#'   with [sys.source()]. Use `runner = testthat::test_file` to run testthat
+#'   tests with testthat's test runner; see the testthat tests section.
 #' @inheritParams package_coverage
 #' @section Parallel code:
 #' Code run in processes forked by [parallel::mclapply()],
@@ -432,27 +437,28 @@ function_coverage <- function(
 #' `COVR_FIX_PARALLEL_MCEXIT` or the option `covr.fix_parallel_mcexit` to
 #' `FALSE`.
 #' @section testthat tests:
-#' The test files are run with [sys.source()], not with testthat's test
-#' runner, so features that need the runner don't work. In particular,
+#' By default the test files are run with [sys.source()], not with testthat's
+#' test runner, so features that need the runner don't work. In particular,
 #' `testthat::expect_snapshot()` is skipped ("Can't compare snapshot to
-#' reference when testing interactively"), and testthat uses its 2nd edition
-#' unless the tests call `testthat::local_edition(3)`.
+#' reference when testing interactively").
 #'
-#' To use these features, source the files yourself and run the tests with
-#' [testthat::test_file()] inside [with_coverage()]:
+#' To use these features, run the test files with [testthat::test_file()]:
 #'
 #' ```r
-#' env <- new.env()
-#' sys.source("R/my_functions.R", envir = env, keep.source = TRUE)
-#' cov <- with_coverage(
-#'   testthat::test_file("tests/test-my_functions.R", env = env),
-#'   env = env
+#' file_coverage(
+#'   "R/my_functions.R",
+#'   "tests/test-my_functions.R",
+#'   runner = testthat::test_file
 #' )
 #' ```
 #'
-#' Snapshots are then saved in a `_snaps` directory next to the test file.
-#' `expect_snapshot()` also needs the 3rd edition, and is skipped unless the
+#' The tests then run in a child of the environment the source files were
+#' sourced into, and snapshots are saved in a `_snaps` directory next to the
+#' test file. `expect_snapshot()` also needs testthat's 3rd edition (e.g.
+#' `testthat::local_edition(3)` in the tests), and is skipped unless the
 #' `NOT_CRAN` environment variable is `"true"`.
+#'
+#' For more control, source the files yourself and use [with_coverage()].
 #' @return A [coverage] object.
 #' @examples
 #' # For the purpose of this example, save code containing code and tests to files
@@ -470,7 +476,8 @@ file_coverage <- function(
   test_files,
   line_exclusions = NULL,
   function_exclusions = NULL,
-  parent_env = parent.frame()
+  parent_env = parent.frame(),
+  runner = source_test_file
 ) {
   env <- new.env(parent = parent_env)
 
@@ -485,7 +492,7 @@ file_coverage <- function(
   })
 
   coverage <- collect_coverage(
-    lapply(test_files, sys.source, keep.source = TRUE, envir = env)
+    lapply(test_files, runner, env = env)
   )
 
   exclude(
@@ -494,6 +501,10 @@ file_coverage <- function(
     function_exclusions = function_exclusions,
     path = NULL
   )
+}
+
+source_test_file <- function(file, env) {
+  sys.source(file, envir = env, keep.source = TRUE)
 }
 
 #' Calculate coverage of code directly

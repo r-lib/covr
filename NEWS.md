@@ -1,5 +1,9 @@
 # covr (development version)
 
+* `file_coverage()` gains a `runner` argument to choose how test files are
+  run. `runner = testthat::test_file` runs them with testthat's test runner,
+  so `expect_snapshot()` and other features that need it work (#501).
+
 * `report()`, `file_report()` and the coverage percentages printed in the
   console can use other colors for covered and missed code, set with the new
   `covr.report_colors` option, e.g.
