@@ -420,11 +420,7 @@ print.coverages <- function(x, ...) {
 # warns, so it doesn't stop coverage objects from printing.
 console_styles <- function() {
   colors <- tryCatch(report_colors(), error = function(e) {
-    warning(
-      "Using the default colors. ",
-      conditionMessage(e),
-      call. = FALSE
-    )
+    covr_warn(c("{conditionMessage(e)}", i = "Using the default colors."))
     NULL
   })
   custom <- if (is.null(colors)) character() else colnames(colors)

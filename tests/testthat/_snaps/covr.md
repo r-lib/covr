@@ -30,7 +30,7 @@
       cov <- package_coverage(test_path("TestSummary"), type = "none", code = code)
     Condition
       Warning:
-      1 R process loaded TestSummary but did not save its coverage, so it is missing from the results.
-      Coverage is saved when R exits normally; it is lost if a process is killed (e.g. with SIGKILL or SIGTERM) or is still running when the tests finish.
-      Stop background processes started by the tests, such as Shiny apps, callr sessions or future workers, gracefully and wait for them to exit.
+      Can't find coverage from 1 R process that loaded TestSummary.
+      i Coverage is lost if a process is killed or outlives the tests.
+      i Did a test leave a Shiny app, callr session, or future worker running?
 

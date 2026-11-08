@@ -209,7 +209,7 @@ save_trace <- function(directory) {
     }
   )
   if (!file.rename(tmp_file, final_file)) {
-    stop("Could not write trace file: ", final_file, call. = FALSE)
+    covr_abort("Can't write trace file {.path {final_file}}.")
   }
   invisible(final_file)
 }
@@ -335,30 +335,6 @@ pending_pattern <- function(pid) {
 unsaved_traces <- function(directory) {
   markers <- list.files(directory, pattern = "^covr_pending_")
   markers[!grepl(pending_pattern(Sys.getpid()), markers)]
-}
-
-unsaved_traces_warning <- function(package, n) {
-  structure(
-    list(
-      message = paste0(
-        sprintf(
-          ngettext(
-            n,
-            "%d R process loaded %s but did not save its coverage, so it is missing from the results.",
-            "%d R processes loaded %s but did not save their coverage, so it is missing from the results."
-          ),
-          n,
-          package
-        ),
-        "\nCoverage is saved when R exits normally; it is lost if a process is killed ",
-        "(e.g. with SIGKILL or SIGTERM) or is still running when the tests finish.",
-        "\nStop background processes started by the tests, such as Shiny apps, ",
-        "callr sessions or future workers, gracefully and wait for them to exit."
-      ),
-      call = NULL
-    ),
-    class = c("covr_unsaved_trace", "warning", "condition")
-  )
 }
 
 #' Convert a counters object to a coverage object
@@ -875,7 +851,7 @@ package_coverage <- function(
     unlink(file.path(pkg$path, "src", "*.dyn"))
     unlink(file.path(pkg$path, "src", "pgopti.*"))
   } else {
-    stop("icc is not available")
+    covr_abort("Can't find icc.")
   }
 
   if (isTRUE(clean)) {
@@ -931,7 +907,7 @@ package_coverage <- function(
   )
 
   if (res != 0) {
-    stop("Package installation did not succeed.")
+    covr_abort("Can't install {.pkg {pkg$package}}.")
   }
 
   # add hooks to the package startup
@@ -1064,7 +1040,15 @@ package_coverage <- function(
 
   unsaved <- unsaved_traces(install_path)
   if (length(unsaved) > 0) {
-    warning(unsaved_traces_warning(pkg$package, length(unsaved)))
+    n <- length(unsaved)
+    covr_warn(
+      c(
+        "Can't find coverage from {n} R process{?es} that loaded {.pkg {pkg$package}}.",
+        i = "Coverage is lost if a process is killed or outlives the tests.",
+        i = "Did a test leave a Shiny app, callr session, or future worker running?"
+      ),
+      class = "covr_unsaved_trace"
+    )
   }
 
   if (!uses_icc()) {
@@ -1465,11 +1449,11 @@ parse_type <- function(type) {
 
   if (length(type) > 1L) {
     if ("all" %in% type) {
-      stop(sQuote("all"), " must be the only type specified", call. = FALSE)
+      covr_abort('{.arg type} can\'t combine "all" with other types.')
     }
 
     if ("none" %in% type) {
-      stop(sQuote("none"), " must be the only type specified", call. = FALSE)
+      covr_abort('{.arg type} can\'t combine "none" with other types.')
     }
   }
   type

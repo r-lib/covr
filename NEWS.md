@@ -11,6 +11,9 @@
 * `report()` and `file_report()` use a dark theme when the browser prefers
   one, and have a button to switch between the light and dark themes, which
   the browser remembers for other reports (#563).
+* Error and warning messages are shorter and follow the tidyverse style guide,
+  starting with a short statement of the problem followed by bulleted details,
+  e.g. for unpaired `# nocov start` / `# nocov end` lines.
 
 * `file_coverage()` gains a `runner` argument to choose how test files are
   run. `runner = testthat::test_file` runs them with testthat's test runner,

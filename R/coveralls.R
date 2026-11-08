@@ -54,10 +54,10 @@ coveralls <- function(
 
   content <- content(result)
   if (isTRUE(content$error)) {
-    stop(
-      "Failed to upload coverage data. Reply by Coveralls: ",
-      content$message
-    )
+    covr_abort(c(
+      "Can't upload coverage to Coveralls.",
+      x = "{content$message}"
+    ))
   }
   content
 }

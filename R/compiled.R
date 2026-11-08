@@ -95,7 +95,11 @@ parse_gcov <- function(file, package_path = "", unexecuted_block = "%%%%%") {
   values <- as.numeric(matches$coverage)
 
   if (any(is.na(values))) {
-    stop("values could not be coerced to numeric ", matches$coverage)
+    bad <- unique(matches$coverage[is.na(values)])
+    covr_abort(c(
+      "Can't parse gcov line counts.",
+      x = "Unexpected count{?s}: {.val {bad}}."
+    ))
   }
 
   # There are no functions for gcov, so we set everything to NA
@@ -210,7 +214,10 @@ run_gcov <- function(
 
   if (is.na(gcov_path)) {
     if (length(gcov_inputs)) {
-      stop('gcov not found')
+      covr_abort(c(
+        "Can't find gcov.",
+        i = "Set its path with {.code options(covr.gcov = )}."
+      ))
     }
     return()
   }
@@ -278,7 +285,7 @@ run_gcov <- function(
   res <- compact(unlist(lapply(gcov_inputs, run_gcov_one), recursive = FALSE))
 
   if (!length(res) && length(gcov_inputs)) {
-    warning('parsed gcov output was empty')
+    covr_warn("Can't find any coverage in the gcov output.")
   }
 
   res

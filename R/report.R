@@ -58,10 +58,10 @@ report <- function(
     !(requireNamespace("htmltools", quietly = TRUE) &&
       requireNamespace("DT", quietly = TRUE))
   ) {
-    stop(
-      "The `DT` and `htmltools` packages must be installed to use `covr::report()`",
-      call. = FALSE
-    )
+    covr_abort(c(
+      "{.fn report} requires the {.pkg DT} and {.pkg htmltools} packages.",
+      i = 'Install them with {.code install.packages(c("DT", "htmltools"))}.'
+    ))
   }
 
   data <- to_report_data(x)
