@@ -107,9 +107,12 @@ the functions that measure coverage in the current session, such as
 <code>COVR_FIX_PARALLEL_MCEXIT</code> takes precedence over this option. Not
 supported on Windows.</p></li>
 <li><p><code>covr.flags</code>:</p></li>
-<li><p><code>covr.gcov</code>: If the appropriate gcov version is not on your path you
-can use this option to set the appropriate location. If set to "" it will
-turn off coverage of compiled code.</p></li>
+<li><p><code>covr.gcov</code>: Path to the gcov executable. Defaults to the gcov found
+on your <code>PATH</code>, or <code>NA</code> if there is none. If the appropriate gcov version
+is not on your path you can use this option to set the appropriate
+location. If set to <code>""</code> it will turn off coverage of compiled code. If
+<code>NA</code>, covr throws an error if any compiled coverage files (<code>.gcno</code>)
+exist.</p></li>
 <li><p><code>covr.gcov_additional_paths</code>:</p></li>
 <li><p><code>covr.gcov_args</code>:</p></li>
 <li><p><code>covr.gcov_partial</code>: How to count compiled code lines that gcov

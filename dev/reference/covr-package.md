@@ -67,9 +67,12 @@ behaviour:
 
 - `covr.flags`:
 
-- `covr.gcov`: If the appropriate gcov version is not on your path you
-  can use this option to set the appropriate location. If set to "" it
-  will turn off coverage of compiled code.
+- `covr.gcov`: Path to the gcov executable. Defaults to the gcov found
+  on your `PATH`, or `NA` if there is none. If the appropriate gcov
+  version is not on your path you can use this option to set the
+  appropriate location. If set to `""` it will turn off coverage of
+  compiled code. If `NA`, covr throws an error if any compiled coverage
+  files (`.gcno`) exist.
 
 - `covr.gcov_additional_paths`:
 

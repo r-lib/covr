@@ -146,6 +146,10 @@
   baseline, for GitHub Actions job summaries or pull request comments
   ([\#519](https://github.com/r-lib/covr/issues/519)).
 
+- `options(covr.gcov = "")` once again turns off coverage of compiled
+  code, as documented, instead of failing with “gcov not found”
+  ([\#516](https://github.com/r-lib/covr/issues/516)).
+
 - Functions nested inside lists and environments, such as
   `fns <- list(a = function(x) x)`, functions defined inside
   [`local()`](https://rdrr.io/r/base/eval.html) and ggproto methods, can
