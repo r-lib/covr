@@ -7,6 +7,15 @@
   calls, such as those of R6 active bindings, no longer keep their environment.
   Saving the coverage of tests that used an active binding of an R6 object
   holding data read with arrow crashed R (#573).
+* Line coverage is now computed the same way everywhere, so `print()`,
+  `percent_coverage()`, `tally_coverage()`, `report()`, `codecov()`,
+  `coveralls()`, `to_cobertura()`, `to_sonarqube()` and `to_lcov()` agree. A
+  line only counts as covered if all its expressions ran, e.g. `if (x) a else
+  b` on one line where `a` never ran is now uncovered in `report()`, `codecov()`
+  and `coveralls()`. Lines shared by several functions, such as
+  `f <- function() 1; g <- function() 2`, are counted once, and `print()` and
+  `percent_coverage()` no longer count lines with only punctuation such as `}`.
+  Reported line coverage may decrease slightly (#620).
 
 * Expressions in `if` and `switch` branches written without braces now get
   their own counters when the conditional is the body of a function or is
@@ -21,15 +30,6 @@
 
 * `print.coverage()` gains an `n` argument to limit the number of files or
   functions printed, showing the least covered first (#215).
-* Line coverage is now computed the same way everywhere, so `print()`,
-  `percent_coverage()`, `tally_coverage()`, `report()`, `codecov()`,
-  `coveralls()`, `to_cobertura()`, `to_sonarqube()` and `to_lcov()` agree. A
-  line only counts as covered if all its expressions ran, e.g. `if (x) a else
-  b` on one line where `a` never ran is now uncovered in `report()`, `codecov()`
-  and `coveralls()`. Lines shared by several functions, such as
-  `f <- function() 1; g <- function() 2`, are counted once, and `print()` and
-  `percent_coverage()` no longer count lines with only punctuation such as `}`.
-  Reported line coverage may decrease slightly (#620).
 
 * The error for unpaired `# nocov start` and `# nocov end` comments now gives
   the name of the file along with the line numbers of the comments (#409).
