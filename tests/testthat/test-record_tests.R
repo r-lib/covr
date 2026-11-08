@@ -304,6 +304,9 @@ test_that("covr.record_tests: records multiple calls to the same test expr", {
 
 test_that("covr.record_tests: doesn't record environments of functions in calls", {
   skip_if_not_installed("R6")
+  # When covr measures its own coverage, the outer instrumentation changes the
+  # recorded calls
+  skip_on_covr()
 
   fcode <- '
   Counter <- R6::R6Class("Counter",
