@@ -29,6 +29,15 @@ R_LIBS="$lib" Rscript -e 'covr::report(covr::package_coverage())'
 
 If you do shim your working tree, run `sh unshim_package.sh` before committing. `git archive HEAD` only includes committed changes, so commit (or copy the files) first if you want to measure uncommitted work.
 
+### Running on Windows
+
+Windows behaves differently in ways that matter to covr, e.g. `normalizePath()` turns a relative path that doesn't exist into an absolute one under the working directory, so check path handling there rather than relying on CI. From WSL, Windows R installed with rig can be run directly, e.g. `/mnt/c/Users/<user>/.local/bin/Rscript.exe` and `R.exe` (`rig list` shows the versions):
+
+- Give it Windows paths (`C:/...`), and run it from a directory on the Windows filesystem; UNC paths to the WSL filesystem don't work as working directories.
+- Copy the source to the Windows filesystem first, e.g. `git archive HEAD | tar -x -C /mnt/c/Users/<user>/AppData/Local/Temp/covr-win/src`.
+- Its library may not have covr's dependencies; install them (and testthat) into a temporary library with `install.packages()`, then `R.exe CMD INSTALL -l <lib> <src>`. Building covr and source packages needs Rtools.
+- `Rscript -e` can segfault on multiline or complex code on Windows; write the code to a `.R` file instead.
+
 ### Releases
 
 The pkgdown site uses `development: mode: auto`. The site root (https://covr.r-lib.org/) is only rebuilt when the pkgdown workflow runs on a commit with a release version (e.g. `3.6.5`); development versions (e.g. `3.6.5.9000`) build to `/dev`.
