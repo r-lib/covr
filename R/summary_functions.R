@@ -321,7 +321,7 @@ zero_coverage <- function(x, ...) {
     getOption("covr.rstudio_source_markers", TRUE) &&
       rstudioapi::hasFun("sourceMarkers")
   ) {
-    markers <- markers(coverage_data)
+    markers <- source_markers(coverage_data)
     rstudioapi::callFun(
       "sourceMarkers",
       name = "covr",
@@ -478,49 +478,8 @@ format_percentage <- function(x, styles = console_styles()) {
   style(sprintf("%02.2f%%", x))
 }
 
-markers <- function(x, ...) UseMethod("markers")
-
-#' @export
-markers.coverages <- function(x, ...) {
-  mrks <- unlist(lapply(unname(x), markers), recursive = FALSE)
-
-  mrks <- mrks[order(
-    vcapply(mrks, `[[`, "file"),
-    viapply(mrks, `[[`, "line"),
-    vcapply(mrks, `[[`, "message")
-  )]
-
-  # request source markers
-  rstudioapi::callFun(
-    "sourceMarkers",
-    name = "covr",
-    markers = mrks,
-    basePath = NULL,
-    autoSelect = "first"
-  )
-  invisible()
-}
-#' @export
-markers.coverage <- function(x, ...) {
-  # generate the markers
-  markers <- lapply(unname(x), function(xx) {
-    filename <- get_source_filename(xx$srcref, full.names = TRUE)
-
-    list(
-      type = "warning",
-      file = filename,
-      line = xx$srcref[1],
-      column = xx$srcref[2],
-      message = sprintf("No %s Coverage!", to_title(attr(x, "type")))
-    )
-  })
-}
-
-#' @export
-markers.data.frame <- function(x, ..., type = "test") {
-  # nolint
-  # generate the markers
-  markers <- Map(
+source_markers <- function(x, type = "test") {
+  Map(
     function(filename, line, column) {
       list(
         type = "warning",

@@ -84,14 +84,6 @@
 #'     thrown, so lines that create objects with destructors may also count as
 #'     partially executed.
 #'
-#'   \item `covr.icov`:
-#'
-#'   \item `covr.icov_args`:
-#'
-#'   \item `covr.icov_flags`:
-#'
-#'   \item `covr.icov_prof`:
-#'
 #'   \item `covr.llvm_cov`: Path to the `llvm-cov` used to read the coverage
 #'     of Rust code. Defaults to the one of the Rust toolchain, installed with
 #'     `rustup component add llvm-tools`, or for Rust installed without rustup
@@ -984,17 +976,7 @@ package_coverage <- function(
   install_path <- normalize_path(install_path)
   dir.create(install_path)
 
-  # check for compiler
-  if (!uses_icc()) {
-    flags <- getOption("covr.flags")
-  } else if (length(getOption("covr.icov")) > 0L) {
-    flags <- getOption("covr.icov_flags")
-    # clean up old icov files
-    unlink(file.path(pkg$path, "src", "*.dyn"))
-    unlink(file.path(pkg$path, "src", "pgopti.*"))
-  } else {
-    covr_abort("Can't find icc.")
-  }
+  flags <- getOption("covr.flags")
 
   if (isTRUE(clean)) {
     # The install directory is only removed on success, so the test output
@@ -1213,10 +1195,8 @@ package_coverage <- function(
       root <- pkg$path
     }
     res <- NULL
-  } else if (!uses_icc()) {
-    res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
   } else {
-    res <- run_icov(pkg$path, quiet = quiet)
+    res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
   }
 
   if (!is.null(rust)) {

@@ -20,7 +20,7 @@ system_output(
 
 \item{env}{a named character vector of environment variables.  Will be quoted}
 
-\item{quiet}{if \code{TRUE}, the command output will be echoed.}
+\item{quiet}{if \code{TRUE}, the command's standard error is discarded.}
 
 \item{echo}{if \code{TRUE}, the command to run will be echoed.}
 

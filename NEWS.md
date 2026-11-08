@@ -21,6 +21,9 @@
   distribution, those of the LLVM version rustc uses (e.g. `llvm-cov-18`).
   Without them covr warns and only skips the Rust code.
   `options(covr.llvm_cov = "")` turns this off (#728).
+* covr no longer supports code coverage with Intel's classic `icc` compiler,
+  which Intel discontinued in 2024, and the `covr.icov`, `covr.icov_args`,
+  `covr.icov_flags` and `covr.icov_prof` options have been removed.
 
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
