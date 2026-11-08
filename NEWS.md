@@ -1,5 +1,8 @@
 # covr (development version)
 
+* `report()` no longer fails with "invalid argument to unary operator" when
+  the coverage object has no traces (#540).
+
 * With `options(covr.record_tests = TRUE)`, functions in the recorded test
   calls, such as those of R6 active bindings, no longer keep their environment.
   Saving the coverage of tests that used an active binding of an R6 object

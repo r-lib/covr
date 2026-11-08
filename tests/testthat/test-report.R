@@ -13,3 +13,25 @@ test_that("report() bundles bootstrap 3.4.1", {
   )
   expect_match(bootstrap_js[[2]], "Bootstrap v3.4.1", fixed = TRUE)
 })
+
+test_that("report() works with empty coverage (#540)", {
+  skip_if_not_installed("DT")
+  x <- structure(list(), class = "coverage", package = list(package = "p"))
+  data <- to_report_data(x)
+  expect_equal(nrow(data$file_stats), 0)
+  expect_named(
+    data$file_stats,
+    c(
+      "File",
+      "Lines",
+      "Relevant",
+      "Covered",
+      "Missed",
+      "Hits / Line",
+      "Coverage"
+    )
+  )
+  file <- withr::local_tempfile(fileext = ".html")
+  report(x, file = file, browse = FALSE)
+  expect_true(file.exists(file))
+})
