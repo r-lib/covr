@@ -301,3 +301,35 @@ test_that("covr.record_tests: records multiple calls to the same test expr", {
   expect_equal(cov[[trace_f2]]$tests[, "test"], c(2, 2, 2))
   expect_equal(cov[[trace_f2]]$tests[, "call"], c(1, 2, 3))
 })
+
+test_that("covr.record_tests: doesn't record environments of functions in calls", {
+  skip_if_not_installed("R6")
+
+  fcode <- '
+  Counter <- R6::R6Class("Counter",
+    public = list(
+      data = NULL,
+      initialize = function(data) self$data <- data
+    ),
+    active = list(
+      size = function() length(self$data)
+    )
+  )
+  apply_f <- function(f, x) f(x)
+  '
+
+  withr::with_options(c("covr.record_tests" = TRUE), {
+    cov <- code_coverage(
+      fcode,
+      "counter <- Counter$new(1:10)
+      stopifnot(counter$size == 10, counter$size == 10)
+      do.call(apply_f, list(function(x) x, 1))"
+    )
+  })
+
+  # the calls into the traced code: `initialize(...)`, the active binding and
+  # apply_f with its argument from do.call()
+  calls <- lapply(attr(cov, "tests"), function(trace) trace[[length(trace)]])
+  fns <- Filter(is.function, do.call(c, lapply(unname(calls), as.list)))
+  expect_equal(unname(lapply(fns, environment)), rep(list(emptyenv()), 3))
+})
