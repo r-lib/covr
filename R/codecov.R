@@ -5,7 +5,8 @@
 #' `codecov/codecov-action` GitHub Action. This takes two requests:
 #'
 #' 1. `POST <base_url>/upload/<git service>/<owner>::::<repo>/upload-coverage`
-#'    tells Codecov about the commit, branch, pull request and CI job. The
+#'    (for a repository in nested groups, `owner/group/repo` is
+#'    `owner:::group::::repo`) tells Codecov about the commit, branch, pull request and CI job. The
 #'    response contains a `url` for the upload on Codecov and a pre-signed
 #'    location to send the coverage report to.
 #' 1. `PUT` sends the report, covr's JSON coverage format (processed by
@@ -32,14 +33,17 @@
 #' See <https://docs.codecov.com/docs/codecov-tokens>.
 #'
 #' Without a token, Codecov only accepts uploads for public repositories, and
-#' only for an unprotected branch, which is a branch name with an owner
-#' prefix such as `owner:branch`. So that uploads from pull requests, e.g. from
-#' forks, which do not have access to the token as a CI secret, work without
-#' one, `codecov()` uses `owner:branch` as the branch name of pull requests when
-#' there is no token and `branch` is `NULL`. On GitHub Actions that is the label
-#' of the head of the pull request, as `codecov/codecov-action` does, and
-#' elsewhere the owner of the repository. Uploads without a token from other
-#' branches are rejected by Codecov.
+#' only for an unprotected branch, which is a branch name with an owner prefix
+#' such as `owner:branch`. Pull requests from forks do not have access to the
+#' token as a CI secret, so on GitHub Actions, when there is no token, `branch`
+#' is `NULL` and the head repository of the pull request (the
+#' `pull_request.head.repo.full_name` of the event in `GITHUB_EVENT_PATH`)
+#' differs from `GITHUB_REPOSITORY`, `codecov()` uses the label of the head of
+#' the pull request, `owner:branch`, as the branch name, as
+#' `codecov/codecov-action` does. Pull requests from the same repository, other
+#' CI services and uploads from other branches use the plain branch name, so
+#' without a token Codecov rejects them unless the branch is already
+#' unprotected.
 #'
 #' @section Alternative:
 #' Instead of uploading from R, write the coverage to a file and upload it with
@@ -128,8 +132,8 @@ codecov <- function(
   # Only an unprotected branch can be uploaded to without a token
   if (is.null(branch)) {
     info$branch <- info$branch %||% local_branch()
-    if (is.null(token) && !is.null(info$pr)) {
-      info$branch <- unprotected_branch(info$branch, info$slug, info$pr_label)
+    if (is.null(token)) {
+      info$branch <- info$fork_branch %||% info$branch
     }
   } else {
     info$branch <- branch
@@ -158,13 +162,14 @@ codecov <- function(
     encode_slug(info$slug),
     "/upload-coverage"
   )
+  # Codecov's serializer rejects null for `flags`, `ci_service` and `version`
   request <- jsonlite::toJSON(
     list(
-      ci_service = info$ci_service,
+      ci_service = info$ci_service %||% "local",
       ci_url = info$ci_url,
       cli_args = NULL,
       env = empty_object(),
-      flags = if (!is.null(flags)) I(flags),
+      flags = I(as.character(flags)),
       job_code = info$job_code,
       name = info$name,
       version = paste0("covr-", utils::packageVersion("covr")),
@@ -334,16 +339,6 @@ env_var <- function(...) {
 codecov_pr <- function(pr) {
   pr <- as.character(pr)
   if (length(pr) == 1L && !is.na(pr) && nzchar(pr) && pr != "false") pr
-}
-
-# Codecov only accepts a tokenless upload from an unprotected branch, which has
-# an owner prefix, like the `owner:branch` label GitHub gives the head of a pull
-# request.
-unprotected_branch <- function(branch, slug, label = NULL) {
-  if (grepl(":", branch, fixed = TRUE)) {
-    return(branch)
-  }
-  label %||% paste0(sub("/.*", "", slug), ":", branch)
 }
 
 git_remote_url <- function(dir = ".") {
@@ -599,7 +594,14 @@ codecov_ci_info <- function() {
           regexpr("(?<=^refs/pull/)[0-9]+", github_ref, perl = TRUE)
         )
       info$commit <- event$head$sha %||% info$commit
-      info$pr_label <- event$head$label
+      # Codecov only accepts a tokenless upload from an unprotected branch,
+      # which has an owner prefix, like the `owner:branch` label GitHub gives
+      # the head of a pull request from a fork
+      head_repo <- event$head$repo$full_name
+      if (!is.null(head_repo) && !identical(head_repo, slug)) {
+        info$fork_branch <- event$head$label %||%
+          paste0(sub("/.*", "", head_repo), ":", head_ref)
+      }
     }
     info
     # ---------

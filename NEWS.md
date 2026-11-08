@@ -6,10 +6,10 @@
   Codecov has deprecated and which doesn't support organization-level upload
   tokens (#568, #464). The repository and git service come from the CI service
   or the `origin` remote, and `base_url` is now the upload API, so
-  `"https://codecov.io"` is replaced by it. Without a token, pull requests are
-  uploaded from an unprotected branch (`owner:branch`), like
-  `codecov/codecov-action` does for forks, and on GitHub Actions pull requests
-  use the head commit of the pull request. `codecov()` now returns the response
+  `"https://codecov.io"` is replaced by it. Without a token, pull requests from
+  forks on GitHub Actions are uploaded from an unprotected branch
+  (`owner:branch`), like `codecov/codecov-action` does, and on GitHub Actions
+  pull requests use the head commit of the pull request. `codecov()` now returns the response
   of Codecov, which includes the `url` of the upload, and errors with class
   `covr_codecov_error` or, for HTTP 429 and 5xx, warns with class
   `covr_codecov_warning`, if either request fails.

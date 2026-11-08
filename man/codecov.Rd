@@ -73,7 +73,8 @@ by the \href{https://github.com/codecov/codecov-cli}{Codecov CLI} and the
 \details{
 \enumerate{
 \item \verb{POST <base_url>/upload/<git service>/<owner>::::<repo>/upload-coverage}
-tells Codecov about the commit, branch, pull request and CI job. The
+(for a repository in nested groups, \code{owner/group/repo} is
+\verb{owner:::group::::repo}) tells Codecov about the commit, branch, pull request and CI job. The
 response contains a \code{url} for the upload on Codecov and a pre-signed
 location to send the coverage report to.
 \item \code{PUT} sends the report, covr's JSON coverage format (processed by
@@ -102,14 +103,17 @@ repositories, can be used. The token is looked up as described for \code{token}.
 See \url{https://docs.codecov.com/docs/codecov-tokens}.
 
 Without a token, Codecov only accepts uploads for public repositories, and
-only for an unprotected branch, which is a branch name with an owner
-prefix such as \code{owner:branch}. So that uploads from pull requests, e.g. from
-forks, which do not have access to the token as a CI secret, work without
-one, \code{codecov()} uses \code{owner:branch} as the branch name of pull requests when
-there is no token and \code{branch} is \code{NULL}. On GitHub Actions that is the label
-of the head of the pull request, as \code{codecov/codecov-action} does, and
-elsewhere the owner of the repository. Uploads without a token from other
-branches are rejected by Codecov.
+only for an unprotected branch, which is a branch name with an owner prefix
+such as \code{owner:branch}. Pull requests from forks do not have access to the
+token as a CI secret, so on GitHub Actions, when there is no token, \code{branch}
+is \code{NULL} and the head repository of the pull request (the
+\code{pull_request.head.repo.full_name} of the event in \code{GITHUB_EVENT_PATH})
+differs from \code{GITHUB_REPOSITORY}, \code{codecov()} uses the label of the head of
+the pull request, \code{owner:branch}, as the branch name, as
+\code{codecov/codecov-action} does. Pull requests from the same repository, other
+CI services and uploads from other branches use the plain branch name, so
+without a token Codecov rejects them unless the branch is already
+unprotected.
 }
 
 \section{Alternative}{

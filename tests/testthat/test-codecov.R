@@ -120,8 +120,8 @@ test_that("it describes a local repository in the request", {
   expect_false(body$file_not_found)
   expect_equal(body$env, structure(list(), names = character()))
   expect_match(body$version, "^covr-")
-  expect_null(body$ci_service)
-  expect_null(body$flags)
+  expect_equal(body$ci_service, "local")
+  expect_equal(body$flags, list())
   expect_null(body$pullid)
 })
 
@@ -586,13 +586,20 @@ test_that("it works with GitHub Enterprise", {
   )
 })
 
-github_pull_request_env <- function(frame = parent.frame()) {
+github_pull_request_env <- function(
+  head_repo = "forkowner/actions",
+  label = '"label": "forkowner:feature", ',
+  frame = parent.frame()
+) {
   event <- withr::local_tempfile(fileext = ".json", .local_envir = frame)
   writeLines(
     paste0(
       '{"number": 7, "pull_request": {"number": 7, "head": {',
       '"sha": "c94a8fe5ccb19ba61c4c0873d391e987982fbbd3",',
-      '"label": "forkowner:feature", "repo": {"full_name": "forkowner/actions"}}}}'
+      label,
+      '"repo": {"full_name": "',
+      head_repo,
+      '"}}}}'
     ),
     event
   )
@@ -638,14 +645,35 @@ test_that("tokenless pull requests from forks use an unprotected branch", {
   expect_false("Authorization" %in% names(codecov_post(recorded)$headers))
 })
 
-test_that("tokenless pull requests without an event use the repository owner", {
+test_that("tokenless pull requests from forks without a label use the head repository owner", {
+  github_pull_request_env(label = "")
+  recorded <- local_codecov_mocks()
+  codecov(coverage = cov_no_token)
+
+  expect_equal(codecov_post_body(recorded)$branch, "forkowner:feature")
+})
+
+test_that("tokenless pull requests from the same repository use the branch", {
+  github_pull_request_env(
+    head_repo = "tester/actions",
+    label = '"label": "tester:feature", '
+  )
+  recorded <- local_codecov_mocks()
+  codecov(coverage = cov_no_token)
+
+  body <- codecov_post_body(recorded)
+  expect_equal(body$branch, "feature")
+  expect_equal(body$pullid, "7")
+})
+
+test_that("tokenless pull requests without an event use the branch", {
   github_pull_request_env()
   withr::local_envvar(GITHUB_EVENT_PATH = NA)
   recorded <- local_codecov_mocks()
   codecov(coverage = cov_no_token)
 
   body <- codecov_post_body(recorded)
-  expect_equal(body$branch, "tester:feature")
+  expect_equal(body$branch, "feature")
   expect_equal(body$pullid, "7")
   expect_equal(body$commitid, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
@@ -658,7 +686,7 @@ test_that("an explicit branch is not changed for tokenless pull requests", {
   expect_equal(codecov_post_body(recorded)$branch, "explicit")
 })
 
-test_that("tokenless pull requests of other services use the repository owner", {
+test_that("tokenless pull requests of other services use the branch", {
   withr::local_envvar(c(
     codecov_ci_vars(),
     "CI" = "true",
@@ -670,7 +698,7 @@ test_that("tokenless pull requests of other services use the repository owner", 
   recorded <- local_codecov_mocks()
   codecov(coverage = cov_no_token)
 
-  expect_equal(codecov_post_body(recorded)$branch, "tester:feature")
+  expect_equal(codecov_post_body(recorded)$branch, "feature")
 })
 
 test_that("tokenless uploads that aren't for pull requests use the branch", {
