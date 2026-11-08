@@ -50,10 +50,12 @@ set_namespace <- function(x, pkg) {
 }
 
 # Source `lines` into a new environment with the parse data that covr needs
-# to instrument the branches of `if` and `switch()`.
+# to instrument the branches of `if` and `switch()`. Its parent is the global
+# environment, so on R < 4.2.0 R CMD check doesn't treat the code as covr's,
+# whose conditions of length > 1 abort with `_R_CHECK_LENGTH_1_CONDITION_`.
 local_branch_env <- function(lines, frame = parent.frame()) {
   path <- local_r_file(lines, frame = frame)
-  env <- new.env()
+  env <- new.env(parent = globalenv())
   withr::with_options(
     c(keep.parse.data.pkgs = TRUE),
     sys.source(path, envir = env, keep.source = TRUE)

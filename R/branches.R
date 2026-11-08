@@ -212,8 +212,14 @@ branch <- function(key, cond) {
 
 # The branch `if` takes for a condition other than `TRUE` or `FALSE`, e.g. a
 # number, a string such as `"true"` or a factor, or `NA` if it signals an
-# error.
+# error. A condition whose length isn't one is an error since R 4.2.0, and
+# before that only a warning, but `if` here would be in covr's code, which R
+# CMD check of covr makes abort with `_R_CHECK_LENGTH_1_CONDITION_`, so
+# nothing is recorded for it. `unclass()` avoids dispatching `length()`.
 branch_index <- function(cond) {
+  if (length(unclass(cond)) != 1L) {
+    return(NA_integer_)
+  }
   tryCatch(
     suppressWarnings(if (cond) 1L else 2L),
     error = function(e) NA_integer_
