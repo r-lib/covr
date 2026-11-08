@@ -23,7 +23,7 @@ package_coverage(
 )
 }
 \arguments{
-\item{path}{file path to the package.}
+\item{path}{file path to the package, or to an installed package.}
 
 \item{type}{run the package \sQuote{tests}, \sQuote{vignettes},
 \sQuote{examples}, \sQuote{all}, or \sQuote{none}. The default is
@@ -104,6 +104,13 @@ exits normally, so the coverage is lost if a process is killed (e.g. with
 processes gracefully and wait for them to exit, e.g. call \verb{$stop()} on a
 \pkg{shinytest2} \code{AppDriver}, which waits longer for the app to exit when
 run by covr.
+
+\code{path} can also be an installed package, e.g.
+\code{system.file(package = "pkg")}, to compute coverage without the package
+source. The package must have been installed with its tests and source
+references, e.g. with
+\code{remotes::install_github("user/pkg", INSTALL_opts = c("--install-tests", "--with-keep.source"))}. File names are those of the source it was
+installed from, and compiled code isn't covered.
 
 #ifdef unix
 Parallelized code using \pkg{parallel}'s \code{\link[=mcparallel]{mcparallel()}} needs to

@@ -24,6 +24,24 @@
       line 9
       line 10
 
+# package_coverage needs tests and srcrefs of installed packages
+
+    Code
+      package_coverage(pkg, install_path = install_path)
+    Condition
+      Error:
+      ! Can't find tests in the installed package TestSummary.
+      i Install it with `R CMD INSTALL --install-tests`.
+
+---
+
+    Code
+      package_coverage(pkg, install_path = install_path)
+    Condition
+      Error:
+      ! Can't find source references in the installed package TestSummary.
+      i Install it with `R CMD INSTALL --with-keep.source`.
+
 # package_coverage warns about processes that did not save a trace
 
     Code

@@ -726,6 +726,14 @@ with_coverage <- function(
 #' \pkg{shinytest2} `AppDriver`, which waits longer for the app to exit when
 #' run by covr.
 #'
+#' `path` can also be an installed package, e.g.
+#' `system.file(package = "pkg")`, to compute coverage without the package
+#' source. The package must have been installed with its tests and source
+#' references, e.g. with
+#' `remotes::install_github("user/pkg", INSTALL_opts = c("--install-tests",
+#' "--with-keep.source"))`. File names are those of the source it was
+#' installed from, and compiled code isn't covered.
+#'
 #' #ifdef unix
 #' Parallelized code using \pkg{parallel}'s [mcparallel()] needs to
 #' use a patched `parallel:::mcexit`. This is done automatically if the
@@ -734,7 +742,7 @@ with_coverage <- function(
 #' `covr.fix_parallel_mcexit`.
 #' #endif
 #'
-#' @param path file path to the package.
+#' @param path file path to the package, or to an installed package.
 #' @param type run the package \sQuote{tests}, \sQuote{vignettes},
 #' \sQuote{examples}, \sQuote{all}, or \sQuote{none}. The default is
 #' \sQuote{tests}.
@@ -808,12 +816,24 @@ package_coverage <- function(
   }
 
   pkg <- as_package(path)
+  installed <- is_installed_package(pkg$path)
 
   if (missing(type)) {
     type <- "tests"
   }
 
   type <- parse_type(type)
+
+  if (
+    installed &&
+      "tests" %in% type &&
+      !dir.exists(file.path(pkg$path, "tests"))
+  ) {
+    covr_abort(c(
+      "Can't find tests in the installed package {.pkg {pkg$package}}.",
+      i = "Install it with {.code R CMD INSTALL --install-tests}."
+    ))
+  }
 
   run_separately <- !isTRUE(combine_types) && length(type) > 1
   if (run_separately) {
@@ -864,8 +884,10 @@ package_coverage <- function(
     succeeded <- FALSE
     on.exit(
       {
-        clean_objects(pkg$path)
-        clean_gcov(pkg$path)
+        if (!installed) {
+          clean_objects(pkg$path)
+          clean_gcov(pkg$path)
+        }
         clean_parse_data()
         if (succeeded) {
           unlink(install_path, recursive = TRUE)
@@ -876,42 +898,16 @@ package_coverage <- function(
   }
 
   # clean any dlls prior to trying to install
-  if (isTRUE(pre_clean)) {
+  if (isTRUE(pre_clean) && !installed) {
     clean_objects(pkg$path)
   }
 
-  # install the package in a temporary directory
-  withr::with_envvar(
-    list(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep)),
-    withr::with_makevars(flags, assignment = "+=", {
-      args <- c(
-        "--vanilla",
-        "CMD",
-        "INSTALL",
-        "-l",
-        shQuote(install_path),
-        "--example",
-        "--install-tests",
-        "--with-keep.source",
-        "--with-keep.parse.data",
-        "--no-staged-install",
-        "--no-multiarch",
-        shQuote(pkg$path)
-      )
-
-      name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
-      path <- file.path(R.home("bin"), name)
-      res <- system2(
-        path,
-        args,
-        stdout = if (quiet) NULL else "",
-        stderr = if (quiet) NULL else ""
-      )
-    })
-  )
-
-  if (res != 0) {
-    covr_abort("Can't install {.pkg {pkg$package}}.")
+  if (installed) {
+    # `R CMD INSTALL` fails to reinstall an installed package on Windows, and
+    # only copies it elsewhere, so copy it directly (#638).
+    copy_installed_package(pkg, install_path)
+  } else {
+    install_package(pkg, install_path, flags, quiet)
   }
 
   # add hooks to the package startup
@@ -1067,7 +1063,23 @@ package_coverage <- function(
     )
   }
 
-  if (!uses_icc()) {
+  if (installed) {
+    # `R CMD INSTALL` copies an installed package rather than building it, so
+    # its R code is only available from the srcrefs kept when it was
+    # installed, whose file names are in the source it was installed from.
+    # Its compiled code isn't instrumented (#638).
+    pkg$path <- installed_source_path(coverage)
+    if (is.null(pkg$path)) {
+      covr_abort(c(
+        "Can't find source references in the installed package {.pkg {pkg$package}}.",
+        i = "Install it with {.code R CMD INSTALL --with-keep.source}."
+      ))
+    }
+    if (isTRUE(relative_path)) {
+      root <- pkg$path
+    }
+    res <- NULL
+  } else if (!uses_icc()) {
     res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
   } else {
     res <- run_icov(pkg$path, quiet = quiet)
@@ -1109,10 +1121,12 @@ package_coverage <- function(
   line_exclusions <- c(
     generated_files,
     line_exclusions,
-    withr::with_dir(
-      pkg$path,
-      normalize_path(as.character(parse_covr_ignore()))
-    )
+    if (!installed) {
+      withr::with_dir(
+        pkg$path,
+        normalize_path(as.character(parse_covr_ignore()))
+      )
+    }
   )
 
   coverage <- exclude(
@@ -1502,6 +1516,71 @@ run_vignettes <- function(pkg, lib) {
     show_failures(dirname(failfile))
   } else {
     file.rename(failfile, outfile)
+  }
+}
+
+# Install the package source with the options covr needs. With `quiet`, the
+# output is captured to give the reason if the installation fails.
+install_package <- function(pkg, install_path, flags, quiet) {
+  output <- withr::with_envvar(
+    list(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep)),
+    withr::with_makevars(flags, assignment = "+=", {
+      args <- c(
+        "--vanilla",
+        "CMD",
+        "INSTALL",
+        "-l",
+        shQuote(install_path),
+        "--example",
+        "--install-tests",
+        "--with-keep.source",
+        "--with-keep.parse.data",
+        "--no-staged-install",
+        "--no-multiarch",
+        shQuote(pkg$path)
+      )
+
+      name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
+      path <- file.path(R.home("bin"), name)
+      if (quiet) {
+        suppressWarnings(system2(path, args, stdout = TRUE, stderr = TRUE))
+      } else {
+        structure(
+          character(),
+          status = system2(path, args, stdout = "", stderr = "")
+        )
+      }
+    })
+  )
+
+  status <- attr(output, "status") %||% 0L
+  if (status != 0) {
+    covr_abort(
+      "Can't install {.pkg {pkg$package}}.",
+      output = utils::tail(output, failure_lines())
+    )
+  }
+}
+
+# Copy an installed package to `install_path`, giving the warnings of
+# `file.copy()` as the reason if the copy fails.
+copy_installed_package <- function(pkg, install_path) {
+  reasons <- character()
+  copied <- withCallingHandlers(
+    file.copy(pkg$path, install_path, recursive = TRUE),
+    warning = function(w) {
+      reasons <<- c(reasons, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  if (
+    !isTRUE(copied) ||
+      !file.exists(file.path(install_path, pkg$package, "DESCRIPTION"))
+  ) {
+    covr_abort(
+      "Can't copy the installed package {.pkg {pkg$package}} to {.path {install_path}}.",
+      output = if (length(reasons) > 0) reasons else "`file.copy()` failed."
+    )
   }
 }
 

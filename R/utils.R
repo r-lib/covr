@@ -250,6 +250,27 @@ package_root <- function(path) {
   }
 }
 
+is_installed_package <- function(path) {
+  file.exists(file.path(path, "Meta", "package.rds"))
+}
+
+# The directory of the source an installed package was installed from, the
+# parent of the `R` directory with the files in the srcrefs of its traces, or
+# `NULL` if it was installed without srcrefs. The namespace can also have
+# functions with srcrefs from elsewhere, e.g. other packages, so this is the
+# directory with the most traces.
+installed_source_path <- function(traces) {
+  files <- vcapply(traces, function(x) {
+    get_source_filename(x$srcref, full.names = TRUE)
+  })
+  files <- files[grepl("/R/", files, fixed = TRUE)]
+  if (length(files) == 0) {
+    return(NULL)
+  }
+  dirs <- sub("^(.*)/R/.*$", "\\1", files)
+  names(which.max(table(dirs)))
+}
+
 read_description <- function(path) {
   if (!length(path) || !file.exists(path)) {
     covr_abort("Can't find a DESCRIPTION file at {.path {path}}.")
