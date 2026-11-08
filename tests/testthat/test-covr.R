@@ -197,6 +197,16 @@ test_that("package_coverage keeps install_path only when coverage fails", {
   expect_false(dir.exists(install_path))
 })
 
+test_that("package_coverage passes outDir to testInstalledPackage", {
+  out_dir <- file.path(tempfile(), "out")
+  on.exit(unlink(dirname(out_dir), recursive = TRUE), add = TRUE)
+  package_coverage(test_path("TestSummary"), outDir = out_dir)
+  expect_contains(
+    list.files(out_dir, recursive = TRUE),
+    "TestSummary-tests/testthat.Rout"
+  )
+})
+
 test_that("package_coverage errors carry the full testthat output", {
   err <- expect_error(
     package_coverage(test_path("TestFailure")),

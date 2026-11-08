@@ -56,7 +56,10 @@ names to exclude. Example \verb{print\\\\\\.} to match print methods.}
 and tests run in. By default it is a path in the R sessions temporary
 directory. It can sometimes be useful to set this (along with \code{clean = FALSE}) to help debug test failures. It is not removed if coverage fails.}
 
-\item{...}{Additional arguments passed to \code{\link[tools:testInstalledPackage]{tools::testInstalledPackage()}}.}
+\item{...}{Additional arguments passed to \code{\link[tools:testInstalledPackage]{tools::testInstalledPackage()}}.
+Use \code{outDir} to save the output of the tests and examples to a directory
+which is kept after coverage finishes; by default it is written to
+\code{install_path}.}
 
 \item{exclusions}{\sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.}
 
