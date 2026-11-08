@@ -19,13 +19,18 @@ trace_calls <- function(
   impute_ref = NULL
 ) {
   # Construct the calls by hand to avoid a NOTE from R CMD check
+  count_fn <- if (isTRUE(getOption("covr.record_tests", FALSE))) {
+    "count_and_record"
+  } else {
+    "count"
+  }
   count <- function(key, val) {
     call(
       "if",
       TRUE,
       call(
         "{",
-        as.call(list(call(":::", as.symbol("covr"), as.symbol("count")), key)),
+        as.call(list(call(":::", as.symbol("covr"), as.symbol(count_fn)), key)),
         val
       )
     )
@@ -188,7 +193,18 @@ new_counter <- function(src_ref, parent_functions) {
 #' @keywords internal
 count <- function(key) {
   .counters[[key]]$value <- .counters[[key]]$value + 1L
-  if (isTRUE(.current_test$record)) count_test(key)
+}
+
+#' increment a given counter and record the test that hit it
+#'
+#' Used instead of [count()] in code instrumented with
+#' `options(covr.record_tests = TRUE)`.
+#'
+#' @param key generated with [key()]
+#' @keywords internal
+count_and_record <- function(key) {
+  .counters[[key]]$value <- .counters[[key]]$value + 1L
+  count_test(key)
 }
 
 # Whether the body of `fun` was already instrumented by `trace_calls()`.
@@ -199,14 +215,12 @@ is_traced <- function(fun) {
   x <- body(fun)
   # `all.names()` is fast, so only search functions that might be traced.
   nms <- all.names(x)
-  "count" %in% nms && "covr" %in% nms && has_count_call(x)
+  any(c("count", "count_and_record") %in% nms) && "covr" %in% nms && has_count_call(x)
 }
 
 has_count_call <- function(x) {
-  # Constructed by hand like in `trace_calls()`, to avoid a NOTE from R CMD
-  # check
   is.call(x) &&
-    (identical(x[[1]], call(":::", as.symbol("covr"), as.symbol("count"))) ||
+    (is_covr_count_call(x) ||
       any(vapply(as.list(x), has_count_call, logical(1))))
 }
 
@@ -216,7 +230,6 @@ has_count_call <- function(x) {
 clear_counters <- function() {
   rm(envir = .counters, list = ls(envir = .counters))
   rm(envir = .current_test, list = ls(envir = .current_test))
-  .current_test$record <- isTRUE(getOption("covr.record_tests", FALSE))
 }
 
 # Set the counts of all traces to zero, keeping the traces themselves.

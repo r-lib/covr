@@ -3,6 +3,10 @@
 * `traced_files()`, and so `percent_coverage()`, `tally_coverage()` and the
   exclusion handling, now split the package source once rather than once per
   file, which is much faster for packages with many files.
+* Instrumented code no longer checks whether tests are being recorded each time
+  a trace is hit. Code instrumented with `options(covr.record_tests = TRUE)`
+  calls a separate `covr:::count_and_record()`, so `covr:::count()` is about 40%
+  cheaper when tests are not recorded.
 
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
