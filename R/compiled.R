@@ -148,11 +148,19 @@ gcov_unexecuted_block <- function(gcov_path, gcov_args = NULL) {
   if (!is.na(major) && as.integer(major) < 8) "$$$$$" else "%%%%%"
 }
 
+find_gcov <- function() {
+  path <- unname(Sys.which("gcov"))
+  if (!nzchar(path)) {
+    return(NA_character_)
+  }
+  path
+}
+
 run_gcov <- function(
   path,
   quiet = TRUE,
   clean = TRUE,
-  gcov_path = getOption("covr.gcov", ""),
+  gcov_path = getOption("covr.gcov", find_gcov()),
   gcov_args = getOption("covr.gcov_args", NULL)
 ) {
   src_path <- normalize_path(file.path(path, "src"))
@@ -169,10 +177,15 @@ run_gcov <- function(
     full.names = TRUE
   )
 
-  if (!nzchar(gcov_path)) {
+  if (is.na(gcov_path)) {
     if (length(gcov_inputs)) {
       stop('gcov not found')
     }
+    return()
+  }
+
+  # `options(covr.gcov = "")` turns off coverage of compiled code
+  if (!nzchar(gcov_path)) {
     return()
   }
 

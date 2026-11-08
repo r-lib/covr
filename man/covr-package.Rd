@@ -65,9 +65,12 @@ supported on Windows.
 
 \item \code{covr.flags}:
 
-\item \code{covr.gcov}: If the appropriate gcov version is not on your path you
-can use this option to set the appropriate location. If set to "" it will
-turn off coverage of compiled code.
+\item \code{covr.gcov}: Path to the gcov executable. Defaults to the gcov found
+on your \code{PATH}, or \code{NA} if there is none. If the appropriate gcov version
+is not on your path you can use this option to set the appropriate
+location. If set to \code{""} it will turn off coverage of compiled code. If
+\code{NA}, covr throws an error if any compiled coverage files (\code{.gcno})
+exist.
 
 \item \code{covr.gcov_additional_paths}:
 
