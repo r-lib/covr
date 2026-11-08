@@ -1,5 +1,18 @@
 # covr (development version)
 
+* `codecov()` now uploads with Codecov's current upload protocol, a request to
+  `https://ingest.codecov.io` for an upload followed by sending the coverage to
+  the location it returns, instead of the legacy `/upload/v2` endpoint, which
+  Codecov has deprecated and which doesn't support organization-level upload
+  tokens (#568, #464). The repository and git service come from the CI service
+  or the `origin` remote, and `base_url` is now the upload API, so
+  `"https://codecov.io"` is replaced by it. Without a token, pull requests from
+  forks on GitHub Actions are uploaded from an unprotected branch
+  (`owner:branch`), like `codecov/codecov-action` does, and on GitHub Actions
+  pull requests use the head commit of the pull request. `codecov()` now
+  returns the response of Codecov, which includes the `url` of the upload, and
+  errors with class `covr_codecov_error` or, for HTTP 429 and 5xx, warns with
+  class `covr_codecov_warning`, if either request fails.
 * `c()` now combines coverage objects, e.g. from runs of tests in different
   directories. The counts of traces in several objects are added, and recorded
   tests are combined as well (#439).
