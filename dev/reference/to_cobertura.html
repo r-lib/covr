@@ -4,14 +4,14 @@ cobertura-compliant XML report following this DTD.
 Because there are two DTDs called coverage-04.dtd and some tools do not seem to
 adhere to either of them, the parser you're using may balk at the file. Please see
 this github discussion for
-context. Where covr doesn't provide a coverage metric (branch coverage,
-complexity), a zero is reported."><meta property="og:description" content="Create a
+context. Where covr doesn't provide a coverage metric (complexity), a zero
+is reported."><meta property="og:description" content="Create a
 cobertura-compliant XML report following this DTD.
 Because there are two DTDs called coverage-04.dtd and some tools do not seem to
 adhere to either of them, the parser you're using may balk at the file. Please see
 this github discussion for
-context. Where covr doesn't provide a coverage metric (branch coverage,
-complexity), a zero is reported."><meta property="og:image" content="https://covr.r-lib.org/logo.png"><meta name="robots" content="noindex"><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-115082821-1"></script><script>
+context. Where covr doesn't provide a coverage metric (complexity), a zero
+is reported."><meta property="og:image" content="https://covr.r-lib.org/logo.png"><meta name="robots" content="noindex"><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-115082821-1"></script><script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
@@ -61,8 +61,8 @@ cobertura-compliant XML report following <a href="https://github.com/cobertura/c
 Because there are <em>two</em> DTDs called <code>coverage-04.dtd</code> and some tools do not seem to
 adhere to either of them, the parser you're using may balk at the file. Please see
 <a href="https://github.com/cobertura/cobertura/issues/425" class="external-link">this github discussion</a> for
-context. Where <code>covr</code> doesn't provide a coverage metric (branch coverage,
-complexity), a zero is reported.</p>
+context. Where <code>covr</code> doesn't provide a coverage metric (complexity), a zero
+is reported.</p>
     </div>
 
     <div class="section level2">
@@ -84,7 +84,13 @@ complexity), a zero is reported.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><em>Note</em>: This functionality requires the xml2 package be installed.</p>
+    <p>Branch rates are only reported if branches were measured with
+<code>options(covr.branch_coverage = TRUE)</code> (see <a href="covr.branch_coverage.html">covr.branch_coverage</a>),
+otherwise they are zero. Each line where an <code>if</code> or <code><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch()</a></code> starts then
+has <code>branch="true"</code> and a <code>condition-coverage</code> such as <code>"50% (1/2)"</code>, the
+percentage and number of the branches of the <code>if</code> and <code><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch()</a></code> calls on
+the line that were taken. The branch rate of code without branches is one.</p>
+<p><em>Note</em>: This functionality requires the xml2 package be installed.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

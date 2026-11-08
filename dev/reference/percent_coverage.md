@@ -18,7 +18,9 @@ percent_coverage(x, ...)
 - ...:
 
   additional arguments passed to
-  [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
+  [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md),
+  such as `by = "branch"` for the percentage of branches taken (see
+  [covr.branch_coverage](https://covr.r-lib.org/dev/reference/covr.branch_coverage.md)).
 
 ## Value
 

@@ -5,7 +5,10 @@ action](https://github.com/coverallsapp/github-action) instead of this
 function: write the coverage with
 [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
 and upload `cobertura.xml` with `coverallsapp/github-action@v2`. See the
-README for an example workflow.
+README for an example workflow. With branch coverage, upload the LCOV
+file written by
+[`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md) instead,
+as the action reads which branches were taken from it.
 
 ## Usage
 
@@ -50,3 +53,12 @@ coveralls(
 - quiet:
 
   if `FALSE`, print the coverage before submission.
+
+## Details
+
+With branch coverage (see
+[covr.branch_coverage](https://covr.r-lib.org/dev/reference/covr.branch_coverage.md)),
+each source file sent to Coveralls also has its `branches`: the line,
+block, branch and count of each branch, as in
+[`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md). A branch
+that was never taken has a count of zero.

@@ -40,6 +40,9 @@
   [`covr-package`](https://covr.r-lib.org/dev/reference/covr-package.md)
   : covr: Test coverage for packages
 
+- [`covr.branch_coverage`](https://covr.r-lib.org/dev/reference/covr.branch_coverage.md)
+  : Branch coverage
+
 - [`covr.record_tests`](https://covr.r-lib.org/dev/reference/covr.record_tests.md)
   : Record Test Traces During Coverage Execution
 
@@ -99,7 +102,7 @@
   : Calculate test coverage for a Shiny app
 
 - [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
-  : Tally coverage by line, expression or function
+  : Tally coverage by line, expression, function or branch
 
 - [`tally_tests()`](https://covr.r-lib.org/dev/reference/tally_tests.md)
   : Tally which tests ran each line

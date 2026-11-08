@@ -144,7 +144,12 @@ when Codecov is rate limiting requests (HTTP 429) or is unavailable (HTTP
 response contains a <code>url</code> for the upload on Codecov and a pre-signed
 location to send the coverage report to.</p></li>
 <li><p><code>PUT</code> sends the report, covr's JSON coverage format (processed by
-Codecov as an <code>R</code> report), to that location.</p></li>
+Codecov as an <code>R</code> report), to that location. With branch coverage (see
+<a href="covr.branch_coverage.html">covr.branch_coverage</a>), the report uses Codecov's <a href="https://docs.codecov.com/docs/codecov-custom-coverage-format" class="external-link">generic JSON format</a>
+instead, as the <code>R</code> format only takes line hits. A line with branches
+then has the number of its branches taken and the number of branches,
+e.g. <code>"1/2"</code>, so Codecov shows it as partly covered unless all were
+taken.</p></li>
 </ol><p>If <code>quiet</code> is <code>FALSE</code>, the url of the upload on Codecov is printed after a
 successful upload.</p>
 <p>The commit, branch, pull request, job, build URL and repository are looked up

@@ -85,8 +85,13 @@ plugins such as Coverage Gutters.</p>
 has a single <code>DA</code> record: when several functions share a line, the line's
 count is the smallest of theirs, so a line only counts as covered if all its
 code was run, as in <code><a href="report.html">report()</a></code>, <code><a href="percent_coverage.html">percent_coverage()</a></code> and <code><a href="codecov.html">codecov()</a></code>. A
-function's count is the largest count of any of its expressions. Branch
-coverage is not recorded.</p>
+function's count is the largest count of any of its expressions.</p>
+<p>Branches are only recorded if they were measured with
+<code>options(covr.branch_coverage = TRUE)</code> (see <a href="covr.branch_coverage.html">covr.branch_coverage</a>). Each
+branch gets a <code>BRDA</code> record on the line where its <code>if</code> or <code><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch()</a></code>
+starts, numbered from zero within each <code>if</code> or <code><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch()</a></code>. Its count is <code>-</code>
+if the <code>if</code> or <code><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch()</a></code> never ran. <code>BRF</code> and <code>BRH</code> give the number of
+branches and the number of branches taken.</p>
 <p>Source file paths (<code>SF</code>) are written as covr reports them, for a package
 relative to the package root, so tools such as <code>genhtml</code> should be run from
 that directory.</p>
@@ -102,7 +107,7 @@ that directory.</p>
 <span class="r-in"><span><span class="fu">to_lcov</span><span class="op">(</span><span class="va">cov</span>, <span class="va">tmp</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">)</span>, sep <span class="op">=</span> <span class="st">"\n"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> TN:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> SF:/tmp/Rtmps319me/source.R18584f7468f8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> SF:/tmp/Rtmpp7vAB7/source.R185d6f6a05cc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> FN:2,f</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> FN:5,g</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> FNDA:1,f</span>

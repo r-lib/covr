@@ -24,6 +24,15 @@ the additional dependency `htmltools`.
 [`options()`](https://rdrr.io/r/base/options.html) to configure
 behaviour:
 
+- `covr.branch_coverage`: If `TRUE` (default `FALSE`), also record which
+  branches of each `if` and
+  [`switch()`](https://rdrr.io/r/base/switch.html) in R code were taken.
+  This is experimental. It must be set before the code is instrumented,
+  e.g. before calling
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md).
+  For more details, see
+  [`?covr.branch_coverage`](https://covr.r-lib.org/dev/reference/covr.branch_coverage.md).
+
 - `covr.covrignore`: A filename to use as an ignore file, listing
   glob-style wildcarded paths of files to ignore for coverage
   calculations. Defaults to the value of environment variable

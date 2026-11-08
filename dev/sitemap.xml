@@ -25,6 +25,7 @@
 <url><loc>https://covr.r-lib.org/dev/reference/coverage_to_markdown.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/coveralls.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/covr-package.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/covr.branch_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/covr.record_tests.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/current_test_call_count.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/current_test_index.html</loc></url>

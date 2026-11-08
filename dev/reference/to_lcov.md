@@ -37,8 +37,18 @@ smallest of theirs, so a line only counts as covered if all its code was
 run, as in [`report()`](https://covr.r-lib.org/dev/reference/report.md),
 [`percent_coverage()`](https://covr.r-lib.org/dev/reference/percent_coverage.md)
 and [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md). A
-function's count is the largest count of any of its expressions. Branch
-coverage is not recorded.
+function's count is the largest count of any of its expressions.
+
+Branches are only recorded if they were measured with
+`options(covr.branch_coverage = TRUE)` (see
+[covr.branch_coverage](https://covr.r-lib.org/dev/reference/covr.branch_coverage.md)).
+Each branch gets a `BRDA` record on the line where its `if` or
+[`switch()`](https://rdrr.io/r/base/switch.html) starts, numbered from
+zero within each `if` or
+[`switch()`](https://rdrr.io/r/base/switch.html). Its count is `-` if
+the `if` or [`switch()`](https://rdrr.io/r/base/switch.html) never ran.
+`BRF` and `BRH` give the number of branches and the number of branches
+taken.
 
 Source file paths (`SF`) are written as covr reports them, for a package
 relative to the package root, so tools such as `genhtml` should be run
@@ -55,7 +65,7 @@ tmp <- tempfile(fileext = ".info")
 to_lcov(cov, tmp)
 cat(readLines(tmp), sep = "\n")
 #> TN:
-#> SF:/tmp/Rtmps319me/source.R18584f7468f8
+#> SF:/tmp/Rtmpp7vAB7/source.R185d6f6a05cc
 #> FN:2,f
 #> FN:5,g
 #> FNDA:1,f

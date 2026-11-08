@@ -73,20 +73,25 @@ With `options(covr.record_tests = TRUE)`, coverage objects also have a
 `tests` attribute with the test calls, see
 [covr.record_tests](https://covr.r-lib.org/dev/reference/covr.record_tests.md).
 
+With `options(covr.branch_coverage = TRUE)`, coverage objects also have
+a `branches` attribute with the branches of each `if` and
+[`switch()`](https://rdrr.io/r/base/switch.html), see
+[covr.branch_coverage](https://covr.r-lib.org/dev/reference/covr.branch_coverage.md).
+
 ## Examples
 
 ``` r
 cov <- code_coverage("add <- function(x, y) { x + y }", "add(1, 2)")
 cov
 #> Coverage: 100.00%
-#> /tmp/Rtmps319me/source.R18586ee586bc: 100.00%
+#> /tmp/Rtmpp7vAB7/source.R185d71730a5: 100.00%
 as.data.frame(cov)
-#>                               filename functions first_line first_byte
-#> 1 /tmp/Rtmps319me/source.R18586ee586bc       add          1         25
-#>   last_line last_byte first_column last_column first_parsed last_parsed value
-#> 1         1        29           25          29            1           1     1
+#>                              filename functions first_line first_byte last_line
+#> 1 /tmp/Rtmpp7vAB7/source.R185d71730a5       add          1         25         1
+#>   last_byte first_column last_column first_parsed last_parsed value
+#> 1        29           25          29            1           1     1
 names(cov)
-#> [1] "source.R18586ee586bc:1:25:1:29:25:29:1:1"
+#> [1] "source.R185d71730a5:1:25:1:29:25:29:1:1"
 cov[[1]]$value
 #> [1] 1
 ```

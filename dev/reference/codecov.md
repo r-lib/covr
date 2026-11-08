@@ -99,7 +99,15 @@ Codecov problem.
     report to.
 
 2.  `PUT` sends the report, covr's JSON coverage format (processed by
-    Codecov as an `R` report), to that location.
+    Codecov as an `R` report), to that location. With branch coverage
+    (see
+    [covr.branch_coverage](https://covr.r-lib.org/dev/reference/covr.branch_coverage.md)),
+    the report uses Codecov's [generic JSON
+    format](https://docs.codecov.com/docs/codecov-custom-coverage-format)
+    instead, as the `R` format only takes line hits. A line with
+    branches then has the number of its branches taken and the number of
+    branches, e.g. `"1/2"`, so Codecov shows it as partly covered unless
+    all were taken.
 
 If `quiet` is `FALSE`, the url of the upload on Codecov is printed after
 a successful upload.

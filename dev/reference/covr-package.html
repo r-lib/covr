@@ -79,7 +79,12 @@ package. Using <code><a href="report.html">report()</a></code> requires the addi
 
 
 <p><code>covr</code> uses the following <code><a href="https://rdrr.io/r/base/options.html" class="external-link">options()</a></code> to configure behaviour:</p>
-<ul><li><p><code>covr.covrignore</code>: A filename to use as an ignore file,
+<ul><li><p><code>covr.branch_coverage</code>: If <code>TRUE</code> (default <code>FALSE</code>), also record
+which branches of each <code>if</code> and <code><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch()</a></code> in R code were taken. This
+is experimental. It must be set before the code is instrumented, e.g.
+before calling <code><a href="package_coverage.html">package_coverage()</a></code>. For more details, see
+<code><a href="covr.branch_coverage.html">?covr.branch_coverage</a></code>.</p></li>
+<li><p><code>covr.covrignore</code>: A filename to use as an ignore file,
 listing glob-style wildcarded paths of files to ignore for coverage
 calculations. Defaults to the value of environment variable
 <code>COVR_COVRIGNORE</code>, or <code>".covrignore"</code>  if the neither the option nor the

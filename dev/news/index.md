@@ -2,6 +2,30 @@
 
 ## covr (development version)
 
+- New experimental branch coverage of R code. With
+  `options(covr.branch_coverage = TRUE)`, covr also records which
+  branches of each `if` (including an `if` without an `else`) and
+  [`switch()`](https://rdrr.io/r/base/switch.html) were taken, in the
+  `branches` attribute of the coverage object.
+  `tally_coverage(by = "branch")` and `percent_coverage(by = "branch")`
+  summarize them, and
+  [`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md),
+  [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md),
+  [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) and
+  [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md)
+  include them. Line coverage is unchanged, and without the option the
+  code is instrumented as before, so there is no cost. See
+  [`?covr.branch_coverage`](https://covr.r-lib.org/dev/reference/covr.branch_coverage.md)
+  ([\#279](https://github.com/r-lib/covr/issues/279)).
+
+- The branches of `if` and
+  [`switch()`](https://rdrr.io/r/base/switch.html) without braces in the
+  default values of arguments, e.g. `function(x = if (y) 1 else 2)`, now
+  have their own counters, as in function bodies since
+  [\#682](https://github.com/r-lib/covr/issues/682). This can lower
+  reported coverage, as a default whose branch never ran no longer
+  counts as covered ([\#279](https://github.com/r-lib/covr/issues/279)).
+
 - [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   now measures the coverage of Rust code, such as the code of packages
   using extendr or savvy. It’s built with LLVM’s source-based coverage,
@@ -67,6 +91,17 @@
   sorted with the least covered files first
   ([\#316](https://github.com/r-lib/covr/issues/316),
   [\#709](https://github.com/r-lib/covr/issues/709)).
+
+- New
+  [`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md)
+  returns the coverage report of
+  [`report()`](https://covr.r-lib.org/dev/reference/report.md) as HTML
+  that can be included in a larger document, such as an R Markdown or
+  Quarto document. The report’s styles and scripts only apply to the
+  report, and it no longer uses Bootstrap’s JavaScript or replaces the
+  document’s highlight.js, so a document can include several reports
+  without changing the rest of the page
+  ([\#316](https://github.com/r-lib/covr/issues/316)).
 
 - covr now requires R 4.0.0 or later.
 
