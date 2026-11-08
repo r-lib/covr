@@ -1,5 +1,15 @@
 # covr (development version)
 
+* New `tally_tests()` returns a traceability matrix from coverage recorded with
+  `options(covr.record_tests = TRUE)`: which tests ran each line of code, with
+  the test file, line and `test_that()` description, so you can find the tests
+  to rerun after changing some lines (#361).
+
+* With `options(covr.record_tests = TRUE)`, tests that call the package through
+  code with source references, e.g. testthat expectations when rlang was
+  installed with `R_KEEP_PKG_SOURCE=yes`, are no longer all recorded as a
+  single test named after that code.
+
 * New `shiny_app_coverage()` measures the coverage of a Shiny app that isn't
   part of a package while its tests run, by default with
   `shinytest2::test_app()`, including the code run by the app in the R
@@ -12,24 +22,6 @@
   without changing the rest of the page. The reports no longer need the DT
   package, jQuery or Bootstrap, and the list of files is now shown sorted with
   the least covered files first (#316, #709).
-
-* covr now requires R 4.0.0 or later.
-* New `tally_tests()` returns a traceability matrix from coverage recorded with
-  `options(covr.record_tests = TRUE)`: which tests ran each line of code, with
-  the test file, line and `test_that()` description, so you can find the tests
-  to rerun after changing some lines (#361).
-
-* With `options(covr.record_tests = TRUE)`, tests that call the package through
-  code with source references, e.g. testthat expectations when rlang was
-  installed with `R_KEEP_PKG_SOURCE=yes`, are no longer all recorded as a
-  single test named after that code.
-
-* New `report_html()` returns the coverage report of `report()` as HTML that
-  can be included in a larger document, such as an R Markdown or Quarto
-  document. The report's styles and scripts only apply to the report, and it
-  no longer uses Bootstrap's JavaScript or replaces the document's
-  highlight.js, so a document can include several reports without changing
-  the rest of the page (#316).
 
 * covr now requires R 4.0.0 or later.
 
