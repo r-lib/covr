@@ -38,6 +38,10 @@
     loop, like tests with srcrefs. Each run was recorded as a new test, and
     finding the test got slower with every run, so the coverage of bitops
     never finished.
+* New `tally_tests()` returns a traceability matrix from coverage recorded with
+  `options(covr.record_tests = TRUE)`: which tests ran each line of code, with
+  the test file, line and `test_that()` description, so you can find the tests
+  to rerun after changing some lines (#361).
 
 * `to_cobertura()` now only lists the lines of a method from the file it is
   defined in. Previously methods sharing a name across files, such as the
@@ -77,10 +81,6 @@
   output of `code` is shown on the console while it runs, e.g. to follow it in
   the logs of a CI job, rather than only being shown when `code` fails
   (@gergness, #558).
-* New `tally_tests()` returns a traceability matrix from coverage recorded with
-  `options(covr.record_tests = TRUE)`: which tests ran each line of code, with
-  the test file, line and `test_that()` description, so you can find the tests
-  to rerun after changing some lines (#361).
 
 * `file_report()` now highlights the syntax of the source code, which failed
   with JavaScript errors because the report didn't include jQuery.
