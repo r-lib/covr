@@ -2,6 +2,7 @@
 
 S3method("[",coverage)
 S3method(as.data.frame,coverage)
+S3method(c,coverage)
 S3method(format,covr_error)
 S3method(markers,coverage)
 S3method(markers,coverages)

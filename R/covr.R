@@ -1463,6 +1463,121 @@ add_hooks <- function(
   structure(NextMethod(), class = "coverage")
 }
 
+#' Combine coverage objects
+#'
+#' Combine the coverage of several runs, e.g. of tests in different
+#' directories, into a single coverage object. The counts of traces present in
+#' more than one object are added, and traces only in some of the objects are
+#' appended. Tests recorded with `options(covr.record_tests = TRUE)` are
+#' combined as well.
+#'
+#' The result keeps the attributes of the first object, such as the package
+#' and root used for relative paths, except that the lines excluded from line
+#' coverage are the union of the excluded lines of all objects. As with
+#' `package_coverage(type = c("tests", "examples"))`, the result only has a
+#' `type` if all objects have the same `type`.
+#'
+#' As with any S3 method for [c()], this method is only used when the first
+#' argument is a coverage object.
+#'
+#' @param ... Coverage objects, e.g. from [package_coverage()] or
+#'   [file_coverage()]. They must all be for the same package, or all have no
+#'   package, like the results of [file_coverage()] and [code_coverage()].
+#'   `NULL` arguments are dropped.
+#' @return A coverage object.
+#' @export
+#' @examples
+#' source_file <- tempfile(fileext = ".R")
+#' writeLines(
+#'   c(
+#'     "add <- function(x, y) {",
+#'     "  x + y",
+#'     "}",
+#'     "subtract <- function(x, y) {",
+#'     "  x - y",
+#'     "}"
+#'   ),
+#'   source_file
+#' )
+#' add_test <- tempfile(fileext = ".R")
+#' writeLines("add(1, 2)", add_test)
+#' subtract_test <- tempfile(fileext = ".R")
+#' writeLines("subtract(2, 1)", subtract_test)
+#'
+#' add_cov <- file_coverage(source_file, add_test)
+#' subtract_cov <- file_coverage(source_file, subtract_test)
+#' percent_coverage(add_cov)
+#' percent_coverage(c(add_cov, subtract_cov))
+c.coverage <- function(...) {
+  covs <- Filter(Negate(is.null), list(...))
+  if (!all(vlapply(covs, inherits, "coverage"))) {
+    combine_error("All arguments to `c()` must be coverage objects.")
+  }
+  packages <- unique(vcapply(covs, function(x) {
+    attr(x, "package")$package %||% NA_character_
+  }))
+  if (length(packages) > 1L) {
+    combine_error(sprintf(
+      "Can't combine coverage of different packages: %s.",
+      paste(packages, collapse = ", ")
+    ))
+  }
+
+  merged <- merge_coverage(lapply(covs, coverage_to_counters))
+
+  tests <- merged$tests
+  merged$tests <- NULL
+  merged <- lapply(merged, function(trace) {
+    if (!is.null(trace$tests)) {
+      trace$tests <- trace$tests$tally
+    }
+    trace
+  })
+
+  attrs <- attributes(covs[[1L]])
+  attrs$names <- names(merged)
+  attrs$tests <- tests
+  attrs$excluded_lines <- union_excluded_lines(
+    lapply(covs, attr, "excluded_lines")
+  )
+  types <- unique(lapply(covs, attr, "type"))
+  if (length(types) > 1L) {
+    attrs$type <- NULL
+  }
+  attributes(merged) <- attrs
+  merged
+}
+
+# Convert a coverage object back to the list of traces used by
+# `merge_coverage()`, with the recorded tests in a `tests` element.
+coverage_to_counters <- function(x) {
+  counters <- lapply(unclass(x), function(trace) {
+    if (!is.null(trace$tests)) {
+      trace$tests <- list(tally = trace$tests)
+    }
+    trace
+  })
+  counters$tests <- attr(x, "tests")
+  counters
+}
+
+union_excluded_lines <- function(excluded) {
+  excluded <- unlist(excluded, recursive = FALSE)
+  if (length(excluded) == 0L) {
+    return(NULL)
+  }
+  lapply(split(excluded, names(excluded)), function(lines) {
+    sort(unique(unlist(lines)))
+  })
+}
+
+combine_error <- function(message) {
+  stop(structure(
+    list(message = message, call = NULL),
+    class = c("covr_combine_error", "error", "condition")
+  ))
+}
+
 #' Determine if code is being run in covr
 #'
 #' covr functions set the environment variable `R_COVR` when they are running.
