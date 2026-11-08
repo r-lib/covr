@@ -148,11 +148,23 @@ test_that("covr.gcov = '' turns off compiled code coverage", {
 test_that("Warning thrown for empty gcov output", {
   skip_on_cran()
 
-  withr::local_options(covr.gcov_args = '-n')
+  local_mocked_bindings(gcov_run = function(...) invisible())
   expect_snapshot(
     . <- package_coverage("TestCompiled", relative_path = TRUE),
     transform = function(x) gsub(getwd(), "<wd>", x)
   )
+})
+
+test_that("gcov's JSON and text output give the same coverage (#609)", {
+  skip_on_cran()
+  skip_if(is_win_r41())
+  skip_if_not(gcov_json_supported(getOption("covr.gcov")))
+
+  json <- as.data.frame(package_coverage("TestCompiled"))
+  local_mocked_bindings(gcov_json_supported = function(...) FALSE)
+  text <- as.data.frame(package_coverage("TestCompiled"))
+
+  expect_equal(json, text)
 })
 
 test_that("tally_coverage includes compiled code", {
