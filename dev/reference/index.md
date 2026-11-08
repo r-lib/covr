@@ -64,6 +64,8 @@
   : Tally coverage by line, expression or function
 - [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
   : Create a Cobertura XML file
+- [`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md) :
+  Create an LCOV tracefile
 - [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/to_sonarqube.md)
   : Create a SonarQube Generic XML file for test coverage according to
   https://docs.sonarqube.org/latest/analysis/generic-test/ Based on

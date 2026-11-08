@@ -79,14 +79,14 @@ With `options(covr.record_tests = TRUE)`, coverage objects also have a
 cov <- code_coverage("add <- function(x, y) { x + y }", "add(1, 2)")
 cov
 #> Coverage: 100.00%
-#> /tmp/RtmpImO1yV/source.R192d37d49477: 100.00%
+#> /tmp/RtmpKB38Uh/source.R193a1eb72543: 100.00%
 as.data.frame(cov)
 #>                               filename functions first_line first_byte
-#> 1 /tmp/RtmpImO1yV/source.R192d37d49477       add          1         25
+#> 1 /tmp/RtmpKB38Uh/source.R193a1eb72543       add          1         25
 #>   last_line last_byte first_column last_column first_parsed last_parsed value
 #> 1         1        29           25          29            1           1     1
 names(cov)
-#> [1] "source.R192d37d49477:1:25:1:29:25:29:1:1"
+#> [1] "source.R193a1eb72543:1:25:1:29:25:29:1:1"
 cov[[1]]$value
 #> [1] 1
 ```

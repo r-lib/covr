@@ -50,6 +50,7 @@
 <url><loc>https://covr.r-lib.org/dev/reference/system_output.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/tally_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/to_cobertura.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/to_lcov.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/to_sonarqube.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/trace_calls.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/truncate_call.html</loc></url>

@@ -2,6 +2,20 @@
 
 ## covr (development version)
 
+- New [`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md)
+  writes coverage as an LCOV tracefile (`lcov.info`), for `genhtml` and
+  other tools that read the LCOV format
+  ([\#442](https://github.com/r-lib/covr/issues/442), thanks to
+  [@MichaelChirico](https://github.com/MichaelChirico) for the initial
+  implementation in [\#637](https://github.com/r-lib/covr/issues/637)).
+
+- New [`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md)
+  writes coverage as an LCOV tracefile (`lcov.info`), for `genhtml` and
+  other tools that read the LCOV format
+  ([\#442](https://github.com/r-lib/covr/issues/442), thanks to
+  [@MichaelChirico](https://github.com/MichaelChirico) for the initial
+  implementation in [\#637](https://github.com/r-lib/covr/issues/637)).
+
 - [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   no longer reports 0% coverage for packages whose last file in `R/` is
   empty ([\#522](https://github.com/r-lib/covr/issues/522)).
