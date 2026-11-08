@@ -96,6 +96,13 @@ parse_gcov <- function(file, package_path = "", unexecuted_block = "%%%%%") {
     return(NULL)
   }
 
+  # gcc >= 8 follows the lines of functions it groups together, such as the
+  # instantiations of a template, with the lines of each function again,
+  # between `------------------` separators. Only keep the combined lines, so
+  # they are not counted twice. These are already marked with `*` if partially
+  # executed.
+  lines <- lines[!in_gcov_function_section(lines)]
+
   # With `gcov -a` each line is followed by the counts of its basic blocks,
   # e.g. `$$$$$:    4-block  1` for a block that never ran.
   blocks <- rex::re_matches(
@@ -167,6 +174,20 @@ parse_gcov <- function(file, package_path = "", unexecuted_block = "%%%%%") {
   functions <- rep(NA_character_, length(values))
 
   line_coverages(source_file, matches, values, functions)
+}
+
+# Is each line of gcov's text output in one of the sections listing the lines
+# of a single function of a group? A separator followed by the function's name
+# starts a section, and the separator after the last section is followed by a
+# source line.
+in_gcov_function_section <- function(lines) {
+  separators <- which(lines == "------------------")
+  if (!length(separators)) {
+    return(rep(FALSE, length(lines)))
+  }
+  opens <- !grepl("^ *[^ ]+: *[0-9]+[:-]", lines[separators + 1])
+  section <- findInterval(seq_along(lines), separators)
+  section > 0 & opens[pmax(section, 1)]
 }
 
 # for mocking

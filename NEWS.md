@@ -18,9 +18,13 @@
 * Compiled code coverage now reads gcov's structured JSON output
   (`gcov --json-format`) when gcov supports it (gcc >= 9), instead of parsing
   its text output with regular expressions. covr still parses the text output
-  of llvm-cov, the gcov on macOS, and older gcc. Lines only reached by C++
-  exceptions, such as a `catch` block that never ran, now count as not covered
-  instead of being left out of the coverage (#609).
+  of llvm-cov, the gcov on macOS, and older gcc (#609).
+
+  - Lines of C++ templates instantiated more than once in a file are no
+    longer counted twice, which also stopped
+    `options(covr.gcov_partial = "uncovered")` from working on them.
+  - Lines only reached by C++ exceptions, such as a `catch` block that never
+    ran, now count as not covered instead of being left out of the coverage.
 
 * `file_report()` now highlights the syntax of the source code, which failed
   with JavaScript errors because the report didn't include jQuery.

@@ -135,6 +135,41 @@ test_that("parse_gcov finds partially executed lines from block counts (#610)", 
   expect_equal(parse_gcov("hi.c.gcov"), c(`5` = 0, `8` = 1))
 })
 
+test_that("parse_gcov counts the lines of template instantiations once (#609)", {
+  local_mocked_bindings(
+    file.exists = function(path) TRUE,
+    normalize_path = function(path) "simple.cc",
+    line_coverages = function(source_file, matches, values, ...) {
+      stats::setNames(values, matches$line)
+    },
+    readLines = function(x) {
+      c(
+        "        -:    0:Source:simple.cc",
+        "        4:    2:T twice(T x) {",
+        "       1*:    3:  return x > 0 ? x * 2 : f(x);",
+        "------------------",
+        "_Z5twiceIdET_S0_:",
+        "        2:    2:T twice(T x) {",
+        "        2:    3:  return x > 0 ? x * 2 : f(x);",
+        "        1:    3-block  0",
+        "        1:    3-block  1",
+        "------------------",
+        "int twice<int>(int):",
+        "        2:    2:T twice(T x) {",
+        "    #####:    3:  return x > 0 ? x * 2 : f(x);",
+        "    %%%%%:    3-block  0",
+        "------------------",
+        "        1:    5:int main() {"
+      )
+    }
+  )
+
+  expect_equal(parse_gcov("hi.cc.gcov"), c(`2` = 4, `3` = 1, `5` = 1))
+
+  withr::local_options(covr.gcov_partial = "uncovered")
+  expect_equal(parse_gcov("hi.cc.gcov"), c(`2` = 4, `3` = 0, `5` = 1))
+})
+
 test_that("parse_gcov_json parses gcov's JSON output (#609)", {
   pkg <- withr::local_tempdir()
   dir.create(file.path(pkg, "src"))
