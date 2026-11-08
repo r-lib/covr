@@ -61,8 +61,9 @@ test_that("with_coverage() measures compiled code and restores the DLL on error"
   ns <- asNamespace("TestCompiled")
   original_dll <- getNamespaceInfo(ns, "DLLs")$TestCompiled[["path"]]
 
-  cov <- with_coverage(ns$simple4(3L), env = ns)
-  expect_equal(compiled_counts(cov, "simple4.cc"), c(`7` = 1, `8` = 1))
+  cov <- with_coverage(ns$simple(-1), env = ns)
+  counts <- compiled_counts(cov, "simple.cc")
+  expect_equal(counts[c("16", "19", "21")], c(0, 0, 1), ignore_attr = TRUE)
 
   expect_error(
     with_coverage(
