@@ -1,18 +1,20 @@
 # covr (development version)
 
-* `package_coverage()` no longer reports 0% coverage for packages whose last
-  file in `R/` is empty (#522).
 * New `to_lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
   `genhtml` and other tools that read the LCOV format (#442, thanks to
   @MichaelChirico for the initial implementation in #637).
+
+* New `to_lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
+  `genhtml` and other tools that read the LCOV format (#442, thanks to
+  @MichaelChirico for the initial implementation in #637).
+
+* `package_coverage()` no longer reports 0% coverage for packages whose last
+  file in `R/` is empty (#522).
 
 * New `coverage_to_markdown()` formats coverage as a markdown table, optionally
   compared against a baseline, for GitHub Actions job summaries or pull
   request comments (#519).
 
-* New `to_lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
-  `genhtml` and other tools that read the LCOV format (#442, thanks to
-  @MichaelChirico for the initial implementation in #637).
 * Functions nested inside lists and environments, such as
   `fns <- list(a = function(x) x)`, functions defined inside `local()` and
   ggproto methods, can now be traced. This is off by default; enable it for a
