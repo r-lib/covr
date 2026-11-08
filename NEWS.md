@@ -1,7 +1,8 @@
 # covr (development version)
 
-* `report()` and `file_report()` can use other colors for covered and missed
-  lines, set with the new `covr.report_colors` option, e.g.
+* `report()`, `file_report()` and the coverage percentages printed in the
+  console can use other colors for covered and missed code, set with the new
+  `covr.report_colors` option, e.g.
   `options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))`
   for blue and orange, which are easier to tell apart with color vision
   deficiency than the default green and red (#529).
