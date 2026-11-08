@@ -1,5 +1,11 @@
 # covr (development version)
 
+* `package_coverage()` now warns when an R process started by the tests, such
+  as a Shiny app, callr session or future worker, loaded the package but did
+  not save its coverage because it was killed or was still running when the
+  tests finished. That coverage used to be silently missing, so the results
+  could vary from run to run (#438).
+
 * Lines excluded with `# nocov` are no longer reported as uncovered when they
   are part of a larger expression that is not entirely excluded, such as the
   first and last lines of a function defined inside another function (#594).
@@ -19,6 +25,10 @@
 
 * `package_coverage()` no longer reports 0% coverage for packages whose last
   file in `R/` is empty (#522).
+
+* New `coverage_to_markdown()` formats coverage as a markdown table, optionally
+  compared against a baseline, for GitHub Actions job summaries or pull
+  request comments (#519).
 
 * New `coverage_to_markdown()` formats coverage as a markdown table, optionally
   compared against a baseline, for GitHub Actions job summaries or pull

@@ -9,7 +9,8 @@ replace_binding <- function(package, name, value) {
 }
 
 
-# patch parallel:::mcexit to force it to save the covr trace on exit
+# patch parallel:::mcexit to force it to save the covr trace on exit, and to
+# clear the pending marker of the worker, since it doesn't run finalizers
 fix_mcexit <- function(trace_dir) {
   get_from_ns <- `:::` # trick to fool R CMD check
   mcexit <- get_from_ns('parallel', 'mcexit')
@@ -21,7 +22,7 @@ fix_mcexit <- function(trace_dir) {
     after = 1,
     as.list(body(mcexit)),
     as.call(list(
-      call(":::", as.symbol("covr"), as.symbol("save_trace")),
+      call(":::", as.symbol("covr"), as.symbol("save_trace_and_clear")),
       trace_dir
     ))
   ))

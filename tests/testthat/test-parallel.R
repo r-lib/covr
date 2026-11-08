@@ -20,6 +20,30 @@ test_that("mcparallel with the fix", {
 })
 
 
+test_that("mcparallel workers that load the package after forking do not warn", {
+  skip_on_os("windows")
+
+  # The commands load the package first, so unload it to make the worker load it
+  code <- c(
+    "unloadNamespace('TestParallel'); invisible(gc())",
+    "stopifnot(!isNamespaceLoaded('TestParallel'))",
+    "parallel::mccollect(parallel::mcparallel({",
+    "  library(TestParallel); test1(1, 2)",
+    "}))"
+  )
+  expect_no_condition(
+    cov <- package_coverage(
+      test_path("TestParallel"),
+      type = "none",
+      code = code
+    ),
+    class = "covr_unsaved_trace"
+  )
+  tally <- tally_coverage(cov)
+  expect_gt(tally$value[tally$functions == "test1"], 0)
+})
+
+
 test_that("uses_parallel", {
   pkg <- covr:::as_package("TestParallel")
   expect_true(covr:::uses_parallel(pkg))

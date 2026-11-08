@@ -11,6 +11,7 @@ covr measures test coverage of R packages. `package_coverage()` installs an inst
 
 - The test packages in `tests/testthat/Test*/` and other fixtures under `tests/testthat/` are coverage inputs, and many tests assert exact line numbers in them. Do not reformat or edit them unless a test needs it; they are excluded from air in `air.toml`.
 - `devtools::load_all()` loads every package listed in `DESCRIPTION`, so to check what loading covr itself does (e.g. which namespaces get loaded) install it with `R CMD INSTALL` into a temporary library and load it in a fresh R process.
+- The R processes that `package_coverage()` starts load the *installed* covr, as the hooks added to the instrumented package call `covr:::` functions (`trace_environment()`, `register_trace()`, `save_trace()`, `fix_mcexit()`). `devtools::test()` only loads the source covr in the main process, so after changing these functions (or with an older covr installed) install this version first, e.g. `R CMD INSTALL -l "$lib" .` and run the tests with `R_LIBS="$lib"`.
 
 ### Measuring covr's own coverage
 
