@@ -107,6 +107,7 @@ parse_gcov <- function(file, package_path = "", unexecuted_block = "%%%%%") {
 # for mocking
 readLines <- NULL
 file.exists <- NULL
+system2 <- NULL
 
 clean_gcov <- function(path) {
   src_dir <- file.path(path, "src")
@@ -156,6 +157,36 @@ find_gcov <- function() {
   path
 }
 
+# Run gcov, capturing its output so that failures report gcov's diagnostics.
+# gcov exits with status 0 for objects with no functions; a nonzero status
+# always means a real problem, e.g. a .gcno version mismatch (status 3) when
+# the package was compiled with a different gcc than the gcov used (#537).
+gcov_run <- function(gcov_path, args, quiet = TRUE) {
+  if (!quiet) {
+    message(wrap_command(paste(
+      c(shQuote(gcov_path), shQuote(args)),
+      collapse = " "
+    )))
+  }
+  output <- suppressWarnings(
+    system2(gcov_path, shQuote(args), stdout = TRUE, stderr = TRUE)
+  )
+  status <- attr(output, "status")
+  if (!quiet && length(output)) {
+    message(paste(output, collapse = "\n"))
+  }
+  if (!is.null(status) && status != 0) {
+    stop(
+      "gcov failed (",
+      status,
+      "):\n",
+      paste(output, collapse = "\n"),
+      call. = FALSE
+    )
+  }
+  invisible(output)
+}
+
 run_gcov <- function(
   path,
   quiet = TRUE,
@@ -192,11 +223,10 @@ run_gcov <- function(
   unexecuted_block <- gcov_unexecuted_block(gcov_path, gcov_args)
 
   run_gcov_one <- function(src) {
-    system_check(
+    gcov_run(
       gcov_path,
       args = c(gcov_args, src, "-a", "-p", "-o", dirname(src)),
-      quiet = quiet,
-      echo = !quiet
+      quiet = quiet
     )
     gcov_outputs <- list.files(
       ".",

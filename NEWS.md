@@ -3,6 +3,9 @@
 * `package_coverage()` no longer discards the coverage measured so far, or
   fails with "'from' must be a finite number", when `code` loads the package
   again with `pkgload::load_all()`, e.g. via `devtools::test()` (#641).
+* When gcov fails, the error from `package_coverage()` now includes gcov's
+  output, e.g. the `.gcno` version mismatch reported when the package was
+  compiled with a different version of gcc than the gcov used (#537).
 
 * Line coverage is now computed the same way everywhere, so `print()`,
   `percent_coverage()`, `tally_coverage()`, `report()`, `codecov()`,
