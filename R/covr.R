@@ -942,6 +942,13 @@ package_coverage <- function(
   # after the tests have run.
   failures <- list()
 
+  # Load sys (used to show the output of `code`) before the instrumented
+  # package's library is put first in the library paths, so measuring the
+  # coverage of sys itself doesn't load the instrumented copy in this process.
+  if (isTRUE(show_code_output)) {
+    loadNamespace("sys")
+  }
+
   # We need to set the libpaths in the current R session for examples with
   # install or runtime Sexpr blocks, which may implicitly load the package in
   # the current R session.
