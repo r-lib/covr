@@ -168,11 +168,18 @@ is_windows <- function() {
 }
 
 # Signal errors and warnings formatted by cli without needing rlang. `message`
-# is a cli bullet vector interpolated in `.envir`; `...` adds condition fields.
-covr_abort <- function(message, ..., class = NULL, .envir = parent.frame()) {
+# is a cli bullet vector interpolated in `.envir`; `output` lines (e.g. from an
+# external command or server) are appended as is; `...` adds condition fields.
+covr_abort <- function(
+  message,
+  ...,
+  output = NULL,
+  class = NULL,
+  .envir = parent.frame()
+) {
   stop(structure(
     list(
-      message = cli::format_error(message, .envir = .envir),
+      message = cnd_message(cli::format_error, message, output, .envir),
       call = NULL,
       ...
     ),
@@ -180,15 +187,25 @@ covr_abort <- function(message, ..., class = NULL, .envir = parent.frame()) {
   ))
 }
 
-covr_warn <- function(message, ..., class = NULL, .envir = parent.frame()) {
+covr_warn <- function(
+  message,
+  ...,
+  output = NULL,
+  class = NULL,
+  .envir = parent.frame()
+) {
   warning(structure(
     list(
-      message = cli::format_warning(message, .envir = .envir),
+      message = cnd_message(cli::format_warning, message, output, .envir),
       call = NULL,
       ...
     ),
     class = c(class, "warning", "condition")
   ))
+}
+
+cnd_message <- function(format, message, output, .envir) {
+  paste(c(format(message, .envir = .envir), output), collapse = "\n")
 }
 
 as_package <- function(path) {

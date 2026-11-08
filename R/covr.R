@@ -795,11 +795,10 @@ package_coverage <- function(
   allow_failures = getOption("covr.allow_failures", FALSE)
 ) {
   if (!missing(exclusions)) {
-    warning(
-      "`exclusions` is deprecated and will be removed in an upcoming release. Please use `line_exclusions` instead.",
-      call. = FALSE,
-      domain = NA
-    )
+    covr_warn(c(
+      "{.arg exclusions} is deprecated.",
+      i = "Use {.arg line_exclusions} instead."
+    ))
     line_exclusions <- exclusions
   }
 
@@ -1248,9 +1247,11 @@ covr_error <- function(file) {
 # as many lines from the end as fit.
 failure_message <- function(file, lines) {
   header <- paste0(
-    "Failure in `",
-    file,
-    "` (full output is in that file and in the `$output` of this condition)\n"
+    cli::format_error(c(
+      "Code run to compute coverage failed.",
+      i = "Its full output is in {.file {file}} and in the {.code $output} of this condition."
+    )),
+    "\n"
   )
   # 9 is the length of `Error: ` + newline + NUL maybe?
   budget <- getOption("warning.length") - 9 - nchar(header, "chars")
@@ -1318,18 +1319,17 @@ merge_coverage.character <- function(x) {
 # error marker written by `save_trace()`.
 read_trace <- function(file) {
   fail <- function(reason) {
-    cnd <- structure(
-      list(
-        message = sprintf(
-          "Failed to read coverage trace file '%s': %s\nCoverage will be incomplete.",
-          file,
-          reason
+    withRestarts(
+      covr_abort(
+        c(
+          "Can't read coverage trace file {.file {file}}.",
+          x = "{reason}",
+          i = "Coverage will be incomplete."
         ),
-        call = NULL
+        class = "covr_error"
       ),
-      class = c("covr_error", "error", "condition")
+      covr_continue = function() NULL
     )
-    withRestarts(stop(cnd), covr_continue = function() NULL)
   }
 
   trace <- tryCatch(
@@ -1621,16 +1621,22 @@ add_hooks <- function(
 c.coverage <- function(...) {
   covs <- Filter(Negate(is.null), list(...))
   if (!all(vlapply(covs, inherits, "coverage"))) {
-    combine_error("All arguments to `c()` must be coverage objects.")
+    covr_abort(
+      "All arguments to {.fn c} must be coverage objects.",
+      class = "covr_combine_error"
+    )
   }
   packages <- unique(vcapply(covs, function(x) {
     attr(x, "package")$package %||% NA_character_
   }))
   if (length(packages) > 1L) {
-    combine_error(sprintf(
-      "Can't combine coverage of different packages: %s.",
-      paste(packages, collapse = ", ")
-    ))
+    covr_abort(
+      c(
+        "Can't combine coverage of different packages.",
+        x = "Packages: {.pkg {packages}}."
+      ),
+      class = "covr_combine_error"
+    )
   }
 
   merged <- merge_coverage(lapply(covs, coverage_to_counters))
@@ -1679,13 +1685,6 @@ union_excluded_lines <- function(excluded) {
   lapply(split(excluded, names(excluded)), function(lines) {
     sort(unique(unlist(lines)))
   })
-}
-
-combine_error <- function(message) {
-  stop(structure(
-    list(message = message, call = NULL),
-    class = c("covr_combine_error", "error", "condition")
-  ))
 }
 
 #' Determine if code is being run in covr

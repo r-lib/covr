@@ -180,12 +180,13 @@ gcov_run <- function(gcov_path, args, quiet = TRUE) {
     message(paste(output, collapse = "\n"))
   }
   if (!is.null(status) && status != 0) {
-    stop(
-      "gcov failed (",
-      status,
-      "):\n",
-      paste(output, collapse = "\n"),
-      call. = FALSE
+    covr_abort(
+      c(
+        "Can't run gcov.",
+        x = "Exit status {status}.",
+        i = if (length(output)) "gcov output:"
+      ),
+      output = output
     )
   }
   invisible(output)

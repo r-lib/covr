@@ -214,28 +214,27 @@ report_colors <- function(colors = getOption("covr.report_colors")) {
       anyDuplicated(nms) > 0 ||
       anyNA(colors)
   ) {
-    stop(
-      "`covr.report_colors` must be a named character vector with elements ",
-      "`covered`, `missed` and/or `partial`, e.g. ",
-      'c(covered = "#0072B2", missed = "#E69F00").',
-      call. = FALSE
-    )
+    covr_abort(c(
+      "{.code covr.report_colors} must be a named character vector.",
+      i = "Use the names {.val covered}, {.val missed} and/or {.val partial}, e.g. {.code c(covered = \"#0072B2\", missed = \"#E69F00\")}."
+    ))
   }
 
   res <- default_report_colors
   res[nms] <- colors
   res <- res[intersect(report_color_names, names(res))]
 
-  rgb <- tryCatch(
-    grDevices::col2rgb(res),
-    error = function(e) {
-      stop(
-        "`covr.report_colors` must contain valid R colors: ",
-        conditionMessage(e),
-        call. = FALSE
-      )
-    }
-  )
+  valid <- vlapply(res, function(color) {
+    tryCatch(is.matrix(grDevices::col2rgb(color)), error = function(e) FALSE)
+  })
+  if (!all(valid)) {
+    invalid <- unname(res[!valid])
+    covr_abort(c(
+      "{.code covr.report_colors} must contain valid R colors.",
+      x = "Can't find color{?s} {.val {invalid}}."
+    ))
+  }
+  rgb <- grDevices::col2rgb(res)
   colnames(rgb) <- names(res)
   rgb
 }

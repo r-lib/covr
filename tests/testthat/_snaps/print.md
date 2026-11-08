@@ -4,7 +4,8 @@
       styles <- console_styles()
     Condition
       Warning:
-      `covr.report_colors` must contain valid R colors: invalid color name 'notacolor'
+      `covr.report_colors` must contain valid R colors.
+      x Can't find color "notacolor".
       i Using the default colors.
 
 # print.coverage limits the files or functions printed with n

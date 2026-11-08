@@ -259,9 +259,10 @@ update_current_test <- function() {
       limit = max_call_len
     )
 
-    warning(
-      "A large call was captured as part of a test and will be truncated."
-    )
+    covr_warn(c(
+      "Truncated a large call captured in a test.",
+      i = "R can't read calls longer than {format(max_call_len, big.mark = ',')} elements from trace files."
+    ))
   }
 
   .counters$tests[[.current_test$index]] <- .current_test$trace
