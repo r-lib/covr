@@ -108,6 +108,10 @@ content <- function(...) {
   httr::content(...)
 }
 
+http_error <- function(...) {
+  httr::http_error(...)
+}
+
 RETRY <- function(...) {
   httr::RETRY(...)
 }

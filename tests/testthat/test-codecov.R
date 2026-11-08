@@ -57,6 +57,7 @@ test_that("it generates a properly formatted json file", {
   withr::local_envvar(ci_vars)
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity,
     local_branch = function(dir) "master",
     current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
@@ -112,10 +113,48 @@ test_that("it generates a properly formatted json file", {
   expect_equal(json$uploader, "R")
 })
 
+test_that("it errors if the upload fails, but only warns on 429 and 5xx", {
+  withr::local_envvar(ci_vars)
+  response <- function(status, body) {
+    structure(
+      list(
+        url = "https://codecov.io/upload/v2",
+        status_code = status,
+        headers = list(`content-type` = "text/plain"),
+        content = charToRaw(body)
+      ),
+      class = "response"
+    )
+  }
+  status <- 400L
+  local_mocked_bindings(
+    RETRY = function(...) {
+      switch(
+        as.character(status),
+        "400" = response(400L, "Missing repository upload token"),
+        "429" = response(429L, "Rate limit reached"),
+        "503" = response(503L, "Service unavailable")
+      )
+    },
+    local_branch = function(dir) "master",
+    current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+  )
+  expect_snapshot(codecov(coverage = cov), error = TRUE)
+
+  status <- 429L
+  expect_snapshot(res <- codecov(coverage = cov))
+  expect_equal(res, "Rate limit reached")
+
+  status <- 503L
+  expect_snapshot(res <- codecov(coverage = cov))
+  expect_equal(res, "Service unavailable")
+})
+
 test_that("it adds a flags argument to the query if specified", {
   withr::local_envvar(ci_vars)
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity,
     local_branch = function(dir) "master",
     current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
@@ -128,6 +167,7 @@ test_that("it works with local repos", {
   withr::local_envvar(ci_vars)
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity,
     local_branch = function(dir) "master",
     current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
@@ -142,6 +182,7 @@ test_that("it works with local repos and explicit branch and commit", {
   withr::local_envvar(ci_vars)
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity
   )
   res <- codecov(
@@ -158,6 +199,7 @@ test_that("it adds the token to the query if available", {
   withr::local_envvar(c(ci_vars, "CODECOV_TOKEN" = "codecov_test"))
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity,
     local_branch = function(dir) "master",
     current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
@@ -173,6 +215,7 @@ test_that("it looks for token in a .yml file", {
   withr::local_envvar(ci_vars)
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity,
     local_branch = function(dir) "master",
     current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
@@ -196,6 +239,7 @@ test_that("it works with jenkins", {
   ))
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity
   )
   res <- codecov(coverage = cov)
@@ -221,6 +265,7 @@ test_that("it works with travis normal builds", {
   ))
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity
   )
   res <- codecov(coverage = cov)
@@ -248,6 +293,7 @@ test_that("it works with travis pull requests", {
   ))
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity
   )
   res <- codecov(coverage = cov)
@@ -273,6 +319,7 @@ test_that("it works with codeship", {
   ))
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity
   )
   res <- codecov(coverage = cov)
@@ -296,6 +343,7 @@ test_that("it works with circleci", {
   ))
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity
   )
   res <- codecov(coverage = cov)
@@ -319,6 +367,7 @@ test_that("it works with semaphore", {
   ))
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity
   )
   res <- codecov(coverage = cov)
@@ -342,6 +391,7 @@ test_that("it works with drone", {
   ))
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity
   )
   res <- codecov(coverage = cov)
@@ -367,6 +417,7 @@ test_that("it works with AppVeyor", {
   ))
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity
   )
   res <- codecov(coverage = cov)
@@ -390,6 +441,7 @@ test_that("it works with Wercker", {
   ))
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity
   )
   res <- codecov(coverage = cov)
@@ -414,6 +466,7 @@ test_that("it works with GitLab", {
   ))
   local_mocked_bindings(
     RETRY = function(...) list(...),
+    http_error = function(...) FALSE,
     content = identity
   )
   res <- codecov(coverage = cov)
