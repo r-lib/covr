@@ -5,6 +5,9 @@
   processes forked by parallel's `mclapply()`, `mcparallel()` and related
   functions, as `package_coverage()` already did. Set
   `options(covr.fix_parallel_mcexit = FALSE)` to turn this off (#410).
+* `package_coverage(allow_failures = TRUE)` now also keeps `install_path` when
+  failures are reported as warnings, so the output files they refer to can be
+  inspected (#554).
 
 * `package_coverage()` now warns when an R process started by the tests, such
   as a Shiny app, callr session or future worker, loaded the package but did
@@ -31,9 +34,6 @@
 
 * `package_coverage()` no longer reports 0% coverage for packages whose last
   file in `R/` is empty (#522).
-* `package_coverage(allow_failures = TRUE)` now also keeps `install_path` when
-  failures are reported as warnings, so the output files they refer to can be
-  inspected (#554).
 
 * New `coverage_to_markdown()` formats coverage as a markdown table, optionally
   compared against a baseline, for GitHub Actions job summaries or pull
