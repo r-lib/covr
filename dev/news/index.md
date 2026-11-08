@@ -2,6 +2,8 @@
 
 ## covr (development version)
 
+- covr now requires R 4.0.0 or later.
+
 - New [`to_badge()`](https://covr.r-lib.org/dev/reference/to_badge.md)
   writes an SVG badge with the percent coverage, so a README can show
   coverage without uploading it to Codecov or Coveralls. The README has
