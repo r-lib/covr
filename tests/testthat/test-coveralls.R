@@ -1,51 +1,8 @@
 ci_vars <- c(
-  "APPVEYOR" = NA,
-  "APPVEYOR_BUILD_NUMBER" = NA,
-  "APPVEYOR_REPO_BRANCH" = NA,
-  "APPVEYOR_REPO_COMMIT" = NA,
-  "APPVEYOR_REPO_NAME" = NA,
-  "BRANCH_NAME" = NA,
-  "BUILD_NUMBER" = NA,
-  "BUILD_URL" = NA,
-  "CI" = NA,
-  "CIRCLECI" = NA,
-  "CIRCLE_BRANCH" = NA,
-  "CIRCLE_BUILD_NUM" = NA,
-  "CIRCLE_PROJECT_REPONAME" = NA,
-  "CIRCLE_PROJECT_USERNAME" = NA,
-  "CIRCLE_SHA1" = NA,
-  "CI_BRANCH" = NA,
-  "CI_BUILD_NUMBER" = NA,
-  "CI_BUILD_URL" = NA,
-  "CI_COMMIT_ID" = NA,
-  "CI_NAME" = NA,
-  "CODECOV_TOKEN" = NA,
-  "DRONE" = NA,
-  "DRONE_BRANCH" = NA,
-  "DRONE_BUILD_NUMBER" = NA,
-  "DRONE_BUILD_URL" = NA,
-  "DRONE_COMMIT" = NA,
-  "GITHUB_HEAD_REF" = NA,
-  "GITHUB_REF_NAME" = NA,
-  "GIT_BRANCH" = NA,
-  "GIT_COMMIT" = NA,
-  "JENKINS_URL" = NA,
-  "REVISION" = NA,
-  "SEMAPHORE" = NA,
-  "SEMAPHORE_BUILD_NUMBER" = NA,
-  "SEMAPHORE_REPO_SLUG" = NA,
-  "TRAVIS" = NA,
-  "TRAVIS_BRANCH" = NA,
-  "TRAVIS_COMMIT" = NA,
-  "TRAVIS_JOB_ID" = NA,
-  "TRAVIS_JOB_NUMBER" = NA,
-  "TRAVIS_PULL_REQUEST" = NA,
-  "TRAVIS_REPO_SLUG" = NA,
-  "WERCKER_GIT_BRANCH" = NA,
-  "WERCKER_GIT_COMMIT" = NA,
-  "WERCKER_GIT_OWNER" = NA,
-  "WERCKER_GIT_REPOSITORY" = NA,
-  "WERCKER_MAIN_PIPELINE_STARTED" = NA
+  codecov_ci_vars(),
+  "CI_REMOTE" = NA,
+  "COVERALLS_TOKEN" = NA,
+  "GITHUB_REF_NAME" = NA
 )
 
 read_file <- function(file) paste(collapse = "\n", readLines(file))
@@ -119,6 +76,15 @@ test_that("coveralls generates a properly formatted json file", {
       NA
     )
   )
+})
+
+test_that("coveralls works with repo_token = NULL", {
+  withr::local_envvar(c(ci_vars, "CI_NAME" = "FAKECI"))
+  local_coveralls_mocks()
+  json <- coveralls_json(coveralls(coverage = cov, repo_token = NULL))
+  expect_null(json$repo_token)
+  expect_null(json$git)
+  expect_equal(json$service_name, "fakeci")
 })
 
 test_that("coveralls can spawn a job using repo_token", {
@@ -213,35 +179,30 @@ test_that("generates correct payload for Drone and Jenkins", {
   expect_equal(git$head$id, jsonlite::unbox("a"))
   expect_equal(git$head$author_name, jsonlite::unbox("b"))
   expect_equal(git$head$author_email, jsonlite::unbox("c"))
-  expect_equal(git$head$commiter_name, jsonlite::unbox("d"))
-  expect_equal(git$head$commiter_email, jsonlite::unbox("e"))
+  expect_equal(git$head$committer_name, jsonlite::unbox("d"))
+  expect_equal(git$head$committer_email, jsonlite::unbox("e"))
   expect_equal(git$head$message, jsonlite::unbox("f"))
   expect_equal(git$branch, jsonlite::unbox("fakebranch"))
   expect_equal(git$remotes[[1]]$name, jsonlite::unbox("origin"))
   expect_equal(git$remotes[[1]]$url, jsonlite::unbox("covr"))
 })
 
-test_that("coveralls submits git info on GitHub Actions #535", {
+test_that("coveralls detects GitHub Actions #535", {
   withr::local_envvar(c(
     ci_vars,
-    "CI_NAME" = "github-actions",
-    "GITHUB_REF_NAME" = "main"
+    "GITHUB_ACTION" = "run",
+    "GITHUB_REF" = "refs/heads/main",
+    "GITHUB_SERVER_URL" = "https://github.com",
+    "GITHUB_REPOSITORY" = "r-lib/covr",
+    "GITHUB_RUN_ID" = "42",
+    "GITHUB_SHA" = "abc"
   ))
-  local_mocked_bindings(
-    RETRY = function(...) list(...),
-    content = identity,
-    upload_file = function(file) readChar(file, file.info(file)$size),
-    system_output = function(cmd, args, ...) {
-      if (args[[1]] == "config") {
-        return("https://github.com/r-lib/covr")
-      }
-      paste0(c("a", "b", "c", "d", "e", "f"), collapse = "\n")
-    }
-  )
-  res <- coveralls(coverage = cov, repo_token = "mytoken")
-  json <- jsonlite::fromJSON(res$body$json_file)
+  local_coveralls_mocks()
+  json <- coveralls_json(coveralls(coverage = cov, repo_token = "mytoken"))
 
-  expect_equal(json$service_name, "github-actions")
+  expect_equal(json$service_name, "github")
+  expect_equal(json$service_job_id, "42")
+  expect_null(json$service_pull_request)
   expect_equal(json$git$branch, "main")
   expect_equal(json$git$head$id, "a")
   expect_equal(json$git$remotes$name, "origin")
@@ -250,11 +211,81 @@ test_that("coveralls submits git info on GitHub Actions #535", {
   # Pull requests use the source branch rather than `<number>/merge`
   withr::local_envvar(
     "GITHUB_HEAD_REF" = "feature",
-    "GITHUB_REF_NAME" = "123/merge"
+    "GITHUB_REF" = "refs/pull/123/merge"
   )
-  res <- coveralls(coverage = cov, repo_token = "mytoken")
-  json <- jsonlite::fromJSON(res$body$json_file)
+  json <- coveralls_json(coveralls(coverage = cov, repo_token = "mytoken"))
   expect_equal(json$git$branch, "feature")
+  expect_equal(json$service_pull_request, "123")
+
+  # An explicit service name is still used
+  json <- coveralls_json(coveralls(
+    coverage = cov,
+    repo_token = "mytoken",
+    service_name = "github-actions"
+  ))
+  expect_equal(json$service_name, "github-actions")
+  expect_equal(json$git$branch, "feature")
+})
+
+test_that("coveralls detects the services codecov() supports", {
+  local_coveralls_mocks()
+  detect <- function(...) {
+    withr::local_envvar(c(ci_vars, ...))
+    json <- coveralls_json(coveralls(coverage = cov))
+    c(json$service_name, json$service_job_id)
+  }
+
+  expect_equal(
+    detect(CI = "true", TRAVIS = "true", TRAVIS_JOB_ID = "1"),
+    c("travis-ci", "1")
+  )
+  expect_equal(
+    detect(CI = "true", CIRCLECI = "true", CIRCLE_BUILD_NUM = "2"),
+    c("circleci", "2")
+  )
+  expect_equal(
+    detect(GITLAB_CI = "true", CI = "true", CI_JOB_ID = "3"),
+    c("gitlab-ci", "3")
+  )
+  expect_equal(
+    detect(JENKINS_URL = "http://jenkins", BUILD_NUMBER = "4"),
+    c("jenkins", "4")
+  )
+  expect_equal(
+    detect(CI = "true", DRONE = "true", DRONE_BUILD_NUMBER = "5"),
+    c("drone", "5")
+  )
+  expect_equal(detect(), "local")
+})
+
+test_that("coveralls submits the local git info outside CI", {
+  withr::local_envvar(ci_vars)
+  local_coveralls_mocks()
+  local_mocked_bindings(
+    git_remote_url = function(dir) "git@github.com:r-lib/covr.git",
+    local_branch = function(dir) "main"
+  )
+  json <- coveralls_json(coveralls(coverage = cov, repo_token = "mytoken"))
+
+  expect_equal(json$service_name, "local")
+  expect_equal(json$git$branch, "main")
+  expect_equal(json$git$head$id, "a")
+  expect_equal(json$git$remotes$url, "git@github.com:r-lib/covr.git")
+})
+
+test_that("coveralls submits no git info outside a git repository", {
+  withr::local_envvar(ci_vars)
+  withr::local_dir(withr::local_tempdir())
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity,
+    upload_file = function(file) readChar(file, file.info(file)$size),
+    # As `system_output()` does, without git's message on stderr
+    local_branch = function(dir) warning("had status 128")
+  )
+  json <- coveralls_json(coveralls(coverage = cov, repo_token = "mytoken"))
+  expect_equal(json$service_name, "local")
+  expect_null(json$git)
 })
 
 test_that("coveralls can spawn a job using repo_token - travis-pro #285", {
@@ -332,8 +363,8 @@ test_that("coveralls can spawn a job using repo_token - travis-pro #285", {
   expect_equal(json$git$head$id, "a")
   expect_equal(json$git$head$author_name, "b")
   expect_equal(json$git$head$author_email, "c")
-  expect_equal(json$git$head$commiter_name, "d")
-  expect_equal(json$git$head$commiter_email, "e")
+  expect_equal(json$git$head$committer_name, "d")
+  expect_equal(json$git$head$committer_email, "e")
   expect_equal(json$git$head$message, "f")
 })
 
