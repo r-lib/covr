@@ -310,6 +310,20 @@ test_that("package_coverage passes outDir to testInstalledPackage", {
   )
 })
 
+test_that("package_coverage gives the reason the package can't be installed", {
+  pkg <- withr::local_tempdir()
+  writeLines(
+    c("Package: Broken", "Version: 0.1"),
+    file.path(pkg, "DESCRIPTION")
+  )
+  writeLines("", file.path(pkg, "NAMESPACE"))
+  dir.create(file.path(pkg, "R"))
+  writeLines("f <- function( {", file.path(pkg, "R", "f.R"))
+  err <- tryCatch(package_coverage(pkg), error = identity)
+  expect_match(conditionMessage(err), "Can't install")
+  expect_match(conditionMessage(err), "unexpected")
+})
+
 test_that("package_coverage measures installed packages (#638)", {
   pkg <- local_installed_package(
     "TestSummary",

@@ -902,38 +902,12 @@ package_coverage <- function(
     clean_objects(pkg$path)
   }
 
-  # install the package in a temporary directory
-  withr::with_envvar(
-    list(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep)),
-    withr::with_makevars(flags, assignment = "+=", {
-      args <- c(
-        "--vanilla",
-        "CMD",
-        "INSTALL",
-        "-l",
-        shQuote(install_path),
-        "--example",
-        "--install-tests",
-        "--with-keep.source",
-        "--with-keep.parse.data",
-        "--no-staged-install",
-        "--no-multiarch",
-        shQuote(pkg$path)
-      )
-
-      name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
-      path <- file.path(R.home("bin"), name)
-      res <- system2(
-        path,
-        args,
-        stdout = if (quiet) NULL else "",
-        stderr = if (quiet) NULL else ""
-      )
-    })
-  )
-
-  if (res != 0) {
-    covr_abort("Can't install {.pkg {pkg$package}}.")
+  if (installed) {
+    # `R CMD INSTALL` fails to reinstall an installed package on Windows, and
+    # only copies it elsewhere, so copy it directly (#638).
+    copy_installed_package(pkg, install_path)
+  } else {
+    install_package(pkg, install_path, flags, quiet)
   }
 
   # add hooks to the package startup
@@ -1542,6 +1516,71 @@ run_vignettes <- function(pkg, lib) {
     show_failures(dirname(failfile))
   } else {
     file.rename(failfile, outfile)
+  }
+}
+
+# Install the package source with the options covr needs. With `quiet`, the
+# output is captured to give the reason if the installation fails.
+install_package <- function(pkg, install_path, flags, quiet) {
+  output <- withr::with_envvar(
+    list(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep)),
+    withr::with_makevars(flags, assignment = "+=", {
+      args <- c(
+        "--vanilla",
+        "CMD",
+        "INSTALL",
+        "-l",
+        shQuote(install_path),
+        "--example",
+        "--install-tests",
+        "--with-keep.source",
+        "--with-keep.parse.data",
+        "--no-staged-install",
+        "--no-multiarch",
+        shQuote(pkg$path)
+      )
+
+      name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
+      path <- file.path(R.home("bin"), name)
+      if (quiet) {
+        suppressWarnings(system2(path, args, stdout = TRUE, stderr = TRUE))
+      } else {
+        structure(
+          character(),
+          status = system2(path, args, stdout = "", stderr = "")
+        )
+      }
+    })
+  )
+
+  status <- attr(output, "status") %||% 0L
+  if (status != 0) {
+    covr_abort(
+      "Can't install {.pkg {pkg$package}}.",
+      output = utils::tail(output, failure_lines())
+    )
+  }
+}
+
+# Copy an installed package to `install_path`, giving the warnings of
+# `file.copy()` as the reason if the copy fails.
+copy_installed_package <- function(pkg, install_path) {
+  reasons <- character()
+  copied <- withCallingHandlers(
+    file.copy(pkg$path, install_path, recursive = TRUE),
+    warning = function(w) {
+      reasons <<- c(reasons, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  if (
+    !isTRUE(copied) ||
+      !file.exists(file.path(install_path, pkg$package, "DESCRIPTION"))
+  ) {
+    covr_abort(
+      "Can't copy the installed package {.pkg {pkg$package}} to {.path {install_path}}.",
+      output = if (length(reasons) > 0) reasons else "`file.copy()` failed."
+    )
   }
 }
 
