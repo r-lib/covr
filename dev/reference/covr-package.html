@@ -108,7 +108,11 @@ turn off coverage of compiled code.</p></li>
 <li><p><code>covr.gcov_partial</code>: How to count compiled code lines that gcov
 reports as only partially executed (e.g. <code>if (x) f();</code> when <code>f()</code> never
 runs). <code>"covered"</code> (the default) counts them as covered, <code>"uncovered"</code>
-counts them as not covered, for requiring every part of a line to run.</p></li>
+counts them as not covered, for requiring every part of a line to run.
+This works with both gcc's gcov and llvm-cov (the gcov on macOS).
+llvm-cov can't tell apart code that only runs when a C++ exception is
+thrown, so lines that create objects with destructors may also count as
+partially executed.</p></li>
 <li><p><code>covr.icov</code>:</p></li>
 <li><p><code>covr.icov_args</code>:</p></li>
 <li><p><code>covr.icov_flags</code>:</p></li>

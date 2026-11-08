@@ -111,7 +111,10 @@
   (e.g. `if (x) f();` when `f()` never runs) are no longer dropped from
   the coverage. They count as covered, or as not covered with
   `options(covr.gcov_partial = "uncovered")`
-  ([\#604](https://github.com/r-lib/covr/issues/604)).
+  ([\#604](https://github.com/r-lib/covr/issues/604)). covr now runs
+  gcov with `-a` so partial lines are also found with llvm-cov, the gcov
+  on macOS, and older versions of gcc
+  ([\#610](https://github.com/r-lib/covr/issues/610)).
 
 - `covr_error` conditions (and the `covr_warning`s from
   `allow_failures`) now keep the whole failure output in `$output` and
