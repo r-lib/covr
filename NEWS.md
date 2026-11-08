@@ -23,6 +23,11 @@
   the compiled code of packages loaded with `pkgload::load_all()`, so
   `devtools::test_coverage_active_file()` now works for files in `src/`.
 
+* New `shiny_app_coverage()` measures the coverage of a Shiny app that isn't
+  part of a package while its tests run, by default with
+  `shinytest2::test_app()`, including the code run by the app in the R
+  processes that shinytest2 starts (#277).
+
 * New `report_html()` and `file_report_html()` return the coverage reports of
   `report()` and `file_report()` as HTML that can be included in a larger
   document, such as an R Markdown or Quarto document. The reports' styles and
