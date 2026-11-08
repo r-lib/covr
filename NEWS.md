@@ -8,6 +8,12 @@
   with arrow in an environment of its namespace, e.g. in a fastmap. The
   coverage saved by each R process included the contents of the package's
   environments, which are no longer saved, so it is also smaller (#602).
+* S4 methods are now named after their generic and signature, as in their Rd
+  aliases, e.g. `show,MyClass-method`, so `print(x, group = "functions")`,
+  `tally_coverage(by = "function")` and the other outputs show which generic
+  each method belongs to. Previously they were named only by their signature,
+  e.g. `numeric#character` (#417). `function_exclusions` patterns that matched
+  the old names need to be updated.
 
 * `file_report()` now highlights the syntax of the source code, which failed
   with JavaScript errors because the report didn't include jQuery.
@@ -15,12 +21,6 @@
 * `report()` and `file_report()` use a dark theme when the browser prefers
   one, and have a button to switch between the light and dark themes, which
   the browser remembers for other reports (#563).
-* S4 methods are now named after their generic and signature, as in their Rd
-  aliases, e.g. `show,MyClass-method`, so `print(x, group = "functions")`,
-  `tally_coverage(by = "function")` and the other outputs show which generic
-  each method belongs to. Previously they were named only by their signature,
-  e.g. `numeric#character` (#417). `function_exclusions` patterns that matched
-  the old names need to be updated.
 
 * `file_coverage()` gains a `runner` argument to choose how test files are
   run. `runner = testthat::test_file` runs them with testthat's test runner,
