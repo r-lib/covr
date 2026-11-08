@@ -36,9 +36,9 @@
   each `if` (including an `if` without an `else`) and `switch()` were taken,
   in the `branches` attribute of the coverage object. `tally_coverage(by =
   "branch")` and `percent_coverage(by = "branch")` summarize them, and
-  `to_lcov()` and `to_cobertura()` include them. Line coverage is unchanged,
-  and without the option the code is instrumented as before, so there is no
-  cost. See `?covr.branch_coverage` (#279).
+  `to_lcov()`, `to_cobertura()`, `codecov()` and `coveralls()` include them.
+  Line coverage is unchanged, and without the option the code is instrumented
+  as before, so there is no cost. See `?covr.branch_coverage` (#279).
 
 * New `report_html()` returns the coverage report of `report()` as HTML that
   can be included in a larger document, such as an R Markdown or Quarto

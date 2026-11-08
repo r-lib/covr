@@ -128,7 +128,7 @@
 "_PACKAGE"
 
 #' @import methods
-#' @importFrom stats aggregate na.omit na.pass setNames
+#' @importFrom stats aggregate ave na.omit na.pass setNames
 #' @importFrom utils capture.output getSrcFilename relist str head
 NULL
 

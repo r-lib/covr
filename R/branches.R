@@ -39,8 +39,11 @@
 #' branch, and `percent_coverage(by = "branch")` for the percentage of
 #' branches taken.
 #'
-#' [to_lcov()] and [to_cobertura()] include the branches. The other outputs,
-#' such as [report()], [codecov()] and [coveralls()], don't yet.
+#' [to_lcov()], [to_cobertura()], [codecov()] and [coveralls()] include the
+#' branches. Codecov shows a line with branches that weren't all taken as
+#' partly covered, and counts it as not covered in the coverage percentage, so
+#' the percentage on Codecov is lower with branch coverage. [report()],
+#' [file_report()] and [to_sonarqube()] don't include the branches yet.
 #'
 #' @examples
 #' withr::with_options(list(covr.branch_coverage = TRUE), {
@@ -321,4 +324,35 @@ tally_branches <- function(x) {
   df <- df[order(df$filename, df$line, df$column, df$branch), ]
   rownames(df) <- NULL
   df
+}
+
+# The index of each `if` and `switch()` among those on its line, from zero in
+# the order they start, for the branches `df` from `tally_branches()` (which
+# sorts them by file, line and column). This is the "block" of LCOV and
+# Coveralls.
+branch_blocks <- function(df) {
+  id <- paste(df$filename, df$line, df$column, sep = "\r")
+  decision <- match(id, unique(id))
+  line <- paste(df$filename, df$line, sep = "\r")
+  decision - decision[match(line, line)]
+}
+
+# The number of branches taken and the total number of branches on each line
+# with branches, from the branches `df` from `tally_branches()`.
+line_branch_totals <- function(df) {
+  if (!NROW(df)) {
+    return(data.frame(
+      filename = character(),
+      line = integer(),
+      taken = integer(),
+      total = integer(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  taken <- aggregate(
+    cbind(taken = value > 0, total = 1L) ~ filename + line,
+    data = df,
+    FUN = sum
+  )
+  taken[order(taken$filename, taken$line), ]
 }

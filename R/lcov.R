@@ -89,20 +89,24 @@ lcov_count <- function(x) {
 }
 
 # The `BRDA`, `BRF` and `BRH` records of the branches of one file, from
-# `tally_coverage(by = "branch")`, which sorts them by line and column. Within
-# each line, `block` numbers its `if` and `switch()` calls from zero in the
-# order they start.
+# `tally_coverage(by = "branch")`. A branch's count is `-` if its `if` or
+# `switch()` never ran.
 lcov_branches <- function(df) {
-  decision <- match(
-    paste(df$line, df$column),
-    unique(paste(df$line, df$column))
-  )
-  block <- decision - decision[match(df$line, df$line)]
-  ran <- tapply(df$value, decision, sum)[decision] > 0
+  decision <- paste(df$line, df$column)
+  ran <- ave(df$value, decision, FUN = sum) > 0
   taken <- ifelse(ran, lcov_count(df$value), "-")
   c(
     if (NROW(df)) {
-      paste0("BRDA:", df$line, ",", block, ",", df$branch - 1L, ",", taken)
+      paste0(
+        "BRDA:",
+        df$line,
+        ",",
+        branch_blocks(df),
+        ",",
+        df$branch - 1L,
+        ",",
+        taken
+      )
     },
     paste0("BRF:", NROW(df)),
     paste0("BRH:", sum(df$value > 0))
