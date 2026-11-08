@@ -15,6 +15,12 @@
   with arrow in an environment of its namespace, e.g. in a fastmap. The
   coverage saved by each R process included the contents of the package's
   environments, which are no longer saved, so it is also smaller (#602).
+* Compiled code coverage now reads gcov's structured JSON output
+  (`gcov --json-format`) when gcov supports it (gcc >= 9), instead of parsing
+  its text output with regular expressions. covr still parses the text output
+  of llvm-cov, the gcov on macOS, and older gcc. Lines only reached by C++
+  exceptions, such as a `catch` block that never ran, now count as not covered
+  instead of being left out of the coverage (#609).
 
 * `file_report()` now highlights the syntax of the source code, which failed
   with JavaScript errors because the report didn't include jQuery.

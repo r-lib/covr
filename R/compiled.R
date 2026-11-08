@@ -1,3 +1,81 @@
+# Parses the JSON intermediate format written by `gcov --json-format`
+# (gcc >= 9). Each file describes one object file, and lists the lines of
+# every source file and header compiled into it.
+parse_gcov_json <- function(file, package_path = "") {
+  if (!file.exists(file)) {
+    return(NULL)
+  }
+
+  # fromJSON() opens and closes the connection
+  json <- jsonlite::fromJSON(gzfile(file), simplifyVector = FALSE)
+
+  # Source file names are relative to the directory the code was compiled in
+  cwd <- json$current_working_directory %||% "."
+
+  res <- lapply(json$files, function(x) {
+    source_file <- x$file
+    if (!is_absolute_path(source_file)) {
+      source_file <- file.path(cwd, source_file)
+    }
+    source_file <- normalize_path(source_file)
+
+    if (!length(x$lines) || !in_package_path(source_file, package_path)) {
+      return(NULL)
+    }
+
+    line <- viapply(x$lines, function(l) as.integer(l$line_number))
+    count <- vdapply(x$lines, function(l) as.numeric(l$count))
+    unexecuted <- vlapply(x$lines, function(l) isTRUE(l$unexecuted_block))
+
+    # Functions gcov groups together, such as the instantiations of a
+    # template, list their lines separately, so add them up like the text
+    # output does.
+    values <- tapply(count, line, sum)
+    partial <- tapply(unexecuted, line, any) & values > 0
+
+    # gcov's `unexecuted_block` marks lines with blocks that never ran, e.g.
+    # `if (x) f();` when `f()` never runs (#604).
+    if (gcov_partial_as_uncovered()) {
+      values[partial] <- 0
+    }
+
+    lines <- as.integer(names(values))
+    values <- as.numeric(values)
+
+    # There are no functions for gcov, so we set everything to NA
+    functions <- rep(NA_character_, length(values))
+
+    line_coverages(source_file, list(line = lines), values, functions)
+  })
+
+  unlist(res, recursive = FALSE)
+}
+
+# Is the source file in the package, or one of the
+# `covr.gcov_additional_paths`?
+in_package_path <- function(source_file, package_path) {
+  file.exists(source_file) &&
+    grepl(
+      rex::rex(
+        start,
+        rex::regex(paste0(rex::escape(package_path), collapse = "|"))
+      ),
+      source_file
+    )
+}
+
+# Partially executed lines count as covered by default, or as uncovered with
+# `options(covr.gcov_partial = "uncovered")`.
+gcov_partial_as_uncovered <- function() {
+  partial_as <- match.arg(
+    getOption("covr.gcov_partial", "covered"),
+    c("covered", "uncovered")
+  )
+  partial_as == "uncovered"
+}
+
+# Parses the text output of `gcov -a`, for gcov implementations without
+# `--json-format` (llvm-cov and gcc < 9).
 # this does not handle LCOV_EXCL_START ect.
 parse_gcov <- function(file, package_path = "", unexecuted_block = "%%%%%") {
   if (!file.exists(file)) {
@@ -14,16 +92,7 @@ parse_gcov <- function(file, package_path = "", unexecuted_block = "%%%%%") {
   source_file <- normalize_path(source_file)
 
   # If the source file does not start with the package path or does not exist ignore it.
-  if (
-    !file.exists(source_file) ||
-      !grepl(
-        rex::rex(
-          start,
-          rex::regex(paste0(rex::escape(package_path), collapse = "|"))
-        ),
-        source_file
-      )
-  ) {
+  if (!in_package_path(source_file, package_path)) {
     return(NULL)
   }
 
@@ -60,18 +129,14 @@ parse_gcov <- function(file, package_path = "", unexecuted_block = "%%%%%") {
   lines <- lines[!is.na(matches$coverage)]
   matches <- na.omit(matches)
 
-  # gcov lines which have no coverage
-  matches$coverage[matches$coverage == "#####"] <- 0 # nolint
-
-  # gcov lines which have parse error, so make untracked
-  matches$coverage[matches$coverage == "====="] <- "-"
+  # gcov lines which have no coverage; `=====` marks lines only reached by
+  # exceptions, e.g. a `catch` block that never ran
+  matches$coverage[matches$coverage %in% c("#####", "=====")] <- 0 # nolint
 
   # A line is only partially executed if some of its blocks never ran (e.g.
   # `if (x) f();` when `f()` never runs). gcc >= 8 marks these lines with a
   # trailing `*` (e.g. `3*`), but llvm-cov and older gcc do not, so we also
-  # look for unexecuted blocks in the `gcov -a` output (#610). Partial lines
-  # are counted as covered by default, or as uncovered with
-  # `options(covr.gcov_partial = "uncovered")`.
+  # look for unexecuted blocks in the `gcov -a` output (#610).
   starred <- endsWith(matches$coverage, "*")
   matches$coverage[starred] <- sub(
     "*",
@@ -81,11 +146,7 @@ parse_gcov <- function(file, package_path = "", unexecuted_block = "%%%%%") {
   )
   partial <- starred |
     (matches$line %in% unexecuted_lines & matches$coverage != "-")
-  partial_as <- match.arg(
-    getOption("covr.gcov_partial", "covered"),
-    c("covered", "uncovered")
-  )
-  if (partial_as == "uncovered") {
+  if (gcov_partial_as_uncovered()) {
     matches$coverage[partial] <- "0"
   }
 
@@ -118,7 +179,7 @@ clean_gcov <- function(path) {
 
   gcov_files <- list.files(
     src_dir,
-    pattern = rex::rex(or(".gcda", ".gcno", ".gcov"), end),
+    pattern = rex::rex(or(".gcda", ".gcno", ".gcov", ".gcov.json.gz"), end),
     full.names = TRUE,
     recursive = TRUE
   )
@@ -151,6 +212,16 @@ gcov_unexecuted_block <- function(gcov_path, gcov_args = NULL) {
     )
   )$major
   if (!is.na(major) && as.integer(major) < 8) "$$$$$" else "%%%%%"
+}
+
+# gcc >= 9 can write structured JSON instead of the text output, which
+# llvm-cov (the gcov on macOS) and older gcc can't (#609).
+gcov_json_supported <- function(gcov_path, gcov_args = NULL) {
+  help <- tryCatch(
+    system_output(gcov_path, c(gcov_args, "--help"), quiet = TRUE),
+    error = function(e) character()
+  )
+  any(grepl("--json-format", help, fixed = TRUE))
 }
 
 find_gcov <- function() {
@@ -228,17 +299,28 @@ run_gcov <- function(
     return()
   }
 
-  unexecuted_block <- gcov_unexecuted_block(gcov_path, gcov_args)
+  if (gcov_json_supported(gcov_path, gcov_args)) {
+    format_args <- "--json-format"
+    output_pattern <- rex::rex(".gcov.json.gz", end)
+    parse_output <- parse_gcov_json
+  } else {
+    unexecuted_block <- gcov_unexecuted_block(gcov_path, gcov_args)
+    format_args <- "-a"
+    output_pattern <- rex::rex(".gcov", end)
+    parse_output <- function(file, package_path) {
+      parse_gcov(file, package_path, unexecuted_block = unexecuted_block)
+    }
+  }
 
   run_gcov_one <- function(src) {
     gcov_run(
       gcov_path,
-      args = c(gcov_args, src, "-a", "-p", "-o", dirname(src)),
+      args = c(gcov_args, src, format_args, "-p", "-o", dirname(src)),
       quiet = quiet
     )
     gcov_outputs <- list.files(
       ".",
-      pattern = rex::rex(".gcov", end),
+      pattern = output_pattern,
       recursive = TRUE,
       full.names = TRUE
     )
@@ -275,9 +357,8 @@ run_gcov <- function(
     unlist(
       lapply(
         gcov_outputs,
-        parse_gcov,
-        package_path = c(path, getOption("covr.gcov_additional_paths", NULL)),
-        unexecuted_block = unexecuted_block
+        parse_output,
+        package_path = c(path, getOption("covr.gcov_additional_paths", NULL))
       ),
       recursive = FALSE
     )
