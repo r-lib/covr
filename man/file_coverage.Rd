@@ -15,7 +15,8 @@ file_coverage(
 }
 \arguments{
 \item{source_files}{Character vector of source files with function
-definitions to measure coverage}
+definitions to measure coverage. Can also include compiled files from a
+package's \verb{src/} directory; see the compiled code section.}
 
 \item{test_files}{Character vector of test files with code to test the
 functions}
@@ -26,7 +27,9 @@ each file.}
 \item{function_exclusions}{a vector of regular expressions matching function
 names to exclude. Example \verb{print\\\\\\.} to match print methods.}
 
-\item{parent_env}{The parent environment to use when sourcing the files.}
+\item{parent_env}{The parent environment to use when sourcing the files.
+If \code{source_files} includes compiled files, the default is the namespace
+of their package.}
 
 \item{runner}{A function used to run each test file, called as
 \code{runner(file, env = env)}, where \code{env} is the environment the
@@ -85,6 +88,29 @@ with \code{pkgload::load_all()}) and use \code{parent_env = asNamespace("pkg")}.
 Calls from other package files use the namespace's untraced functions, so
 don't count. \code{devtools::test_coverage_active_file()} measures the coverage
 of one file of a package without this limitation.
+}
+
+\section{Compiled code}{
+
+\code{\link[=environment_coverage]{environment_coverage()}} and \code{\link[=with_coverage]{with_coverage()}} include the compiled code in
+the coverage of the namespace of a package loaded with \code{pkgload::load_all()}
+(e.g. by \code{devtools::load_all()}), so \code{devtools::test_coverage_active_file()}
+also works for files in \verb{src/}. With compiled files in \code{source_files},
+\code{file_coverage()} loads their package with \code{pkgload::load_all()} and reports
+the coverage of those files, without needing devtools:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{file_coverage("src/foo.c", "tests/testthat/test-foo.R")
+}\if{html}{\out{</div>}}
+
+The compiled code is measured with gcov in the current session, which is
+much faster than \code{\link[=package_coverage]{package_coverage()}}. An instrumented copy of the package
+is built in the session's temporary directory, leaving the package's own
+build untouched, and later runs only recompile the files that changed.
+While the code runs, the namespace's native routines use the instrumented
+DLL instead of the package's own. Routines that were looked up some other
+way, e.g. stored by \code{.onLoad()} or found by other packages with
+\code{R_GetCCallable()}, keep using the package's DLL, so their code isn't
+counted. Set \code{options(covr.gcov = "")} to leave out compiled code.
 }
 
 \examples{
