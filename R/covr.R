@@ -21,6 +21,12 @@
 #' `covr` uses the following [options()] to configure behaviour:
 #'
 #' \itemize{
+#'   \item `covr.branch_coverage`: If `TRUE` (default `FALSE`), also record
+#'     which branches of each `if` and `switch()` in R code were taken. This
+#'     is experimental. It must be set before the code is instrumented, e.g.
+#'     before calling `package_coverage()`. For more details, see
+#'     `?covr.branch_coverage`.
+#'
 #'   \item `covr.covrignore`: A filename to use as an ignore file,
 #'     listing glob-style wildcarded paths of files to ignore for coverage
 #'     calculations. Defaults to the value of environment variable
@@ -364,6 +370,11 @@ as_coverage <- function(counters = NULL, ...) {
 #' @inheritParams as_coverage
 #'
 as_coverage_with_tests <- function(counters) {
+  # `[[` rather than `$`, which would partially match the key of a trace in a
+  # file whose name starts with "branches"
+  branches <- as_branch_list(counters[["branches"]])
+  counters$branches <- NULL
+
   clean_coverage_tests(counters)
 
   # unnest environment-wrapped $tests$tally as more accessible $tests
@@ -376,7 +387,12 @@ as_coverage_with_tests <- function(counters) {
 
   tests <- counters$tests
   counters$tests <- NULL
-  structure(counters, tests = tests, class = "coverage")
+  structure(
+    counters,
+    tests = tests,
+    branches = branches,
+    class = "coverage"
+  )
 }
 
 # Evaluate `code` and return the coverage it produced from the current traces.
@@ -1469,7 +1485,11 @@ merge_coverage_pair <- function(into, from) {
   clean_coverage_tests(from)
 
   tests <- from$tests
-  from <- from[setdiff(names(from), "tests")]
+  # `[[` as in `as_coverage_with_tests()`
+  if (!is.null(into[["branches"]]) || !is.null(from[["branches"]])) {
+    into$branches <- merge_branches(into[["branches"]], from[["branches"]])
+  }
+  from <- from[setdiff(names(from), c("tests", "branches"))]
   idx <- match(names(from), names(into))
   shared <- which(!is.na(idx))
 
@@ -1524,6 +1544,7 @@ renumber_trace_tests <- function(trace, test_idx) {
 #   may have been allocated, but not entirely populated.
 #
 clean_coverage_tests <- function(obj) {
+  obj$branches <- NULL
   counter_has_tests_tally <- function(counter) !is.null(counter$tests)
   if (is.na(Position(counter_has_tests_tally, obj))) {
     return()
@@ -1736,7 +1757,8 @@ add_hooks <- function(
   lib,
   fix_mcexit = FALSE,
   record_tests = isTRUE(getOption("covr.record_tests", FALSE)),
-  full_traversal = FALSE
+  full_traversal = FALSE,
+  branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE))
 ) {
   trace_dir <- paste0("Sys.getenv(\"COVERAGE_DIR\", \"", lib, "\")")
 
@@ -1753,6 +1775,11 @@ add_hooks <- function(
       paste0(
         "setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.full_traversal = ",
         isTRUE(full_traversal),
+        "))"
+      ),
+      paste0(
+        "setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.branch_coverage = ",
+        isTRUE(branch_coverage),
         "))"
       ),
       "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
@@ -1847,6 +1874,8 @@ c.coverage <- function(...) {
 
   tests <- merged$tests
   merged$tests <- NULL
+  branches <- as_branch_list(merged[["branches"]])
+  merged$branches <- NULL
   merged <- lapply(merged, function(trace) {
     if (!is.null(trace$tests)) {
       trace$tests <- trace$tests$tally
@@ -1857,6 +1886,7 @@ c.coverage <- function(...) {
   attrs <- attributes(covs[[1L]])
   attrs$names <- names(merged)
   attrs$tests <- tests
+  attrs$branches <- branches
   attrs$excluded_lines <- union_excluded_lines(
     lapply(covs, attr, "excluded_lines")
   )
@@ -1878,6 +1908,7 @@ coverage_to_counters <- function(x) {
     trace
   })
   counters$tests <- attr(x, "tests")
+  counters$branches <- attr(x, "branches")
   counters
 }
 

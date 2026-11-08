@@ -52,6 +52,10 @@ if \code{clean = FALSE}, \code{library} (the \code{install_path}).
 
 With \code{options(covr.record_tests = TRUE)}, coverage objects also have a
 \code{tests} attribute with the test calls, see \link{covr.record_tests}.
+
+With \code{options(covr.branch_coverage = TRUE)}, coverage objects also have a
+\code{branches} attribute with the branches of each \code{if} and \code{switch()}, see
+\link{covr.branch_coverage}.
 }
 
 \examples{

@@ -4,6 +4,7 @@ exclude = [
   "tests/testthat/Test*/",
   "tests/testthat/a/",
   "tests/testthat/b/",
+  "tests/testthat/branches/",
   "tests/testthat/corner-cases.R",
   "tests/testthat/corner-cases-test.R",
 ]
