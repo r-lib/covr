@@ -275,6 +275,7 @@ test_that("branches are counted when recording tests", {
   cov <- branch_coverage("f <- function(x) if (x) 1 else 2", "f(TRUE)")
   expect_equal(tally_coverage(cov, by = "branch")$value, c(1, 0))
   expect_length(attr(cov, "tests"), 1)
+  expect_equal(tally_tests(cov)$line, 1)
 })
 
 test_that("package_coverage() measures branches", {
