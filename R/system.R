@@ -6,7 +6,6 @@
 #' @param args a vector of command arguments.
 #' @param env a named character vector of environment variables.  Will be quoted
 #' @param quiet if `TRUE`, the command's standard error is discarded.
-#' @param echo if `TRUE`, the command to run will be echoed.
 #' @param ... additional arguments passed to [base::system()]
 #' @return command output if the command succeeds, an error will be thrown if
 #' the command fails.
@@ -16,21 +15,21 @@ system_output <- function(
   args = character(),
   env = character(),
   quiet = FALSE,
-  echo = FALSE,
   ...
 ) {
   full <- paste(c(shQuote(cmd), lapply(args, shQuote)), collapse = " ")
 
-  if (echo) {
-    message(wrap_command(full), "\n")
+  # `system()` signals a failure as a warning. Check the status rather than
+  # re-signalling the warning with `stop()`, which keeps its warning class so
+  # `tryCatch(error = )` doesn't catch it.
+  result <- suppressWarnings(withr::with_envvar(
+    env,
+    system(full, intern = TRUE, ignore.stderr = quiet, ...)
+  ))
+  status <- attr(result, "status")
+  if (!is.null(status)) {
+    stop("running command '", full, "' had status ", status, call. = FALSE)
   }
-  result <- withCallingHandlers(
-    withr::with_envvar(
-      env,
-      system(full, intern = TRUE, ignore.stderr = quiet, ...)
-    ),
-    warning = function(w) stop(w)
-  )
 
   result
 }

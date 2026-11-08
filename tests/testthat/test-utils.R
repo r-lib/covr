@@ -126,3 +126,24 @@ test_that("split_on_line_directives handles empty files (#522)", {
     )
   )
 })
+
+test_that("as_package() errors if the path isn't in a package", {
+  dir <- withr::local_tempdir()
+
+  expect_snapshot(as_package(dir), error = TRUE, transform = function(x) {
+    gsub(dir, "<dir>", x, fixed = TRUE)
+  })
+})
+
+test_that("package_root() returns NULL outside of a package", {
+  expect_null(package_root(withr::local_tempdir()))
+  expect_equal(package_root("TestS4/R"), normalize_path("TestS4"))
+})
+
+test_that("get_package_name() uses the package of the coverage, or a default", {
+  expect_equal(
+    get_package_name(structure(list(), package = list(package = "pkg"))),
+    "pkg"
+  )
+  expect_equal(get_package_name(list()), "coverage")
+})

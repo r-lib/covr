@@ -323,3 +323,45 @@ test_that("covr.report_colors is validated (#529)", {
   expect_snapshot(report(cov, browse = FALSE), error = TRUE)
   expect_snapshot(file_report(cov, browse = FALSE), error = TRUE)
 })
+
+test_that("report() and file_report() open the report in the viewer", {
+  skip_if_not_installed("DT")
+  skip_if_not_installed("htmltools")
+  cov <- code_coverage("f <- function(x) x + 1\ng <- function() 2", "f(1)")
+
+  opened <- character()
+  withr::local_options(viewer = function(url) opened <<- c(opened, url))
+
+  file <- report(
+    cov,
+    file = withr::local_tempfile(fileext = ".html"),
+    browse = TRUE
+  )
+  expect_equal(opened, file)
+
+  out_file <- file_report(
+    cov,
+    out_file = withr::local_tempfile(fileext = ".html"),
+    browse = TRUE
+  )
+  expect_equal(opened, c(file, out_file))
+
+  report(cov, file = withr::local_tempfile(fileext = ".html"), browse = FALSE)
+  expect_length(opened, 2)
+})
+
+test_that("file_report() marks the lines that were not run", {
+  skip_if_not_installed("DT")
+  skip_if_not_installed("htmltools")
+  cov <- code_coverage("f <- function(x) x + 1\ng <- function() 2", "f(1)")
+
+  file <- file_report(
+    cov,
+    out_file = withr::local_tempfile(fileext = ".html"),
+    browse = FALSE
+  )
+  html <- paste(readLines(file), collapse = "\n")
+  expect_match(html, "<tr class=\"missed\">", fixed = TRUE)
+  expect_match(html, "<td class=\"coverage\">!</td>", fixed = TRUE)
+  expect_match(html, "<td class=\"coverage\">1<em>x</em></td>", fixed = TRUE)
+})

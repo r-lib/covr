@@ -348,15 +348,10 @@ unsaved_traces <- function(directory) {
 #' Convert a counters object to a coverage object
 #'
 #' @param counters An environment of covr trace results to convert to a coverage
-#'   object. If `counters` is not provided, the `covr` namespace value
-#'   `.counters` is used.
+#'   object.
 #' @param ... Additional attributes to include with the coverage object.
 #'
-as_coverage <- function(counters = NULL, ...) {
-  if (missing(counters)) {
-    counters <- .counters
-  }
-
+as_coverage <- function(counters, ...) {
   counters <- as.list(counters)
   counters <- as_coverage_with_tests(counters)
 
@@ -947,8 +942,9 @@ package_coverage <- function(
 
   run_separately <- !isTRUE(combine_types) && length(type) > 1
   if (run_separately) {
-    # store the args that were called
-    called_args <- as.list(match.call())[-1]
+    # store the args that were called, evaluated in the caller's frame so
+    # `Recall()` doesn't look up local variables in this one
+    called_args <- lapply(as.list(match.call())[-1], eval, parent.frame())
 
     # remove the type
     called_args$type <- NULL
@@ -1834,11 +1830,6 @@ add_hooks <- function(
   }
 
   writeLines(text = lines, con = load_script)
-}
-
-#' @export
-`[.coverage` <- function(x, ...) {
-  structure(NextMethod(), class = "coverage")
 }
 
 #' Combine coverage objects

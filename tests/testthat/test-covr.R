@@ -152,6 +152,24 @@ test_that("show_failures handles output without a prompt", {
   expect_equal(err$output, c("a", "b"))
 })
 
+test_that("covr_error message is only the header if warning.length is too small", {
+  withr::local_options(warning.length = 100)
+  err <- covr_error_for(paste0("line ", 1:3))
+  msg <- conditionMessage(err)
+  expect_match(msg, "Code run to compute coverage failed", fixed = TRUE)
+  expect_no_match(msg, "line", fixed = TRUE)
+  expect_length(err$output, 4)
+})
+
+test_that("covr_error truncates a single line that is too long", {
+  withr::local_options(warning.length = 250)
+  err <- covr_error_for(paste0(strrep("a", 500), "END"))
+  msg <- conditionMessage(err)
+  expect_lte(nchar(msg), 250 - 9)
+  expect_match(msg, "\na+END$")
+  expect_equal(nchar(err$output[[2]]), 503)
+})
+
 test_that("clean_coverage_tests works with degenerated objects", {
   obj <- list(
     a = list(tests = new.env()),
@@ -169,6 +187,43 @@ test_that("clean_coverage_tests works with degenerated objects", {
   expect_no_error(
     covr:::clean_coverage_tests(obj)
   )
+})
+
+test_that("clean_coverage_tests keeps tallies with fewer rows than hits", {
+  tally <- cbind(test = 1L, call = 1L, depth = 0L, i = 1L)
+  obj <- list(a = list(value = 3L, tests = as.environment(list(tally = tally))))
+
+  clean_coverage_tests(obj)
+
+  expect_equal(obj$a$tests$tally, tally)
+})
+
+test_that("merge_coverage_pair handles an object with an empty tests list", {
+  tally <- cbind(test = 1L, call = 1L, depth = 0L, i = 1L)
+  into <- list(
+    tests = list(test1 = list(quote(a()))),
+    a = list(value = 1L, tests = as.environment(list(tally = tally)))
+  )
+  from <- list(tests = list(), a = list(value = 2L))
+
+  merged <- merge_coverage_pair(into, from)
+
+  expect_equal(names(merged$tests), "test1")
+  expect_equal(merged$a$value, 3L)
+  expect_equal(merged$a$tests$tally, tally)
+})
+
+test_that("merge_coverage returns NULL for no coverage", {
+  expect_null(merge_coverage(list()))
+  expect_null(merge_coverage(character()))
+})
+
+test_that("in_covr() reflects R_COVR", {
+  withr::local_envvar(R_COVR = "true")
+  expect_equal(in_covr(), TRUE)
+
+  withr::local_envvar(R_COVR = NA)
+  expect_equal(in_covr(), FALSE)
 })
 
 test_that("merge_coverage sums the counts of shared traces", {

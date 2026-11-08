@@ -134,10 +134,7 @@ exclude <- function(
 
 excluded_lines <- function(df, excl) {
   files <- unique(df[c("filename", "full_name")])
-  lines <- lapply(files$full_name, function(file) {
-    lines <- excl[[file]]
-    if (identical(lines, Inf)) NULL else lines
-  })
+  lines <- lapply(files$full_name, function(file) excl[[file]])
   compact(setNames(lines, files$filename))
 }
 

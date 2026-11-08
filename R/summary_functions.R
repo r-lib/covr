@@ -319,15 +319,11 @@ zero_coverage <- function(x, ...) {
 
   if (
     getOption("covr.rstudio_source_markers", TRUE) &&
-      rstudioapi::hasFun("sourceMarkers")
+      rstudio_has_source_markers()
   ) {
-    markers <- source_markers(coverage_data)
-    rstudioapi::callFun(
-      "sourceMarkers",
-      name = "covr",
-      markers = markers,
-      basePath = attr(x, "package")$path,
-      autoSelect = "first"
+    rstudio_source_markers(
+      source_markers(coverage_data),
+      attr(x, "package")$path
     )
     invisible(res)
   } else {
@@ -476,6 +472,21 @@ format_percentage <- function(x, styles = console_styles()) {
   }
 
   style(sprintf("%02.2f%%", x))
+}
+
+rstudio_has_source_markers <- function() {
+  requireNamespace("rstudioapi", quietly = TRUE) &&
+    rstudioapi::hasFun("sourceMarkers")
+}
+
+rstudio_source_markers <- function(markers, base_path) {
+  rstudioapi::callFun(
+    "sourceMarkers",
+    name = "covr",
+    markers = markers,
+    basePath = base_path,
+    autoSelect = "first"
+  )
 }
 
 source_markers <- function(x, type = "test") {

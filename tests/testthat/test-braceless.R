@@ -221,3 +221,43 @@ test_that("arguments without conditionals are traced as before", {
   f <- function(a, b = 2, c = list(1), ...) a
   expect_identical(formals(trace_calls(f, "f")), formals(f))
 })
+
+test_that("while", {
+  f <-
+    'f <- function(x) {
+  while (x > 0)
+    x <- x - 1
+  while (FALSE)
+    FALSE # never covered, used as anchor
+  x
+}'
+
+  res <- as.data.frame(code_coverage(f, "f(2)"))
+  expect_equal(res$first_line, c(2, 3, 4, 5, 6))
+  expect_equal(res$value, c(3, 2, 1, 0, 1))
+  expect_equal(zero_coverage(code_coverage(f, "f(0)"))$line, c(3, 5))
+})
+
+test_that("while nested in other calls", {
+  f <- 'f <- function(x) {
+  suppressWarnings(while (x > 0) x <- x - 1)
+}'
+
+  res <- as.data.frame(code_coverage(f, "f(2)"))
+  expect_equal(res$first_column, c(3, 27, 34))
+  expect_equal(res$value, c(1, 3, 2))
+  res <- as.data.frame(code_coverage(f, "f(0)"))
+  expect_equal(res$value, c(1, 1, 0))
+})
+
+test_that("for nested in other calls", {
+  f <- 'f <- function(x) {
+  list(for (i in x) i)
+}'
+
+  res <- as.data.frame(code_coverage(f, "f(1:2)"))
+  expect_equal(res$first_column, c(3, 12, 21))
+  expect_equal(res$value, c(1, 1, 2))
+  res <- as.data.frame(code_coverage(f, "f(NULL)"))
+  expect_equal(res$value, c(1, 1, 0))
+})

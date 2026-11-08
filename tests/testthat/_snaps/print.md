@@ -29,3 +29,14 @@
       pkg Coverage: 33.33%
       ... and 1 more file; use `print(x, n = Inf)` to show all
 
+# print.coverages prints the coverage of each type
+
+    Code
+      res <- print(covs)
+    Message
+      pkg Tests Coverage: 100.00%
+      <file>: 100.00%
+      
+      pkg Examples Coverage: 100.00%
+      <file>: 100.00%
+

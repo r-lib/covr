@@ -34,3 +34,30 @@
       ! Each exclusion range start must have a matching range end.
       x '<file>' has 2 starts (lines 1 and 3) and 0 ends.
 
+# exclusions is deprecated in favor of line_exclusions
+
+    Code
+      t1 <- package_coverage("TestExclusion", exclusions = "R/TestExclusion.R")
+    Condition
+      Warning:
+      `exclusions` is deprecated.
+      i Use `line_exclusions` instead.
+
+# unnamed full file exclusions must be single strings
+
+    Code
+      normalize_exclusions(list("a", b = 1, 1:2))
+    Condition
+      Error:
+      ! Each unnamed element of `line_exclusions` must be a single file path.
+      x Element 3 isn't.
+
+---
+
+    Code
+      normalize_exclusions(list(a = 1, 2, c("b", "c")))
+    Condition
+      Error:
+      ! Each unnamed element of `line_exclusions` must be a single file path.
+      x Elements 2 and 3 aren't.
+

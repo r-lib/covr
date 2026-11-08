@@ -187,6 +187,13 @@ test_that("it excludes properly", {
   expect_equal(length(t1), 0)
 })
 
+test_that("exclusions is deprecated in favor of line_exclusions", {
+  expect_snapshot(
+    t1 <- package_coverage("TestExclusion", exclusions = "R/TestExclusion.R")
+  )
+  expect_equal(length(t1), 0)
+})
+
 test_that("excluded lines of a multi-line expression are not counted (#594)", {
   src <- paste(
     "maker <- function(fun) {",
@@ -306,4 +313,12 @@ test_that("excluding the first line of an `if` or `switch()` excludes its branch
     by = "branch"
   )
   expect_equal(res$line, c(3, 3))
+})
+
+test_that("unnamed full file exclusions must be single strings", {
+  expect_snapshot(normalize_exclusions(list("a", b = 1, 1:2)), error = TRUE)
+  expect_snapshot(
+    normalize_exclusions(list(a = 1, 2, c("b", "c"))),
+    error = TRUE
+  )
 })

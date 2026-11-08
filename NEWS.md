@@ -21,6 +21,23 @@
   distribution, those of the LLVM version rustc uses (e.g. `llvm-cov-18`).
   Without them covr warns and only skips the Rust code.
   `options(covr.llvm_cov = "")` turns this off (#728).
+* `codecov()` outside a git repository now gives its "Can't determine the
+  repository" error instead of a git failure, as covr's failed git commands
+  could escape its error handlers.
+
+* `package_coverage(combine_types = FALSE)` now works when its arguments are
+  local variables of the calling function.
+
+* `zero_coverage()` no longer errors in RStudio when rstudioapi isn't
+  installed.
+
+* `package_coverage()` no longer reports spurious uncovered lines for braceless
+  `if`, `for` and `switch` conditions when some of the R processes that load
+  the package run with `options(keep.parse.data = FALSE)`.
+
+* Braceless `while` loop bodies are now counted separately from the loop
+  condition, like `if` and `for`.
+
 * covr no longer supports code coverage with Intel's classic `icc` compiler,
   which Intel discontinued in 2024, and the `covr.icov`, `covr.icov_args`,
   `covr.icov_flags` and `covr.icov_prof` options have been removed.

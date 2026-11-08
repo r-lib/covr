@@ -32,6 +32,7 @@ current_commit <- function(dir = ".") {
   trim(commit)
 }
 
+#' @export
 `[.coverage` <- function(x, i, ...) {
   attrs <- attributes(x)
   attrs$names <- attrs$names[i]
@@ -318,8 +319,6 @@ setdiff.data.frame <- function(
 }
 
 `%==%` <- function(x, y) identical(x, y)
-
-`%!=%` <- function(x, y) !identical(x, y)
 
 is_na <- function(x) {
   !is.null(x) && !is.symbol(x) && is.na(x)

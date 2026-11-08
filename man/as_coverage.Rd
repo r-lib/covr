@@ -4,12 +4,11 @@
 \alias{as_coverage}
 \title{Convert a counters object to a coverage object}
 \usage{
-as_coverage(counters = NULL, ...)
+as_coverage(counters, ...)
 }
 \arguments{
 \item{counters}{An environment of covr trace results to convert to a coverage
-object. If \code{counters} is not provided, the \code{covr} namespace value
-\code{.counters} is used.}
+object.}
 
 \item{...}{Additional attributes to include with the coverage object.}
 }
