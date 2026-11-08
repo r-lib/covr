@@ -147,7 +147,11 @@ trace_calls <- function(
       fun_body <- trace_calls(fun_body, parent_functions)
     }
 
-    new_formals <- trace_calls(formals(x), parent_functions)
+    new_formals <- trace_formals(
+      formals(x),
+      parent_functions,
+      attr(x, "srcref")
+    )
     if (is.null(new_formals)) {
       new_formals <- list()
     }
@@ -246,4 +250,29 @@ zero_counters <- function() {
 #' @keywords internal
 key <- function(x) {
   paste(collapse = ":", c(get_source_filename(x), x))
+}
+
+# Trace the default values of the arguments of a function whose srcref is
+# `fun_ref`, with srcrefs for conditionals in them, so their branches get
+# their own counters as in the body (see `impute_formal_srcrefs()`). The
+# parse data is only looked up if a conditional needs it.
+trace_formals <- function(x, parent_functions, fun_ref) {
+  if (is.null(x) || is.null(fun_ref)) {
+    return(trace_calls(x, parent_functions))
+  }
+  refs <- NULL
+  formal_ref <- function(i) {
+    force(i)
+    function() {
+      if (is.null(refs)) {
+        refs <<- impute_formal_srcrefs(fun_ref) %||% list()
+      }
+      if (i <= length(refs)) refs[[i]]
+    }
+  }
+  res <- lapply(seq_along(x), function(i) {
+    trace_calls(x[[i]], parent_functions, impute_ref = formal_ref(i))
+  })
+  names(res) <- names(x)
+  as.pairlist(res)
 }

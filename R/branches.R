@@ -24,10 +24,7 @@
 #'   arm matches, including a number that selects no arm. A `switch()` with
 #'   arms in `...` has no branches.
 #'
-#' `&&`, `||` and loops have no branches, nor does compiled code. An `if` or
-#' `switch()` in the default value of an argument only has branches if the
-#' default is in braces, `function(x = { if (y) 1 else 2 })`, as for line
-#' coverage.
+#' `&&`, `||` and loops have no branches, nor does compiled code.
 #'
 #' If the line where an `if` or `switch()` starts is excluded, e.g. with
 #' `# nocov` (see [exclusions]), all its branches are excluded too.

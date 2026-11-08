@@ -1,5 +1,20 @@
 # covr (development version)
 
+* New experimental branch coverage of R code. With
+  `options(covr.branch_coverage = TRUE)`, covr also records which branches of
+  each `if` (including an `if` without an `else`) and `switch()` were taken,
+  in the `branches` attribute of the coverage object. `tally_coverage(by =
+  "branch")` and `percent_coverage(by = "branch")` summarize them, and
+  `to_lcov()`, `to_cobertura()`, `codecov()` and `coveralls()` include them.
+  Line coverage is unchanged, and without the option the code is instrumented
+  as before, so there is no cost. See `?covr.branch_coverage` (#279).
+
+* The branches of `if` and `switch()` without braces in the default values
+  of arguments, e.g. `function(x = if (y) 1 else 2)`, now have their own
+  counters, as in function bodies since #682. This can lower reported
+  coverage, as a default whose branch never ran no longer counts as covered
+  (#279).
+
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
   which is much faster than `package_coverage()` (#605). It loads the package
@@ -31,14 +46,6 @@
   without changing the rest of the page. The reports no longer need the DT
   package, jQuery or Bootstrap, and the list of files is now shown sorted with
   the least covered files first (#316, #709).
-* New experimental branch coverage of R code. With
-  `options(covr.branch_coverage = TRUE)`, covr also records which branches of
-  each `if` (including an `if` without an `else`) and `switch()` were taken,
-  in the `branches` attribute of the coverage object. `tally_coverage(by =
-  "branch")` and `percent_coverage(by = "branch")` summarize them, and
-  `to_lcov()`, `to_cobertura()`, `codecov()` and `coveralls()` include them.
-  Line coverage is unchanged, and without the option the code is instrumented
-  as before, so there is no cost. See `?covr.branch_coverage` (#279).
 
 * New `report_html()` returns the coverage report of `report()` as HTML that
   can be included in a larger document, such as an R Markdown or Quarto

@@ -84,6 +84,27 @@ impute_body_srcref <- function(fun_ref) {
   children$make_srcref(max(which(is_expr)))
 }
 
+# The srcrefs of the default values of the arguments of a function, given the
+# srcref of the function: one element for each argument, `NULL` for an
+# argument without a default.
+impute_formal_srcrefs <- function(fun_ref) {
+  children <- parse_children(fun_ref)
+  if (is.null(children)) {
+    return(NULL)
+  }
+  token <- children$pd_child$token
+  n <- length(token)
+  lapply(which(token == "SYMBOL_FORMALS"), function(i) {
+    if (
+      i + 2L <= n &&
+        token[[i + 1L]] == "EQ_FORMALS" &&
+        token[[i + 2L]] == "expr"
+    ) {
+      children$make_srcref(i + 2L)
+    }
+  })
+}
+
 # Locate `parent_ref` in the parse data and return its child tokens, along with
 # a function to create srcrefs for them.
 parse_children <- function(parent_ref) {
