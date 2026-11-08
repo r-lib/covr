@@ -125,6 +125,27 @@ counts when they exit. To turn this off, set the environment variable
 <code>FALSE</code>.</p>
     </div>
     <div class="section level2">
+    <h2 id="compiled-code">Compiled code<a class="anchor" aria-label="anchor" href="#compiled-code"></a></h2>
+
+
+<p><code><a href="environment_coverage.html">environment_coverage()</a></code> and <code>with_coverage()</code> include the compiled code in
+the coverage of the namespace of a package loaded with <code><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">pkgload::load_all()</a></code>
+(e.g. by <code>devtools::load_all()</code>), so <code>devtools::test_coverage_active_file()</code>
+also works for files in <code>src/</code>. With compiled files in <code>source_files</code>,
+<code><a href="file_coverage.html">file_coverage()</a></code> loads their package with <code><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">pkgload::load_all()</a></code> and reports
+the coverage of those files, without needing devtools:</p>
+<p></p><div class="sourceCode r"><pre><code><span><span class="fu"><a href="../reference/file_coverage.html">file_coverage</a></span><span class="op">(</span><span class="st">"src/foo.c"</span>, <span class="st">"tests/testthat/test-foo.R"</span><span class="op">)</span></span></code></pre><p></p></div>
+<p>The compiled code is measured with gcov in the current session, which is
+much faster than <code><a href="package_coverage.html">package_coverage()</a></code>. An instrumented copy of the package
+is built in the session's temporary directory, leaving the package's own
+build untouched, and later runs only recompile the files that changed.
+While the code runs, the namespace's native routines use the instrumented
+DLL instead of the package's own. Routines that were looked up some other
+way, e.g. stored by <code>.onLoad()</code> or found by other packages with
+<code>R_GetCCallable()</code>, keep using the package's DLL, so their code isn't
+counted. Set <code>options(covr.gcov = "")</code> to leave out compiled code.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="environment_coverage.html">environment_coverage()</a></code></p></div>
     </div>

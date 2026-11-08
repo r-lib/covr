@@ -22,7 +22,8 @@ file_coverage(
 - source_files:
 
   Character vector of source files with function definitions to measure
-  coverage
+  coverage. Can also include compiled files from a package's `src/`
+  directory; see the compiled code section.
 
 - test_files:
 
@@ -39,7 +40,9 @@ file_coverage(
 
 - parent_env:
 
-  The parent environment to use when sourcing the files.
+  The parent environment to use when sourcing the files. If
+  `source_files` includes compiled files, the default is the namespace
+  of their package.
 
 - runner:
 
@@ -103,6 +106,35 @@ and use `parent_env = asNamespace("pkg")`. Calls from other package
 files use the namespace's untraced functions, so don't count.
 `devtools::test_coverage_active_file()` measures the coverage of one
 file of a package without this limitation.
+
+## Compiled code
+
+[`environment_coverage()`](https://covr.r-lib.org/dev/reference/environment_coverage.md)
+and
+[`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md)
+include the compiled code in the coverage of the namespace of a package
+loaded with
+[`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html)
+(e.g. by `devtools::load_all()`), so
+`devtools::test_coverage_active_file()` also works for files in `src/`.
+With compiled files in `source_files`, `file_coverage()` loads their
+package with
+[`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html)
+and reports the coverage of those files, without needing devtools:
+
+    file_coverage("src/foo.c", "tests/testthat/test-foo.R")
+
+The compiled code is measured with gcov in the current session, which is
+much faster than
+[`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md).
+An instrumented copy of the package is built in the session's temporary
+directory, leaving the package's own build untouched, and later runs
+only recompile the files that changed. While the code runs, the
+namespace's native routines use the instrumented DLL instead of the
+package's own. Routines that were looked up some other way, e.g. stored
+by `.onLoad()` or found by other packages with `R_GetCCallable()`, keep
+using the package's DLL, so their code isn't counted. Set
+`options(covr.gcov = "")` to leave out compiled code.
 
 ## Examples
 

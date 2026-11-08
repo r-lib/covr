@@ -2,6 +2,24 @@
 
 ## covr (development version)
 
+- [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md)
+  can now measure the coverage of a package’s compiled code in the
+  current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
+  which is much faster than
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  ([\#605](https://github.com/r-lib/covr/issues/605)). It loads the
+  package with
+  [`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html),
+  builds an instrumented copy of it in the session’s temporary
+  directory, and only recompiles the files that changed on later runs.
+  [`environment_coverage()`](https://covr.r-lib.org/dev/reference/environment_coverage.md)
+  and
+  [`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md)
+  also include the compiled code of packages loaded with
+  [`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html),
+  so `devtools::test_coverage_active_file()` now works for files in
+  `src/`.
+
 - New
   [`tally_tests()`](https://covr.r-lib.org/dev/reference/tally_tests.md)
   returns a traceability matrix from coverage recorded with
