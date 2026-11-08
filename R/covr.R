@@ -139,7 +139,14 @@ the <- new.env(parent = emptyenv())
 the$replacements <- list()
 
 trace_environment <- function(env) {
-  clear_counters()
+  # Tracing an environment that is already traced, e.g. when
+  # `pkgload::load_all()` re-fires the onLoad hook, keeps the counts and only
+  # instruments the functions that are not instrumented yet, such as functions
+  # added or replaced since (#641).
+  if (!identical(the$traced_env, env)) {
+    clear_counters()
+    the$replacements <- list()
+  }
 
   replacements <- compact(c(
     replacements_S4(env),
@@ -152,13 +159,19 @@ trace_environment <- function(env) {
   if (isTRUE(getOption("covr.full_traversal", FALSE))) {
     replacements <- c(replacements, replacements_nested(env, replacements))
   }
-  the$replacements <- replacements
+  # Keep the earlier replacements, which hold the originals of the functions
+  # traced before.
+  the$replacements <- c(the$replacements, replacements)
+  the$traced_env <- env
 
-  lapply(the$replacements, replace)
+  invisible(lapply(replacements, replace))
 }
 
 reset_traces <- function() {
-  lapply(the$replacements, reset)
+  the$traced_env <- NULL
+  # Undo in reverse order, so a function replaced more than once ends up with
+  # the original from its first replacement.
+  lapply(rev(the$replacements), reset)
 }
 
 # Trace files are written under a temporary name and renamed into place, so

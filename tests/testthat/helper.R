@@ -24,3 +24,9 @@ shared_line_coverage <- function() {
     "f(1:2); g()"
   )
 }
+
+local_r_file <- function(lines, frame = parent.frame()) {
+  path <- withr::local_tempfile(fileext = ".R", .local_envir = frame)
+  writeLines(lines, path)
+  path
+}

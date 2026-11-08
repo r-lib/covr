@@ -182,6 +182,18 @@ test_that("merge_coverage sums the counts of shared traces", {
   )
 })
 
+test_that("re-tracing an already traced namespace keeps the counts (#641)", {
+  cov <- package_coverage(
+    test_path("TestSummary"),
+    type = "none",
+    code = c(
+      "invisible(TestSummary::test_me(1, 2))",
+      "covr:::trace_environment(asNamespace('TestSummary'))"
+    )
+  )
+  expect_equal(percent_coverage(cov), 50)
+})
+
 test_that("package_coverage keeps install_path only when coverage fails", {
   install_path <- tempfile("R_LIBS")
   on.exit(unlink(install_path, recursive = TRUE), add = TRUE)

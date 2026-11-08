@@ -1,5 +1,9 @@
 # covr (development version)
 
+* `package_coverage()` no longer discards the coverage measured so far, or
+  fails with "'from' must be a finite number", when `code` loads the package
+  again with `pkgload::load_all()`, e.g. via `devtools::test()` (#641).
+
 * Line coverage is now computed the same way everywhere, so `print()`,
   `percent_coverage()`, `tally_coverage()`, `report()`, `codecov()`,
   `coveralls()`, `to_cobertura()`, `to_sonarqube()` and `to_lcov()` agree. A
@@ -100,6 +104,7 @@
 
 * `options(covr.gcov = "")` once again turns off coverage of compiled code,
   as documented, instead of failing with "gcov not found" (#516).
+
 * Functions nested inside lists and environments, such as
   `fns <- list(a = function(x) x)`, functions defined inside `local()` and
   ggproto methods, can now be traced. This is off by default; enable it for a

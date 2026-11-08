@@ -5,23 +5,30 @@ replacement <- function(
   target_value = get(name, envir = env)
 ) {
   if (is.function(target_value) && !is.primitive(target_value)) {
-    if (is_vectorized(target_value)) {
-      new_value <- target_value
-      environment(new_value)$FUN <- trace_calls(
-        environment(new_value)$FUN,
-        name
-      )
-    } else if (
-      is.function(target_value) && inherits(target_value, "memoised")
-    ) {
-      new_value <- target_value
-      environment(new_value)$`_f` <- trace_calls(
-        environment(new_value)$`_f`,
-        name
-      )
+    # The wrappers of vectorized and memoised functions are not traced, only
+    # the functions they call.
+    inner <- if (is_vectorized(target_value)) {
+      "FUN"
+    } else if (inherits(target_value, "memoised")) {
+      "_f"
+    }
+    traced <- if (is.null(inner)) {
+      target_value
     } else {
+      environment(target_value)[[inner]]
+    }
+    # Tracing an instrumented function again would replace its counts with
+    # counters for the instrumentation itself (#641).
+    if (is_traced(traced)) {
+      return(NULL)
+    }
+
+    if (is.null(inner)) {
       new_value <- trace_calls(target_value, name)
       attributes(body(new_value)) <- attributes(body(target_value))
+    } else {
+      new_value <- target_value
+      environment(new_value)[[inner]] <- trace_calls(traced, name)
     }
     attributes(new_value) <- attributes(target_value)
 
