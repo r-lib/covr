@@ -92,7 +92,11 @@ If set to NULL, it is assumed that the job is running on travis-ci</p></dd>
 
 <dt id="arg-service-name">service_name<a class="anchor" aria-label="anchor" href="#arg-service-name"></a></dt>
 <dd><p>the CI service to use, if environment variable
-‘CI_NAME’ is set that is used, otherwise ‘travis-ci’ is used.</p></dd>
+‘CI_NAME’ is set that is used, otherwise ‘travis-ci’ is used.
+When <code>repo_token</code> is set and <code>service_name</code> is ‘drone’,
+‘jenkins’, ‘travis-pro’ or ‘github-actions’,
+information about the current git commit, branch and remote is also
+submitted.</p></dd>
 
 
 <dt id="arg-quiet">quiet<a class="anchor" aria-label="anchor" href="#arg-quiet"></a></dt>

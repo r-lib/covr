@@ -42,7 +42,10 @@ coveralls(
 - service_name:
 
   the CI service to use, if environment variable ‘CI_NAME’ is set that
-  is used, otherwise ‘travis-ci’ is used.
+  is used, otherwise ‘travis-ci’ is used. When `repo_token` is set and
+  `service_name` is ‘drone’, ‘jenkins’, ‘travis-pro’ or
+  ‘github-actions’, information about the current git commit, branch and
+  remote is also submitted.
 
 - quiet:
 

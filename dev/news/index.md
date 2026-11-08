@@ -2,6 +2,21 @@
 
 ## covr (development version)
 
+- [`print.coverage()`](https://covr.r-lib.org/dev/reference/print.coverage.md)
+  gains an `n` argument to limit the number of files or functions
+  printed, showing the least covered first
+  ([\#215](https://github.com/r-lib/covr/issues/215)).
+
+- The error for unpaired `# nocov start` and `# nocov end` comments now
+  gives the name of the file along with the line numbers of the comments
+  ([\#409](https://github.com/r-lib/covr/issues/409)).
+
+- [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md) now
+  submits the git commit, branch and remote when
+  `service_name = "github-actions"` and a `repo_token` is given, so the
+  Coveralls badge is updated for the right branch
+  ([\#535](https://github.com/r-lib/covr/issues/535)).
+
 - [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/to_sonarqube.md)
   now writes file paths relative to the package root (e.g. `R/foo.R`)
   instead of prefixing them with the package name, so the report works
