@@ -31,6 +31,59 @@ test_that("nested if else", {
   expect_equal(zero_coverage(code_coverage(f, "f(TRUE);f(FALSE)"))$line, 3)
 })
 
+test_that("one-line if in the body of a function without braces (#279)", {
+  f <- "f <- function(x) if (x) 1 else 2"
+
+  for (code in c("f(TRUE)", "f(FALSE)")) {
+    cov <- code_coverage(f, code)
+    expect_equal(percent_coverage(cov, by = "line"), 0)
+    expect_equal(percent_coverage(cov, by = "expression"), 75)
+  }
+
+  cov <- code_coverage(f, "f(TRUE); f(FALSE)")
+  expect_equal(percent_coverage(cov, by = "line"), 100)
+  expect_equal(percent_coverage(cov, by = "expression"), 100)
+})
+
+test_that("braceless function bodies are covered like braced ones (#279)", {
+  braceless <- "f <- function(x) if (x)
+  1 else
+  2"
+  braced <- "f <- function(x) { if (x)
+  1 else
+  2 }"
+
+  for (code in c("f(TRUE)", "f(FALSE)", "f(TRUE); f(FALSE)")) {
+    cov_braceless <- code_coverage(braceless, code)
+    cov_braced <- code_coverage(braced, code)
+    expect_equal(
+      zero_coverage(cov_braceless)$line,
+      zero_coverage(cov_braced)$line
+    )
+    expect_equal(percent_coverage(cov_braceless), percent_coverage(cov_braced))
+  }
+  expect_equal(zero_coverage(code_coverage(braceless, "f(TRUE)"))$line, 3)
+  expect_equal(zero_coverage(code_coverage(braceless, "f(FALSE)"))$line, 2)
+  expect_equal(percent_coverage(code_coverage(braceless, "f(TRUE)")), 200 / 3)
+})
+
+test_that("if nested in other calls (#279)", {
+  f <- 'f <- function(x) {
+  y <- if (x)
+    "a"
+  else
+    "b"
+  z <- list(if (x) "c" else "d", e = paste(if (x) "f" else "g"))
+  lapply(1, function(i) if (x) i else -i)
+  (if (x) "h" else "i") -> a
+  paste(switch(as.character(x), "TRUE" = "j", "k"))
+}'
+
+  res <- as.data.frame(code_coverage(f, "f(FALSE)"))
+  expect_equal(res$first_line[res$value == 0], c(3, 6, 6, 7, 8, 9))
+  expect_equal(res$first_column[res$value == 0], c(5, 20, 51, 32, 11, 42))
+})
+
 test_that("switch", {
   f <-
     'f <- function(x) {
