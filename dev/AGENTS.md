@@ -64,6 +64,39 @@ committing. `git archive HEAD` only includes committed changes, so
 commit (or copy the files) first if you want to measure uncommitted
 work.
 
+### Running on Windows
+
+Windows behaves differently in ways that matter to covr,
+e.g. [`normalizePath()`](https://rdrr.io/r/base/normalizePath.html)
+turns a relative path that doesn’t exist into an absolute one under the
+working directory, so check path handling there rather than relying on
+CI. From WSL, Windows R installed with rig can be run directly,
+e.g. `/mnt/c/Users/<user>/.local/bin/Rscript.exe` and `R.exe`
+(`rig list` shows the versions):
+
+- Give it Windows paths (`C:/...`), and run it from a directory on the
+  Windows filesystem; UNC paths to the WSL filesystem don’t work as
+  working directories.
+- Copy the source to the Windows filesystem first,
+  e.g. `git archive HEAD | tar -x -C /mnt/c/Users/<user>/AppData/Local/Temp/covr-win/src`.
+- Its library may not have covr’s dependencies; install them (and
+  testthat and devtools) into a temporary library with
+  [`install.packages()`](https://rdrr.io/r/utils/install.packages.html),
+  then `R.exe CMD INSTALL -l <lib> <src>`. Building covr and source
+  packages needs Rtools (`rig add rtools`).
+- Environment variables set in WSL aren’t passed to Windows programs
+  unless listed in `WSLENV`,
+  e.g. `R_LIBS=C:/... WSLENV=R_LIBS R.exe CMD INSTALL ...`; otherwise
+  `R CMD INSTALL` can’t find dependencies in the temporary library. In
+  scripts, call [`.libPaths()`](https://rdrr.io/r/base/libPaths.html)
+  instead.
+- `Rscript -e` can segfault on multiline or complex code on Windows;
+  write the code to a `.R` file instead.
+- Don’t set options such as `covr.record_tests` globally in a script
+  that then runs the test suite; some tests rely on them being unset.
+  Use
+  [`withr::with_options()`](https://withr.r-lib.org/reference/with_options.html).
+
 ### Releases
 
 The pkgdown site uses `development: mode: auto`. The site root

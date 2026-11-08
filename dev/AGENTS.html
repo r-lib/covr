@@ -70,6 +70,17 @@
 <p>If you do shim your working tree, run <code>sh unshim_package.sh</code> before committing. <code>git archive HEAD</code> only includes committed changes, so commit (or copy the files) first if you want to measure uncommitted work.</p>
 </div>
 <div class="section level3">
+<h3 id="running-on-windows">Running on Windows<a class="anchor" aria-label="anchor" href="#running-on-windows"></a></h3>
+<p>Windows behaves differently in ways that matter to covr, e.g. <code><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath()</a></code> turns a relative path that doesn’t exist into an absolute one under the working directory, so check path handling there rather than relying on CI. From WSL, Windows R installed with rig can be run directly, e.g. <code>/mnt/c/Users/&lt;user&gt;/.local/bin/Rscript.exe</code> and <code>R.exe</code> (<code>rig list</code> shows the versions):</p>
+<ul><li>Give it Windows paths (<code>C:/...</code>), and run it from a directory on the Windows filesystem; UNC paths to the WSL filesystem don’t work as working directories.</li>
+<li>Copy the source to the Windows filesystem first, e.g. <code>git archive HEAD | tar -x -C /mnt/c/Users/&lt;user&gt;/AppData/Local/Temp/covr-win/src</code>.</li>
+<li>Its library may not have covr’s dependencies; install them (and testthat and devtools) into a temporary library with <code><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages()</a></code>, then <code>R.exe CMD INSTALL -l &lt;lib&gt; &lt;src&gt;</code>. Building covr and source packages needs Rtools (<code>rig add rtools</code>).</li>
+<li>Environment variables set in WSL aren’t passed to Windows programs unless listed in <code>WSLENV</code>, e.g. <code>R_LIBS=C:/... WSLENV=R_LIBS R.exe CMD INSTALL ...</code>; otherwise <code>R CMD INSTALL</code> can’t find dependencies in the temporary library. In scripts, call <code><a href="https://rdrr.io/r/base/libPaths.html" class="external-link">.libPaths()</a></code> instead.</li>
+<li>
+<code>Rscript -e</code> can segfault on multiline or complex code on Windows; write the code to a <code>.R</code> file instead.</li>
+<li>Don’t set options such as <code>covr.record_tests</code> globally in a script that then runs the test suite; some tests rely on them being unset. Use <code><a href="https://withr.r-lib.org/reference/with_options.html" class="external-link">withr::with_options()</a></code>.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="releases">Releases<a class="anchor" aria-label="anchor" href="#releases"></a></h3>
 <p>The pkgdown site uses <code>development: mode: auto</code>. The site root (<a href="https://covr.r-lib.org/" class="uri">https://covr.r-lib.org/</a>) is only rebuilt when the pkgdown workflow runs on a commit with a release version (e.g. <code>3.6.5</code>); development versions (e.g. <code>3.6.5.9000</code>) build to <code>/dev</code>.</p>
 <ul><li>Push the release version commit on its own and let the pkgdown workflow finish before pushing the <code>.9000</code> version bump. If both are pushed together, only the latest commit is built and the released site is never updated.</li>

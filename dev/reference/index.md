@@ -101,6 +101,9 @@
 - [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
   : Tally coverage by line, expression or function
 
+- [`tally_tests()`](https://covr.r-lib.org/dev/reference/tally_tests.md)
+  : Tally which tests ran each line
+
 - [`to_badge()`](https://covr.r-lib.org/dev/reference/to_badge.md) :
   Create a coverage badge
 

@@ -3,6 +3,20 @@
 ## covr (development version)
 
 - New
+  [`tally_tests()`](https://covr.r-lib.org/dev/reference/tally_tests.md)
+  returns a traceability matrix from coverage recorded with
+  `options(covr.record_tests = TRUE)`: which tests ran each line of
+  code, with the test file, line and
+  [`test_that()`](https://testthat.r-lib.org/reference/test_that.html)
+  description, so you can find the tests to rerun after changing some
+  lines ([\#361](https://github.com/r-lib/covr/issues/361)).
+
+- With `options(covr.record_tests = TRUE)`, tests that call the package
+  through code with source references, e.g. testthat expectations when
+  rlang was installed with `R_KEEP_PKG_SOURCE=yes`, are no longer all
+  recorded as a single test named after that code.
+
+- New
   [`shiny_app_coverage()`](https://covr.r-lib.org/dev/reference/shiny_app_coverage.md)
   measures the coverage of a Shiny app that isn’t part of a package
   while its tests run, by default with
