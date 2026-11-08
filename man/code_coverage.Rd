@@ -36,7 +36,7 @@ unless the functions are defined in a file.
 \section{Parallel code}{
 
 Code run in processes forked by \code{\link[parallel:mclapply]{parallel::mclapply()}},
-\code{\link[parallel:mcparallel]{parallel::mcparallel()}} and related functions (not available on Windows)
+\code{parallel::mcparallel()} and related functions (not available on Windows)
 is included in the coverage. While the code runs, \code{parallel:::mcfork} and
 \code{parallel:::mcexit} are patched so that the forked processes save their
 counts when they exit. To turn this off, set the environment variable

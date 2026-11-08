@@ -393,7 +393,7 @@ function_coverage <- function(
 #' @inheritParams package_coverage
 #' @section Parallel code:
 #' Code run in processes forked by [parallel::mclapply()],
-#' [parallel::mcparallel()] and related functions (not available on Windows)
+#' `parallel::mcparallel()` and related functions (not available on Windows)
 #' is included in the coverage. While the code runs, `parallel:::mcfork` and
 #' `parallel:::mcexit` are patched so that the forked processes save their
 #' counts when they exit. To turn this off, set the environment variable
