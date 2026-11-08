@@ -51,7 +51,11 @@ test_that("A missing profiler runtime is reported (#728)", {
     }
   )
   expect_snapshot(
-    rust <- rust_coverage_setup(test_path("TestRust"), withr::local_tempdir())
+    rust <- rust_coverage_setup(
+      test_path("TestRust"),
+      "rust/Cargo.toml",
+      withr::local_tempdir()
+    )
   )
   expect_null(rust)
 })
@@ -142,6 +146,39 @@ test_that("parse_lcov keeps the package's own Rust files (#728)", {
   )
   expect_equal(
     unique(vcapply(res, function(x) {
+      get_source_filename(x$srcref, full.names = TRUE)
+    })),
+    files[[1]]
+  )
+})
+
+test_that("The C code of vendored crates isn't included (#728)", {
+  pkg <- file.path(withr::local_tempdir(), "vendor", "pkg")
+  files <- file.path(
+    pkg,
+    "src",
+    c(
+      "wrapper.c",
+      "rust/vendor/savvy/src/unwind_protect_wrapper.c",
+      "vendor/dep/src/dep.c",
+      "rust/target/release/build/dep/out/generated.c"
+    )
+  )
+  for (file in files) {
+    dir.create(dirname(file), recursive = TRUE)
+    writeLines("line 1", file)
+  }
+  files <- normalize_path(files)
+  coverage <- unlist(
+    lapply(files, function(file) {
+      line_coverages(file, list(line = 1), 1, NA_character_)
+    }),
+    recursive = FALSE
+  )
+
+  res <- drop_rust_dependencies(coverage, roots = normalize_path(pkg))
+  expect_equal(
+    unname(vcapply(res, function(x) {
       get_source_filename(x$srcref, full.names = TRUE)
     })),
     files[[1]]

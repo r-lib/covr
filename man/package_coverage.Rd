@@ -122,8 +122,9 @@ distribution, those of the LLVM version rustc uses (e.g.
 warns and reports no coverage for the Rust code. The code is instrumented
 by adding \verb{-C instrument-coverage} to the \code{RUSTFLAGS} environment variable,
 so the package's \code{Makevars} must pass \code{RUSTFLAGS} on to cargo, as those of
-packages using extendr or savvy do. Vendored crates and code generated in
-cargo's \code{target} directory aren't included.
+packages using extendr or savvy do. Vendored crates, including the C code
+they compile, and code generated in cargo's \code{target} directory aren't
+included.
 
 #ifdef unix
 Parallelized code using \pkg{parallel}'s \code{\link[=mcparallel]{mcparallel()}} needs to

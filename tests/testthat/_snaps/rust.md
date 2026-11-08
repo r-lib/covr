@@ -13,7 +13,7 @@
 # A missing profiler runtime is reported (#728)
 
     Code
-      rust <- rust_coverage_setup(test_path("TestRust"), withr::local_tempdir())
+      rust <- rust_coverage_setup(test_path("TestRust"), "rust/Cargo.toml", withr::local_tempdir())
     Condition
       Warning:
       Can't measure the coverage of Rust code.

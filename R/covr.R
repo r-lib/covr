@@ -827,8 +827,9 @@ with_coverage <- function(
 #' warns and reports no coverage for the Rust code. The code is instrumented
 #' by adding `-C instrument-coverage` to the `RUSTFLAGS` environment variable,
 #' so the package's `Makevars` must pass `RUSTFLAGS` on to cargo, as those of
-#' packages using extendr or savvy do. Vendored crates and code generated in
-#' cargo's `target` directory aren't included.
+#' packages using extendr or savvy do. Vendored crates, including the C code
+#' they compile, and code generated in cargo's `target` directory aren't
+#' included.
 #'
 #' #ifdef unix
 #' Parallelized code using \pkg{parallel}'s [mcparallel()] needs to
@@ -999,7 +1000,10 @@ package_coverage <- function(
   }
 
   # Measure the coverage of Rust code, if the package has any
-  rust <- if (!installed) rust_coverage_setup(pkg$path, install_path)
+  manifests <- if (!installed) rust_manifests(pkg$path)
+  rust <- if (length(manifests)) {
+    rust_coverage_setup(pkg$path, manifests, install_path)
+  }
 
   if (installed) {
     # `R CMD INSTALL` fails to reinstall an installed package on Windows, and
@@ -1198,6 +1202,12 @@ package_coverage <- function(
     res <- c(
       res,
       run_llvm_cov(rust, pkg$path, install_path, pkg$package, quiet = quiet)
+    )
+  }
+  if (length(manifests)) {
+    res <- drop_rust_dependencies(
+      res,
+      roots = c(pkg$path, getOption("covr.gcov_additional_paths", NULL))
     )
   }
 
