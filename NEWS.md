@@ -14,6 +14,10 @@
   the least covered files first (#316, #709).
 
 * covr now requires R 4.0.0 or later.
+* New `tally_tests()` returns a traceability matrix from coverage recorded with
+  `options(covr.record_tests = TRUE)`: which tests ran each line of code, with
+  the test file, line and `test_that()` description, so you can find the tests
+  to rerun after changing some lines (#361).
 
 * New `to_badge()` writes an SVG badge with the percent coverage, so a README
   can show coverage without uploading it to Codecov or Coveralls. The README
@@ -38,10 +42,6 @@
     loop, like tests with srcrefs. Each run was recorded as a new test, and
     finding the test got slower with every run, so the coverage of bitops
     never finished.
-* New `tally_tests()` returns a traceability matrix from coverage recorded with
-  `options(covr.record_tests = TRUE)`: which tests ran each line of code, with
-  the test file, line and `test_that()` description, so you can find the tests
-  to rerun after changing some lines (#361).
 
 * `to_cobertura()` now only lists the lines of a method from the file it is
   defined in. Previously methods sharing a name across files, such as the
