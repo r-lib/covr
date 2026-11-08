@@ -31,7 +31,6 @@
   library paths to the R processes running the tests as site libraries, which
   renv removes from the library paths when it is loaded, so covr, the package
   and its dependencies could no longer be found (#560).
-
 * `report()`, `file_report()` and the coverage percentages printed in the
   console can use other colors for covered and missed code, set with the new
   `covr.report_colors` option, e.g.
@@ -41,7 +40,6 @@
   sets the color for 75% to 90% coverage. The coverage bars in `report()` now
   use the same thresholds as the console, so files with exactly 75% or 90%
   coverage get the higher color (#529).
-
 * `codecov()` now uploads with Codecov's current upload protocol, a request to
   `https://ingest.codecov.io` for an upload followed by sending the coverage to
   the location it returns, instead of the legacy `/upload/v2` endpoint, which
@@ -55,7 +53,6 @@
   returns the response of Codecov, which includes the `url` of the upload, and
   errors with class `covr_codecov_error` or, for HTTP 429 and 5xx, warns with
   class `covr_codecov_warning`, if either request fails.
-
 * `c()` now combines coverage objects, e.g. from runs of tests in different
   directories. The counts of traces in several objects are added, and recorded
   tests are combined as well (#439).
