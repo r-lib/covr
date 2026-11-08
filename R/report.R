@@ -233,7 +233,13 @@ file_table <- function(stats) {
     htmltools::tags$td(
       class = "covr-num",
       style = style,
-      `data-sort` = if (is.na(number)) "" else format(number),
+      # The values come from sprintf() or integers, so they use a decimal
+      # point whatever `OutDec` is, which `Number()` in `report.js` needs
+      `data-sort` = if (is.na(number)) {
+        ""
+      } else {
+        sub("%", "", value, fixed = TRUE)
+      },
       value
     )
   }

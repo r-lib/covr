@@ -8,10 +8,12 @@ test_that("report_html() lists the files in a sortable table (#316)", {
     Covered = c(1L, 2L, 0L),
     Missed = c(3L, 0L, 0L),
     `Hits / Line` = c("1", "3", "NaN"),
-    Coverage = c("25.00%", "100.00%", "NaN%"),
+    Coverage = c("33.33%", "100.00%", "NaN%"),
     check.names = FALSE,
     stringsAsFactors = FALSE
   )
+  # The sort keys are read by JavaScript, so need a decimal point
+  withr::local_options(OutDec = ",")
   html <- as.character(file_table(stats))
 
   sorts <- regmatches(html, gregexpr('data-sort="[^"]*"', html))[[1]]
@@ -26,14 +28,14 @@ test_that("report_html() lists the files in a sortable table (#316)", {
         "1",
         "3",
         "1",
-        "25",
+        "33.33",
         "a.R",
         "20",
         "2",
         "2",
         "0",
         "3",
-        "100",
+        "100.00",
         "c.R",
         "5",
         "0",
@@ -44,7 +46,7 @@ test_that("report_html() lists the files in a sortable table (#316)", {
       )
     )
   )
-  expect_match(html, "var(--covr-bar-low) 25.00%", fixed = TRUE)
+  expect_match(html, "var(--covr-bar-low) 33.33%", fixed = TRUE)
   expect_match(html, "var(--covr-bar-high) 100.00%", fixed = TRUE)
   expect_length(gregexpr("covr-bar-", html, fixed = TRUE)[[1]], 2)
   expect_match(html, '<a href="#" class="covr-file-link">b.R</a>', fixed = TRUE)
