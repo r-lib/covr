@@ -54,6 +54,32 @@ test_that("shiny_app_coverage() includes functions run by forked processes", {
   expect_equal(df$value, c(1, 0, 1))
 })
 
+test_that("shiny_app_coverage() includes apps first loaded by processes forked by other R processes", {
+  skip_on_cran()
+  skip_on_os("windows")
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("callr")
+
+  app_dir <- normalizePath(test_path("TestShinyApp"))
+  expect_no_warning(
+    cov <- shiny_app_coverage(
+      app_dir,
+      callr::r(
+        function(app_dir) {
+          parallel::mccollect(parallel::mcparallel(
+            shiny::testServer(app_dir, session$setInputs(n = 2))
+          ))
+        },
+        list(app_dir)
+      )
+    )
+  )
+
+  df <- as.data.frame(cov)
+  expect_equal(df$functions, c("double_it", "never_called", "server"))
+  expect_equal(df$value, c(1, 0, 1))
+})
+
 test_that("shiny_app_coverage() instruments functions passed to Shiny's debug hook in other R processes", {
   skip_on_cran()
   skip_if_not_installed("shiny")
