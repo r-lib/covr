@@ -37,13 +37,15 @@ jobs:
           - {os: ubuntu-latest,   r: 'oldrel-2'}
           - {os: ubuntu-latest,   r: 'oldrel-3'}
           - {os: ubuntu-latest,   r: 'oldrel-4'}
-          # Check the minimum supported R version. CRAN no longer has Windows
-          # binaries for R 4.0, so this runs on Linux.
-          - {os: ubuntu-22.04,    r: '4.0'}
+          # Check the minimum supported R version. Current packages (e.g.
+          # testthat >= 3.3) need R >= 4.1, so use a snapshot of CRAN from before
+          # they dropped R 4.0, like setup-r does for R 3.6.
+          - {os: ubuntu-22.04,    r: '4.0', rspm: 'https://packagemanager.posit.co/cran/__linux__/jammy/2025-09-01'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      RSPM: ${{ matrix.config.rspm }}
 
     steps:
       - uses: actions/checkout@v6
@@ -54,6 +56,7 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
+          cran: ${{ matrix.config.rspm }}
           use-public-rspm: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2
