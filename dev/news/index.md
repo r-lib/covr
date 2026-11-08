@@ -2,6 +2,18 @@
 
 ## covr (development version)
 
+- Two fixes for `options(covr.record_tests = TRUE)`
+  ([\#627](https://github.com/r-lib/covr/issues/627)):
+
+  - Objects used in tests can now be garbage collected. covr kept the
+    environment of the last test call, which made tests that check that
+    objects are finalized fail, e.g. in websocket.
+  - Tests without srcrefs, such as the scripts in `tests/` that don’t
+    use testthat, are now recorded once and counted when they run again,
+    e.g. in a loop, like tests with srcrefs. Each run was recorded as a
+    new test, and finding the test got slower with every run, so the
+    coverage of bitops never finished.
+
 - [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
   now only lists the lines of a method from the file it is defined in.
   Previously methods sharing a name across files, such as the
