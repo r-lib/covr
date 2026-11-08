@@ -101,7 +101,21 @@ exclude <- function(
     coverage <- coverage[!to_exclude]
   }
 
+  # Expressions spanning several lines are only dropped if all of their lines
+  # are excluded, so record the excluded lines to leave them out of line
+  # coverage, e.g. the `# nocov` lines of a function defined in a function.
+  attr(coverage, "excluded_lines") <- excluded_lines(df[!to_exclude, ], excl)
+
   coverage
+}
+
+excluded_lines <- function(df, excl) {
+  files <- unique(df[c("filename", "full_name")])
+  lines <- lapply(files$full_name, function(file) {
+    lines <- excl[[file]]
+    if (identical(lines, Inf)) NULL else lines
+  })
+  compact(setNames(lines, files$filename))
 }
 
 parse_exclusions <- function(

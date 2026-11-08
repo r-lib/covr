@@ -81,17 +81,18 @@ tally_lines <- function(df, x) {
   res$functions <- as.character(res$functions)
 
   if (inherits(x, "coverage")) {
-    res <- drop_blank_lines(res, x)
+    res <- drop_lines(res, source_blank_lines(x))
+    res <- drop_lines(res, attr(x, "excluded_lines"))
   }
   res[order(res$filename, res$line), ]
 }
 
-drop_blank_lines <- function(res, x) {
+source_blank_lines <- function(x) {
   srcfiles <- unique(lapply(x, function(x) attr(x$srcref, "srcfile")))
   srcfile_names <- vcapply(srcfiles, `[[`, "filename")
   srcfile_names <- to_relative_path(srcfile_names, attr(x, "root"))
 
-  blank_lines <- compact(
+  compact(
     setNames(
       lapply(srcfiles, function(srcfile) {
         attr(srcfile_lines(srcfile), "blanks")
@@ -99,18 +100,23 @@ drop_blank_lines <- function(res, x) {
       srcfile_names
     )
   )
-  if (!length(blank_lines)) {
+}
+
+# Drops the rows of `res` for the lines in `lines`, a list of line numbers named
+# by filename.
+drop_lines <- function(res, lines) {
+  if (!length(lines)) {
     return(res)
   }
 
-  blank_lines <- utils::stack(blank_lines)
-  non_blanks <- setdiff.data.frame(
+  lines <- utils::stack(lines)
+  keep <- setdiff.data.frame(
     res,
-    blank_lines,
+    lines,
     by.x = c("filename", "line"),
     by.y = c("ind", "values")
   )
-  res[non_blanks, ]
+  res[keep, ]
 }
 
 # Accepts the output of tally_coverage() by expression, line or function.
