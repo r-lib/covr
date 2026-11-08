@@ -210,24 +210,6 @@ test_that("excluded lines of a multi-line expression are not counted (#594)", {
   expect_equal(per_line(cov)[[1]]$coverage, c(NA, NA, 1, NA, NA, NA))
 })
 
-test_that("it returns NULL if empty or no file exclusions", {
-  expect_equal(file_exclusions(NULL, ""), NULL)
-
-  expect_equal(file_exclusions(list("a" = c(1, 2))), NULL)
-
-  expect_equal(file_exclusions(list("a" = c(1, 2), "b" = c(3, 4))), NULL)
-})
-test_that("it returns a normalizedPath if the file can be found", {
-  expect_match(
-    file_exclusions(list("test-exclusions.R"), "."),
-    "test-exclusions.R"
-  )
-
-  expect_match(
-    file_exclusions(list("testthat/test-exclusions.R", "testthat.R"), ".."),
-    rex::rex(or("test-exclusions.R", "testthat.R"))
-  )
-})
 
 describe("covrignore", {
   it("returns NULL if empty or no file exclusions", {

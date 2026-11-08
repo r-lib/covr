@@ -353,7 +353,7 @@ git_remote_url <- function(dir = ".") {
     ),
     error = function(e) character()
   )
-  if (length(url)) trim(url[[1]])
+  if (length(url)) trimws(url[[1]])
 }
 
 git_files <- function(dir = ".") {

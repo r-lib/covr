@@ -242,12 +242,8 @@ drop_lines <- function(res, lines) {
   }
 
   lines <- utils::stack(lines)
-  keep <- setdiff.data.frame(
-    res,
-    lines,
-    by.x = c("filename", "line"),
-    by.y = c("ind", "values")
-  )
+  keep <- !do.call(paste, c(res[c("filename", "line")], sep = "\30")) %in%
+    do.call(paste, c(lines[c("ind", "values")], sep = "\30"))
   res[keep, ]
 }
 

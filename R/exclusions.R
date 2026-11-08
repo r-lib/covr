@@ -53,22 +53,13 @@ exclude <- function(
   coverage,
   line_exclusions = NULL,
   function_exclusions = NULL,
-  exclude_pattern = getOption("covr.exclude_pattern"),
-  exclude_start = getOption("covr.exclude_start"),
-  exclude_end = getOption("covr.exclude_end"),
   path = NULL
 ) {
   sources <- traced_files(coverage)
 
   source_exclusions <- Map(
     function(x, file) {
-      parse_exclusions(
-        x$file_lines,
-        exclude_pattern,
-        exclude_start,
-        exclude_end,
-        file = file
-      )
+      parse_exclusions(x$file_lines, file = file)
     },
     sources,
     names(sources)
@@ -140,7 +131,7 @@ excluded_lines <- function(df, excl) {
 
 parse_exclusions <- function(
   lines,
-  exclude_pattern = getOption("covr.exclude"),
+  exclude_pattern = getOption("covr.exclude_pattern"),
   exclude_start = getOption("covr.exclude_start"),
   exclude_end = getOption("covr.exclude_end"),
   file = NULL
@@ -177,17 +168,6 @@ parse_exclusions <- function(
   exclusions <- c(exclusions, which(rex::re_matches(lines, exclude_pattern)))
 
   sort(unique(exclusions))
-}
-
-file_exclusions <- function(x, path = NULL) {
-  excl <- normalize_exclusions(x, path)
-
-  full_files <- vlapply(excl, function(x1) length(x1) == 1 && x1 == Inf)
-  if (any(full_files)) {
-    names(excl)[full_files]
-  } else {
-    NULL
-  }
 }
 
 normalize_exclusions <- function(x, path = NULL) {

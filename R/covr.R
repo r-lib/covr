@@ -1602,7 +1602,7 @@ parse_type <- function(type) {
     choices = c("tests", "vignettes", "examples", "all", "none"),
     several.ok = TRUE
   )
-  if (type %==% "all") {
+  if (identical(type, "all")) {
     type <- c("tests", "vignettes", "examples")
   }
 

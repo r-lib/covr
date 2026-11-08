@@ -511,8 +511,6 @@ to_report_data <- function(x) {
 
   res$file_stats <- sort_file_stats(res$file_stats)
 
-  res$file_stats$Coverage <- res$file_stats$Coverage
-
   res
 }
 
