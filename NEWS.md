@@ -1,5 +1,12 @@
 # covr (development version)
 
+* S4 methods are now named after their generic and signature, as in their Rd
+  aliases, e.g. `show,MyClass-method`, so `print(x, group = "functions")`,
+  `tally_coverage(by = "function")` and the other outputs show which generic
+  each method belongs to. Previously they were named only by their signature,
+  e.g. `numeric#character` (#417). `function_exclusions` patterns that matched
+  the old names need to be updated.
+
 * Error and warning messages are shorter and follow the tidyverse style guide,
   starting with a short statement of the problem followed by bulleted details,
   e.g. for unpaired `# nocov start` / `# nocov end` lines.
