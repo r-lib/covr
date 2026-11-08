@@ -15,6 +15,9 @@
   on a package and output the result so it is available on Azure
   Pipelines
 
+- [`c(`*`<coverage>`*`)`](https://covr.r-lib.org/dev/reference/c.coverage.md)
+  : Combine coverage objects
+
 - [`code_coverage()`](https://covr.r-lib.org/dev/reference/code_coverage.md)
   : Calculate coverage of code directly
 

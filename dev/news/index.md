@@ -2,6 +2,11 @@
 
 ## covr (development version)
 
+- [`c()`](https://rdrr.io/r/base/c.html) now combines coverage objects,
+  e.g. from runs of tests in different directories. The counts of traces
+  in several objects are added, and recorded tests are combined as well
+  ([\#439](https://github.com/r-lib/covr/issues/439)).
+
 - When gcov fails, the error from
   [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   now includes gcov’s output, e.g. the `.gcno` version mismatch reported
