@@ -151,9 +151,9 @@ report_html <- function(x = package_coverage()) {
   # The tabs and the links to the files are handled by `report.js`, which is
   # in `report_head()`
   htmltools::browsable(htmltools::tagList(
-    report_head(colors),
-    htmltools::div(
-      class = "covr-report",
+    report_head(),
+    report_container(
+      colors,
       report_header(paste0(package_name, " coverage - ", percentage)),
       tabset_panel(
         tab_panel("Files", table),
@@ -198,13 +198,13 @@ file_report <- function(
   percentage <- data$file_stats$Coverage
 
   ui <- fluid_page(
-    report_head(colors),
+    report_head(),
     column(
       8,
       offset = 2,
       size = "md",
-      htmltools::div(
-        class = "covr-report",
+      report_container(
+        colors,
         report_header(paste0(file, " - ", percentage)),
         addHighlight(
           renderSourceTable(data$full, "")
@@ -316,38 +316,51 @@ coverage_tints <- function(colors, dark = FALSE) {
 
 # CSS variables with the colors of the coverage bars, for the light theme and
 # the dark one
-coverage_tints_css <- function(colors) {
+coverage_tints_css <- function(colors, selector) {
   vars <- function(tints) {
     paste0("  --covr-bar-", names(tints), ":", tints, ";\n", collapse = "")
   }
   paste0(
-    ".covr-report{\n",
+    selector,
+    "{\n",
     vars(coverage_tints(colors)),
     "}\n",
-    "html.covr-dark .covr-report{\n",
+    "html.covr-dark ",
+    selector,
+    "{\n",
     vars(coverage_tints(colors, dark = TRUE)),
     "}\n"
   )
 }
 
+# The class of the reports using `colors`, so a document can include reports
+# with different colors
+report_colors_class <- function(colors) {
+  paste0("covr-colors-", digest::digest(colors, algo = "crc32"))
+}
+
 report_colors_css <- function(colors) {
+  selector <- paste0(".covr-report.", report_colors_class(colors))
   rules <- vapply(
     c("covered", "missed"),
     function(type) {
       rgb <- colors[, type]
       hex <- rgb_hex(rgb)
       paste0(
-        ".covr-report table tr.",
+        selector,
+        " table tr.",
         type,
         " td{\n  background-color:",
         rgb_alpha(rgb, 0.3),
         "\n}\n",
-        ".covr-report table tr:hover.",
+        selector,
+        " table tr:hover.",
         type,
         " .num{\n  background-color:",
         rgb_alpha(rgb, 0.7),
         "\n}\n",
-        ".covr-report table tr.",
+        selector,
+        " table tr.",
         type,
         ":hover td{\n",
         "  -webkit-box-shadow:0 -2px 0 0 ",
@@ -365,16 +378,26 @@ report_colors_css <- function(colors) {
   )
   htmltools::tags$style(htmltools::HTML(paste0(
     paste(rules, collapse = ""),
-    coverage_tints_css(colors)
+    coverage_tints_css(colors, selector)
   )))
 }
 
-# The styles and scripts of the reports, including the script that picks the
-# light or dark theme, which is in the <head> so the page is never shown in the
-# wrong theme. As a dependency, they are included once in a document with
-# several reports, and R Markdown keeps them, which it doesn't do with
-# `tags$head()`.
-report_head <- function(colors) {
+# The element of a report, with the styles of its colors, which only apply to
+# it, as the colors of other reports in the same document can differ
+report_container <- function(colors, ...) {
+  htmltools::div(
+    class = paste("covr-report", report_colors_class(colors)),
+    report_colors_css(colors),
+    ...
+  )
+}
+
+# The styles and scripts shared by the reports, including the script that
+# picks the light or dark theme, which is in the <head> so the page is never
+# shown in the wrong theme. As a dependency, they are included once in a
+# document with several reports, and R Markdown keeps them, which it doesn't do
+# with `tags$head()`.
+report_head <- function() {
   htmltools::attachDependencies(
     htmltools::tagList(),
     htmltools::htmlDependency(
@@ -383,7 +406,6 @@ report_head <- function(colors) {
       src = system.file("www", package = "covr"),
       script = c("theme.js", "report.js"),
       stylesheet = "report.css",
-      head = as.character(report_colors_css(colors)),
       all_files = FALSE
     )
   )

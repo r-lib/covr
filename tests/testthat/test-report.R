@@ -52,7 +52,7 @@ test_that("report_html() can include several reports in a document (#316)", {
   html <- paste(readLines(file), collapse = "\n")
   head <- sub("</head>.*", "", html)
 
-  expect_equal(count(html, 'class="covr-report"'), 2)
+  expect_equal(count(html, 'class="covr-report covr-colors-'), 2)
   ids <- regmatches(html, gregexpr(' id="[^"]+"', html))[[1]]
   expect_equal(anyDuplicated(ids), 0)
 
@@ -60,10 +60,46 @@ test_that("report_html() can include several reports in a document (#316)", {
   for (asset in c("theme.js", "report.js", "report.css")) {
     expect_equal(count(head, paste0("/", asset, '"')), 1)
   }
-  expect_equal(count(html, "covr-bar-high:#edfde7"), 1)
 
   # Bootstrap would replace the version used by the document
   expect_no_match(html, "bootstrap", ignore.case = TRUE)
+})
+
+test_that("report_html() keeps the colors of each report in a document (#316)", {
+  skip_if_not_installed("DT")
+  skip_if_not_installed("htmltools")
+
+  cov <- code_coverage("f <- function(x) x + 1", "f(1)")
+  withr::local_options(covr.report_colors = NULL)
+  default <- report_html(cov)
+  withr::local_options(
+    covr.report_colors = c(covered = "#0072B2", missed = "#E69F00")
+  )
+  custom <- report_html(cov)
+  html <- htmltools::renderTags(htmltools::tagList(default, custom))$html
+
+  reports <- regmatches(html, gregexpr('class="covr-report [^"]+"', html))[[1]]
+  expect_length(unique(reports), 2)
+  classes <- sub('class="covr-report ([^"]+)"', "\\1", reports)
+  palettes <- list(
+    c("rgba(95,151,68,0.3)", "rgba(185,73,71,0.3)", "#edfde7"),
+    c("rgba(0,114,178,0.3)", "rgba(230,159,0,0.3)", "#e0eef6")
+  )
+  for (i in 1:2) {
+    styles <- regmatches(
+      html,
+      gregexpr(
+        paste0("\\.covr-report\\.", classes[[i]], "[^{]*\\{[^}]*\\}"),
+        html
+      )
+    )[[1]]
+    for (color in palettes[[i]]) {
+      expect_match(styles, color, fixed = TRUE, all = FALSE)
+    }
+    for (color in palettes[[3 - i]]) {
+      expect_no_match(styles, color, fixed = TRUE)
+    }
+  }
 })
 
 test_that("report_html() styles only the report (#316)", {
@@ -105,12 +141,12 @@ test_that("report() uses the default colors (#529)", {
   expect_match(html, "box-shadow:0 -2px 0 0 #b94947 inset", fixed = TRUE)
   expect_match(
     html,
-    ".covr-report{\n  --covr-bar-high:#edfde7;\n  --covr-bar-mid:#f9ffe5;\n  --covr-bar-low:#fcece9;\n}",
+    "{\n  --covr-bar-high:#edfde7;\n  --covr-bar-mid:#f9ffe5;\n  --covr-bar-low:#fcece9;\n}",
     fixed = TRUE
   )
   expect_match(
     html,
-    "html.covr-dark .covr-report{\n  --covr-bar-high:#374e33;\n  --covr-bar-mid:#2c3a2e;\n  --covr-bar-low:#583234;\n}",
+    "{\n  --covr-bar-high:#374e33;\n  --covr-bar-mid:#2c3a2e;\n  --covr-bar-low:#583234;\n}",
     fixed = TRUE
   )
 })
