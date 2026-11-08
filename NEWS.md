@@ -19,7 +19,8 @@
   aliases, e.g. `show,MyClass-method`, so `print(x, group = "functions")`,
   `tally_coverage(by = "function")` and the other outputs show which generic
   each method belongs to. Previously they were named only by their signature,
-  e.g. `numeric#character` (#417).
+  e.g. `numeric#character` (#417). `function_exclusions` patterns that matched
+  the old names need to be updated.
 
 * `file_coverage()` gains a `runner` argument to choose how test files are
   run. `runner = testthat::test_file` runs them with testthat's test runner,

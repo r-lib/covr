@@ -15,3 +15,10 @@ test_that("S4 methods coverage is reported", {
     )
   )
 })
+
+test_that("S4 methods without a definition are named from their table key", {
+  expect_equal(
+    S4_method_name("f", "numeric#character", function(x, y) NULL),
+    "f,numeric,character-method"
+  )
+})
