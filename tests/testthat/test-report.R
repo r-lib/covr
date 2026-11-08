@@ -159,6 +159,25 @@ test_that("report() and file_report() can switch to a dark theme (#563)", {
   }
 })
 
+test_that("file_report() doesn't load scripts that need jQuery", {
+  skip_if_not_installed("DT")
+  skip_if_not_installed("htmltools")
+
+  cov <- code_coverage("f <- function(x) x + 1", "f(1)")
+  file <- file_report(
+    cov,
+    out_file = withr::local_tempfile(fileext = ".html"),
+    browse = FALSE
+  )
+  html <- paste(readLines(file), collapse = "\n")
+  expect_no_match(
+    html,
+    "jquery|bootstrap\\.min\\.js|\\$\\(",
+    ignore.case = TRUE
+  )
+  expect_match(html, "hljs.highlightBlock", fixed = TRUE)
+})
+
 test_that("covr.report_colors is validated (#529)", {
   skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")
