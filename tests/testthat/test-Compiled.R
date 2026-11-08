@@ -93,6 +93,19 @@ test_that("Compiled code coverage is reported under non-standard char's", {
   expect_equal(cov[cov$first_line == "22", "value"], 4)
 })
 
+test_that("Partially executed compiled lines can count as uncovered (#610)", {
+  skip_on_cran()
+  skip_if(is_win_r41())
+
+  cov <- as.data.frame(package_coverage("TestCompiledPartial"))
+  expect_equal(cov[cov$first_line == "5", "value"], 1)
+
+  withr::local_options(covr.gcov_partial = "uncovered")
+  cov <- as.data.frame(package_coverage("TestCompiledPartial"))
+  expect_equal(cov[cov$first_line == "5", "value"], 0)
+  expect_equal(cov[cov$first_line == "6", "value"], 1)
+})
+
 test_that("Error thrown for missing gcov", {
   skip_on_cran()
 

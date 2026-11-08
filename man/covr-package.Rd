@@ -70,6 +70,10 @@ turn off coverage of compiled code.
 reports as only partially executed (e.g. \code{if (x) f();} when \code{f()} never
 runs). \code{"covered"} (the default) counts them as covered, \code{"uncovered"}
 counts them as not covered, for requiring every part of a line to run.
+This works with both gcc's gcov and llvm-cov (the gcov on macOS).
+llvm-cov can't tell apart code that only runs when a C++ exception is
+thrown, so lines that create objects with destructors may also count as
+partially executed.
 
 \item \code{covr.icov}:
 

@@ -1,5 +1,5 @@
 # this does not handle LCOV_EXCL_START ect.
-parse_gcov <- function(file, package_path = "") {
+parse_gcov <- function(file, package_path = "", unexecuted_block = "%%%%%") {
   if (!file.exists(file)) {
     return(NULL)
   }
@@ -27,6 +27,24 @@ parse_gcov <- function(file, package_path = "") {
     return(NULL)
   }
 
+  # With `gcov -a` each line is followed by the counts of its basic blocks,
+  # e.g. `$$$$$:    4-block  1` for a block that never ran.
+  blocks <- rex::re_matches(
+    lines,
+    rex::rex(
+      start,
+      any_spaces,
+      capture(name = "coverage", except_some_of(space, ":")),
+      ":",
+      any_spaces,
+      capture(name = "line", digits),
+      "-block"
+    )
+  )
+  unexecuted_lines <- blocks$line[
+    !is.na(blocks$coverage) & blocks$coverage == unexecuted_block
+  ]
+
   re <- rex::rex(
     any_spaces,
     capture(name = "coverage", some_of(digit, "-", "#", "=", "*")),
@@ -48,17 +66,21 @@ parse_gcov <- function(file, package_path = "") {
   # gcov lines which have parse error, so make untracked
   matches$coverage[matches$coverage == "====="] <- "-"
 
-  # gcov marks lines where some blocks were not executed with a trailing `*`
-  # (e.g. `3*` for `if (x) f();` when `f()` never runs). They are counted as
-  # covered by default, or as uncovered with
+  # A line is only partially executed if some of its blocks never ran (e.g.
+  # `if (x) f();` when `f()` never runs). gcc >= 8 marks these lines with a
+  # trailing `*` (e.g. `3*`), but llvm-cov and older gcc do not, so we also
+  # look for unexecuted blocks in the `gcov -a` output (#610). Partial lines
+  # are counted as covered by default, or as uncovered with
   # `options(covr.gcov_partial = "uncovered")`.
-  partial <- endsWith(matches$coverage, "*")
-  matches$coverage[partial] <- sub(
+  starred <- endsWith(matches$coverage, "*")
+  matches$coverage[starred] <- sub(
     "*",
     "",
-    matches$coverage[partial],
+    matches$coverage[starred],
     fixed = TRUE
   )
+  partial <- starred |
+    (matches$line %in% unexecuted_lines & matches$coverage != "-")
   partial_as <- match.arg(
     getOption("covr.gcov_partial", "covered"),
     c("covered", "uncovered")
@@ -99,6 +121,33 @@ clean_gcov <- function(path) {
   unlink(gcov_files)
 }
 
+# The marker `gcov -a` uses for a basic block that never ran on a normal
+# (non-exception) path. gcc >= 8 uses `%%%%%`, and `$$$$$` for blocks only
+# reached by exceptions; older gcc swaps the two. llvm-cov (the gcov on macOS)
+# uses `$$$$$` for every unexecuted block.
+gcov_unexecuted_block <- function(gcov_path, gcov_args = NULL) {
+  version <- tryCatch(
+    system_output(gcov_path, c(gcov_args, "--version"), quiet = TRUE),
+    error = function(e) character()
+  )
+  version <- c(version, "")[[1]]
+  if (grepl("LLVM", version, fixed = TRUE)) {
+    return("$$$$$")
+  }
+  major <- rex::re_matches(
+    version,
+    rex::rex(
+      space,
+      capture(name = "major", digits),
+      ".",
+      digits,
+      any_non_spaces,
+      end
+    )
+  )$major
+  if (!is.na(major) && as.integer(major) < 8) "$$$$$" else "%%%%%"
+}
+
 run_gcov <- function(
   path,
   quiet = TRUE,
@@ -127,10 +176,12 @@ run_gcov <- function(
     return()
   }
 
+  unexecuted_block <- gcov_unexecuted_block(gcov_path, gcov_args)
+
   run_gcov_one <- function(src) {
     system_check(
       gcov_path,
-      args = c(gcov_args, src, "-p", "-o", dirname(src)),
+      args = c(gcov_args, src, "-a", "-p", "-o", dirname(src)),
       quiet = quiet,
       echo = !quiet
     )
@@ -174,7 +225,8 @@ run_gcov <- function(
       lapply(
         gcov_outputs,
         parse_gcov,
-        package_path = c(path, getOption("covr.gcov_additional_paths", NULL))
+        package_path = c(path, getOption("covr.gcov_additional_paths", NULL)),
+        unexecuted_block = unexecuted_block
       ),
       recursive = FALSE
     )
