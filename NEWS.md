@@ -26,6 +26,15 @@
   with arrow in an environment of its namespace, e.g. in a fastmap. The
   coverage saved by each R process included the contents of the package's
   environments, which are no longer saved, so it is also smaller (#602).
+* `package_coverage()` gains a `show_code_output` argument. If `TRUE`, the
+  output of `code` is shown on the console while it runs, e.g. to follow it in
+  the logs of a CI job, rather than only being shown when `code` fails
+  (@gergness, #558).
+
+* `package_coverage()` gains a `code_stdout` argument. If `TRUE`, the output of
+  `code` is shown on the console while it runs, e.g. to follow it in the logs
+  of a CI job, rather than only being shown when `code` fails (@gergness,
+  #558).
 
 * `file_report()` now highlights the syntax of the source code, which failed
   with JavaScript errors because the report didn't include jQuery.
@@ -43,10 +52,6 @@
   library paths to the R processes running the tests as site libraries, which
   renv removes from the library paths when it is loaded, so covr, the package
   and its dependencies could no longer be found (#560).
-* `package_coverage()` gains a `show_code_output` argument. If `TRUE`, the
-  output of `code` is shown on the console while it runs, e.g. to follow it in
-  the logs of a CI job, rather than only being shown when `code` fails
-  (@gergness, #558).
 
 * `report()`, `file_report()` and the coverage percentages printed in the
   console can use other colors for covered and missed code, set with the new
@@ -75,10 +80,6 @@
 * `c()` now combines coverage objects, e.g. from runs of tests in different
   directories. The counts of traces in several objects are added, and recorded
   tests are combined as well (#439).
-* `package_coverage()` gains a `code_stdout` argument. If `TRUE`, the output of
-  `code` is shown on the console while it runs, e.g. to follow it in the logs
-  of a CI job, rather than only being shown when `code` fails (@gergness,
-  #558).
 
 * When gcov fails, the error from `package_coverage()` now includes gcov's
   output, e.g. the `.gcno` version mismatch reported when the package was
