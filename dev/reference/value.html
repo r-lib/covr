@@ -25,6 +25,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/how_it_works.html">How does covr work anyway?</a></li>
+    <li><a class="dropdown-item" href="../articles/shiny.html">Coverage of Shiny apps</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -74,7 +75,7 @@ elements of <code>x</code> (see <a href="coverage.html">coverage</a>). For a sin
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="code_coverage.html">code_coverage</a></span><span class="op">(</span><span class="st">"add &lt;- function(x, y) { x + y }"</span>, <span class="st">"add(1, 2)"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">value</span><span class="op">(</span><span class="va">cov</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> source.R19177a634cf4:1:25:1:29:25:29:1:1 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> source.R18957a237af0:1:25:1:29:25:29:1:1 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                        1 </span>
 </code></pre></div>
     </div>

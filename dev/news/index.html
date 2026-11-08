@@ -25,6 +25,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/how_it_works.html">How does covr work anyway?</a></li>
+    <li><a class="dropdown-item" href="../articles/shiny.html">Coverage of Shiny apps</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -43,7 +44,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="covr-development-version">covr (development version)<a class="anchor" aria-label="anchor" href="#covr-development-version"></a></h2>
-<ul><li><p><code><a href="../reference/package_coverage.html">package_coverage()</a></code> now measures the coverage of installed packages, e.g. <code>package_coverage(system.file(package = "pkg"))</code>, so the package source isn’t needed. Previously it silently returned no coverage. The package must be installed with <code>--install-tests</code> and <code>--with-keep.source</code>, and <code><a href="../reference/package_coverage.html">package_coverage()</a></code> errors if it wasn’t (<a href="https://github.com/r-lib/covr/issues/638" class="external-link">#638</a>).</p></li>
+<ul><li><p>New <code><a href="../articles/shiny.html">vignette("shiny")</a></code> describes how to measure the coverage of Shiny apps, including tests run with shinytest2 and apps that aren’t in a package (<a href="https://github.com/r-lib/covr/issues/277" class="external-link">#277</a>).</p></li>
+<li><p><code><a href="../reference/package_coverage.html">package_coverage()</a></code> now measures the coverage of installed packages, e.g. <code>package_coverage(system.file(package = "pkg"))</code>, so the package source isn’t needed. Previously it silently returned no coverage. The package must be installed with <code>--install-tests</code> and <code>--with-keep.source</code>, and <code><a href="../reference/package_coverage.html">package_coverage()</a></code> errors if it wasn’t (<a href="https://github.com/r-lib/covr/issues/638" class="external-link">#638</a>).</p></li>
 <li>
 <p>Two fixes for <code>options(covr.record_tests = TRUE)</code> (<a href="https://github.com/r-lib/covr/issues/627" class="external-link">#627</a>):</p>
 <ul><li>Objects used in tests can now be garbage collected. covr kept the environment of the last test call, which made tests that check that objects are finalized fail, e.g. in websocket.</li>

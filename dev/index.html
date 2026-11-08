@@ -44,6 +44,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/how_it_works.html">How does covr work anyway?</a></li>
+    <li><a class="dropdown-item" href="articles/shiny.html">Coverage of Shiny apps</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -203,12 +204,19 @@
 <p><code>devtools::test_coverage()</code> sets <code>NOT_CRAN</code> for you.</p>
 </div>
 <div class="section level2">
+<h2 id="can-covr-measure-the-coverage-of-a-shiny-app">Can covr measure the coverage of a Shiny app?<a class="anchor" aria-label="anchor" href="#can-covr-measure-the-coverage-of-a-shiny-app"></a>
+</h2>
+<p>Yes, including tests that run the app with shinytest2, if the app is part of a package. The vignette <a href="https://github.com/r-lib/covr/blob/main/vignettes/shiny.Rmd" class="external-link">vignettes/shiny.Rmd</a> describes how to measure the coverage of apps in and outside of packages.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"shiny"</span>, package <span class="op">=</span> <span class="st">"covr"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="will-covr-work-with-alternative-compilers-such-as-icc">Will covr work with alternative compilers such as ICC<a class="anchor" aria-label="anchor" href="#will-covr-work-with-alternative-compilers-such-as-icc"></a>
 </h2>
 <p>Covr now supports Intel’s <code>icc</code> compiler, thanks to work contributed by Qin Wang at Oracle.</p>
 <p>Covr is known to work with clang versions <code>3.5+</code> and gcc version <code>4.2+</code>.</p>
 <p>If the appropriate gcov version is not on your path you can set the appropriate location with the <code>covr.gcov</code> options. If you set this path to “” it will turn <em>off</em> coverage of compiled code.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.gcov <span class="op">=</span> <span class="st">"path/to/gcov"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -217,7 +225,7 @@
 <p><code>covr</code> tracks test coverage by modifying a package’s code to add tracking calls to each call.</p>
 <p>The vignette <a href="https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd" class="external-link">vignettes/how_it_works.Rmd</a> contains a detailed explanation of the technique and the rationale behind it.</p>
 <p>You can view the vignette from within <code>R</code> using</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"how_it_works"</span>, package <span class="op">=</span> <span class="st">"covr"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">

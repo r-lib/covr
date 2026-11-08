@@ -2,6 +2,12 @@
 
 ## covr (development version)
 
+- New
+  [`vignette("shiny")`](https://covr.r-lib.org/dev/articles/shiny.md)
+  describes how to measure the coverage of Shiny apps, including tests
+  run with shinytest2 and apps that aren’t in a package
+  ([\#277](https://github.com/r-lib/covr/issues/277)).
+
 - [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   now measures the coverage of installed packages, e.g.
   `package_coverage(system.file(package = "pkg"))`, so the package

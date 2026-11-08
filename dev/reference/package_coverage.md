@@ -137,7 +137,9 @@ normally, so the coverage is lost if a process is killed (e.g. with
 `package_coverage()` warns (with class `covr_unsaved_trace`). Stop these
 processes gracefully and wait for them to exit, e.g. call `$stop()` on a
 shinytest2 `AppDriver`, which waits longer for the app to exit when run
-by covr.
+by covr. See
+[`vignette("shiny", package = "covr")`](https://covr.r-lib.org/dev/articles/shiny.md)
+for measuring the coverage of Shiny apps.
 
 `path` can also be an installed package, e.g.
 `system.file(package = "pkg")`, to compute coverage without the package
