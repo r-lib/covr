@@ -149,6 +149,25 @@ references, e.g. with
 File names are those of the source it was installed from, and compiled
 code isn't covered.
 
+The coverage of Rust code, built by cargo into a static library that is
+linked into the package, is measured with LLVM's source-based coverage.
+This needs the llvm tools of the Rust toolchain
+(`rustup component add llvm-tools`), or for Rust installed by a Linux
+distribution, those of the LLVM version rustc uses (e.g.
+`apt-get install llvm-18`); without them `package_coverage()` warns and
+reports no coverage for the Rust code. covr instruments the crates of
+the package's cargo workspace by having cargo run rustc through a
+wrapper (with `RUSTC_WORKSPACE_WRAPPER`) that adds
+`-C instrument-coverage`, so it works however the package sets
+`RUSTFLAGS`, and dependencies are built as usual. Vendored crates,
+including the C code they compile, and code generated in cargo's
+`target` directory aren't included. The code that macros such as
+`#[extendr]` and `#[savvy]` generate is counted on the macro's line, so
+the line isn't covered if parts of the generated code never run, e.g.
+the handling of arguments that can't be converted. The coverage of Rust
+code isn't measured on Windows, as rustup's Rust for the
+`x86_64-pc-windows-gnu` target that Rtools uses has no profiler runtime.
+
 Parallelized code using parallel's `mcparallel()` needs to use a patched
 `parallel:::mcexit`. This is done automatically if the package depends
 on parallel, but can also be explicitly set using the environment

@@ -128,6 +128,14 @@ partially executed.</p></li>
 <li><p><code>covr.icov_args</code>:</p></li>
 <li><p><code>covr.icov_flags</code>:</p></li>
 <li><p><code>covr.icov_prof</code>:</p></li>
+<li><p><code>covr.llvm_cov</code>: Path to the <code>llvm-cov</code> used to read the coverage
+of Rust code. Defaults to the one of the Rust toolchain, installed with
+<code>rustup component add llvm-tools</code>, or for Rust installed without rustup
+(e.g. with <code>apt-get install cargo rustc</code>), to the one on the <code>PATH</code> with
+the same LLVM version as rustc, e.g. <code>llvm-cov-18</code>. If set to <code>""</code> the
+Rust code isn't instrumented, which turns off its coverage.</p></li>
+<li><p><code>covr.llvm_profdata</code>: Path to the <code>llvm-profdata</code> used to merge the
+coverage counts of Rust code. Found like <code>covr.llvm_cov</code>.</p></li>
 <li><p><code>covr.report_colors</code>: A named character vector with the colors of
 covered and missed lines in <code><a href="report.html">report()</a></code> and <code><a href="file_report.html">file_report()</a></code>, and of the
 coverage percentages printed in the console, e.g.

@@ -241,6 +241,36 @@ runs its finalizer, so its coverage is lost. Each process therefore also
 leaves a marker file when it loads the package, which it removes once
 its coverage is saved; **covr** warns about any markers left over.
 
+### Rust
+
+R packages build Rust code with cargo into a static library, which is
+linked into the package’s shared object along with its C code. gcov
+can’t read the coverage of Rust code, so **covr** uses [LLVM’s
+source-based
+coverage](https://doc.rust-lang.org/rustc/instrument-coverage.html) for
+it instead:
+
+1.  While the package is installed, cargo runs rustc for the crates of
+    the package’s workspace through a wrapper script (set with the
+    `RUSTC_WORKSPACE_WRAPPER` environment variable) that adds
+    `-C instrument-coverage`. This works however the package’s Makevars
+    or configure script sets `RUSTFLAGS`, and its dependencies are built
+    as usual.
+2.  Static libraries don’t include the profiler runtime that writes the
+    counts, so **covr** links the runtime of the Rust toolchain into the
+    shared object.
+3.  The `LLVM_PROFILE_FILE` environment variable has each R process that
+    runs the tests write its counts to a separate `.profraw` file when
+    it exits.
+4.  `llvm-profdata` merges the counts, and `llvm-cov export` reads the
+    coverage of each line from them and the installed shared object.
+
+`llvm-profdata` and `llvm-cov` must use the same version of LLVM as
+rustc, so **covr** uses those of the Rust toolchain, which are installed
+with `rustup component add llvm-tools`. The Rust of Linux distributions
+uses the system’s LLVM instead, so for it **covr** looks for the tools
+of the LLVM version rustc reports, e.g. `llvm-cov-18`.
+
 ## Output Formats
 
 The output format returned by **covr** is an R object of class

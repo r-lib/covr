@@ -192,6 +192,23 @@ source. The package must have been installed with its tests and source
 references, e.g. with
 <code>remotes::install_github("user/pkg", INSTALL_opts = c("--install-tests", "--with-keep.source"))</code>. File names are those of the source it was
 installed from, and compiled code isn't covered.</p>
+<p>The coverage of Rust code, built by cargo into a static library that is
+linked into the package, is measured with LLVM's source-based coverage.
+This needs the llvm tools of the Rust toolchain
+(<code>rustup component add llvm-tools</code>), or for Rust installed by a Linux
+distribution, those of the LLVM version rustc uses (e.g.
+<code>apt-get install llvm-18</code>); without them <code>package_coverage()</code>
+warns and reports no coverage for the Rust code. covr instruments the
+crates of the package's cargo workspace by having cargo run rustc through a
+wrapper (with <code>RUSTC_WORKSPACE_WRAPPER</code>) that adds <code>-C instrument-coverage</code>,
+so it works however the package sets <code>RUSTFLAGS</code>, and dependencies are
+built as usual. Vendored crates, including the C code they compile, and
+code generated in cargo's <code>target</code> directory aren't included. The code that
+macros such as <code>#[extendr]</code> and <code>#[savvy]</code> generate is counted on the
+macro's line, so the line isn't covered if parts of the generated code
+never run, e.g. the handling of arguments that can't be converted. The
+coverage of Rust code isn't measured on Windows, as rustup's Rust for the
+<code>x86_64-pc-windows-gnu</code> target that Rtools uses has no profiler runtime.</p>
 <p>Parallelized code using <span class="pkg">parallel</span>'s <code>mcparallel()</code> needs to
 use a patched <code>parallel:::mcexit</code>. This is done automatically if the
 package depends on <span class="pkg">parallel</span>, but can also be explicitly set using the

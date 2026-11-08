@@ -95,6 +95,17 @@ behaviour:
 
 - `covr.icov_prof`:
 
+- `covr.llvm_cov`: Path to the `llvm-cov` used to read the coverage of
+  Rust code. Defaults to the one of the Rust toolchain, installed with
+  `rustup component add llvm-tools`, or for Rust installed without
+  rustup (e.g. with `apt-get install cargo rustc`), to the one on the
+  `PATH` with the same LLVM version as rustc, e.g. `llvm-cov-18`. If set
+  to `""` the Rust code isn't instrumented, which turns off its
+  coverage.
+
+- `covr.llvm_profdata`: Path to the `llvm-profdata` used to merge the
+  coverage counts of Rust code. Found like `covr.llvm_cov`.
+
 - `covr.report_colors`: A named character vector with the colors of
   covered and missed lines in
   [`report()`](https://covr.r-lib.org/dev/reference/report.md) and

@@ -308,6 +308,39 @@ Each process therefore also leaves a marker file when it loads the
 package, which it removes once its coverage is saved;
 <strong>covr</strong> warns about any markers left over.</p>
 </div>
+<div class="section level3">
+<h3 id="rust">Rust<a class="anchor" aria-label="anchor" href="#rust"></a>
+</h3>
+<p>R packages build Rust code with cargo into a static library, which is
+linked into the package’s shared object along with its C code. gcov
+can’t read the coverage of Rust code, so <strong>covr</strong> uses <a href="https://doc.rust-lang.org/rustc/instrument-coverage.html" class="external-link">LLVM’s
+source-based coverage</a> for it instead:</p>
+<ol style="list-style-type: decimal">
+<li>While the package is installed, cargo runs rustc for the crates of
+the package’s workspace through a wrapper script (set with the
+<code>RUSTC_WORKSPACE_WRAPPER</code> environment variable) that adds
+<code>-C instrument-coverage</code>. This works however the package’s
+Makevars or configure script sets <code>RUSTFLAGS</code>, and its
+dependencies are built as usual.</li>
+<li>Static libraries don’t include the profiler runtime that writes the
+counts, so <strong>covr</strong> links the runtime of the Rust toolchain
+into the shared object.</li>
+<li>The <code>LLVM_PROFILE_FILE</code> environment variable has each R
+process that runs the tests write its counts to a separate
+<code>.profraw</code> file when it exits.</li>
+<li>
+<code>llvm-profdata</code> merges the counts, and
+<code>llvm-cov export</code> reads the coverage of each line from them
+and the installed shared object.</li>
+</ol>
+<p><code>llvm-profdata</code> and <code>llvm-cov</code> must use the
+same version of LLVM as rustc, so <strong>covr</strong> uses those of
+the Rust toolchain, which are installed with
+<code>rustup component add llvm-tools</code>. The Rust of Linux
+distributions uses the system’s LLVM instead, so for it
+<strong>covr</strong> looks for the tools of the LLVM version rustc
+reports, e.g. <code>llvm-cov-18</code>.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="output-formats">Output Formats<a class="anchor" aria-label="anchor" href="#output-formats"></a>
