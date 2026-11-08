@@ -94,6 +94,16 @@ the `NOT_CRAN` environment variable is `"true"`.
 For more control, source the files yourself and use
 [`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md).
 
+## Files from a package
+
+To make the package's other functions available, load the package (e.g.
+with
+[`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html))
+and use `parent_env = asNamespace("pkg")`. Calls from other package
+files use the namespace's untraced functions, so don't count.
+`devtools::test_coverage_active_file()` measures the coverage of one
+file of a package without this limitation.
+
 ## Examples
 
 ``` r

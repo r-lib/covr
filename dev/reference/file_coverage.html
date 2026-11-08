@@ -137,6 +137,16 @@ test file. <code>expect_snapshot()</code> also needs testthat's 3rd edition (e.g
 <code>NOT_CRAN</code> environment variable is <code>"true"</code>.</p>
 <p>For more control, source the files yourself and use <code><a href="with_coverage.html">with_coverage()</a></code>.</p>
     </div>
+    <div class="section level2">
+    <h2 id="files-from-a-package">Files from a package<a class="anchor" aria-label="anchor" href="#files-from-a-package"></a></h2>
+
+
+<p>To make the package's other functions available, load the package (e.g.
+with <code><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">pkgload::load_all()</a></code>) and use <code>parent_env = asNamespace("pkg")</code>.
+Calls from other package files use the namespace's untraced functions, so
+don't count. <code>devtools::test_coverage_active_file()</code> measures the coverage
+of one file of a package without this limitation.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
