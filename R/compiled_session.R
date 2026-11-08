@@ -297,6 +297,7 @@ sync_package_copy <- function(path, build) {
 # `env`: its native routine objects and DLL info, and string lookups such as
 # `.Call("fun", PACKAGE = "name")`, which find the only DLL of that name.
 swap_namespace_dll <- function(env, name, from, to) {
+  bindings <- dll_bindings(env, name)
   # Run finalizers that may call into the old DLL while it is still loaded
   gc()
   dyn.unload(from)
@@ -304,11 +305,11 @@ swap_namespace_dll <- function(env, name, from, to) {
     load_namespace_dll(env, to),
     error = function(e) {
       # Put the old DLL back, so the namespace keeps working
-      use_namespace_dll(env, name, load_namespace_dll(env, from))
+      use_namespace_dll(env, name, bindings, load_namespace_dll(env, from))
       stop(e)
     }
   )
-  use_namespace_dll(env, name, dll)
+  use_namespace_dll(env, name, bindings, dll)
 }
 
 # Loads a DLL of the namespace `env`. Loading runs its `R_init_<name>()`,
@@ -330,34 +331,53 @@ load_namespace_dll <- function(env, path) {
   dyn.load(path)
 }
 
-use_namespace_dll <- function(env, name, dll) {
-  rebind_native_routines(env, name, dll)
+# Points the `bindings` of the DLL `name` in the namespace `env` at `dll`
+use_namespace_dll <- function(env, name, bindings, dll) {
+  package <- getNamespaceName(env)
+  routines <- getDLLRegisteredRoutines(dll)
+  for (binding in bindings) {
+    old <- get(binding, envir = env, inherits = FALSE)
+    new <- if (inherits(old, "DLLInfo")) {
+      dll
+    } else {
+      native_routine(old, dll, routines)
+    }
+    replace_binding(package, binding, new)
+  }
   dlls <- getNamespaceInfo(env, "DLLs")
   dlls[[name]] <- dll
   setNamespaceInfo(env, "DLLs", dlls)
   invisible(dll)
 }
 
-# Points the native routine objects of the DLL `name` that `useDynLib()`
-# assigned in the namespace `env`, and the DLL object of `useDynLib(x = name)`,
-# at `dll`. The namespace's bindings are inspected rather than its NAMESPACE
-# file, as parsing it would evaluate its `if ()` directives.
-rebind_native_routines <- function(env, name, dll) {
-  package <- getNamespaceName(env)
-  routines <- getDLLRegisteredRoutines(dll)
-  for (binding in ls(env, all.names = TRUE)) {
+# The bindings in the namespace `env` of the native routines that
+# `useDynLib()` assigned from the loaded DLL `name`, and of the DLL object of
+# `useDynLib(x = name)`. The namespace's bindings are inspected rather than
+# its NAMESPACE file, as parsing it would evaluate its `if ()` directives.
+dll_bindings <- function(env, name) {
+  dll <- getNamespaceInfo(env, "DLLs")[[name]]
+  is_dll_binding <- function(binding) {
     if (bindingIsActive(binding, env) || is_unforced_promise(env, binding)) {
-      next
+      return(FALSE)
     }
-    old <- get(binding, envir = env, inherits = FALSE)
-    if (
-      inherits(old, "NativeSymbolInfo") && identical(old$dll[["name"]], name)
-    ) {
-      replace_binding(package, binding, native_routine(old, dll, routines))
-    } else if (inherits(old, "DLLInfo") && identical(old[["name"]], name)) {
-      replace_binding(package, binding, dll)
+    x <- get(binding, envir = env, inherits = FALSE)
+    if (inherits(x, "DLLInfo")) {
+      return(identical(x[["name"]], name))
     }
+    if (!inherits(x, "NativeSymbolInfo")) {
+      return(FALSE)
+    }
+    # R < 4.1 doesn't record the DLL of routines that aren't registered
+    if (!is.null(x$dll)) {
+      return(identical(x$dll[["name"]], name))
+    }
+    !is.null(tryCatch(
+      getNativeSymbolInfo(x$name, dll),
+      error = function(e) NULL
+    ))
   }
+  bindings <- ls(env, all.names = TRUE)
+  bindings[vlapply(bindings, is_dll_binding)]
 }
 
 native_routine <- function(old, dll, routines) {
