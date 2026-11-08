@@ -113,24 +113,41 @@ test_that("it generates a properly formatted json file", {
   expect_equal(json$uploader, "R")
 })
 
-test_that("it errors if the upload fails", {
+test_that("it errors if the upload fails, but only warns on 429 and 5xx", {
   withr::local_envvar(ci_vars)
+  response <- function(status, body) {
+    structure(
+      list(
+        url = "https://codecov.io/upload/v2",
+        status_code = status,
+        headers = list(`content-type` = "text/plain"),
+        content = charToRaw(body)
+      ),
+      class = "response"
+    )
+  }
+  status <- 400L
   local_mocked_bindings(
     RETRY = function(...) {
-      structure(
-        list(
-          url = "https://codecov.io/upload/v2",
-          status_code = 400L,
-          headers = list(`content-type` = "text/plain"),
-          content = charToRaw("Missing repository upload token")
-        ),
-        class = "response"
+      switch(
+        as.character(status),
+        "400" = response(400L, "Missing repository upload token"),
+        "429" = response(429L, "Rate limit reached"),
+        "503" = response(503L, "Service unavailable")
       )
     },
     local_branch = function(dir) "master",
     current_commit = function(dir) "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   )
   expect_snapshot(codecov(coverage = cov), error = TRUE)
+
+  status <- 429L
+  expect_snapshot(res <- codecov(coverage = cov))
+  expect_equal(res, "Rate limit reached")
+
+  status <- 503L
+  expect_snapshot(res <- codecov(coverage = cov))
+  expect_equal(res, "Service unavailable")
 })
 
 test_that("it adds a flags argument to the query if specified", {

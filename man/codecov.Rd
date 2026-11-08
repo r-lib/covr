@@ -50,6 +50,12 @@ this is looked up from the service if it is \code{NULL}.}
 
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }
+\value{
+The response from Codecov. If the upload fails, \code{codecov()} throws
+an error, except when Codecov is rate limiting requests (HTTP 429) or is
+unavailable (HTTP 5xx), when it gives a warning instead so CI does not
+fail because of a transient Codecov problem.
+}
 \description{
 Run covr on a package and upload the result to codecov.io
 }

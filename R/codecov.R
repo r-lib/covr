@@ -21,6 +21,10 @@
 #'   this is looked up from the service if it is `NULL`.
 #' @param flags A flag to use for this coverage upload see
 #'   <https://docs.codecov.com/docs/flags> for details.
+#' @return The response from Codecov. If the upload fails, `codecov()` throws
+#'   an error, except when Codecov is rate limiting requests (HTTP 429) or is
+#'   unavailable (HTTP 5xx), when it gives a warning instead so CI does not
+#'   fail because of a transient Codecov problem.
 #' @export
 #' @examples
 #' \dontrun{
@@ -285,13 +289,19 @@ codecov <- function(
     httr::config(http_version = curl_http_1_1())
   )
   if (http_error(res)) {
-    stop(
+    msg <- paste0(
       "Failed to upload coverage to codecov.io. ",
       httr::http_status(res)$message,
       "\n",
-      httr::content(res, as = "text", encoding = "UTF-8"),
-      call. = FALSE
+      httr::content(res, as = "text", encoding = "UTF-8")
     )
+    status <- httr::status_code(res)
+    # Rate limits and outages are transient Codecov problems, so don't fail CI
+    if (status == 429L || status >= 500L) {
+      warning(msg, call. = FALSE)
+      return(invisible(httr::content(res, as = "text", encoding = "UTF-8")))
+    }
+    stop(msg, call. = FALSE)
   }
   content(res)
 }
