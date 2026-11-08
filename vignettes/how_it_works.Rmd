@@ -137,8 +137,7 @@ copy is shallow so it retains the exact replacement. This lets R remember the
 target for scanning or age the incoming reference graph appropriately.
 The replacement's original attributes are then copied onto the target, removing
 the temporary reference without undoing the GC bookkeeping. No permanent
-`R_PreserveObject()` roots or extra attributes remain. R versions before 3.3 use
-the original barrier-aware closure setters instead.
+`R_PreserveObject()` roots or extra attributes remain.
 
 # Object Orientation #
 
