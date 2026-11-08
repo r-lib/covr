@@ -19,6 +19,13 @@
   the test file, line and `test_that()` description, so you can find the tests
   to rerun after changing some lines (#361).
 
+* With `options(covr.record_tests = TRUE)`, tests that call the package through
+  code with source references, e.g. testthat expectations when rlang was
+  installed with `R_KEEP_PKG_SOURCE=yes`, are no longer all recorded as a
+  single test named after that code.
+
+* covr now requires R 4.0.0 or later.
+
 * New `to_badge()` writes an SVG badge with the percent coverage, so a README
   can show coverage without uploading it to Codecov or Coveralls. The README
   has an example GitHub Actions workflow that publishes the badge (#634).

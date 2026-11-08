@@ -1,0 +1,9 @@
+Package: TestRecordTests
+Title: Tests Called Through Code With Source References
+Version: 0.0.0.9000
+Authors@R: "First Last <first.last@example.com> [aut, cre]"
+Description: Tests that call into the package through a function with
+    source references from outside the test files.
+License: MIT
+Suggests:
+    testthat

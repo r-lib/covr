@@ -42,6 +42,19 @@ test_that("tally_tests() lists the tests that ran each line", {
 })
 
 
+test_that("covr.record_tests keys tests by the test files' calls", {
+  # The package is called from code with srcrefs outside the test files, like
+  # rlang's eval_bare() when rlang is installed with source references.
+  cov <- withr::with_options(
+    list(covr.record_tests = TRUE),
+    package_coverage(test_path("TestRecordTests"))
+  )
+  res <- tally_tests(cov)
+  expect_equal(res$test_file, rep("tests/testthat/test-f.R", 2))
+  expect_equal(res$test_line, c(5, 6))
+})
+
+
 test_that("tally_tests() counts the times each test ran a line", {
   cov <- withr::with_options(
     list(covr.record_tests = TRUE),

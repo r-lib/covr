@@ -393,9 +393,19 @@ update_current_test <- function() {
   .current_test$trace <- lapply(syscalls[exec_frames], strip_function_envs)
   .current_test$i <- 0L
   .current_test$frames <- exec_frames
+  # The test is the innermost call with a srcref from the test files. The outer
+  # frame isn't used when there are frames from the test files: it has the
+  # srcref of the code that called into the package, e.g. that of rlang's
+  # `eval_bare()` if rlang was installed with source references, which would
+  # give every test the same key.
+  candidates <- if (any(srcfile_tmp)) {
+    seq_along(test_frames)
+  } else {
+    seq_along(exec_frames)
+  }
   last <- Position(
     has_srcref,
-    .current_test$trace,
+    .current_test$trace[candidates],
     right = TRUE,
     nomatch = length(exec_frames)
   )
