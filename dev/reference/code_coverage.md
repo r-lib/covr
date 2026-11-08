@@ -52,5 +52,5 @@ source <- "add <- function(x, y) { x + y }"
 test <- "add(1, 2) == 3"
 code_coverage(source, test)
 #> Coverage: 100.00%
-#> /tmp/RtmpKB38Uh/source.R193a40125973: 100.00%
+#> /tmp/Rtmp4TjE4v/source.R18ea59b63d4e: 100.00%
 ```

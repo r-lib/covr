@@ -114,6 +114,13 @@ this is looked up from the service if it is <code>NULL</code>.</p></dd>
 <dd><p>if <code>FALSE</code>, print the coverage before submission.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    <p>The response from Codecov. If the upload fails, <code>codecov()</code> throws
+an error, except when Codecov is rate limiting requests (HTTP 429) or is
+unavailable (HTTP 5xx), when it gives a warning instead so CI does not
+fail because of a transient Codecov problem.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

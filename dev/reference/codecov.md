@@ -70,6 +70,13 @@ codecov(
 
   if `FALSE`, print the coverage before submission.
 
+## Value
+
+The response from Codecov. If the upload fails, `codecov()` throws an
+error, except when Codecov is rate limiting requests (HTTP 429) or is
+unavailable (HTTP 5xx), when it gives a warning instead so CI does not
+fail because of a transient Codecov problem.
+
 ## Examples
 
 ``` r

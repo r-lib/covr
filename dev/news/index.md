@@ -2,6 +2,18 @@
 
 ## covr (development version)
 
+- Lines excluded with `# nocov` are no longer reported as uncovered when
+  they are part of a larger expression that is not entirely excluded,
+  such as the first and last lines of a function defined inside another
+  function ([\#594](https://github.com/r-lib/covr/issues/594)).
+
+- [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) now
+  throws an error if the upload to codecov.io fails, so CI jobs that
+  upload coverage fail instead of silently succeeding. Rate limits
+  (HTTP 429) and Codecov outages (HTTP 5xx) give a warning instead, so
+  they don’t fail CI
+  ([\#565](https://github.com/r-lib/covr/issues/565)).
+
 - New [`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md)
   writes coverage as an LCOV tracefile (`lcov.info`), for `genhtml` and
   other tools that read the LCOV format
