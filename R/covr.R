@@ -139,6 +139,12 @@ the <- new.env(parent = emptyenv())
 the$replacements <- list()
 
 trace_environment <- function(env) {
+  # Re-tracing an already traced environment (e.g. when `pkgload::load_all()`
+  # re-fires the onLoad hook) would clear the counters and instrument the
+  # instrumented functions again (#641).
+  if (identical(the$traced_env, env)) {
+    return(invisible())
+  }
   clear_counters()
 
   replacements <- compact(c(
@@ -153,11 +159,13 @@ trace_environment <- function(env) {
     replacements <- c(replacements, replacements_nested(env, replacements))
   }
   the$replacements <- replacements
+  the$traced_env <- env
 
   lapply(the$replacements, replace)
 }
 
 reset_traces <- function() {
+  the$traced_env <- NULL
   lapply(the$replacements, reset)
 }
 

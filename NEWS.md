@@ -58,6 +58,9 @@
   processes forked by parallel's `mclapply()`, `mcparallel()` and related
   functions, as `package_coverage()` already did. Set
   `options(covr.fix_parallel_mcexit = FALSE)` to turn this off (#410).
+* `package_coverage()` no longer discards the coverage measured so far, or
+  fails with "'from' must be a finite number", when `code` loads the package
+  again with `pkgload::load_all()`, e.g. via `devtools::test()` (#641).
 
 * `package_coverage()` now also excludes the `inst/include/<pkg>_RcppExports.h`
   header that Rcpp generates for `// [[Rcpp::interfaces(cpp)]]`, like the other

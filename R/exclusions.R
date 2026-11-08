@@ -104,7 +104,11 @@ exclude <- function(
 
       !is.na(which_exclusion) &&
         (identical(excl[[which_exclusion]], Inf) ||
-          all(seq(df[i, "first_line"], df[i, "last_line"]) %in% excl[[file]]))
+          (!is.na(df[i, "first_line"]) &&
+            !is.na(df[i, "last_line"]) &&
+            all(
+              seq(df[i, "first_line"], df[i, "last_line"]) %in% excl[[file]]
+            )))
     })
 
   if (any(to_exclude)) {
