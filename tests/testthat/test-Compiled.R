@@ -55,6 +55,26 @@ test_that("Can pass path to relative_path argument", {
   ))
 })
 
+test_that("Rcpp interfaces header and .covrignore files are excluded (#531)", {
+  skip_on_cran()
+  skip_if(is_win_r41())
+  pkg <- normalize_path("TestRcpp.Interfaces")
+  files <- c("R/simple.R", "src/simple.cc", "inst/include/helper.h")
+  withr::local_dir(tempdir())
+
+  cov <- as.data.frame(package_coverage(pkg, relative_path = TRUE))
+  expect_setequal(unique(cov$filename), files)
+
+  cov <- as.data.frame(package_coverage(pkg, relative_path = FALSE))
+  expect_setequal(unique(cov$filename), file.path(pkg, files))
+
+  cov <- as.data.frame(package_coverage(pkg, relative_path = dirname(pkg)))
+  expect_setequal(
+    unique(cov$filename),
+    file.path("TestRcpp.Interfaces", files)
+  )
+})
+
 test_that("Source code subdirectories are found", {
   skip_on_cran()
   skip_if(is_win_r41())

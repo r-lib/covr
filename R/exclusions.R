@@ -214,7 +214,8 @@ normalize_exclusions <- function(x, path = NULL) {
   }
 
   if (!is.null(path)) {
-    names(x) <- file.path(path, names(x))
+    relative <- !is_absolute_path(names(x))
+    names(x)[relative] <- file.path(path, names(x)[relative])
   }
   names(x) <- normalize_path(names(x))
 
