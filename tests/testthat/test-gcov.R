@@ -156,6 +156,42 @@ test_that("gcov_unexecuted_block depends on the gcov implementation (#610)", {
   expect_equal(unexecuted_block(character()), "%%%%%")
 })
 
+test_that("gcov_run only fails when gcov does (#537)", {
+  gcov_result <- function(output, status = NULL) {
+    local_mocked_bindings(
+      system2 = function(...) structure(output, status = status)
+    )
+    gcov_run("gcov", "utils.gcno")
+  }
+  no_lines <- function(...) {
+    c(
+      ...,
+      "./utils.gcda:cannot open data file, assuming not executed",
+      "No executable lines"
+    )
+  }
+
+  expect_equal(
+    gcov_result(no_lines("./utils.gcno:no functions found")),
+    no_lines("./utils.gcno:no functions found")
+  )
+  expect_snapshot(error = TRUE, {
+    gcov_result(no_lines("./utils.gcno:cannot open notes file"), 1L)
+    gcov_result(no_lines("./utils.gcno:not a gcov notes file"), 2L)
+    gcov_result(
+      no_lines(
+        "./utils.gcno:version 'B33*', prefer 'B13*'",
+        "./utils.gcno:no functions found"
+      ),
+      3L
+    )
+    gcov_result(
+      no_lines("./utils.gcno:corrupted", "./utils.gcno:no functions found"),
+      4L
+    )
+  })
+})
+
 test_that("clean_gcov correctly clears files", {
   dir <- file.path(tempfile(), "src")
 
