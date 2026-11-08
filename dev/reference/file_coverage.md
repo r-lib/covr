@@ -2,7 +2,7 @@
 
 The files in `source_files` are first sourced into a new environment to
 define functions to be checked. Then they are instrumented to track
-coverage and the files in `test_files` are sourced.
+coverage and the files in `test_files` are run with `runner`.
 
 ## Usage
 
@@ -12,7 +12,8 @@ file_coverage(
   test_files,
   line_exclusions = NULL,
   function_exclusions = NULL,
-  parent_env = parent.frame()
+  parent_env = parent.frame(),
+  runner = source_test_file
 )
 ```
 
@@ -40,6 +41,15 @@ file_coverage(
 
   The parent environment to use when sourcing the files.
 
+- runner:
+
+  A function used to run each test file, called as
+  `runner(file, env = env)`, where `env` is the environment the
+  `source_files` were sourced into. The default sources the file into
+  `env` with [`sys.source()`](https://rdrr.io/r/base/sys.source.html).
+  Use `runner = testthat::test_file` to run testthat tests with
+  testthat's test runner; see the testthat tests section.
+
 ## Value
 
 A [coverage](https://covr.r-lib.org/dev/reference/coverage.md) object.
@@ -58,30 +68,31 @@ counts when they exit. To turn this off, set the environment variable
 
 ## testthat tests
 
-The test files are run with
+By default the test files are run with
 [`sys.source()`](https://rdrr.io/r/base/sys.source.html), not with
 testthat's test runner, so features that need the runner don't work. In
 particular,
 [`testthat::expect_snapshot()`](https://testthat.r-lib.org/reference/expect_snapshot.html)
 is skipped ("Can't compare snapshot to reference when testing
-interactively"), and testthat uses its 2nd edition unless the tests call
-`testthat::local_edition(3)`.
+interactively").
 
-To use these features, source the files yourself and run the tests with
-[`testthat::test_file()`](https://testthat.r-lib.org/reference/test_file.html)
-inside
-[`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md):
+To use these features, run the test files with
+[`testthat::test_file()`](https://testthat.r-lib.org/reference/test_file.html):
 
-    env <- new.env()
-    sys.source("R/my_functions.R", envir = env, keep.source = TRUE)
-    cov <- with_coverage(
-      testthat::test_file("tests/test-my_functions.R", env = env),
-      env = env
+    file_coverage(
+      "R/my_functions.R",
+      "tests/test-my_functions.R",
+      runner = testthat::test_file
     )
 
-Snapshots are then saved in a `_snaps` directory next to the test file.
-`expect_snapshot()` also needs the 3rd edition, and is skipped unless
+The tests then run in a child of the environment the source files were
+sourced into, and snapshots are saved in a `_snaps` directory next to
+the test file. `expect_snapshot()` also needs testthat's 3rd edition
+(e.g. `testthat::local_edition(3)` in the tests), and is skipped unless
 the `NOT_CRAN` environment variable is `"true"`.
+
+For more control, source the files yourself and use
+[`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md).
 
 ## Examples
 

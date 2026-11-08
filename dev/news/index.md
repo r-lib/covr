@@ -2,6 +2,14 @@
 
 ## covr (development version)
 
+- [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md)
+  gains a `runner` argument to choose how test files are run.
+  `runner = testthat::test_file` runs them with testthat’s test runner,
+  so
+  [`expect_snapshot()`](https://testthat.r-lib.org/reference/expect_snapshot.html)
+  and other features that need it work
+  ([\#501](https://github.com/r-lib/covr/issues/501)).
+
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md),
   [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
   and the coverage percentages printed in the console can use other
