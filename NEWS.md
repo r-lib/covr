@@ -1,5 +1,10 @@
 # covr (development version)
 
+* Instrumented code no longer checks whether tests are being recorded each time
+  a trace is hit. Code instrumented with `options(covr.record_tests = TRUE)`
+  calls a separate `covr:::count_and_record()`, so `covr:::count()` is about 40%
+  cheaper when tests are not recorded.
+
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
   which is much faster than `package_coverage()` (#605). It loads the package
