@@ -196,6 +196,45 @@ test_that("covr.record_tests: merging coverage test objects doesn't break defaul
   expect_equal(cov_merged$`a:1:2:3:4:5:6:7:8`$value, 4L)
 })
 
+test_that("covr.record_tests: c() renumbers the recorded tests", {
+  withr::local_options(covr.record_tests = TRUE)
+  src <- withr::local_tempfile(
+    lines = c(
+      "add <- function(x, y) {",
+      "  x + y",
+      "}",
+      "subtract <- function(x, y) {",
+      "  x - y",
+      "}"
+    ),
+    fileext = ".R"
+  )
+  test_add <- withr::local_tempfile(lines = "add(1, 2)", fileext = ".R")
+  test_both <- withr::local_tempfile(
+    lines = c("add(1, 2)", "subtract(2, 1)"),
+    fileext = ".R"
+  )
+  cov_add <- file_coverage(src, test_add)
+  cov_both <- file_coverage(src, test_both)
+
+  merged <- c(cov_add, cov_both)
+  tests <- attr(merged, "tests")
+  expect_equal(
+    names(tests),
+    c(names(attr(cov_add, "tests")), names(attr(cov_both, "tests")))
+  )
+
+  test_names <- function(cov, fun) {
+    trace <- cov[[which(vcapply(cov, `[[`, "functions") == fun)]]
+    names(attr(cov, "tests"))[trace$tests[, "test"]]
+  }
+  expect_equal(
+    test_names(merged, "add"),
+    c(test_names(cov_add, "add"), test_names(cov_both, "add"))
+  )
+  expect_equal(test_names(merged, "subtract"), test_names(cov_both, "subtract"))
+})
+
 
 test_that("covr.record_tests: test that coverage objects contain expected test data", {
   fcode <- '
