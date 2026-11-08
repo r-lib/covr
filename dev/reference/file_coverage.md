@@ -56,6 +56,33 @@ counts when they exit. To turn this off, set the environment variable
 `COVR_FIX_PARALLEL_MCEXIT` or the option `covr.fix_parallel_mcexit` to
 `FALSE`.
 
+## testthat tests
+
+The test files are run with
+[`sys.source()`](https://rdrr.io/r/base/sys.source.html), not with
+testthat's test runner, so features that need the runner don't work. In
+particular,
+[`testthat::expect_snapshot()`](https://testthat.r-lib.org/reference/expect_snapshot.html)
+is skipped ("Can't compare snapshot to reference when testing
+interactively"), and testthat uses its 2nd edition unless the tests call
+`testthat::local_edition(3)`.
+
+To use these features, source the files yourself and run the tests with
+[`testthat::test_file()`](https://testthat.r-lib.org/reference/test_file.html)
+inside
+[`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md):
+
+    env <- new.env()
+    sys.source("R/my_functions.R", envir = env, keep.source = TRUE)
+    cov <- with_coverage(
+      testthat::test_file("tests/test-my_functions.R", env = env),
+      env = env
+    )
+
+Snapshots are then saved in a `_snaps` directory next to the test file.
+`expect_snapshot()` also needs the 3rd edition, and is skipped unless
+the `NOT_CRAN` environment variable is `"true"`.
+
 ## Examples
 
 ``` r

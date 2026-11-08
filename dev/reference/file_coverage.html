@@ -107,6 +107,27 @@ counts when they exit. To turn this off, set the environment variable
 <code>COVR_FIX_PARALLEL_MCEXIT</code> or the option <code>covr.fix_parallel_mcexit</code> to
 <code>FALSE</code>.</p>
     </div>
+    <div class="section level2">
+    <h2 id="testthat-tests">testthat tests<a class="anchor" aria-label="anchor" href="#testthat-tests"></a></h2>
+
+
+<p>The test files are run with <code><a href="https://rdrr.io/r/base/sys.source.html" class="external-link">sys.source()</a></code>, not with testthat's test
+runner, so features that need the runner don't work. In particular,
+<code><a href="https://testthat.r-lib.org/reference/expect_snapshot.html" class="external-link">testthat::expect_snapshot()</a></code> is skipped ("Can't compare snapshot to
+reference when testing interactively"), and testthat uses its 2nd edition
+unless the tests call <code>testthat::local_edition(3)</code>.</p>
+<p>To use these features, source the files yourself and run the tests with
+<code><a href="https://testthat.r-lib.org/reference/test_file.html" class="external-link">testthat::test_file()</a></code> inside <code><a href="with_coverage.html">with_coverage()</a></code>:</p>
+<p></p><div class="sourceCode r"><pre><code><span><span class="va">env</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">new.env</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/sys.source.html" class="external-link">sys.source</a></span><span class="op">(</span><span class="st">"R/my_functions.R"</span>, envir <span class="op">=</span> <span class="va">env</span>, keep.source <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/with_coverage.html">with_coverage</a></span><span class="op">(</span></span>
+<span>  <span class="fu">testthat</span><span class="fu">::</span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_file.html" class="external-link">test_file</a></span><span class="op">(</span><span class="st">"tests/test-my_functions.R"</span>, env <span class="op">=</span> <span class="va">env</span><span class="op">)</span>,</span>
+<span>  env <span class="op">=</span> <span class="va">env</span></span>
+<span><span class="op">)</span></span></code></pre><p></p></div>
+<p>Snapshots are then saved in a <code>_snaps</code> directory next to the test file.
+<code>expect_snapshot()</code> also needs the 3rd edition, and is skipped unless the
+<code>NOT_CRAN</code> environment variable is <code>"true"</code>.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
