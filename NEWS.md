@@ -1,8 +1,12 @@
 # covr (development version)
 
+* `package_coverage()` no longer reports 0% coverage for packages whose last
+  file in `R/` is empty (#522).
+
 * New `coverage_to_markdown()` formats coverage as a markdown table, optionally
   compared against a baseline, for GitHub Actions job summaries or pull
   request comments (#519).
+
 * Functions nested inside lists and environments, such as
   `fns <- list(a = function(x) x)`, functions defined inside `local()` and
   ggproto methods, can now be traced. This is off by default; enable it for a
@@ -30,6 +34,7 @@
 * `report()` now keeps the Files / Source tabs at the top of the page while
   scrolling, and returning to the file list restores its scroll position
   (#232).
+
 * Fix "argument is missing, with no default" errors when tracing a `switch()`
   call with fall-through cases (`a = ,`) whose subject is piped in with the
   base pipe (`x |> switch(...)`) (#630).

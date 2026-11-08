@@ -124,8 +124,10 @@ split_on_line_directives <- function(lines) {
 
   file_starts <- directive_lines + 1
   file_ends <- c(directive_lines[-1] - 1, length(lines))
+  # An empty file has no lines between its directive and the next one (or the
+  # end), so `file_ends` is one less than `file_starts` (#522)
   res <- mapply(
-    function(start, end) lines[start:end],
+    function(start, end) lines[seq.int(start, length.out = end - start + 1)],
     file_starts,
     file_ends,
     SIMPLIFY = FALSE
