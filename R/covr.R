@@ -464,10 +464,13 @@ function_coverage <- function(
 #' to define functions to be checked. Then they are instrumented to track
 #' coverage and the files in `test_files` are run with `runner`.
 #' @param source_files Character vector of source files with function
-#'   definitions to measure coverage
+#'   definitions to measure coverage. Can also include compiled files from a
+#'   package's `src/` directory; see the compiled code section.
 #' @param test_files Character vector of test files with code to test the
 #'   functions
 #' @param parent_env The parent environment to use when sourcing the files.
+#'   If `source_files` includes compiled files, the default is the namespace
+#'   of their package.
 #' @param runner A function used to run each test file, called as
 #'   `runner(file, env = env)`, where `env` is the environment the
 #'   `source_files` were sourced into. The default sources the file into `env`
@@ -511,6 +514,27 @@ function_coverage <- function(
 #' Calls from other package files use the namespace's untraced functions, so
 #' don't count. `devtools::test_coverage_active_file()` measures the coverage
 #' of one file of a package without this limitation.
+#' @section Compiled code:
+#' [environment_coverage()] and [with_coverage()] include the compiled code in
+#' the coverage of the namespace of a package loaded with `pkgload::load_all()`
+#' (e.g. by `devtools::load_all()`), so `devtools::test_coverage_active_file()`
+#' also works for files in `src/`. With compiled files in `source_files`,
+#' `file_coverage()` loads their package with `pkgload::load_all()` and reports
+#' the coverage of those files, without needing devtools:
+#'
+#' ```r
+#' file_coverage("src/foo.c", "tests/testthat/test-foo.R")
+#' ```
+#'
+#' The compiled code is measured with gcov in the current session, which is
+#' much faster than [package_coverage()]. An instrumented copy of the package
+#' is built in the session's temporary directory, leaving the package's own
+#' build untouched, and later runs only recompile the files that changed.
+#' While the code runs, the namespace's native routines use the instrumented
+#' DLL instead of the package's own. Routines that were looked up some other
+#' way, e.g. stored by `.onLoad()` or found by other packages with
+#' `R_GetCCallable()`, keep using the package's DLL, so their code isn't
+#' counted. Set `options(covr.gcov = "")` to leave out compiled code.
 #' @return A [coverage] object.
 #' @examples
 #' # For the purpose of this example, save code containing code and tests to files
@@ -531,21 +555,54 @@ file_coverage <- function(
   parent_env = parent.frame(),
   runner = source_test_file
 ) {
+  compiled <- is_compiled_file(source_files)
+  if (any(compiled)) {
+    ns <- load_compiled_package(source_files[compiled])
+    if (missing(parent_env)) {
+      parent_env <- ns
+    }
+  }
+
   env <- new.env(parent = parent_env)
 
   withr::with_options(c("keep.parse.data.pkgs" = TRUE), {
-    lapply(source_files, sys.source, keep.source = TRUE, envir = env)
+    lapply(
+      source_files[!compiled],
+      sys.source,
+      keep.source = TRUE,
+      envir = env
+    )
   })
 
+  if (any(compiled)) {
+    state <- start_compiled_coverage(ns, required = TRUE)
+    on.exit(stop_compiled_coverage(state), add = TRUE)
+  }
+
   trace_environment(env)
-  on.exit({
-    reset_traces()
-    clear_counters()
-  })
+  on.exit(
+    {
+      reset_traces()
+      clear_counters()
+    },
+    add = TRUE
+  )
 
   coverage <- collect_coverage(
     lapply(test_files, runner, env = env)
   )
+
+  if (any(compiled)) {
+    coverage <- add_compiled_coverage(coverage, state)
+    # Only keep the compiled files asked for
+    is_compiled <- vlapply(coverage, inherits, "line_coverage")
+    filenames <- vcapply(coverage, function(x) {
+      get_source_filename(x$srcref, full.names = TRUE, normalize = TRUE)
+    })
+    coverage <- coverage[
+      !is_compiled | filenames %in% normalize_path(source_files[compiled])
+    ]
+  }
 
   exclude(
     coverage,
@@ -609,6 +666,7 @@ code_coverage <- function(
 #' @param env The environment to be instrumented.
 #' @inheritParams file_coverage
 #' @inheritSection file_coverage Parallel code
+#' @inheritSection file_coverage Compiled code
 #' @return A [coverage] object.
 #' @seealso [with_coverage()]
 #' @export
@@ -620,15 +678,22 @@ environment_coverage <- function(
 ) {
   exec_env <- new.env(parent = env)
 
+  compiled <- start_compiled_coverage(env)
+  on.exit(stop_compiled_coverage(compiled), add = TRUE)
+
   trace_environment(env)
-  on.exit({
-    reset_traces()
-    clear_counters()
-  })
+  on.exit(
+    {
+      reset_traces()
+      clear_counters()
+    },
+    add = TRUE
+  )
 
   coverage <- collect_coverage(
     lapply(test_files, sys.source, keep.source = TRUE, envir = exec_env)
   )
+  coverage <- add_compiled_coverage(coverage, compiled)
 
   exclude(
     coverage,
@@ -664,6 +729,7 @@ environment_coverage <- function(
 #' @param env The environment to be instrumented, e.g. a package namespace.
 #' @inheritParams file_coverage
 #' @inheritSection file_coverage Parallel code
+#' @inheritSection file_coverage Compiled code
 #' @return A `coverage` object.
 #' @seealso [environment_coverage()]
 #' @examples
@@ -688,13 +754,20 @@ with_coverage <- function(
 ) {
   force(env)
 
+  compiled <- start_compiled_coverage(env)
+  on.exit(stop_compiled_coverage(compiled), add = TRUE)
+
   trace_environment(env)
-  on.exit({
-    reset_traces()
-    clear_counters()
-  })
+  on.exit(
+    {
+      reset_traces()
+      clear_counters()
+    },
+    add = TRUE
+  )
 
   coverage <- collect_coverage(code)
+  coverage <- add_compiled_coverage(coverage, compiled)
 
   exclude(
     coverage,

@@ -65,6 +65,7 @@ Suggests:
     xml2 (>= 1.0.0),
     parallel,
     memoise,
+    pkgbuild,
     pkgload,
     covr,
     box (>= 1.2.0),
