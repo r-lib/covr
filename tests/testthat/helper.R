@@ -30,3 +30,13 @@ local_r_file <- function(lines, frame = parent.frame()) {
   writeLines(lines, path)
   path
 }
+
+# Capture what `code` prints to stdout and stderr, as lines without the `\r`
+# of the Windows line endings in the output of child processes.
+capture_streams <- function(code) {
+  stderr <- utils::capture.output(
+    stdout <- utils::capture.output(code),
+    type = "message"
+  )
+  list(stdout = sub("\r$", "", stdout), stderr = sub("\r$", "", stderr))
+}
