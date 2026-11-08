@@ -61,6 +61,19 @@ table.table-condensed {
   margin-right: 10px;
 }
 
+.covr-theme-toggle svg {
+  display: block;
+}
+
+.covr-theme-toggle .covr-icon-sun,
+html.dark .covr-theme-toggle .covr-icon-moon {
+  display: none;
+}
+
+html.dark .covr-theme-toggle .covr-icon-sun {
+  display: block;
+}
+
 /* Dark theme, used when `theme.js` adds the `dark` class to <html> */
 html.dark {
   color-scheme: dark;

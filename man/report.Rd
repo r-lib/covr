@@ -38,9 +38,9 @@ coverage, which otherwise follow \code{covered}.
 \section{Dark mode}{
 
 The report uses a dark theme if the browser or operating system is set to
-prefer one. The "Dark mode" button switches between the light and dark
-themes; the browser remembers the choice for other reports until it is
-switched back.
+prefer one. The moon (or sun) button at the top right switches between the
+light and dark themes; the browser remembers the choice for other reports
+until it is switched back.
 }
 
 \examples{

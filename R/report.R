@@ -18,9 +18,9 @@
 #' ```
 #' @section Dark mode:
 #' The report uses a dark theme if the browser or operating system is set to
-#' prefer one. The "Dark mode" button switches between the light and dark
-#' themes; the browser remembers the choice for other reports until it is
-#' switched back.
+#' prefer one. The moon (or sun) button at the top right switches between the
+#' light and dark themes; the browser remembers the choice for other reports
+#' until it is switched back.
 #' @examples
 #' \dontrun{
 #' x <- package_coverage()
@@ -359,12 +359,24 @@ report_header <- function(title) {
       type = "button",
       class = "btn btn-default btn-sm covr-theme-toggle",
       `aria-pressed` = "false",
-      title = "Switch between the light and dark themes",
-      htmltools::span(`aria-hidden` = "true", htmltools::HTML("&#9680;")),
-      " Dark mode"
+      `aria-label` = "Dark mode",
+      title = "Toggle dark mode",
+      htmltools::HTML(theme_icons)
     )
   )
 }
+
+# The moon is shown in the light theme and the sun in the dark one
+theme_icons <- paste0(
+  '<svg class="covr-icon-moon" aria-hidden="true" width="16" height="16" ',
+  'viewBox="0 0 16 16"><path fill="currentColor" d="M6 1a7 7 0 1 0 9 9 ',
+  '5.5 5.5 0 0 1-9-9z"/></svg>',
+  '<svg class="covr-icon-sun" aria-hidden="true" width="16" height="16" ',
+  'viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.2" fill="currentColor"/>',
+  '<path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" ',
+  'd="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1.1 1.1M11.9 11.9 13 13',
+  'M3 13l1.1-1.1M11.9 4.1 13 3"/></svg>'
+)
 
 to_report_data <- function(x) {
   coverages <- per_line(x)
