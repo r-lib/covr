@@ -31,8 +31,9 @@ jobs:
           source shim_package.sh
 
       # covr uploads with its own `codecov()` (rather than codecov-action) so
-      # CI exercises the uploader. Pull requests from forks have no access to
-      # the token and upload without one.
+      # CI exercises the uploader. It uploads without a token: the r-lib
+      # organization CODECOV_TOKEN isn't valid for this repository and makes
+      # Codecov return 404 (see #568).
       - name: Test coverage
         run: |
           covr::codecov(
@@ -41,8 +42,6 @@ jobs:
             install_path = file.path(Sys.getenv("RUNNER_TEMP"), "package")
           )
         shell: Rscript {0}
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Show testthat output
         if: always()
