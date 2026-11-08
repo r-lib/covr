@@ -9,6 +9,15 @@ test_that("it writes an SVG badge with the percent coverage", {
   expect_snapshot(writeLines(out))
 })
 
+test_that("numbers use a period regardless of OutDec", {
+  cov <- code_coverage("f <- function() 1", "f()")
+  expected <- to_badge(cov, tempfile())
+  withr::local_options(OutDec = ",")
+  out <- to_badge(cov, tempfile())
+  expect_equal(out, expected)
+  expect_match(out, 'x="30.5"', fixed = TRUE, all = FALSE)
+})
+
 test_that("coverage is rounded down and colored by the report thresholds", {
   badge <- function(percent) {
     local_mocked_bindings(percent_coverage = function(x, ...) percent)

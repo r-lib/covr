@@ -122,7 +122,13 @@ badge_svg <- function(label, value, color) {
 }
 
 badge_number <- function(x) {
-  format(round(x, 1), nsmall = 0, scientific = FALSE, trim = TRUE)
+  format(
+    round(x, 1),
+    nsmall = 0,
+    scientific = FALSE,
+    trim = TRUE,
+    decimal.mark = "."
+  )
 }
 
 xml_escape <- function(x) {
