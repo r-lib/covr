@@ -60,9 +60,19 @@ exclude <- function(
 ) {
   sources <- traced_files(coverage)
 
-  source_exclusions <- lapply(sources, function(x) {
-    parse_exclusions(x$file_lines, exclude_pattern, exclude_start, exclude_end)
-  })
+  source_exclusions <- Map(
+    function(x, file) {
+      parse_exclusions(
+        x$file_lines,
+        exclude_pattern,
+        exclude_start,
+        exclude_end,
+        file = file
+      )
+    },
+    sources,
+    names(sources)
+  )
 
   excl <- normalize_exclusions(c(source_exclusions, line_exclusions), path)
 
@@ -122,7 +132,8 @@ parse_exclusions <- function(
   lines,
   exclude_pattern = getOption("covr.exclude"),
   exclude_start = getOption("covr.exclude_start"),
-  exclude_end = getOption("covr.exclude_end")
+  exclude_end = getOption("covr.exclude_end"),
+  file = NULL
 ) {
   exclusions <- numeric(0)
 
@@ -131,21 +142,24 @@ parse_exclusions <- function(
 
   if (length(starts) > 0) {
     if (length(starts) != length(ends)) {
-      starts_msg <- sprintf(
-        ngettext(length(starts), "%d range start (%s)", "%d range starts (%s)"),
-        length(starts),
-        toString(starts)
-      )
-      ends_msg <- sprintf(
-        ngettext(length(ends), "%d range end (%s)", "%d range ends (%s)"),
-        length(ends),
-        toString(ends)
-      )
+      describe <- function(x, singular, plural) {
+        if (length(x) == 0) {
+          return(paste0("0 ", plural))
+        }
+        sprintf(
+          ngettext(length(x), "%d %s (line %s)", "%d %s (lines %s)"),
+          length(x),
+          if (length(x) == 1) singular else plural,
+          toString(x)
+        )
+      }
       stop(
-        starts_msg,
-        " but only ",
-        ends_msg,
-        " for exclusion from code coverage!"
+        if (!is.null(file)) paste0(file, " has "),
+        describe(starts, "range start", "range starts"),
+        if (length(ends) < length(starts)) " but only " else " but ",
+        describe(ends, "range end", "range ends"),
+        " for exclusion from code coverage!",
+        call. = FALSE
       )
     }
 

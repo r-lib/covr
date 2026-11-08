@@ -1,5 +1,8 @@
 # covr (development version)
 
+* The error for unpaired `# nocov start` and `# nocov end` comments now gives
+  the name of the file along with the line numbers of the comments (#409).
+
 * `coveralls()` now submits the git commit, branch and remote when
   `service_name = "github-actions"` and a `repo_token` is given, so the
   Coveralls badge is updated for the right branch (#535).
