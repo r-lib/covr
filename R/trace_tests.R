@@ -393,19 +393,18 @@ update_current_test <- function() {
   .current_test$trace <- lapply(syscalls[exec_frames], strip_function_envs)
   .current_test$i <- 0L
   .current_test$frames <- exec_frames
-  # The test is the innermost call with a srcref from the test files. The outer
-  # frame isn't used when there are frames from the test files: it has the
-  # srcref of the code that called into the package, e.g. that of rlang's
-  # `eval_bare()` if rlang was installed with source references, which would
-  # give every test the same key.
-  candidates <- if (any(srcfile_tmp)) {
-    seq_along(test_frames)
-  } else {
-    seq_along(exec_frames)
-  }
+  # The test is the innermost call with a srcref that isn't in the body of the
+  # function that made it. Such calls are in code called by the tests, e.g.
+  # rlang's `eval_bare()` evaluating an expectation's code when rlang was
+  # installed with source references, which would give every test the same
+  # key.
+  is_test_call <- vlapply(seq_along(exec_frames), function(i) {
+    has_srcref(.current_test$trace[[i]]) &&
+      !in_caller_body(exec_frames[[i]], .current_test$trace[[i]])
+  })
   last <- Position(
-    has_srcref,
-    .current_test$trace[candidates],
+    identity,
+    is_test_call,
     right = TRUE,
     nomatch = length(exec_frames)
   )
@@ -609,6 +608,25 @@ weakref_key <- function(ref) {
 #'
 has_srcref <- function(expr) {
   !is.null(getSrcref(expr))
+}
+
+# Whether `call`, the call of frame `n`, is in the body of the function of the
+# frame that made it, according to their srcrefs.
+in_caller_body <- function(n, call) {
+  if (n < 2L) {
+    return(FALSE)
+  }
+  call_src <- getSrcref(call)
+  fn_src <- getSrcref(sys.function(n - 1L))
+  if (is.null(call_src) || is.null(fn_src)) {
+    return(FALSE)
+  }
+  identical(
+    get_source_filename(call_src, full.names = TRUE),
+    get_source_filename(fn_src, full.names = TRUE)
+  ) &&
+    call_src[[1L]] >= fn_src[[1L]] &&
+    call_src[[3L]] <= fn_src[[3L]]
 }
 
 #' Is the expression a call to covr:::count
