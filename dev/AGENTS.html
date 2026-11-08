@@ -55,6 +55,7 @@
 <ul><li>The test packages in <code>tests/testthat/Test*/</code> and other fixtures under <code>tests/testthat/</code> are coverage inputs, and many tests assert exact line numbers in them. Do not reformat or edit them unless a test needs it; they are excluded from air in <code>air.toml</code>.</li>
 <li>
 <code>devtools::load_all()</code> loads every package listed in <code>DESCRIPTION</code>, so to check what loading covr itself does (e.g. which namespaces get loaded) install it with <code>R CMD INSTALL</code> into a temporary library and load it in a fresh R process.</li>
+<li>The R processes that <code><a href="reference/package_coverage.html">package_coverage()</a></code> starts load the <em>installed</em> covr, as the hooks added to the instrumented package call <code>covr:::</code> functions (<code>trace_environment()</code>, <code>register_trace()</code>, <code>save_trace()</code>, <code>fix_mcexit()</code>). <code>devtools::test()</code> only loads the source covr in the main process, so after changing these functions (or with an older covr installed) install this version first, e.g. <code>R CMD INSTALL -l "$lib" .</code> and run the tests with <code>R_LIBS="$lib"</code>.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="measuring-covrs-own-coverage">Measuring covr’s own coverage<a class="anchor" aria-label="anchor" href="#measuring-covrs-own-coverage"></a></h3>

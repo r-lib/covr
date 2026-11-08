@@ -237,7 +237,11 @@ process exits. These output files are then aggregated together to
 determine the coverage.
 
 This procedure works regardless of the number of child R processes used,
-so therefore also works with parallel code.
+so therefore also works with parallel code. However a process which is
+killed (e.g. a Shiny app or worker process stopped with `SIGKILL`) never
+runs its finalizer, so its coverage is lost. Each process therefore also
+leaves a marker file when it loads the package, which it removes once
+its coverage is saved; **covr** warns about any markers left over.
 
 ## Output Formats
 

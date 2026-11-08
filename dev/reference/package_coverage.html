@@ -163,6 +163,15 @@ each type, named by type.</p>
 code, if you would like to test your package in another way you can set
 <code>type = "none"</code> and pass the code to run as a character vector to the
 <code>code</code> parameter.</p>
+<p>Coverage is also recorded in other R processes that load the package, such
+as <span class="pkg">callr</span> sessions, <span class="pkg">future</span> or <span class="pkg">parallel</span> cluster workers, or
+Shiny apps run by <span class="pkg">shinytest2</span>. Each process saves its coverage when it
+exits normally, so the coverage is lost if a process is killed (e.g. with
+<code>SIGKILL</code> or <code>SIGTERM</code>) or is still running when the tests finish, and
+<code>package_coverage()</code> warns (with class <code>covr_unsaved_trace</code>). Stop these
+processes gracefully and wait for them to exit, e.g. call <code>$stop()</code> on a
+<span class="pkg">shinytest2</span> <code>AppDriver</code>, which waits longer for the app to exit when
+run by covr.</p>
 <p>Parallelized code using <span class="pkg">parallel</span>'s <code>mcparallel()</code> needs to
 use a patched <code>parallel:::mcexit</code>. This is done automatically if the
 package depends on <span class="pkg">parallel</span>, but can also be explicitly set using the

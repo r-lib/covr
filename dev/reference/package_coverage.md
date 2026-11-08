@@ -118,6 +118,16 @@ to run the code, if you would like to test your package in another way
 you can set `type = "none"` and pass the code to run as a character
 vector to the `code` parameter.
 
+Coverage is also recorded in other R processes that load the package,
+such as callr sessions, future or parallel cluster workers, or Shiny
+apps run by shinytest2. Each process saves its coverage when it exits
+normally, so the coverage is lost if a process is killed (e.g. with
+`SIGKILL` or `SIGTERM`) or is still running when the tests finish, and
+`package_coverage()` warns (with class `covr_unsaved_trace`). Stop these
+processes gracefully and wait for them to exit, e.g. call `$stop()` on a
+shinytest2 `AppDriver`, which waits longer for the app to exit when run
+by covr.
+
 Parallelized code using parallel's `mcparallel()` needs to use a patched
 `parallel:::mcexit`. This is done automatically if the package depends
 on parallel, but can also be explicitly set using the environment

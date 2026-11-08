@@ -301,7 +301,12 @@ register a finalizer which prints the coverage counts when the namespace
 is unloaded or the R process exits. These output files are then
 aggregated together to determine the coverage.</p>
 <p>This procedure works regardless of the number of child R processes
-used, so therefore also works with parallel code.</p>
+used, so therefore also works with parallel code. However a process
+which is killed (e.g. a Shiny app or worker process stopped with
+<code>SIGKILL</code>) never runs its finalizer, so its coverage is lost.
+Each process therefore also leaves a marker file when it loads the
+package, which it removes once its coverage is saved;
+<strong>covr</strong> warns about any markers left over.</p>
 </div>
 </div>
 <div class="section level2">
