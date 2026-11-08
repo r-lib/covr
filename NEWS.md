@@ -1,5 +1,9 @@
 # covr (development version)
 
+* `package_coverage(allow_failures = TRUE)` now also keeps `install_path` when
+  failures are reported as warnings, so the output files they refer to can be
+  inspected (#554).
+
 * `file_coverage()`, `code_coverage()`, `environment_coverage()`,
   `function_coverage()` and `with_coverage()` now include code run in
   processes forked by parallel's `mclapply()`, `mcparallel()` and related

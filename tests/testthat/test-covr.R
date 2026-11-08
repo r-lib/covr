@@ -216,11 +216,18 @@ test_that("package_coverage errors on test failures by default", {
 
 test_that("covr.allow_failures returns coverage despite test failures", {
   withr::local_options(covr.allow_failures = TRUE)
+  install_path <- tempfile("R_LIBS")
+  on.exit(unlink(install_path, recursive = TRUE), add = TRUE)
   expect_warning(
-    cov <- package_coverage(test_path("TestFailure")),
+    cov <- package_coverage(
+      test_path("TestFailure"),
+      install_path = install_path
+    ),
     "this test fails",
     class = "covr_warning"
   )
+  fail_files <- list.files(install_path, pattern = "fail$", recursive = TRUE)
+  expect_equal(basename(fail_files), "testthat.Rout.fail")
   values <- tapply(
     tally_coverage(cov)$value,
     tally_coverage(cov)$functions,

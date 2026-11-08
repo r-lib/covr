@@ -40,8 +40,9 @@ relative to that root.}
 debugging errors.}
 
 \item{clean}{whether to clean temporary output files after running, mainly
-useful for debugging errors. If coverage fails, \code{install_path} is kept even
-when \code{clean = TRUE}, so the test output can be inspected.}
+useful for debugging errors. If coverage fails, or failures are reported as
+warnings with \code{allow_failures = TRUE}, \code{install_path} is kept even when
+\code{clean = TRUE}, so the test output can be inspected.}
 
 \item{line_exclusions}{a named list of files with the lines to exclude from
 each file.}
