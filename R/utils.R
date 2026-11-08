@@ -403,6 +403,10 @@ normalize_path <- function(x) {
   sub("/*$", "", path)
 }
 
+is_absolute_path <- function(x) {
+  grepl("^(/|~|[A-Za-z]:|\\\\\\\\)", x)
+}
+
 temp_dir <- function() {
   normalize_path(tempdir())
 }

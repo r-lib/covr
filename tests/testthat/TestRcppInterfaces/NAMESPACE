@@ -1,2 +1,0 @@
-useDynLib(TestRcppInterfaces, simple_)
-export(simple)

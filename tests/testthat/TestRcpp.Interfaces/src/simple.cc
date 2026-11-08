@@ -1,6 +1,6 @@
 #include <R.h>
 #include <Rinternals.h>
-#include "TestRcppInterfaces_RcppExports.h"
+#include "TestRcpp_Interfaces_RcppExports.h"
 #include "helper.h"
 
 extern "C" SEXP simple_(SEXP x) {

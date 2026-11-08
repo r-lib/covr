@@ -940,15 +940,32 @@ package_coverage <- function(
     coverage <- filter_non_package_files(coverage)
   }
 
-  # Exclude generated files from Rcpp and cpp11 to avoid redundant coverage information
+  # Exclude generated files from Rcpp and cpp11 to avoid redundant coverage
+  # information, and the files in `.covrignore`. Rcpp replaces dots in the
+  # package name with underscores in the interfaces header. These paths are in
+  # the package, so they are resolved against its root rather than the root
+  # used for the output paths, which is `NULL` with `relative_path = FALSE`.
+  generated_files <- file.path(
+    pkg$path,
+    c(
+      "src/RcppExports.cpp",
+      "R/RcppExports.R",
+      file.path(
+        "inst",
+        "include",
+        paste0(gsub(".", "_", pkg$package, fixed = TRUE), "_RcppExports.h")
+      ),
+      "src/cpp11.cpp",
+      "R/cpp11.R"
+    )
+  )
   line_exclusions <- c(
-    "src/RcppExports.cpp",
-    "R/RcppExports.R",
-    file.path("inst", "include", paste0(pkg$package, "_RcppExports.h")),
-    "src/cpp11.cpp",
-    "R/cpp11.R",
+    generated_files,
     line_exclusions,
-    withr::with_dir(root, parse_covr_ignore())
+    withr::with_dir(
+      pkg$path,
+      normalize_path(as.character(parse_covr_ignore()))
+    )
   )
 
   coverage <- exclude(

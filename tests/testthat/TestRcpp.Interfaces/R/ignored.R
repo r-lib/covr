@@ -1,0 +1,3 @@
+ignored <- function() {
+  1
+}

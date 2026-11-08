@@ -1,0 +1,3 @@
+useDynLib(TestRcpp.Interfaces, simple_)
+export(simple)
+export(ignored)
