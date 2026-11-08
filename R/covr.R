@@ -438,9 +438,18 @@ code_coverage <- function(
 
 #' Calculate coverage of an environment
 #'
+#' The functions in `env` are instrumented, then the files in `test_files` are
+#' run with [sys.source()] in a child environment of `env`, from the current
+#' working directory. Nothing else is set up, so testthat tests that rely on
+#' its test runner, e.g. for setup files, snapshots, or the test directory as
+#' the working directory (which [testthat::test_path()] uses to find fixtures
+#' while testing), should instead be run with [testthat::test_file()] inside
+#' [with_coverage()].
+#'
 #' @param env The environment to be instrumented.
 #' @inheritParams file_coverage
 #' @return A [coverage] object.
+#' @seealso [with_coverage()]
 #' @export
 environment_coverage <- function(
   env = parent.frame(),

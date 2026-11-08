@@ -44,7 +44,9 @@
   `testthat::test_file()`, run against an environment like a package namespace
   loaded with `pkgload::load_all()`. This allows tools such as
   `devtools::test_coverage_active_file()` to use testthat's own runner instead
-  of recreating it (related to #543).
+  of recreating it, so setup files and fixtures found with
+  `testthat::test_path()` work as they do in `testthat::test_file()` (related
+  to #543, #551).
 
 * `tally_coverage()` gains `by = "function"`, with one row for each function,
   so `zero_coverage(cov, by = "function")` lists the functions that were
