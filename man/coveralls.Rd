@@ -8,7 +8,7 @@ coveralls(
   ...,
   coverage = NULL,
   repo_token = Sys.getenv("COVERALLS_TOKEN"),
-  service_name = Sys.getenv("CI_NAME", "travis-ci"),
+  service_name = NULL,
   quiet = TRUE
 )
 }
@@ -19,17 +19,17 @@ coveralls(
 \code{\link[=package_coverage]{package_coverage()}} will be called with the arguments from
 \code{...}}
 
-\item{repo_token}{The secret repo token for your repository,
-found at the bottom of your repository's page on Coveralls. This is useful
-if your job is running on a service Coveralls doesn't support out-of-the-box.
-If set to NULL, it is assumed that the job is running on travis-ci}
+\item{repo_token}{The secret repo token for your repository, found on your
+repository's page on Coveralls. Without a token (\code{""} or \code{NULL}), only the
+CI service and job are submitted, which Coveralls only accepts from Travis
+CI. With a token, information about the git commit, branch and remote is
+also submitted.}
 
-\item{service_name}{the CI service to use, if environment variable
-\sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.
-When \code{repo_token} is set and \code{service_name} is \sQuote{drone},
-\sQuote{jenkins}, \sQuote{travis-pro} or \sQuote{github-actions},
-information about the current git commit, branch and remote is also
-submitted.}
+\item{service_name}{The name of the CI service. If \code{NULL}, the environment
+variable \code{CI_NAME} is used if it is set, otherwise the CI service is
+detected from the environment, e.g. \sQuote{github} on GitHub Actions and
+\sQuote{travis-ci} on Travis CI. Outside a supported CI service it is
+\sQuote{local}.}
 
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }
@@ -46,4 +46,11 @@ With branch coverage (see \link{covr.branch_coverage}), each source file sent to
 Coveralls also has its \code{branches}: the line, block, branch and count of
 each branch, as in \code{\link[=to_lcov]{to_lcov()}}. A branch that was never taken has a count of
 zero.
+}
+\details{
+The CI service, job, pull request, branch and commit are detected from the
+environment variables of the services \code{\link[=codecov]{codecov()}} supports. Anywhere else,
+the branch, commit and remote are looked up from the local git repository.
+The environment variables \code{CI_BRANCH} and \code{CI_REMOTE} override the detected
+branch and remote.
 }

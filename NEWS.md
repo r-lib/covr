@@ -45,6 +45,14 @@
 * covr no longer supports code coverage with Intel's classic `icc` compiler,
   which Intel discontinued in 2024, and the `covr.icov`, `covr.icov_args`,
   `covr.icov_flags` and `covr.icov_prof` options have been removed.
+* `coveralls()` now detects the CI service, job and pull request on the
+  services that `codecov()` supports, e.g. GitHub Actions, instead of
+  assuming Travis CI. With a `repo_token`, it also submits the git commit,
+  branch and remote on every service, or from the local git repository
+  outside CI, so the Coveralls badge is updated for the right branch (#535).
+  Outside a supported CI service, `service_name` is now `"local"` rather than
+  `"travis-ci"`, and the git committer fields are now named as Coveralls
+  expects (`committer_name`, `committer_email`).
 
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
@@ -237,10 +245,6 @@
 
 * The error for unpaired `# nocov start` and `# nocov end` comments now gives
   the name of the file along with the line numbers of the comments (#409).
-
-* `coveralls()` now submits the git commit, branch and remote when
-  `service_name = "github-actions"` and a `repo_token` is given, so the
-  Coveralls badge is updated for the right branch (#535).
 
 * `to_sonarqube()` now writes file paths relative to the package root (e.g.
   `R/foo.R`) instead of prefixing them with the package name, so the report

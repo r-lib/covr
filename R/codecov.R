@@ -585,6 +585,7 @@ codecov_ci_info <- function() {
         paste0(server_url, "/", slug, "/actions/runs/", run_id)
       },
       slug = slug,
+      remote = if (!is.null(slug)) paste0(server_url, "/", slug),
       branch = head_ref %||% sub("^refs/heads/", "", github_ref),
       commit = env_var("GITHUB_SHA")
     )
