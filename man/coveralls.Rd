@@ -46,8 +46,7 @@ With branch coverage (see \link{covr.branch_coverage}), each source file sent to
 Coveralls also has its \code{branches}: the line, block, branch and count of
 each branch, as in \code{\link[=to_lcov]{to_lcov()}}. A branch that was never taken has a count of
 zero.
-}
-\details{
+
 The CI service, job, pull request, branch and commit are detected from the
 environment variables of the services \code{\link[=codecov]{codecov()}} supports. Anywhere else,
 the branch, commit and remote are looked up from the local git repository.
