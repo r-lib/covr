@@ -32,6 +32,36 @@ test_that("covr.record_tests=NULL does not record tests", {
 })
 
 
+test_that("tally_tests() lists the tests that ran each line", {
+  res <- tally_tests(cov_func)
+  expect_equal(res$filename, rep("R/a.R", 4))
+  expect_equal(res$line, c(4, 4, 6, 8))
+  expect_equal(res$test_file, rep("tests/testthat/test-a.R", 4))
+  expect_equal(res$test_line, c(2, 3, 2, 3))
+  expect_equal(res$test, rep("regular function `a` works as expected", 4))
+})
+
+
+test_that("tally_tests() counts the times each test ran a line", {
+  cov <- withr::with_options(
+    list(covr.record_tests = TRUE),
+    code_coverage(
+      "f <- function(n) {\n  for (i in seq_len(n)) {\n    i\n  }\n}",
+      "f(3)\nf(1)"
+    )
+  )
+  res <- tally_tests(cov)
+  expect_equal(res$line[res$test_line == 1], c(2, 3))
+  expect_equal(res$value[res$test_line == 1], c(1, 3))
+  expect_equal(res$value[res$test_line == 2], c(1, 1))
+})
+
+
+test_that("tally_tests() errors without recorded tests", {
+  expect_snapshot(tally_tests(cov_tests_not_recorded), error = TRUE)
+})
+
+
 test_that("covr.record_tests traces to tests nested within test directory", {
   cov_top_level <- withr::with_envvar(
     list(COVR_TEST_NESTED = "FALSE"),

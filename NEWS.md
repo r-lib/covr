@@ -77,6 +77,10 @@
   output of `code` is shown on the console while it runs, e.g. to follow it in
   the logs of a CI job, rather than only being shown when `code` fails
   (@gergness, #558).
+* New `tally_tests()` returns a traceability matrix from coverage recorded with
+  `options(covr.record_tests = TRUE)`: which tests ran each line of code, with
+  the test file, line and `test_that()` description, so you can find the tests
+  to rerun after changing some lines (#361).
 
 * `file_report()` now highlights the syntax of the source code, which failed
   with JavaScript errors because the report didn't include jQuery.

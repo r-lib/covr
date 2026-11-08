@@ -95,6 +95,166 @@
 #' @name covr.record_tests
 NULL
 
+#' Tally which tests ran each line
+#'
+#' Builds a traceability matrix from coverage recorded with
+#' `options(covr.record_tests = TRUE)`: which tests ran each line of code. Use
+#' it to find the tests to rerun after changing some lines, or the tests
+#' exercising a function.
+#'
+#' Lines are those of [tally_coverage()] with `by = "line"`, so blank lines,
+#' comments, lines with only punctuation and excluded lines are left out. A
+#' test is a top level call in a test file that ran package code, such as an
+#' expectation; see [covr.record_tests].
+#'
+#' @param x a coverage object computed with
+#'   `options(covr.record_tests = TRUE)`.
+#' @return A `data.frame` with one row for each line and each test that ran
+#'   it, and the columns:
+#'
+#'   * `filename`, `functions`, `line`: the line of code, as in
+#'     [tally_coverage()].
+#'   * `test_file`, `test_line`: where the test call is. For
+#'     [package_coverage()], test files are relative to the package directory,
+#'     e.g. `tests/testthat/test-foo.R`. `NA` if the test has no source
+#'     references.
+#'   * `test`: the description of the enclosing `test_that()` or `it()` call,
+#'     or `NA`.
+#'   * `value`: the number of times the test ran the line.
+#' @examples
+#' cov <- withr::with_options(
+#'   list(covr.record_tests = TRUE),
+#'   code_coverage(
+#'     "f <- function(x) {\n  if (x) 'yes' else 'no'\n}",
+#'     "f(TRUE)\nf(FALSE)"
+#'   )
+#' )
+#' tests <- tally_tests(cov)
+#' tests
+#'
+#' # The tests that ran lines 1 to 2
+#' unique(tests[tests$line %in% 1:2, c("test_file", "test_line")])
+#' @export
+tally_tests <- function(x) {
+  tests <- attr(x, "tests")
+  if (is.null(tests)) {
+    stop(
+      "`x` has no recorded tests, compute coverage with ",
+      "`options(covr.record_tests = TRUE)`.",
+      call. = FALSE
+    )
+  }
+
+  res <- data.frame(
+    filename = character(),
+    functions = character(),
+    line = integer(),
+    test_file = character(),
+    test_line = integer(),
+    test = character(),
+    value = integer(),
+    stringsAsFactors = FALSE
+  )
+
+  # Test hits of each element of `x`: one row for each execution.
+  hits <- lapply(unclass(x), function(xx) {
+    tally <- xx$tests
+    if (!NROW(tally)) {
+      return(integer())
+    }
+    tally[, "test"]
+  })
+  element <- rep(seq_along(hits), lengths(hits))
+  test <- unlist(hits, use.names = FALSE)
+  if (!length(test)) {
+    return(res)
+  }
+  counts <- aggregate(
+    list(value = rep(1L, length(test))),
+    list(element = element, test = test),
+    sum
+  )
+
+  # The lines each element is innermost on, as in tally_coverage().
+  df <- as.data.frame(x, sort = FALSE)
+  df$value <- seq_len(NROW(df))
+  df <- df[!is.na(df$first_line), , drop = FALSE]
+  lines <- innermost_lines(df)
+  lines <- drop_lines(lines, non_code_lines(x))
+  lines <- drop_lines(lines, attr(x, "excluded_lines"))
+  names(lines)[names(lines) == "value"] <- "element"
+
+  m <- merge(lines, counts, by = "element")
+  if (!NROW(m)) {
+    return(res)
+  }
+  m$functions <- addNA(m$functions)
+  m <- aggregate(
+    value ~ filename + functions + line + test,
+    data = m,
+    FUN = max,
+    na.action = na.pass
+  )
+
+  info <- test_info(tests, x)
+  res <- data.frame(
+    filename = m$filename,
+    functions = as.character(m$functions),
+    line = m$line,
+    test_file = info$file[m$test],
+    test_line = info$line[m$test],
+    test = info$description[m$test],
+    value = m$value,
+    stringsAsFactors = FALSE
+  )
+  res <- res[
+    order(res$filename, res$line, res$test_file, res$test_line, res$test),
+  ]
+  rownames(res) <- NULL
+  res
+}
+
+# The file, line and `test_that()` description of each recorded test. Test
+# names are the full path of the test file followed by the eight numbers of
+# the srcref, or empty without source references.
+test_info <- function(tests, x) {
+  nms <- names(tests) %||% rep("", length(tests))
+  srcref_re <- "(:-?[0-9]+){8}$"
+  has_src <- grepl(srcref_re, nms)
+
+  file <- rep(NA_character_, length(nms))
+  line <- rep(NA_integer_, length(nms))
+  file[has_src] <- sub(srcref_re, "", nms[has_src])
+  line[has_src] <- as.integer(
+    sub("^:(-?[0-9]+).*$", "\\1", regmatches(nms, regexpr(srcref_re, nms)))
+  )
+
+  # tools::testInstalledPackage() runs the tests from a copy of the tests
+  # directory, `<pkg>-tests`, in the temporary library.
+  pkg <- attr(x, "package")$package
+  if (!is.null(pkg)) {
+    file <- sub(paste0("^.*/", pkg, "/", pkg, "-tests/"), "tests/", file)
+  }
+  file <- to_relative_path(file, attr(x, "root"))
+
+  description <- vcapply(tests, function(trace) {
+    for (call in rev(trace)) {
+      if (
+        is.call(call) &&
+          length(call) > 1 &&
+          is.character(call[[2]]) &&
+          deparse(call[[1]])[[1]] %in%
+            c("test_that", "testthat::test_that", "it", "testthat::it")
+      ) {
+        return(call[[2]])
+      }
+    }
+    NA_character_
+  })
+
+  list(file = file, line = line, description = unname(description))
+}
+
 #' Append a test trace to a counter, updating global current test
 #'
 #' @param key generated with [key()]
