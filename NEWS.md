@@ -1,5 +1,11 @@
 # covr (development version)
 
+* `to_sonarqube()` now writes file paths relative to the package root (e.g.
+  `R/foo.R`) instead of prefixing them with the package name, so the report
+  works when the package is the root of the SonarQube project. Use the new
+  `path_prefix` argument if the package is in a subdirectory of the project,
+  e.g. `path_prefix = "mypkg"` restores the previous paths (#636).
+
 * `package_coverage()` now accepts `outDir` in `...` to save the test and
   example output to a directory of your choice, instead of failing with
   "formal argument "outDir" matched by multiple actual arguments" (#518).
@@ -13,11 +19,6 @@
   processes forked by parallel's `mclapply()`, `mcparallel()` and related
   functions, as `package_coverage()` already did. Set
   `options(covr.fix_parallel_mcexit = FALSE)` to turn this off (#410).
-* `to_sonarqube()` now writes file paths relative to the package root (e.g.
-  `R/foo.R`) instead of prefixing them with the package name, so the report
-  works when the package is the root of the SonarQube project. Use the new
-  `path_prefix` argument if the package is in a subdirectory of the project,
-  e.g. `path_prefix = "mypkg"` restores the previous paths (#636).
 
 * `package_coverage()` now warns when an R process started by the tests, such
   as a Shiny app, callr session or future worker, loaded the package but did
