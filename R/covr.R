@@ -724,7 +724,8 @@ with_coverage <- function(
 #' `package_coverage()` warns (with class `covr_unsaved_trace`). Stop these
 #' processes gracefully and wait for them to exit, e.g. call `$stop()` on a
 #' \pkg{shinytest2} `AppDriver`, which waits longer for the app to exit when
-#' run by covr.
+#' run by covr. See `vignette("shiny", package = "covr")` for measuring the
+#' coverage of Shiny apps.
 #'
 #' `path` can also be an installed package, e.g.
 #' `system.file(package = "pkg")`, to compute coverage without the package

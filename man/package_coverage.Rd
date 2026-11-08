@@ -103,7 +103,8 @@ exits normally, so the coverage is lost if a process is killed (e.g. with
 \code{package_coverage()} warns (with class \code{covr_unsaved_trace}). Stop these
 processes gracefully and wait for them to exit, e.g. call \verb{$stop()} on a
 \pkg{shinytest2} \code{AppDriver}, which waits longer for the app to exit when
-run by covr.
+run by covr. See \code{vignette("shiny", package = "covr")} for measuring the
+coverage of Shiny apps.
 
 \code{path} can also be an installed package, e.g.
 \code{system.file(package = "pkg")}, to compute coverage without the package

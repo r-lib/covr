@@ -1,5 +1,8 @@
 # covr (development version)
 
+* New `vignette("shiny")` describes how to measure the coverage of Shiny apps,
+  including tests run with shinytest2 and apps that aren't in a package (#277).
+
 * `package_coverage()` now measures the coverage of installed packages, e.g.
   `package_coverage(system.file(package = "pkg"))`, so the package source isn't
   needed. Previously it silently returned no coverage. The package must be
