@@ -1,0 +1,8 @@
+Package: TestRcppInterfaces
+Title: What the Package Does (one line, title case)
+Version: 0.0.0.9000
+Authors@R: "First Last <first.last@example.com> [aut, cre]"
+Description: What the package does (one paragraph)
+License: What license is it under?
+Suggests:
+    testthat

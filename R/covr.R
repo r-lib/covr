@@ -944,6 +944,7 @@ package_coverage <- function(
   line_exclusions <- c(
     "src/RcppExports.cpp",
     "R/RcppExports.R",
+    file.path("inst", "include", paste0(pkg$package, "_RcppExports.h")),
     "src/cpp11.cpp",
     "R/cpp11.R",
     line_exclusions,
