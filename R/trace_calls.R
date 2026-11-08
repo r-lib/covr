@@ -215,7 +215,9 @@ is_traced <- function(fun) {
   x <- body(fun)
   # `all.names()` is fast, so only search functions that might be traced.
   nms <- all.names(x)
-  any(c("count", "count_and_record") %in% nms) && "covr" %in% nms && has_count_call(x)
+  any(c("count", "count_and_record") %in% nms) &&
+    "covr" %in% nms &&
+    has_count_call(x)
 }
 
 has_count_call <- function(x) {

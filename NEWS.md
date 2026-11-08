@@ -1,15 +1,17 @@
 # covr (development version)
 
-* `traced_files()`, and so `percent_coverage()`, `tally_coverage()` and the
-  exclusion handling, now split the package source once rather than once per
-  file, which is much faster for packages with many files.
-* Instrumented code no longer checks whether tests are being recorded each time
-  a trace is hit. Code instrumented with `options(covr.record_tests = TRUE)`
-  calls a separate `covr:::count_and_record()`, so `covr:::count()` is about 40%
-  cheaper when tests are not recorded.
-* `report()` and `report_html()` build the source tables with string operations
-  rather than htmltools tag objects, which makes them much faster for large
-  packages (e.g. Luminescence, from about 354 s to a few seconds).
+* `report()`, `report_html()` and `file_report_html()` are much faster for
+  large packages, as the source table is built as text rather than an
+  htmltools tag per line (e.g. 6 minutes to a few seconds for Luminescence).
+
+* `percent_coverage()`, `tally_coverage()`, `zero_coverage()`, `report()` and
+  the exclusions in `package_coverage()` are faster for packages with many
+  files, as the package source is now split into files once rather than once
+  per file.
+
+* Code run to measure coverage is faster, as instrumented code no longer
+  checks whether tests are recorded with `covr.record_tests` every time an
+  expression runs.
 
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
