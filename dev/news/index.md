@@ -10,6 +10,14 @@
   and other features that need it work
   ([\#501](https://github.com/r-lib/covr/issues/501)).
 
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  now works in renv projects when the package imports renv, or a package
+  that embeds it such as vetiver. covr passed all of its library paths
+  to the R processes running the tests as site libraries, which renv
+  removes from the library paths when it is loaded, so covr, the package
+  and its dependencies could no longer be found
+  ([\#560](https://github.com/r-lib/covr/issues/560)).
+
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md),
   [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
   and the coverage percentages printed in the console can use other
