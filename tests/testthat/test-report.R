@@ -57,9 +57,16 @@ test_that("report() uses the default colors (#529)", {
   )
   expect_match(html, "box-shadow:0 -2px 0 0 #5f9744 inset", fixed = TRUE)
   expect_match(html, "box-shadow:0 -2px 0 0 #b94947 inset", fixed = TRUE)
-  expect_match(html, "linear-gradient(90deg, #edfde7 ", fixed = TRUE)
-  expect_match(html, "linear-gradient(90deg, #f9ffe5 ", fixed = TRUE)
-  expect_match(html, "linear-gradient(90deg, #fcece9 ", fixed = TRUE)
+  expect_match(
+    html,
+    ":root{\n  --covr-bar-high:#edfde7;\n  --covr-bar-mid:#f9ffe5;\n  --covr-bar-low:#fcece9;\n}",
+    fixed = TRUE
+  )
+  expect_match(
+    html,
+    "html.dark{\n  --covr-bar-high:#374e33;\n  --covr-bar-mid:#2c3a2e;\n  --covr-bar-low:#583234;\n}",
+    fixed = TRUE
+  )
 })
 
 test_that("report() and file_report() use covr.report_colors (#529)", {
@@ -80,9 +87,9 @@ test_that("report() and file_report() use covr.report_colors (#529)", {
   expect_match(html, "background-color:rgba(255,165,0,0.3)", fixed = TRUE)
   expect_match(html, "box-shadow:0 -2px 0 0 #0072b2 inset", fixed = TRUE)
   expect_match(html, "box-shadow:0 -2px 0 0 #ffa500 inset", fixed = TRUE)
-  expect_match(html, "linear-gradient(90deg, #e0eef6 ", fixed = TRUE)
-  expect_match(html, "linear-gradient(90deg, #fff4e0 ", fixed = TRUE)
-  expect_match(html, "linear-gradient(90deg, #ebf6fc ", fixed = TRUE)
+  expect_match(html, "--covr-bar-high:#e0eef6;", fixed = TRUE)
+  expect_match(html, "--covr-bar-mid:#ebf6fc;", fixed = TRUE)
+  expect_match(html, "--covr-bar-low:#fff4e0;", fixed = TRUE)
   expect_no_match(html, "95,151,68|185,73,71|#5f9744|#b94947|#edfde7|#fcece9")
 
   file <- file_report(
@@ -113,6 +120,43 @@ test_that("covr.report_colors can set the partial color (#529)", {
     c(high = "#edfde7", mid = "#fcf3e0", low = "#fcece9")
   )
   expect_equal(colnames(report_colors(NULL)), c("covered", "missed"))
+})
+
+test_that("coverage_tints() mixes the colors with the dark background (#563)", {
+  expect_equal(
+    coverage_tints(report_colors(NULL), dark = TRUE),
+    c(high = "#374e33", mid = "#2c3a2e", low = "#583234")
+  )
+  colors <- report_colors(c(covered = "#0000FF", partial = "#FFFFFF"))
+  expect_equal(
+    coverage_tints(colors, dark = TRUE),
+    c(high = "#151876", mid = "#717376", low = "#583234")
+  )
+  expect_equal(
+    coverage_tints(colors),
+    c(high = "#e0e0ff", mid = "#ffffff", low = "#fcece9")
+  )
+})
+
+test_that("report() and file_report() can switch to a dark theme (#563)", {
+  skip_if_not_installed("DT")
+  skip_if_not_installed("htmltools")
+
+  cov <- code_coverage("f <- function(x) x + 1", "f(1)")
+  files <- c(
+    report(cov, file = withr::local_tempfile(fileext = ".html")),
+    file_report(
+      cov,
+      out_file = withr::local_tempfile(fileext = ".html"),
+      browse = FALSE
+    )
+  )
+  for (file in files) {
+    html <- paste(readLines(file), collapse = "\n")
+    head <- sub("</head>.*", "", html)
+    expect_match(head, "prefers-color-scheme: dark", fixed = TRUE)
+    expect_match(html, "<button[^>]+covr-theme-toggle[^>]+>")
+  }
 })
 
 test_that("covr.report_colors is validated (#529)", {
