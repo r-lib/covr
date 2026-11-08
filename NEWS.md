@@ -1,5 +1,8 @@
 # covr (development version)
 
+* `print.coverage()` gains an `n` argument to limit the number of files or
+  functions printed, showing the least covered first (#215).
+
 * The error for unpaired `# nocov start` and `# nocov end` comments now gives
   the name of the file along with the line numbers of the comments (#409).
 
@@ -26,8 +29,6 @@
   processes forked by parallel's `mclapply()`, `mcparallel()` and related
   functions, as `package_coverage()` already did. Set
   `options(covr.fix_parallel_mcexit = FALSE)` to turn this off (#410).
-* `print.coverage()` gains an `n` argument to limit the number of files or
-  functions printed, showing the least covered first (#215).
 
 * `package_coverage()` now warns when an R process started by the tests, such
   as a Shiny app, callr session or future worker, loaded the package but did
