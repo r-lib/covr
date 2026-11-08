@@ -7,7 +7,7 @@
 codecov(
   ...,
   coverage = NULL,
-  base_url = "https://codecov.io",
+  base_url = "https://ingest.codecov.io",
   token = NULL,
   commit = NULL,
   branch = NULL,
@@ -23,7 +23,10 @@ codecov(
 \code{\link[=package_coverage]{package_coverage()}} will be called with the arguments from
 \code{...}}
 
-\item{base_url}{Codecov url (change for Enterprise)}
+\item{base_url}{the url coverage is uploaded to. The default is Codecov's
+upload API; change it for Codecov Enterprise. The former default
+\code{"https://codecov.io"} is the website, not the API, so it (and
+\code{"https://app.codecov.io"}) is replaced by the default.}
 
 \item{token}{a codecov upload token, if \code{NULL} then following external
 sources will be checked in this order:
@@ -32,7 +35,10 @@ sources will be checked in this order:
 \item package will look at directory of the package for a file \code{codecov.yml}.
 File must have \code{codecov} section where field \code{token} is set to a token that
 will be used.
-}}
+}
+
+If there is no token, the upload is sent without one, see the section
+\dQuote{Tokens}.}
 
 \item{commit}{explicitly set the commit this coverage result object
 corresponds to. Is looked up from the service or locally if it is
@@ -51,14 +57,81 @@ this is looked up from the service if it is \code{NULL}.}
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }
 \value{
-The response from Codecov. If the upload fails, \code{codecov()} throws
-an error, except when Codecov is rate limiting requests (HTTP 429) or is
-unavailable (HTTP 5xx), when it gives a warning instead so CI does not
-fail because of a transient Codecov problem.
+The response of Codecov to the request for an upload, invisibly: a
+list that includes \code{url}, the url of the upload on Codecov. If Codecov
+rejects either request, \code{codecov()} throws an error of class
+\code{covr_codecov_error} with the response of Codecov in its message, except
+when Codecov is rate limiting requests (HTTP 429) or is unavailable (HTTP
+5xx), when it gives a warning of class \code{covr_codecov_warning} and returns
+\code{NULL} instead, so CI does not fail because of a transient Codecov problem.
 }
 \description{
-Run covr on a package and upload the result to codecov.io
+Uploads coverage to Codecov with the current upload protocol, the one used
+by the \href{https://github.com/codecov/codecov-cli}{Codecov CLI} and the
+\code{codecov/codecov-action} GitHub Action. This takes two requests:
 }
+\details{
+\enumerate{
+\item \verb{POST <base_url>/upload/<git service>/<owner>::::<repo>/upload-coverage}
+tells Codecov about the commit, branch, pull request and CI job. The
+response contains a \code{url} for the upload on Codecov and a pre-signed
+location to send the coverage report to.
+\item \code{PUT} sends the report, covr's JSON coverage format (processed by
+Codecov as an \code{R} report), to that location.
+}
+
+If \code{quiet} is \code{FALSE}, the url of the upload on Codecov is printed after a
+successful upload.
+
+The commit, branch, pull request, job, build URL and repository are looked up
+from the environment variables of the CI service, which is one of Jenkins,
+Travis, Codeship, CircleCI, Semaphore, Drone, AppVeyor, Wercker, GitLab CI,
+GitHub Actions or Google Cloud Build. Anywhere else, or for values the
+service does not provide, they are looked up from the local git repository
+in the working directory. The repository (\code{owner/repo}) and the git service
+(\code{github}, \code{gitlab}, \code{bitbucket}, ...) come from the CI service when it
+provides them, otherwise from the \code{origin} remote of the local git
+repository, otherwise the git service is assumed to be \code{github}.
+}
+\section{Tokens}{
+
+Codecov authenticates uploads with an upload token, passed in the
+\code{Authorization} header. Both the token of a repository and an organization
+(global) upload token, which is shared by all of an organization's
+repositories, can be used. The token is looked up as described for \code{token}.
+See \url{https://docs.codecov.com/docs/codecov-tokens}.
+
+Without a token, Codecov only accepts uploads for public repositories, and
+only for an unprotected branch, which is a branch name with an owner
+prefix such as \code{owner:branch}. So that uploads from pull requests, e.g. from
+forks, which do not have access to the token as a CI secret, work without
+one, \code{codecov()} uses \code{owner:branch} as the branch name of pull requests when
+there is no token and \code{branch} is \code{NULL}. On GitHub Actions that is the label
+of the head of the pull request, as \code{codecov/codecov-action} does, and
+elsewhere the owner of the repository. Uploads without a token from other
+branches are rejected by Codecov.
+}
+
+\section{Alternative}{
+
+Instead of uploading from R, write the coverage to a file and upload it with
+the \code{codecov/codecov-action} GitHub Action, or any other Codecov uploader.
+\code{to_lcov()} has no dependencies and writes \code{lcov.info}, which the action
+uploads without further configuration:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{- name: Test coverage
+  run: covr::to_lcov(covr::package_coverage())
+  shell: Rscript \{0\}
+
+- uses: codecov/codecov-action@v5
+  with:
+    token: $\{\{ secrets.CODECOV_TOKEN \}\}
+}\if{html}{\out{</div>}}
+
+\code{\link[=to_cobertura]{to_cobertura()}} writes the Cobertura XML format, for which the xml2 package
+is needed.
+}
+
 \examples{
 \dontrun{
 codecov(path = "test")
