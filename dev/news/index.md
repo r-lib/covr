@@ -2,6 +2,10 @@
 
 ## covr (development version)
 
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  no longer reports 0% coverage for packages whose last file in `R/` is
+  empty ([\#522](https://github.com/r-lib/covr/issues/522)).
+
 - New
   [`coverage_to_markdown()`](https://covr.r-lib.org/dev/reference/coverage_to_markdown.md)
   formats coverage as a markdown table, optionally compared against a
