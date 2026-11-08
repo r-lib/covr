@@ -52,7 +52,7 @@ Imports:
     jsonlite,
     rex,
     httr,
-    cli,
+    cli (>= 2.5.0),
     withr (>= 1.0.2),
     yaml
 Suggests:
