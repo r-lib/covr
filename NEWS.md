@@ -93,6 +93,8 @@
   compared against a baseline, for GitHub Actions job summaries or pull
   request comments (#519).
 
+* `options(covr.gcov = "")` once again turns off coverage of compiled code,
+  as documented, instead of failing with "gcov not found" (#516).
 * Functions nested inside lists and environments, such as
   `fns <- list(a = function(x) x)`, functions defined inside `local()` and
   ggproto methods, can now be traced. This is off by default; enable it for a

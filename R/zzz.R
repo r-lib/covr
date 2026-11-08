@@ -4,7 +4,7 @@
   op <- options()
   op_covr <- list(
     covr.covrignore = Sys.getenv("COVR_COVRIGNORE", ".covrignore"),
-    covr.gcov = Sys.which("gcov"),
+    covr.gcov = find_gcov(),
     covr.gcov_args = NULL,
     covr.gcov_additional_paths = NULL,
     covr.exclude_pattern = rex::rex("#", any_spaces, "nocov"),

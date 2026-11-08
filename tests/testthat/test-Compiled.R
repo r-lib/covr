@@ -109,11 +109,20 @@ test_that("Partially executed compiled lines can count as uncovered (#610)", {
 test_that("Error thrown for missing gcov", {
   skip_on_cran()
 
-  withr::local_options(covr.gcov = '')
+  withr::local_options(covr.gcov = NA_character_)
   expect_snapshot(
     package_coverage("TestCompiled", relative_path = TRUE),
     error = TRUE
   )
+})
+
+test_that("covr.gcov = '' turns off compiled code coverage", {
+  skip_on_cran()
+
+  withr::local_options(covr.gcov = '')
+  cov <- as.data.frame(package_coverage("TestCompiled", relative_path = TRUE))
+  expect_equal(sum(startsWith(cov$filename, "src/")), 0)
+  expect_gt(nrow(cov), 0)
 })
 
 test_that("Warning thrown for empty gcov output", {
