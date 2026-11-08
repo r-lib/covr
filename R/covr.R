@@ -634,8 +634,9 @@ with_coverage <- function(
 #' @param quiet whether to load and compile the package quietly, useful for
 #' debugging errors.
 #' @param clean whether to clean temporary output files after running, mainly
-#' useful for debugging errors. If coverage fails, `install_path` is kept even
-#' when `clean = TRUE`, so the test output can be inspected.
+#' useful for debugging errors. If coverage fails, or failures are reported as
+#' warnings with `allow_failures = TRUE`, `install_path` is kept even when
+#' `clean = TRUE`, so the test output can be inspected.
 #' @param line_exclusions a named list of files with the lines to exclude from
 #' each file.
 #' @param function_exclusions a vector of regular expressions matching function
@@ -954,7 +955,9 @@ package_coverage <- function(
     path = root
   )
 
-  succeeded <- TRUE
+  # Keep the install directory if any failures were reported as warnings, as
+  # their messages refer to output files in it.
+  succeeded <- length(failures) == 0L
   coverage
 }
 
