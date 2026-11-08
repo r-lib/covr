@@ -2,6 +2,13 @@
 
 ## covr (development version)
 
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  no longer crashes R when a package stores data read with arrow in an
+  environment of its namespace, e.g. in a fastmap. The coverage saved by
+  each R process included the contents of the package’s environments,
+  which are no longer saved, so it is also smaller
+  ([\#602](https://github.com/r-lib/covr/issues/602)).
+
 - [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
   now highlights the syntax of the source code, which failed with
   JavaScript errors because the report didn’t include jQuery.
