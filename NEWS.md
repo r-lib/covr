@@ -1,5 +1,16 @@
 # covr (development version)
 
+* Compiled code coverage now reads gcov's structured JSON output
+  (`gcov --json-format`) when gcov supports it (gcc >= 9), instead of parsing
+  its text output with regular expressions. covr still parses the text output
+  of llvm-cov, the gcov on macOS, and older gcc (#609).
+
+  - Lines of C++ templates instantiated more than once in a file are no
+    longer counted twice, which also stopped
+    `options(covr.gcov_partial = "uncovered")` from working on them.
+  - Lines only reached by C++ exceptions, such as a `catch` block that never
+    ran, now count as not covered instead of being left out of the coverage.
+
 * S4 methods are now named after their generic and signature, as in their Rd
   aliases, e.g. `show,MyClass-method`, so `print(x, group = "functions")`,
   `tally_coverage(by = "function")` and the other outputs show which generic
@@ -15,16 +26,6 @@
   with arrow in an environment of its namespace, e.g. in a fastmap. The
   coverage saved by each R process included the contents of the package's
   environments, which are no longer saved, so it is also smaller (#602).
-* Compiled code coverage now reads gcov's structured JSON output
-  (`gcov --json-format`) when gcov supports it (gcc >= 9), instead of parsing
-  its text output with regular expressions. covr still parses the text output
-  of llvm-cov, the gcov on macOS, and older gcc (#609).
-
-  - Lines of C++ templates instantiated more than once in a file are no
-    longer counted twice, which also stopped
-    `options(covr.gcov_partial = "uncovered")` from working on them.
-  - Lines only reached by C++ exceptions, such as a `catch` block that never
-    ran, now count as not covered instead of being left out of the coverage.
 
 * `file_report()` now highlights the syntax of the source code, which failed
   with JavaScript errors because the report didn't include jQuery.
