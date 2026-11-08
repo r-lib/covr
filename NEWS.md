@@ -1,5 +1,10 @@
 # covr (development version)
 
+* With `options(covr.record_tests = TRUE)`, functions in the recorded test
+  calls, such as those of R6 active bindings, no longer keep their environment.
+  Saving the coverage of tests that used an active binding of an R6 object
+  holding data read with arrow crashed R (#573).
+
 * Expressions in `if` and `switch` branches written without braces now get
   their own counters when the conditional is the body of a function or is
   nested in another call, such as `x <- if (a) b else c` or
@@ -10,10 +15,6 @@
   e.g. `f <- function(x) if (x) 1 else 2` tested only with `f(TRUE)` drops from
   100% to 0% line coverage. This is more complete expression coverage, not
   branch coverage (#279).
-* With `options(covr.record_tests = TRUE)`, functions in the recorded test
-  calls, such as those of R6 active bindings, no longer keep their environment.
-  Saving the coverage of tests that used an active binding of an R6 object
-  holding data read with arrow crashed R (#573).
 
 * `print.coverage()` gains an `n` argument to limit the number of files or
   functions printed, showing the least covered first (#215).
