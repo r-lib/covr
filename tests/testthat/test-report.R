@@ -104,6 +104,9 @@ test_that("report_html() keeps the colors of each report in a document (#316)", 
 
 test_that("report_html() styles only the report (#316)", {
   skip_if_not_installed("htmltools")
+  # shim_package.sh renames `covr` in this pattern, but not in report.css, when
+  # covr measures its own coverage
+  skip_if(identical(Sys.getenv("R_COVR"), "true"), "Running under covr")
 
   css <- paste(
     c(
@@ -115,7 +118,10 @@ test_that("report_html() styles only the report (#316)", {
   css <- gsub("(?s)/\\*.*?\\*/", "", css, perl = TRUE)
   selectors <- regmatches(css, gregexpr("[^{}]+(?=\\{)", css, perl = TRUE))
   selectors <- trimws(unlist(strsplit(selectors[[1]], ",")))
-  expect_all_true(grepl("^(html\\.covr-dark )?\\.covr-report\\b", selectors))
+  unscoped <- selectors[
+    !grepl("^(html\\.covr-dark )?\\.covr-report\\b", selectors)
+  ]
+  expect_equal(unscoped, character())
 })
 
 test_that("report() uses the default colors (#529)", {
