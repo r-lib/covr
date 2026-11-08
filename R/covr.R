@@ -755,6 +755,10 @@ with_coverage <- function(
 #' @param function_exclusions a vector of regular expressions matching function
 #' names to exclude. Example `print\\\.` to match print methods.
 #' @param code A character vector of additional test code to run.
+#' @param show_code_output If `TRUE`, the output of `code` is shown on the
+#'   console while it runs, e.g. to follow it in the logs of a CI job. The
+#'   default, `FALSE`, only saves it to a file in `install_path`, which is shown
+#'   if `code` fails.
 #' @param ... Additional arguments passed to [tools::testInstalledPackage()].
 #'   Use `outDir` to save the output of the tests and examples to a directory
 #'   which is kept after coverage finishes; by default it is written to
@@ -792,7 +796,8 @@ package_coverage <- function(
   ...,
   exclusions,
   pre_clean = TRUE,
-  allow_failures = getOption("covr.allow_failures", FALSE)
+  allow_failures = getOption("covr.allow_failures", FALSE),
+  show_code_output = FALSE
 ) {
   if (!missing(exclusions)) {
     covr_warn(c(
@@ -937,6 +942,13 @@ package_coverage <- function(
   # after the tests have run.
   failures <- list()
 
+  # Load sys (used to show the output of `code`) before the instrumented
+  # package's library is put first in the library paths, so measuring the
+  # coverage of sys itself doesn't load the instrumented copy in this process.
+  if (isTRUE(show_code_output)) {
+    loadNamespace("sys")
+  }
+
   # We need to set the libpaths in the current R session for examples with
   # install or runtime Sexpr blocks, which may implicitly load the package in
   # the current R session.
@@ -990,7 +1002,12 @@ package_coverage <- function(
 
             # We always run the commands file (even if empty) to load the package and
             # initialize all the counters to 0.
-            run_commands(pkg, install_path, code)
+            run_commands(
+              pkg,
+              install_path,
+              code,
+              show_output = show_code_output
+            )
           },
           message = function(e) {
             if (quiet) invokeRestart("muffleMessage") else e
@@ -1488,7 +1505,7 @@ run_vignettes <- function(pkg, lib) {
   }
 }
 
-run_commands <- function(pkg, lib, commands) {
+run_commands <- function(pkg, lib, commands, show_output = FALSE) {
   outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
   failfile <- paste(outfile, "fail", sep = ".")
   writeLines(
@@ -1498,18 +1515,52 @@ run_commands <- function(pkg, lib, commands) {
     ),
     con = outfile
   )
-  cmd <- paste(
-    shQuote(file.path(R.home("bin"), "R")),
-    "CMD BATCH --vanilla --no-timing",
-    shQuote(outfile),
-    shQuote(failfile)
-  )
-  res <- system(cmd)
+  if (isTRUE(show_output)) {
+    res <- run_r_live(outfile, failfile)
+  } else {
+    cmd <- paste(
+      shQuote(file.path(R.home("bin"), "R")),
+      "CMD BATCH --vanilla --no-timing",
+      shQuote(outfile),
+      shQuote(failfile)
+    )
+    res <- system(cmd)
+  }
   if (res != 0L) {
     show_failures(dirname(failfile))
   } else {
     file.rename(failfile, outfile)
   }
+}
+
+# Run the R script `infile` like `R CMD BATCH` does, but also show its stdout
+# and stderr on the console (on stdout and stderr respectively) as it runs.
+# Both are saved to `outfile`, in the order they are read. Returns the exit
+# status.
+run_r_live <- function(infile, outfile) {
+  out <- file(outfile, "wb")
+  on.exit(close(out))
+  show <- function(con) {
+    function(x) {
+      cat(rawToChar(x), file = con)
+      writeBin(x, out)
+    }
+  }
+  name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
+  tryCatch(
+    sys::exec_wait(
+      file.path(R.home("bin"), name),
+      c("--vanilla", "--quiet", "-f", infile),
+      std_out = show(stdout()),
+      std_err = show(stderr())
+    ),
+    # sys signals an error if the process is killed, e.g. by a segfault; report
+    # it as a failure, as `R CMD BATCH` does.
+    error = function(e) {
+      show(stderr())(charToRaw(paste0(conditionMessage(e), "\n")))
+      1L
+    }
+  )
 }
 
 # Add hooks to the installed package

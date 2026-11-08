@@ -37,23 +37,23 @@ src <- file.path(dir, "fn.R")
 test <- file.path(dir, "test-fn.R")
 writeLines("fn <- function(x) if (x > 0) 'positive' else 'not positive'", src)
 writeLines(
-    c(
-      "test_that('fn', {",
-      "  local_edition(3)",
-      "  expect_snapshot(fn(1))",
-      "})"
-    ),
-    test
-  )
+  c(
+    "test_that('fn', {",
+    "  local_edition(3)",
+    "  expect_snapshot(fn(1))",
+    "})"
+  ),
+  test
+)
 run <- function() {
-    file_coverage(
-      src,
-      test,
-      runner = function(file, env) {
-        testthat::test_file(file, env = env, reporter = "silent")
-      }
-    )
-  }
+  file_coverage(
+    src,
+    test,
+    runner = function(file, env) {
+      testthat::test_file(file, env = env, reporter = "silent")
+    }
+  )
+}
 run()
 expect_true(file.exists(file.path(dir, "_snaps", "fn.md")))
 cov <- run()
