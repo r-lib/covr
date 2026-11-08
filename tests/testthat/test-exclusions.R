@@ -187,13 +187,6 @@ test_that("it excludes properly", {
   expect_equal(length(t1), 0)
 })
 
-test_that("exclusions is deprecated in favor of line_exclusions", {
-  expect_snapshot(
-    t1 <- package_coverage("TestExclusion", exclusions = "R/TestExclusion.R")
-  )
-  expect_equal(length(t1), 0)
-})
-
 test_that("excluded lines of a multi-line expression are not counted (#594)", {
   src <- paste(
     "maker <- function(fun) {",

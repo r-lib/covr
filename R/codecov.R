@@ -23,7 +23,7 @@
 #'
 #' The commit, branch, pull request, job, build URL and repository are looked up
 #' from the environment variables of the CI service, which is one of Jenkins,
-#' Travis, Codeship, CircleCI, Semaphore, Drone, AppVeyor, Wercker, GitLab CI,
+#' Travis, CircleCI, Drone, AppVeyor, GitLab CI,
 #' GitHub Actions or Google Cloud Build. Anywhere else, or for values the
 #' service does not provide, they are looked up from the local git repository
 #' in the working directory. The repository (`owner/repo`) and the git service
@@ -445,20 +445,6 @@ codecov_ci_info <- function() {
       commit = env_var("TRAVIS_COMMIT"),
       ci_url = env_var("TRAVIS_JOB_WEB_URL")
     )
-    # --------
-    # Codeship
-    # --------
-  } else if (
-    Sys.getenv("CI") == "true" && Sys.getenv("CI_NAME") == "codeship"
-  ) {
-    # https://www.codeship.io/documentation/continuous-integration/set-environment-variables/
-    list(
-      ci_service = "codeship",
-      branch = env_var("CI_BRANCH"),
-      job_code = env_var("CI_BUILD_NUMBER"),
-      ci_url = env_var("CI_BUILD_URL"),
-      commit = env_var("CI_COMMIT_ID")
-    )
     # ---------
     # Circle CI
     # ---------
@@ -474,18 +460,6 @@ codecov_ci_info <- function() {
       slug = if (!is.null(owner) && !is.null(repo)) paste0(owner, "/", repo),
       pr = env_var("CIRCLE_PR_NUMBER"),
       commit = env_var("CIRCLE_SHA1")
-    )
-    # ---------
-    # Semaphore
-    # ---------
-  } else if (Sys.getenv("CI") == "true" && Sys.getenv("SEMAPHORE") == "true") {
-    # https://semaphoreapp.com/docs/available-environment-variables.html
-    list(
-      ci_service = "semaphore",
-      branch = env_var("BRANCH_NAME"),
-      job_code = env_var("SEMAPHORE_BUILD_NUMBER"),
-      slug = env_var("SEMAPHORE_REPO_SLUG"),
-      commit = env_var("REVISION")
     )
     # --------
     # drone.io
@@ -523,22 +497,6 @@ codecov_ci_info <- function() {
         bitbucket = "bitbucket"
       ),
       commit = env_var("APPVEYOR_REPO_COMMIT")
-    )
-    # -------
-    # Wercker
-    # -------
-  } else if (
-    Sys.getenv("CI") == "true" && Sys.getenv("WERCKER_GIT_BRANCH") != ""
-  ) {
-    # http://devcenter.wercker.com/articles/steps/variables.html
-    owner <- env_var("WERCKER_GIT_OWNER")
-    repo <- env_var("WERCKER_GIT_REPOSITORY")
-    list(
-      ci_service = "wercker",
-      branch = env_var("WERCKER_GIT_BRANCH"),
-      job_code = env_var("WERCKER_MAIN_PIPELINE_STARTED"),
-      slug = if (!is.null(owner) && !is.null(repo)) paste0(owner, "/", repo),
-      commit = env_var("WERCKER_GIT_COMMIT")
     )
     # ---------
     # GitLab-CI

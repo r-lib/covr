@@ -688,3 +688,10 @@ test_that("active bindings in a package are not read", {
     expect_true("api" %in% cov$functions)
   }
 })
+
+test_that("package_coverage(pre_clean =) is deprecated", {
+  expect_snapshot(
+    cov <- package_coverage(test_path("TestS4"), pre_clean = FALSE)
+  )
+  expect_gt(length(cov), 0)
+})

@@ -91,7 +91,7 @@ successful upload.
 
 The commit, branch, pull request, job, build URL and repository are looked up
 from the environment variables of the CI service, which is one of Jenkins,
-Travis, Codeship, CircleCI, Semaphore, Drone, AppVeyor, Wercker, GitLab CI,
+Travis, CircleCI, Drone, AppVeyor, GitLab CI,
 GitHub Actions or Google Cloud Build. Anywhere else, or for values the
 service does not provide, they are looked up from the local git repository
 in the working directory. The repository (\code{owner/repo}) and the git service

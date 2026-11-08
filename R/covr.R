@@ -885,8 +885,8 @@ with_coverage <- function(
 #'   Use `outDir` to save the output of the tests and examples to a directory
 #'   which is kept after coverage finishes; by default it is written to
 #'   `install_path`.
-#' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
-#' @param pre_clean whether to delete all objects present in the src directory before recompiling
+#' @param pre_clean Deprecated and ignored. Objects present in the src directory
+#'   are always deleted before recompiling.
 #' @param install_path The path the instrumented package will be installed to
 #'   and tests run in. By default it is a path in the R sessions temporary
 #'   directory. It can sometimes be useful to set this (along with `clean =
@@ -916,17 +916,15 @@ package_coverage <- function(
   code = character(),
   install_path = temp_file("R_LIBS"),
   ...,
-  exclusions,
-  pre_clean = TRUE,
+  pre_clean,
   allow_failures = getOption("covr.allow_failures", FALSE),
   show_code_output = FALSE
 ) {
-  if (!missing(exclusions)) {
+  if (!missing(pre_clean)) {
     covr_warn(c(
-      "{.arg exclusions} is deprecated.",
-      i = "Use {.arg line_exclusions} instead."
+      "{.arg pre_clean} is deprecated and ignored.",
+      i = "Objects in {.file src} are always removed before installing."
     ))
-    line_exclusions <- exclusions
   }
 
   pkg <- as_package(path)
@@ -1003,7 +1001,7 @@ package_coverage <- function(
   }
 
   # clean any dlls prior to trying to install
-  if (isTRUE(pre_clean) && !installed) {
+  if (!installed) {
     clean_objects(pkg$path)
   }
 

@@ -18,14 +18,13 @@
 #'
 #' In addition you can exclude lines from the coverage by putting special comments
 #' in your source code. This can be done per line or by specifying a range.
-#' The patterns used can be specified by the `exclude_pattern`, `exclude_start`,
-#' `exclude_end` arguments to `package_coverage()` or by setting the global
-#' options `covr.exclude_pattern`, `covr.exclude_start`, `covr.exclude_end`.
+#' The patterns used can be specified by setting the global options
+#' `covr.exclude_pattern`, `covr.exclude_start`, `covr.exclude_end`.
 
 #' @examples
 #' \dontrun{
 #' # exclude whole file of R/test.R
-#' package_coverage(exclusions = "R/test.R")
+#' package_coverage(line_exclusions = list("R/test.R"))
 #'
 #' # exclude lines 1 to 10 and 15 from R/test.R
 #' package_coverage(line_exclusions = list("R/test.R" = c(1:10, 15)))

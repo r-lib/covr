@@ -21,6 +21,18 @@
   distribution, those of the LLVM version rustc uses (e.g. `llvm-cov-18`).
   Without them covr warns and only skips the Rust code.
   `options(covr.llvm_cov = "")` turns this off (#728).
+* `codecov()` no longer detects Codeship, Semaphore (classic) and Wercker, which
+  have been shut down. Their environment variables are now ignored and the
+  commit, branch and repository come from the local git repository.
+
+* `package_coverage()` no longer accepts the `exclusions` argument, deprecated
+  in favor of `line_exclusions`.
+
+* `package_coverage(pre_clean =)` is deprecated and ignored; compiled objects
+  in `src/` are always removed before the package is installed.
+
+* `azure()` is deprecated. Use `to_cobertura()`, which it calls, instead.
+
 * covr no longer reads active bindings (which could fail, e.g. with
   `makeActiveBinding('x', function() stop('boom'), environment())`) when looking
   for functions to trace in packages, R6 classes, S7 objects and box modules.
@@ -290,16 +302,8 @@
   `genhtml` and other tools that read the LCOV format (#442, thanks to
   @MichaelChirico for the initial implementation in #637).
 
-* New `to_lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
-  `genhtml` and other tools that read the LCOV format (#442, thanks to
-  @MichaelChirico for the initial implementation in #637).
-
 * `package_coverage()` no longer reports 0% coverage for packages whose last
   file in `R/` is empty (#522).
-
-* New `coverage_to_markdown()` formats coverage as a markdown table, optionally
-  compared against a baseline, for GitHub Actions job summaries or pull
-  request comments (#519).
 
 * New `coverage_to_markdown()` formats coverage as a markdown table, optionally
   compared against a baseline, for GitHub Actions job summaries or pull
