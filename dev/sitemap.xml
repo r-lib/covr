@@ -20,6 +20,7 @@
 <url><loc>https://covr.r-lib.org/dev/reference/count_test.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/coverage_to_list.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/coverage_to_markdown.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/coveralls.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/covr-package.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/covr.record_tests.html</loc></url>

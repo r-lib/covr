@@ -290,6 +290,8 @@ By contributing to this project, you agree to abide by its terms.
   Coverage objects
 - [`coverage_to_list()`](https://covr.r-lib.org/dev/reference/coverage_to_list.md)
   : Convert a coverage dataset to a list
+- [`coverage_to_markdown()`](https://covr.r-lib.org/dev/reference/coverage_to_markdown.md)
+  : Convert a coverage dataset to a markdown table
 - [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md) :
   Run covr on a package and upload the result to coveralls
 - [`covr`](https://covr.r-lib.org/dev/reference/covr-package.md)

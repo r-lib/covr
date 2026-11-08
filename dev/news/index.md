@@ -2,6 +2,12 @@
 
 ## covr (development version)
 
+- New
+  [`coverage_to_markdown()`](https://covr.r-lib.org/dev/reference/coverage_to_markdown.md)
+  formats coverage as a markdown table, optionally compared against a
+  baseline, for GitHub Actions job summaries or pull request comments
+  ([\#519](https://github.com/r-lib/covr/issues/519)).
+
 - Functions nested inside lists and environments, such as
   `fns <- list(a = function(x) x)`, functions defined inside
   [`local()`](https://rdrr.io/r/base/eval.html) and ggproto methods, can
@@ -45,6 +51,12 @@
   the Files / Source tabs at the top of the page while scrolling, and
   returning to the file list restores its scroll position
   ([\#232](https://github.com/r-lib/covr/issues/232)).
+
+- Fix “argument is missing, with no default” errors when tracing a
+  [`switch()`](https://rdrr.io/r/base/switch.html) call with
+  fall-through cases (`a = ,`) whose subject is piped in with the base
+  pipe (`x |> switch(...)`)
+  ([\#630](https://github.com/r-lib/covr/issues/630)).
 
 - Lines of compiled code that gcov reports as only partially executed
   (e.g. `if (x) f();` when `f()` never runs) are no longer dropped from
