@@ -394,6 +394,73 @@ environment_coverage <- function(
   )
 }
 
+#' Calculate coverage of arbitrary code run against an environment
+#'
+#' `with_coverage()` instruments the functions in `env`, evaluates `code`, and
+#' returns the coverage that `code` produced. Unlike [environment_coverage()],
+#' which `sys.source()`s a set of files, `code` can be any expression. This
+#' makes it possible to measure coverage while running tests with a test runner
+#' such as [testthat::test_file()], without having to recreate the runner's
+#' infrastructure (reporters, snapshot handling, test environment, ...).
+#'
+#' Functions are instrumented in place, so every existing reference to them,
+#' including ones captured by an environment created by `code` (e.g. the child
+#' environment of the namespace that [testthat::test_file()] evaluates tests
+#' in), runs the instrumented version. The only requirement is that `code` must
+#' not re-create the functions in `env`, e.g. when using
+#' [testthat::test_file()] with `package` set the package must not be reloaded
+#' (use `load_package = "none"`), as reloading would replace the instrumented
+#' functions with fresh, uninstrumented ones.
+#'
+#' The instrumentation is removed and the counters are cleared when
+#' `with_coverage()` exits, even if `code` fails.
+#'
+#' @param code The code to evaluate while measuring coverage. It is evaluated
+#'   lazily, in the calling environment, after `env` has been instrumented.
+#' @param env The environment to be instrumented, e.g. a package namespace.
+#' @inheritParams file_coverage
+#' @return A `coverage` object.
+#' @seealso [environment_coverage()]
+#' @examples
+#' \dontrun{
+#' # With a package loaded by pkgload::load_all()
+#' ns <- asNamespace("mypkg")
+#' with_coverage(
+#'   testthat::test_file(
+#'     "tests/testthat/test-foo.R",
+#'     package = "mypkg",
+#'     load_package = "none"
+#'   ),
+#'   env = ns
+#' )
+#' }
+#' @export
+with_coverage <- function(
+  code,
+  env = parent.frame(),
+  line_exclusions = NULL,
+  function_exclusions = NULL
+) {
+  force(env)
+
+  trace_environment(env)
+  on.exit({
+    reset_traces()
+    clear_counters()
+  })
+
+  withr::with_envvar(c("R_COVR" = "true"), code)
+
+  coverage <- as_coverage(.counters)
+
+  exclude(
+    coverage,
+    line_exclusions = line_exclusions,
+    function_exclusions = function_exclusions,
+    path = NULL
+  )
+}
+
 #' Calculate test coverage for a package
 #'
 #' This function calculates the test coverage for a development package on the
