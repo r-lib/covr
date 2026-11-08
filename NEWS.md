@@ -4,6 +4,11 @@
   run. `runner = testthat::test_file` runs them with testthat's test runner,
   so `expect_snapshot()` and other features that need it work (#501).
 
+* `package_coverage()` now works in renv projects when the package imports
+  renv, or a package that embeds it such as vetiver. covr passed all of its
+  library paths to the R processes running the tests as site libraries, which
+  renv removes from the library paths when it is loaded, so covr, the package
+  and its dependencies could no longer be found (#560).
 * `report()`, `file_report()` and the coverage percentages printed in the
   console can use other colors for covered and missed code, set with the new
   `covr.report_colors` option, e.g.

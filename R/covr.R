@@ -871,6 +871,16 @@ package_coverage <- function(
   )
 
   libs <- env_path(install_path, .libPaths())
+  # The processes only get the site libraries of this session, not all of
+  # `libs`: renv removes the site libraries from the library paths when it
+  # activates its sandbox, e.g. when the package imports renv (or vetiver,
+  # which embeds it) in an renv project, which would also remove covr and the
+  # package (#560). An empty R_LIBS_SITE is the default site library, so no
+  # site libraries (as in renv projects) is "NULL".
+  site_libs <- env_path(.Library.site)
+  if (!nzchar(site_libs)) {
+    site_libs <- "NULL"
+  }
 
   # Failures collected when `allow_failures` is TRUE, signaled as warnings
   # after the tests have run.
@@ -885,7 +895,7 @@ package_coverage <- function(
         R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
         R_LIBS = libs,
         R_LIBS_USER = libs,
-        R_LIBS_SITE = libs,
+        R_LIBS_SITE = site_libs,
         R_COVR = "true",
         R_TESTS = file.path(R.home("share"), "R", "tests-startup.R")
       ),
