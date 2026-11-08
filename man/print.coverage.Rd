@@ -4,7 +4,7 @@
 \alias{print.coverage}
 \title{Print a coverage object}
 \usage{
-\method{print}{coverage}(x, group = c("filename", "functions"), by = "line", ...)
+\method{print}{coverage}(x, group = c("filename", "functions"), by = "line", n = Inf, ...)
 }
 \arguments{
 \item{x}{the coverage object to be printed}
@@ -13,6 +13,9 @@
 
 \item{by}{whether to count coverage by line, expression or function}
 
+\item{n}{the maximum number of files or functions to print. They are
+sorted from least to most covered, so the least covered are shown first.}
+
 \item{...}{additional arguments ignored}
 }
 \value{
@@ -20,4 +23,11 @@ The coverage object (invisibly).
 }
 \description{
 Print a coverage object
+}
+\examples{
+cov <- code_coverage(
+  "f <- function(x) x + 1; g <- function(x) x - 1; h <- function(x) 0",
+  "f(1)"
+)
+print(cov, group = "functions", n = 2)
 }
