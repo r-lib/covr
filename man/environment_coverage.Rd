@@ -35,6 +35,17 @@ the working directory (which \code{\link[testthat:test_path]{testthat::test_path
 while testing), should instead be run with \code{\link[testthat:test_file]{testthat::test_file()}} inside
 \code{\link[=with_coverage]{with_coverage()}}.
 }
+\section{Parallel code}{
+
+Code run in processes forked by \code{\link[parallel:mclapply]{parallel::mclapply()}},
+\code{parallel::mcparallel()} and related functions (not available on Windows)
+is included in the coverage. While the code runs, \code{parallel:::mcfork} and
+\code{parallel:::mcexit} are patched so that the forked processes save their
+counts when they exit. To turn this off, set the environment variable
+\code{COVR_FIX_PARALLEL_MCEXIT} or the option \code{covr.fix_parallel_mcexit} to
+\code{FALSE}.
+}
+
 \seealso{
 \code{\link[=with_coverage]{with_coverage()}}
 }

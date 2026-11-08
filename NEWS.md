@@ -1,5 +1,11 @@
 # covr (development version)
 
+* `file_coverage()`, `code_coverage()`, `environment_coverage()`,
+  `function_coverage()` and `with_coverage()` now include code run in
+  processes forked by parallel's `mclapply()`, `mcparallel()` and related
+  functions, as `package_coverage()` already did. Set
+  `options(covr.fix_parallel_mcexit = FALSE)` to turn this off (#410).
+
 * `package_coverage()` now warns when an R process started by the tests, such
   as a Shiny app, callr session or future worker, loaded the package but did
   not save its coverage because it was killed or was still running when the

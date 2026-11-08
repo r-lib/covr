@@ -47,7 +47,14 @@
 #'     vignettes, examples or `code` fail (default `50`). The full output is
 #'     always available in the condition's `$output` field.
 #'
-#'   \item `covr.fix_parallel_mcexit`:
+#'   \item `covr.fix_parallel_mcexit`: Whether to include code run in processes
+#'     forked by \pkg{parallel}'s `mclapply()`, `mcparallel()` and related
+#'     functions, by patching `parallel:::mcexit`. By default
+#'     `package_coverage()` does this if the package uses \pkg{parallel}, and
+#'     the functions that measure coverage in the current session, such as
+#'     `file_coverage()`, always do. The environment variable
+#'     `COVR_FIX_PARALLEL_MCEXIT` takes precedence over this option. Not
+#'     supported on Windows.
 #'
 #'   \item `covr.flags`:
 #'
@@ -298,12 +305,44 @@ as_coverage_with_tests <- function(counters) {
   structure(counters, tests = tests, class = "coverage")
 }
 
+# Evaluate `code` and return the coverage it produced from the current traces.
+# Unless disabled (see should_enable_parallel_mcexit_fix()), this includes code
+# run in processes forked by parallel's mclapply(), mcparallel() etc.
+collect_coverage <- function(code) {
+  if (!should_enable_parallel_mcexit_fix()) {
+    withr::with_envvar(c("R_COVR" = "true"), code)
+    return(as_coverage(.counters))
+  }
+
+  trace_dir <- tempfile("covr_traces_")
+  dir.create(trace_dir)
+  restore_forks <- trace_forks(trace_dir)
+  on.exit({
+    restore_forks()
+    unlink(trace_dir, recursive = TRUE)
+  })
+
+  withr::with_envvar(c("R_COVR" = "true"), code)
+
+  counters <- as.list(.counters)
+  trace_files <- list.files(
+    trace_dir,
+    pattern = "^covr_trace_",
+    full.names = TRUE
+  )
+  if (length(trace_files) > 0) {
+    counters <- merge_coverage(list(counters, merge_coverage(trace_files)))
+  }
+  as_coverage(counters)
+}
+
 #' Calculate test coverage for a specific function.
 #'
 #' @param fun name of the function.
 #' @param code expressions to run.
 #' @param env environment the function is defined in.
 #' @param enc the enclosing environment which to run the expressions.
+#' @inheritSection file_coverage Parallel code
 #' @return A [coverage] object.
 #' @examples
 #' add <- function(x, y) { x + y }
@@ -342,9 +381,7 @@ function_coverage <- function(
 
   replace(replacement)
 
-  withr::with_envvar(c("R_COVR" = "true"), eval(code, enc))
-
-  as_coverage(as.list(.counters))
+  collect_coverage(eval(code, enc))
 }
 
 #' Calculate test coverage for sets of files
@@ -358,6 +395,14 @@ function_coverage <- function(
 #'   functions
 #' @param parent_env The parent environment to use when sourcing the files.
 #' @inheritParams package_coverage
+#' @section Parallel code:
+#' Code run in processes forked by [parallel::mclapply()],
+#' `parallel::mcparallel()` and related functions (not available on Windows)
+#' is included in the coverage. While the code runs, `parallel:::mcfork` and
+#' `parallel:::mcexit` are patched so that the forked processes save their
+#' counts when they exit. To turn this off, set the environment variable
+#' `COVR_FIX_PARALLEL_MCEXIT` or the option `covr.fix_parallel_mcexit` to
+#' `FALSE`.
 #' @return A [coverage] object.
 #' @examples
 #' # For the purpose of this example, save code containing code and tests to files
@@ -389,12 +434,9 @@ file_coverage <- function(
     clear_counters()
   })
 
-  withr::with_envvar(
-    c("R_COVR" = "true"),
+  coverage <- collect_coverage(
     lapply(test_files, sys.source, keep.source = TRUE, envir = env)
   )
-
-  coverage <- as_coverage(.counters)
 
   exclude(
     coverage,
@@ -413,6 +455,7 @@ file_coverage <- function(
 #' @param test_code A character vector of test code
 #' @inheritParams file_coverage
 #' @param ... Additional arguments passed to [file_coverage()]
+#' @inheritSection file_coverage Parallel code
 #' @return A [coverage] object.
 #' @examples
 #' source <- "add <- function(x, y) { x + y }"
@@ -452,6 +495,7 @@ code_coverage <- function(
 #'
 #' @param env The environment to be instrumented.
 #' @inheritParams file_coverage
+#' @inheritSection file_coverage Parallel code
 #' @return A [coverage] object.
 #' @seealso [with_coverage()]
 #' @export
@@ -469,12 +513,9 @@ environment_coverage <- function(
     clear_counters()
   })
 
-  withr::with_envvar(
-    c("R_COVR" = "true"),
+  coverage <- collect_coverage(
     lapply(test_files, sys.source, keep.source = TRUE, envir = exec_env)
   )
-
-  coverage <- as_coverage(.counters)
 
   exclude(
     coverage,
@@ -509,6 +550,7 @@ environment_coverage <- function(
 #'   lazily, in the calling environment, after `env` has been instrumented.
 #' @param env The environment to be instrumented, e.g. a package namespace.
 #' @inheritParams file_coverage
+#' @inheritSection file_coverage Parallel code
 #' @return A `coverage` object.
 #' @seealso [environment_coverage()]
 #' @examples
@@ -539,9 +581,7 @@ with_coverage <- function(
     clear_counters()
   })
 
-  withr::with_envvar(c("R_COVR" = "true"), code)
-
-  coverage <- as_coverage(.counters)
+  coverage <- collect_coverage(code)
 
   exclude(
     coverage,
