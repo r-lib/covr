@@ -459,6 +459,12 @@ function_coverage <- function(
 #' `NOT_CRAN` environment variable is `"true"`.
 #'
 #' For more control, source the files yourself and use [with_coverage()].
+#' @section Files from a package:
+#' To make the package's other functions available, load the package (e.g.
+#' with `pkgload::load_all()`) and use `parent_env = asNamespace("pkg")`.
+#' Calls from other package files use the namespace's untraced functions, so
+#' don't count. `devtools::test_coverage_active_file()` measures the coverage
+#' of one file of a package without this limitation.
 #' @return A [coverage] object.
 #' @examples
 #' # For the purpose of this example, save code containing code and tests to files
