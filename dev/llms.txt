@@ -44,6 +44,49 @@ token is needed, the action authenticates with the built-in
 If the package is in a subdirectory of the repository, also set
 `base-path` to that directory so Coveralls can find the source files.
 
+## Coverage badge without a coverage service
+
+If you only want a coverage badge for your README, and not the history
+and pull request checks of Codecov or Coveralls,
+[`to_badge()`](https://covr.r-lib.org/dev/reference/to_badge.md) writes
+one as an SVG file locally. For example, to update a badge in a `badges`
+branch on every push to GitHub, replace the coverage steps of the
+test-coverage workflow with these, and give the workflow
+`permissions: contents: write`.
+
+``` yaml
+      - name: Test coverage
+        run: |
+          cov <- covr::package_coverage(quiet = FALSE)
+          print(cov)
+          covr::to_badge(cov, "coverage.svg")
+        shell: Rscript {0}
+
+      - name: Publish coverage badge
+        if: github.event_name == 'push'
+        run: |
+          mkdir "$RUNNER_TEMP/badges"
+          cp coverage.svg "$RUNNER_TEMP/badges"
+          cd "$RUNNER_TEMP/badges"
+          git init -b badges
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add coverage.svg
+          git commit -m "Update coverage badge"
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" badges
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+Then link to the badge in your README:
+
+``` md
+![Test coverage](https://raw.githubusercontent.com/OWNER/REPO/badges/coverage.svg)
+```
+
+The same approach works on other forges, such as Codeberg or GitLab, or
+you can commit the badge to the repository when you update your README.
+
 # Usage
 
 For local development a coverage report can be used to inspect coverage
@@ -377,6 +420,9 @@ By contributing to this project, you agree to abide by its terms.
 
 - [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
   : Tally coverage by line, expression or function
+
+- [`to_badge()`](https://covr.r-lib.org/dev/reference/to_badge.md) :
+  Create a coverage badge
 
 - [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
   : Create a Cobertura XML file

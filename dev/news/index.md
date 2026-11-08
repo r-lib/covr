@@ -2,6 +2,12 @@
 
 ## covr (development version)
 
+- New [`to_badge()`](https://covr.r-lib.org/dev/reference/to_badge.md)
+  writes an SVG badge with the percent coverage, so a README can show
+  coverage without uploading it to Codecov or Coveralls. The README has
+  an example GitHub Actions workflow that publishes the badge
+  ([\#634](https://github.com/r-lib/covr/issues/634)).
+
 - New
   [`vignette("shiny")`](https://covr.r-lib.org/dev/articles/shiny.md)
   describes how to measure the coverage of Shiny apps, including tests

@@ -94,6 +94,9 @@
 - [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
   : Tally coverage by line, expression or function
 
+- [`to_badge()`](https://covr.r-lib.org/dev/reference/to_badge.md) :
+  Create a coverage badge
+
 - [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
   : Create a Cobertura XML file
 

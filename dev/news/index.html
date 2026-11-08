@@ -44,7 +44,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="covr-development-version">covr (development version)<a class="anchor" aria-label="anchor" href="#covr-development-version"></a></h2>
-<ul><li><p>New <code><a href="../articles/shiny.html">vignette("shiny")</a></code> describes how to measure the coverage of Shiny apps, including tests run with shinytest2 and apps that aren’t in a package (<a href="https://github.com/r-lib/covr/issues/277" class="external-link">#277</a>).</p></li>
+<ul><li><p>New <code><a href="../reference/to_badge.html">to_badge()</a></code> writes an SVG badge with the percent coverage, so a README can show coverage without uploading it to Codecov or Coveralls. The README has an example GitHub Actions workflow that publishes the badge (<a href="https://github.com/r-lib/covr/issues/634" class="external-link">#634</a>).</p></li>
+<li><p>New <code><a href="../articles/shiny.html">vignette("shiny")</a></code> describes how to measure the coverage of Shiny apps, including tests run with shinytest2 and apps that aren’t in a package (<a href="https://github.com/r-lib/covr/issues/277" class="external-link">#277</a>).</p></li>
 <li><p><code><a href="../reference/package_coverage.html">package_coverage()</a></code> now measures the coverage of installed packages, e.g. <code>package_coverage(system.file(package = "pkg"))</code>, so the package source isn’t needed. Previously it silently returned no coverage. The package must be installed with <code>--install-tests</code> and <code>--with-keep.source</code>, and <code><a href="../reference/package_coverage.html">package_coverage()</a></code> errors if it wasn’t (<a href="https://github.com/r-lib/covr/issues/638" class="external-link">#638</a>).</p></li>
 <li>
 <p>Two fixes for <code>options(covr.record_tests = TRUE)</code> (<a href="https://github.com/r-lib/covr/issues/627" class="external-link">#627</a>):</p>
