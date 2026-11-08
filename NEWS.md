@@ -1,5 +1,14 @@
 # covr (development version)
 
+* `file_coverage()` can now measure the coverage of a package's compiled code
+  in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
+  which is much faster than `package_coverage()` (#605). It loads the package
+  with `pkgload::load_all()`, builds an instrumented copy of it in the
+  session's temporary directory, and only recompiles the files that changed
+  on later runs. `environment_coverage()` and `with_coverage()` also include
+  the compiled code of packages loaded with `pkgload::load_all()`, so
+  `devtools::test_coverage_active_file()` now works for files in `src/`.
+
 * New `tally_tests()` returns a traceability matrix from coverage recorded with
   `options(covr.record_tests = TRUE)`: which tests ran each line of code, with
   the test file, line and `test_that()` description, so you can find the tests
@@ -9,19 +18,6 @@
   code with source references, e.g. testthat expectations when rlang was
   installed with `R_KEEP_PKG_SOURCE=yes`, are no longer all recorded as a
   single test named after that code.
-
-* New `shiny_app_coverage()` measures the coverage of a Shiny app that isn't
-  part of a package while its tests run, by default with
-  `shinytest2::test_app()`, including the code run by the app in the R
-  processes that shinytest2 starts (#277).
-* `file_coverage()` can now measure the coverage of a package's compiled code
-  in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
-  which is much faster than `package_coverage()` (#605). It loads the package
-  with `pkgload::load_all()`, builds an instrumented copy of it in the
-  session's temporary directory, and only recompiles the files that changed
-  on later runs. `environment_coverage()` and `with_coverage()` also include
-  the compiled code of packages loaded with `pkgload::load_all()`, so
-  `devtools::test_coverage_active_file()` now works for files in `src/`.
 
 * New `shiny_app_coverage()` measures the coverage of a Shiny app that isn't
   part of a package while its tests run, by default with
