@@ -3,6 +3,9 @@
 * New `coverage_to_markdown()` formats coverage as a markdown table, optionally
   compared against a baseline, for GitHub Actions job summaries or pull
   request comments (#519).
+* `package_coverage()` no longer reports 0% coverage for packages whose last
+  file in `R/` is empty (#522).
+
 * Functions nested inside lists and environments, such as
   `fns <- list(a = function(x) x)`, functions defined inside `local()` and
   ggproto methods, can now be traced. This is off by default; enable it for a

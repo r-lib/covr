@@ -105,3 +105,26 @@ test_that("split_on_line_directives does not simplify the result (#588)", {
     )
   )
 })
+
+test_that("split_on_line_directives handles empty files (#522)", {
+  expect_identical(
+    split_on_line_directives(
+      c(
+        '#line 1 "empty1.R"',
+        '#line 1 "foo.R"',
+        "abc",
+        '#line 1 "empty2.R"',
+        '#line 1 "bar.R"',
+        "def",
+        '#line 1 "empty3.R"'
+      )
+    ),
+    list(
+      "empty1.R" = character(),
+      "foo.R" = "abc",
+      "empty2.R" = character(),
+      "bar.R" = "def",
+      "empty3.R" = character()
+    )
+  )
+})
