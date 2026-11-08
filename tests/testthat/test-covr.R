@@ -487,6 +487,37 @@ test_that("package_coverage warns about processes that did not save a trace", {
   expect_equal(values[["dont_test_me"]], 0)
 })
 
+test_that("package_coverage works if the site libraries are removed (#560)", {
+  # for `.libPaths(include.site = FALSE)`
+  skip_if(getRversion() < "4.1.0")
+  covr_lib <- dirname(find.package("covr", lib.loc = .libPaths()))
+  skip_if(normalizePath(covr_lib) %in% normalizePath(.Library.site))
+
+  # As renv does when it activates its sandbox, e.g. if the package imports
+  # renv in an renv project
+  script <- withr::local_tempfile(
+    fileext = ".R",
+    lines = c(
+      "site <- normalizePath(.Library.site, winslash = '/')",
+      ".libPaths(setdiff(.libPaths(), site), include.site = FALSE)",
+      "library(TestSummary)",
+      "test_me(1, 2)"
+    )
+  )
+  code <- sprintf(
+    "stopifnot(system2(file.path(R.home('bin'), 'Rscript'), c('--vanilla', shQuote(%s))) == 0)",
+    deparse(normalizePath(script, winslash = "/"))
+  )
+
+  cov <- package_coverage(test_path("TestSummary"), type = "none", code = code)
+  values <- tapply(
+    tally_coverage(cov)$value,
+    tally_coverage(cov)$functions,
+    sum
+  )
+  expect_gt(values[["test_me"]], 0)
+})
+
 test_that("unsaved_traces ignores the markers of the current process", {
   dir <- withr::local_tempdir()
   pid <- Sys.getpid()
