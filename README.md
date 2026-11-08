@@ -258,6 +258,19 @@ _off_ coverage of compiled code.
 options(covr.gcov = "path/to/gcov")
 ```
 
+## Can covr measure the coverage of Rust code? ##
+Yes. `package_coverage()` measures the coverage of the Rust code in `src/`,
+e.g. of packages using [extendr](https://extendr.github.io/) or
+[savvy](https://yutannihilation.github.io/savvy/guide/), with LLVM's
+source-based coverage. This needs the llvm tools of your Rust toolchain:
+
+```sh
+rustup component add llvm-tools
+```
+
+Without them covr warns and reports no coverage for the Rust code. Set
+`options(covr.llvm_cov = "")` to turn off the coverage of Rust code.
+
 ## How does covr work? ##
 `covr` tracks test coverage by modifying a package's code to add tracking calls
 to each call.

@@ -1,0 +1,14 @@
+TARGET = x86_64-pc-windows-gnu
+LIBDIR = rust/target/$(TARGET)/release
+STATLIB = $(LIBDIR)/libtestrust.a
+PKG_LIBS = -L$(LIBDIR) -ltestrust -lws2_32 -ladvapi32 -luserenv -lbcrypt -lntdll
+
+all: $(SHLIB) rust_clean
+
+$(SHLIB): $(STATLIB)
+
+$(STATLIB):
+	PATH="$(USERPROFILE)\.cargo\bin:$(PATH)" cargo build --target=$(TARGET) --release --offline --manifest-path=rust/Cargo.toml
+
+rust_clean: $(SHLIB)
+	rm -Rf rust/target

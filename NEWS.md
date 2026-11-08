@@ -31,6 +31,18 @@
   without changing the rest of the page. The reports no longer need the DT
   package, jQuery or Bootstrap, and the list of files is now shown sorted with
   the least covered files first (#316, #709).
+* `package_coverage()` now measures the coverage of Rust code, such as the
+  code of packages using extendr or savvy. It's built with LLVM's source-based
+  coverage, which needs the llvm tools of the Rust toolchain
+  (`rustup component add llvm-tools`). Without them covr warns and only skips
+  the Rust code. `options(covr.llvm_cov = "")` turns this off (#728).
+
+* New `report_html()` returns the coverage report of `report()` as HTML that
+  can be included in a larger document, such as an R Markdown or Quarto
+  document. The report's styles and scripts only apply to the report, and it
+  no longer uses Bootstrap's JavaScript or replaces the document's
+  highlight.js, so a document can include several reports without changing
+  the rest of the page (#316).
 
 * covr now requires R 4.0.0 or later.
 

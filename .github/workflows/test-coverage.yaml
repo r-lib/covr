@@ -25,6 +25,10 @@ jobs:
         with:
           needs: coverage
 
+      # Lets the tests measure the coverage of Rust code
+      - name: Install Rust's llvm-tools
+        run: rustup component add llvm-tools
+
       - name: Setup
         run: |
           R CMD INSTALL .

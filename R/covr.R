@@ -86,6 +86,14 @@
 #'
 #'   \item `covr.icov_prof`:
 #'
+#'   \item `covr.llvm_cov`: Path to the `llvm-cov` used to read the coverage
+#'     of Rust code. Defaults to the one of the Rust toolchain, installed with
+#'     `rustup component add llvm-tools`. If set to `""` the Rust code isn't
+#'     instrumented, which turns off its coverage.
+#'
+#'   \item `covr.llvm_profdata`: Path to the `llvm-profdata` used to merge the
+#'     coverage counts of Rust code. Defaults to the one of the Rust toolchain.
+#'
 #'   \item `covr.report_colors`: A named character vector with the colors of
 #'     covered and missed lines in [report()] and [file_report()], and of the
 #'     coverage percentages printed in the console, e.g.
@@ -808,6 +816,16 @@ with_coverage <- function(
 #' "--with-keep.source"))`. File names are those of the source it was
 #' installed from, and compiled code isn't covered.
 #'
+#' The coverage of Rust code, built by cargo into a static library that is
+#' linked into the package, is measured with LLVM's source-based coverage.
+#' This needs the llvm tools of the Rust toolchain
+#' (`rustup component add llvm-tools`); without them `package_coverage()`
+#' warns and reports no coverage for the Rust code. The code is instrumented
+#' by adding `-C instrument-coverage` to the `RUSTFLAGS` environment variable,
+#' so the package's `Makevars` must pass `RUSTFLAGS` on to cargo, as those of
+#' packages using extendr or savvy do. Vendored crates and code generated in
+#' cargo's `target` directory aren't included.
+#'
 #' #ifdef unix
 #' Parallelized code using \pkg{parallel}'s [mcparallel()] needs to
 #' use a patched `parallel:::mcexit`. This is done automatically if the
@@ -976,12 +994,24 @@ package_coverage <- function(
     clean_objects(pkg$path)
   }
 
+  # Measure the coverage of Rust code, if the package has any
+  rust <- if (!installed) rust_coverage_setup(pkg$path, install_path)
+
   if (installed) {
     # `R CMD INSTALL` fails to reinstall an installed package on Windows, and
     # only copies it elsewhere, so copy it directly (#638).
     copy_installed_package(pkg, install_path)
   } else {
-    install_package(pkg, install_path, flags, quiet)
+    install_package(
+      pkg,
+      install_path,
+      add_rust_flags(flags, rust),
+      quiet,
+      env = rust$build_env
+    )
+    if (!is.null(rust)) {
+      unlink(rust$build_profiles, recursive = TRUE)
+    }
   }
 
   # add hooks to the package startup
@@ -1030,7 +1060,8 @@ package_coverage <- function(
         R_LIBS_USER = libs,
         R_LIBS_SITE = site_libs,
         R_COVR = "true",
-        R_TESTS = file.path(R.home("share"), "R", "tests-startup.R")
+        R_TESTS = file.path(R.home("share"), "R", "tests-startup.R"),
+        rust$env
       ),
       {
         withCallingHandlers(
@@ -1157,6 +1188,13 @@ package_coverage <- function(
     res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
   } else {
     res <- run_icov(pkg$path, quiet = quiet)
+  }
+
+  if (!is.null(rust)) {
+    res <- c(
+      res,
+      run_llvm_cov(rust, pkg$path, install_path, pkg$package, quiet = quiet)
+    )
   }
 
   coverage <- as_coverage(
@@ -1595,9 +1633,9 @@ run_vignettes <- function(pkg, lib) {
 
 # Install the package source with the options covr needs. With `quiet`, the
 # output is captured to give the reason if the installation fails.
-install_package <- function(pkg, install_path, flags, quiet) {
+install_package <- function(pkg, install_path, flags, quiet, env = NULL) {
   output <- withr::with_envvar(
-    list(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep)),
+    c(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep), env),
     withr::with_makevars(flags, assignment = "+=", {
       args <- c(
         "--vanilla",
