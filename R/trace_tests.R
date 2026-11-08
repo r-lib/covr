@@ -398,13 +398,12 @@ update_current_test <- function() {
   # rlang's `eval_bare()` evaluating an expectation's code when rlang was
   # installed with source references, which would give every test the same
   # key.
-  is_test_call <- vlapply(seq_along(exec_frames), function(i) {
-    has_srcref(.current_test$trace[[i]]) &&
-      !in_caller_body(exec_frames[[i]], .current_test$trace[[i]])
-  })
   last <- Position(
-    identity,
-    is_test_call,
+    function(i) {
+      has_srcref(.current_test$trace[[i]]) &&
+        !in_caller_body(exec_frames[[i]], .current_test$trace[[i]])
+    },
+    seq_along(exec_frames),
     right = TRUE,
     nomatch = length(exec_frames)
   )
