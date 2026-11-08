@@ -1,5 +1,54 @@
-/* The page of a standalone report, which uses the dark theme along with the
-   report */
+/* The page of a standalone report: the report is in a centered column taking
+   two thirds of wide screens */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #333;
+  background-color: #fff;
+}
+
+a {
+  color: #337ab7;
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  color: #23527c;
+  text-decoration: underline;
+}
+
+h2 {
+  margin: 20px 0 10px;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.covr-page {
+  padding: 0 30px;
+}
+
+@media (min-width: 992px) {
+  .covr-page {
+    width: 66.66666667%;
+    margin-left: 16.66666667%;
+  }
+}
+
+/* The page uses the dark theme along with the report */
 html.covr-dark {
   color-scheme: dark;
 }

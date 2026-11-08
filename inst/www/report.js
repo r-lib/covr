@@ -36,7 +36,8 @@
   // Show a file in the source tab, starting at the top of the file
   function showFile(link) {
     var report = link.closest(".covr-report");
-    var file = link.textContent;
+    // The text of the link can have whitespace added by Quarto
+    var file = link.closest("td").getAttribute("data-sort");
     var files = report.querySelectorAll(".covr-files > div");
     for (var i = 0; i < files.length; i++) {
       files[i].classList.toggle(
@@ -50,8 +51,46 @@
     showTab(source);
   }
 
+  // Sort the file list by a column, in ascending order first, then switching
+  // between descending and ascending. Cells without a number sort first.
+  function sortTable(button) {
+    var th = button.parentNode;
+    var headers = th.parentNode.children;
+    var index = Array.prototype.indexOf.call(headers, th);
+    var ascending = th.getAttribute("aria-sort") !== "ascending";
+    var numeric = th.classList.contains("covr-num");
+    for (var i = 0; i < headers.length; i++) {
+      headers[i].setAttribute("aria-sort", "none");
+    }
+    th.setAttribute("aria-sort", ascending ? "ascending" : "descending");
+
+    var tbody = th.closest("table").tBodies[0];
+    var rows = Array.prototype.slice.call(tbody.rows);
+    function key(row) {
+      var value = row.cells[index].getAttribute("data-sort");
+      if (!numeric) {
+        return value;
+      }
+      return value === "" ? -Infinity : Number(value);
+    }
+    rows.sort(function (a, b) {
+      var x = key(a);
+      var y = key(b);
+      var order = numeric ? (x < y ? -1 : x > y ? 1 : 0) : x.localeCompare(y);
+      return ascending ? order : -order;
+    });
+    for (var j = 0; j < rows.length; j++) {
+      tbody.appendChild(rows[j]);
+    }
+  }
+
   document.addEventListener("click", function (e) {
     if (!e.target.closest) {
+      return;
+    }
+    var sort = e.target.closest(".covr-report button.covr-sort");
+    if (sort) {
+      sortTable(sort);
       return;
     }
     var tab = e.target.closest(".covr-report .covr-tabs a");

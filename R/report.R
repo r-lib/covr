@@ -59,7 +59,7 @@ report <- function(
     basename(file)
   )
 
-  ui <- fluid_page(column(8, offset = 2, size = "md", html))
+  ui <- report_page(html)
 
   htmltools::save_html(ui, file)
   viewer <- getOption("viewer", utils::browseURL)
@@ -104,59 +104,22 @@ report <- function(
 report_html <- function(x = package_coverage()) {
   # Check the colors before running package_coverage()
   colors <- report_colors()
-
-  if (
-    !(requireNamespace("htmltools", quietly = TRUE) &&
-      requireNamespace("DT", quietly = TRUE))
-  ) {
-    covr_abort(c(
-      "{.fn report} requires the {.pkg DT} and {.pkg htmltools} packages.",
-      i = 'Install them with {.code install.packages(c("DT", "htmltools"))}.'
-    ))
-  }
+  check_report_installed()
 
   data <- to_report_data(x)
-
-  # Color the td cells by coverage amount, like codecov.io does. The colors
-  # are CSS variables set by `report_colors_css()`, so they follow the theme.
-  color_coverage_callback <- DT::JS(
-    'function(td, cellData, rowData, row, col) {
-  var percent = cellData.replace("%", "");
-  var level = percent >= 90 ? "high" : percent >= 75 ? "mid" : "low";
-  $(td).css("background", "linear-gradient(90deg, var(--covr-bar-" + level + ") " + cellData + ", transparent " + cellData + ")");
-}
-'
-  )
 
   package_name <- attr(x, "package")$package
   percentage <- sprintf("%02.2f%%", data$overall)
 
-  table <- DT::datatable(
-    data$file_stats,
-    escape = FALSE,
-    fillContainer = FALSE,
-    options = list(
-      searching = FALSE,
-      dom = "t",
-      paging = FALSE,
-      columnDefs = list(
-        list(targets = 6, createdCell = color_coverage_callback)
-      )
-    ),
-    rownames = FALSE,
-    class = "row-border"
-  )
-  table$sizingPolicy$defaultWidth <- "100%"
-
-  # The tabs and the links to the files are handled by `report.js`, which is
-  # in `report_head()`
+  # The tabs, the sorting of the file list and the links to the files are
+  # handled by `report.js`, which is in `report_head()`
   htmltools::browsable(htmltools::tagList(
     report_head(),
     report_container(
       colors,
       report_header(paste0(package_name, " coverage - ", percentage)),
       tabset_panel(
-        tab_panel("Files", table),
+        tab_panel("Files", file_table(data$file_stats)),
         tab_panel("Source", addHighlight(renderSourceTable(data$full)))
       )
     )
@@ -164,6 +127,10 @@ report_html <- function(x = package_coverage()) {
 }
 
 #' A coverage report for a specific file
+#'
+#' `file_report()` saves the coverage of one file as a standalone HTML file and
+#' opens it. `file_report_html()` creates the same report as HTML that can be
+#' included in a larger document, like [report_html()].
 #'
 #' @inheritParams report
 #' @param file The file to report on, if `NULL`, use the first file in the
@@ -179,10 +146,24 @@ file_report <- function(
   ),
   browse = interactive()
 ) {
-  loadNamespace("htmltools")
-  loadNamespace("DT")
+  html <- file_report_html(x, file)
 
+  htmltools::save_html(report_page(html), out_file)
+  viewer <- getOption("viewer", utils::browseURL)
+  if (browse) {
+    viewer(out_file)
+  }
+
+  invisible(out_file)
+}
+
+#' @rdname file_report
+#' @return `file_report_html()` returns an [htmltools::tagList()], with the
+#'   dependencies of the report attached.
+#' @export
+file_report_html <- function(x = package_coverage(), file = NULL) {
   colors <- report_colors()
+  check_report_installed()
 
   files <- display_name(x)
 
@@ -197,29 +178,84 @@ file_report <- function(
 
   percentage <- data$file_stats$Coverage
 
-  ui <- fluid_page(
+  htmltools::browsable(htmltools::tagList(
     report_head(),
-    column(
-      8,
-      offset = 2,
-      size = "md",
-      report_container(
-        colors,
-        report_header(paste0(file, " - ", percentage)),
-        addHighlight(
-          renderSourceTable(data$full, "")
-        )
+    report_container(
+      colors,
+      report_header(paste0(file, " - ", percentage)),
+      addHighlight(
+        renderSourceTable(data$full, "")
       )
     )
-  )
+  ))
+}
 
-  htmltools::save_html(ui, out_file)
-  viewer <- getOption("viewer", utils::browseURL)
-  if (browse) {
-    viewer(out_file)
+check_report_installed <- function() {
+  if (!requireNamespace("htmltools", quietly = TRUE)) {
+    covr_abort(c(
+      "{.fn report} requires the {.pkg htmltools} package.",
+      i = "Install it with {.code install.packages(\"htmltools\")}."
+    ))
   }
+}
 
-  invisible(out_file)
+# The list of files, which `report.js` sorts by the column whose header is
+# clicked. The cells of the coverage column have a bar in the color of their
+# level of coverage, like codecov.io. The colors are CSS variables set by
+# `report_colors_css()`, so they follow the theme.
+file_table <- function(stats) {
+  numeric <- setdiff(names(stats), "File")
+  cell <- function(col, value) {
+    if (col == "File") {
+      return(htmltools::tags$td(
+        class = "covr-file",
+        `data-sort` = value,
+        htmltools::a(href = "#", class = "covr-file-link", value)
+      ))
+    }
+    number <- as.numeric(sub("%", "", value, fixed = TRUE))
+    style <- NULL
+    if (col == "Coverage" && !is.na(number)) {
+      level <- if (number >= 90) {
+        "high"
+      } else if (number >= 75) {
+        "mid"
+      } else {
+        "low"
+      }
+      style <- sprintf(
+        "background:linear-gradient(90deg, var(--covr-bar-%s) %s, transparent %s)",
+        level,
+        value,
+        value
+      )
+    }
+    htmltools::tags$td(
+      class = "covr-num",
+      style = style,
+      `data-sort` = if (is.na(number)) "" else format(number),
+      value
+    )
+  }
+  htmltools::tags$table(
+    class = "covr-file-table",
+    htmltools::tags$thead(htmltools::tags$tr(
+      lapply(names(stats), function(col) {
+        htmltools::tags$th(
+          class = if (col %in% numeric) "covr-num",
+          `aria-sort` = "none",
+          htmltools::tags$button(type = "button", class = "covr-sort", col)
+        )
+      })
+    )),
+    htmltools::tags$tbody(
+      lapply(seq_len(nrow(stats)), function(i) {
+        htmltools::tags$tr(
+          lapply(names(stats), function(col) cell(col, stats[[col]][[i]]))
+        )
+      })
+    )
+  )
 }
 
 default_report_colors <- c(covered = "#5f9744", missed = "#b94947")
@@ -465,7 +501,7 @@ to_report_data <- function(x) {
 
   res$file_stats <- compute_file_stats(res$full)
 
-  res$file_stats$File <- add_link(names(res$full))
+  res$file_stats$File <- names(res$full)
 
   res$file_stats <- sort_file_stats(res$file_stats)
 
@@ -524,12 +560,6 @@ sort_file_stats <- function(stats) {
       "Coverage"
     )
   ]
-}
-
-add_link <- function(files) {
-  vcapply(files, function(file) {
-    as.character(htmltools::a(href = "#", class = "covr-file-link", file))
-  })
 }
 
 renderSourceTable <- function(data, class = "covr-hidden") {
@@ -621,52 +651,24 @@ addin_report <- function() {
   covr::report(covr::package_coverage(pkg$path))
 }
 
-# These are all adapted from functions in shiny
-
-column <- function(width, ..., offset = 0, size = c("xs", "sm", "md", "lg")) {
-  size <- match.arg(size)
-
-  col_class <- paste0("col-", size, "-", width)
-  if (offset > 0) {
-    col_class <- paste0(col_class, " ", "col-", size, "-offset-", offset)
-  }
-  htmltools::div(class = col_class, ...)
-}
-
 tab_panel <- function(title, ...) {
   list(title = title, content = list(...))
 }
 
-# The page of a standalone report. It only uses Bootstrap's CSS, so it doesn't
-# need jQuery.
-fluid_page <- function(...) {
-  bootstrap_page(
+# The page of a standalone report, with a centered column on wide screens
+report_page <- function(...) {
+  htmltools::tagList(
+    htmltools::tags$head(htmltools::tags$meta(
+      name = "viewport",
+      content = "width=device-width, initial-scale=1"
+    )),
     htmltools::includeCSS(system.file("www/page.css", package = "covr")),
-    htmltools::div(class = "container-fluid", ...)
+    htmltools::div(class = "covr-page", ...)
   )
 }
 
-bootstrap_page <- function(...) {
-  htmltools::attachDependencies(
-    htmltools::tagList(list(...)),
-    html_dependency_bootstrap()
-  )
-}
-
-# from htmldeps::html_dependency_bootstrap (not yet on CRAN)
-html_dependency_bootstrap <- function() {
-  htmltools::htmlDependency(
-    name = "bootstrap",
-    version = "3.4.1",
-    src = system.file(file = "www/shared/bootstrap", package = "covr"),
-    meta = list(viewport = "width=device-width, initial-scale=1"),
-    script = c("shim/html5shiv.min.js", "shim/respond.min.js"),
-    stylesheet = c("css/bootstrap.min.css", "css/bootstrap-theme.min.css")
-  )
-}
-
-# The tabs of the report, which are switched by `report.js` rather than
-# Bootstrap, so the report works in documents without Bootstrap 3
+# The tabs of the report, which are switched by `report.js`, so the report
+# doesn't need Bootstrap
 tabset_panel <- function(...) {
   tabs <- list(...)
   active <- function(i) if (i == 1) "active"

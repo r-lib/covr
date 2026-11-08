@@ -89,7 +89,9 @@ commit the badge to the repository when you update your README.
 
 For local development a coverage report can be used to inspect coverage for
 each line in your package. *Note* requires the
-[DT](https://github.com/rstudio/DT) package to be installed.
+[htmltools](https://github.com/rstudio/htmltools) package to be installed.
+`report_html()` creates the same report to include in an R Markdown or Quarto
+document.
 
 ```r
 library(covr)
