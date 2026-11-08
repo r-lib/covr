@@ -1,0 +1,5 @@
+Tracing function "get_tokens" in package "namespace:covr"
+[1] "get_tokens"
+load + trace_environment(): 4.28 s
+getParseData(srcref) fallbacks: 0 calls, 0.00 s
+integer(0)

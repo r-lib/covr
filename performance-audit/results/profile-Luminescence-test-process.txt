@@ -1,0 +1,67 @@
+sampling time: 138.25 s
+
+by self:
+                   self.time self.pct total.time total.pct
+"covr:::count"         17.31    12.52      22.43     16.22
+"lambertW0_C"           6.70     4.85       6.70      4.85
+"calc_Huntley2006"      6.27     4.54      26.63     19.26
+"isTRUE"                5.32     3.85       5.32      3.85
+"eval"                  3.86     2.79       3.91      2.83
+"suppressMessages"      3.85     2.78     134.08     96.98
+".Call"                 3.68     2.66       3.68      2.66
+".External2"            2.92     2.11       2.92      2.11
+"exp"                   2.79     2.02       2.79      2.02
+"putconst"              2.58     1.87       2.58      1.87
+"<Anonymous>"           2.55     1.84      29.69     21.48
+"rnorm"                 2.32     1.68       2.32      1.68
+"FUN"                   1.80     1.30      33.02     23.88
+"%in%"                  1.70     1.23       1.70      1.23
+"f"                     1.58     1.14       4.60      3.33
+"numericDeriv"          1.58     1.14       1.73      1.25
+"fn"                    1.52     1.10       4.53      3.28
+"/"                     1.42     1.03       1.42      1.03
+"findCenvVar"           1.33     0.96       2.63      1.90
+"cb$putconst"           1.30     0.94       1.30      0.94
+"cb$putcode"            1.25     0.90       3.80      2.75
+"is.na"                 1.20     0.87       1.20      0.87
+"lapply"                1.15     0.83      17.86     12.92
+"length"                1.11     0.80       1.11      0.80
+"parse_children"        1.03     0.75       1.96      1.42
+"^"                     1.00     0.72       1.00      0.72
+"as.list"               0.99     0.72       0.99      0.72
+"vapply"                0.95     0.69      16.91     12.23
+"plot.xy"               0.87     0.63       1.02      0.74
+".Fortran"              0.85     0.61       0.85      0.61
+
+by total:
+                                 total.time total.pct self.time self.pct
+"suppressMessages"                   134.08     96.98      3.85     2.78
+"FUN"                                 33.02     23.88      1.80     1.30
+"<Anonymous>"                         29.69     21.48      2.55     1.84
+"calc_Huntley2006"                    26.63     19.26      6.27     4.54
+"covr:::count"                        22.43     16.22     17.31    12.52
+"lapply"                              17.86     12.92      1.15     0.83
+"cmpfun"                              17.67     12.78      0.00     0.00
+"compiler:::tryCmpfun"                17.67     12.78      0.00     0.00
+"vapply"                              16.91     12.23      0.95     0.69
+"h"                                   16.17     11.70      0.32     0.23
+"genCode"                             15.19     10.99      0.03     0.02
+"cmpCall"                             15.09     10.92      0.44     0.32
+"cmp"                                 15.09     10.92      0.28     0.20
+"tryInline"                           15.09     10.92      0.21     0.15
+"calc_FadingCorr"                     11.39      8.24      0.43     0.31
+"uniroot"                              7.87      5.69      0.56     0.41
+"lamW::lambertW0"                      6.77      4.90      0.07     0.05
+"lambertW0_C"                          6.70      4.85      6.70     4.85
+"cmpCallArgs"                          5.50      3.98      0.25     0.18
+"cmpCallSymFun"                        5.45      3.94      0.07     0.05
+"isTRUE"                               5.32      3.85      5.32     3.85
+"calc_Kars2008"                        5.00      3.62      0.00     0.00
+"mapply"                               4.92      3.56      0.28     0.20
+"cmpSymbolAssign"                      4.76      3.44      0.02     0.01
+"analyse_SAR.CWOSL"                    4.72      3.41      0.01     0.01
+"f"                                    4.60      3.33      1.58     1.14
+"fn"                                   4.53      3.28      1.52     1.10
+"plot_GrowthCurve"                     4.39      3.18      0.06     0.04
+"suppressPackageStartupMessages"       4.17      3.02      0.19     0.14
+"sapply"                               3.97      2.87      0.10     0.07

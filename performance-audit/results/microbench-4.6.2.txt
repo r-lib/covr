@@ -1,0 +1,28 @@
+R 4.6.2, empty loop 4 ns/iteration (subtracted)
+
+cheap base R op: x + 1                                               46 ns
+covr:::count(key) (what instrumented code calls)                   1315 ns
+count(key), closure inlined in the call (no `:::`)                 1192 ns
+`:::`(covr, count) lookup alone                                      58 ns
+.counters[[key]]$value <- .counters[[key]]$value + 1L alone         444 ns
+isTRUE(.current_test$record) alone                                  333 ns
+alt: count_env(e): e$value <- e$value + 1L, inlined closure         358 ns
+alt: count_idx(i): integer vector in an env, inlined closure        823 ns
+alt: inline `e$value <- e$value + 1L` (no call)                      60 ns
+alt: `$<-`(<env constant>, "value", <env>$value + 1L)               297 ns
+alt: count() without the isTRUE(.current_test$record) check         769 ns
+alt: .Call(<native symbol>, <index constant>) C counter              29 ns
+  (C counter after the runs: 5000010, expected 5000010)
+f(3) uninstrumented (4 statements evaluated)                        210 ns
+f(3) instrumented by trace_calls()                                 4622 ns
+[1] 7
+  -> 3 counts per call, 1471 ns overhead per count (22.0x slower)
+
+trace file Luminescence-trace.rds: 15569 traces, 1.6 MB on disk
+portable_srcfiles() (save_trace's srcfile copy)                   0.211 s
+saveRDS() gzip (default)                                          0.295 s
+  size 1.6 MB
+saveRDS(compress = FALSE)                                         0.073 s
+  size 9.8 MB
+readRDS()                                                         0.137 s
+serialized: 9.8 MB; counts alone: 1.109 MB

@@ -1,0 +1,65 @@
+ rep  mode   jit  load   tests n_counts n_if_counts n_if_statements n_traces
+   1 plain  TRUE 0.012   6.479       NA          NA              NA       NA
+   1 instr  TRUE 0.405   7.204    33718       13468             208      879
+   1 plain FALSE 0.005   6.862       NA          NA              NA       NA
+   1 instr FALSE 0.497   6.779    33718       13468             208      879
+   2 plain  TRUE 0.013   6.376       NA          NA              NA       NA
+   2 instr  TRUE 0.404   6.856    33718       13468             208      879
+   2 plain FALSE 0.005   6.923       NA          NA              NA       NA
+   2 instr FALSE 0.391   7.552    33718       13468             208      879
+   1 plain  TRUE 0.025   2.475       NA          NA              NA       NA
+   1 instr  TRUE 0.143   2.723     9697        4094             154      736
+   1 plain FALSE 0.019   2.349       NA          NA              NA       NA
+   1 instr FALSE 0.146   2.413     9697        4094             154      736
+   2 plain  TRUE 0.025   2.423       NA          NA              NA       NA
+   2 instr  TRUE 0.145   2.757     9697        4094             154      736
+   2 plain FALSE 0.018   2.381       NA          NA              NA       NA
+   2 instr FALSE 0.136   2.368     9697        4094             154      736
+   1 plain  TRUE 0.145  82.927       NA          NA              NA       NA
+   1 instr  TRUE 4.070 149.247 19849462     8620002            3510    16158
+   1 plain FALSE 0.125  83.168       NA          NA              NA       NA
+   1 instr FALSE 4.210 142.809 19849462     8620002            3510    16158
+   2 plain  TRUE 0.141  82.676       NA          NA              NA       NA
+   2 instr  TRUE 3.941 145.978 19849462     8620002            3510    16158
+   2 plain FALSE 0.138  82.336       NA          NA              NA       NA
+   2 instr FALSE 4.054 143.213 19849462     8620002            3510    16158
+       covr          pkg
+       <NA>    checkmate
+ 3.6.5.9002    checkmate
+       <NA>    checkmate
+ 3.6.5.9002    checkmate
+       <NA>    checkmate
+ 3.6.5.9002    checkmate
+       <NA>    checkmate
+ 3.6.5.9002    checkmate
+       <NA>      forcats
+ 3.6.5.9002      forcats
+       <NA>      forcats
+ 3.6.5.9002      forcats
+       <NA>      forcats
+ 3.6.5.9002      forcats
+       <NA>      forcats
+ 3.6.5.9002      forcats
+       <NA> Luminescence
+ 3.6.5.9002 Luminescence
+       <NA> Luminescence
+ 3.6.5.9002 Luminescence
+       <NA> Luminescence
+ 3.6.5.9002 Luminescence
+       <NA> Luminescence
+ 3.6.5.9002 Luminescence
+
+medians
+          pkg  mode   jit   load    tests
+    checkmate instr FALSE 0.4440   7.1655
+      forcats instr FALSE 0.1410   2.3905
+ Luminescence instr FALSE 4.1320 143.0110
+    checkmate plain FALSE 0.0050   6.8925
+      forcats plain FALSE 0.0185   2.3650
+ Luminescence plain FALSE 0.1315  82.7520
+    checkmate instr  TRUE 0.4045   7.0300
+      forcats instr  TRUE 0.1440   2.7400
+ Luminescence instr  TRUE 4.0055 147.6125
+    checkmate plain  TRUE 0.0125   6.4275
+      forcats plain  TRUE 0.0250   2.4490
+ Luminescence plain  TRUE 0.1430  82.8015
