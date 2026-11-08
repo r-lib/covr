@@ -8,6 +8,12 @@
 
 * New `vignette("shiny")` describes how to measure the coverage of Shiny apps,
   including tests run with shinytest2 and apps that aren't in a package (#277).
+* New `report_html()` returns the coverage report of `report()` as HTML that
+  can be included in a larger document, such as an R Markdown or Quarto
+  document. The report's styles and scripts only apply to the report, and it
+  no longer uses Bootstrap's JavaScript or replaces the document's
+  highlight.js, so a document can include several reports without changing
+  the rest of the page (#316).
 
 * `package_coverage()` now measures the coverage of installed packages, e.g.
   `package_coverage(system.file(package = "pkg"))`, so the package source isn't
@@ -25,18 +31,6 @@
     loop, like tests with srcrefs. Each run was recorded as a new test, and
     finding the test got slower with every run, so the coverage of bitops
     never finished.
-
-* `to_cobertura()` now only lists the lines of a method from the file it is
-  defined in. Previously methods sharing a name across files, such as the
-  `initialize()` methods of R6 classes, listed each other's lines, so Codecov
-  showed line numbers past the end of the file and a different coverage than
-  `print()` (#629).
-* New `report_html()` returns the coverage report of `report()` as HTML that
-  can be included in a larger document, such as an R Markdown or Quarto
-  document. The report's styles and scripts only apply to the report, and it
-  no longer uses Bootstrap's JavaScript or replaces the document's
-  highlight.js, so a document can include several reports without changing
-  the rest of the page (#316).
 
 * `to_cobertura()` now only lists the lines of a method from the file it is
   defined in. Previously methods sharing a name across files, such as the
