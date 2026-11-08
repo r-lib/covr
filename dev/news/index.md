@@ -2,6 +2,13 @@
 
 ## covr (development version)
 
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  no longer discards the coverage measured so far, or fails with “‘from’
+  must be a finite number”, when `code` loads the package again with
+  [`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html),
+  e.g. via `devtools::test()`
+  ([\#641](https://github.com/r-lib/covr/issues/641)).
+
 - Line coverage is now computed the same way everywhere, so
   [`print()`](https://rdrr.io/r/base/print.html),
   [`percent_coverage()`](https://covr.r-lib.org/dev/reference/percent_coverage.md),
