@@ -43,6 +43,10 @@
   library paths to the R processes running the tests as site libraries, which
   renv removes from the library paths when it is loaded, so covr, the package
   and its dependencies could no longer be found (#560).
+* `package_coverage()` gains a `show_code_output` argument. If `TRUE`, the
+  output of `code` is shown on the console while it runs, e.g. to follow it in
+  the logs of a CI job, rather than only being shown when `code` fails
+  (@gergness, #558).
 
 * `report()`, `file_report()` and the coverage percentages printed in the
   console can use other colors for covered and missed code, set with the new

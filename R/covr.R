@@ -755,10 +755,10 @@ with_coverage <- function(
 #' @param function_exclusions a vector of regular expressions matching function
 #' names to exclude. Example `print\\\.` to match print methods.
 #' @param code A character vector of additional test code to run.
-#' @param code_stdout If `TRUE`, the output of `code` (including messages,
-#'   warnings and errors) is shown on the console while it runs, e.g. to follow
-#'   it in the logs of a CI job. The default, `FALSE`, only saves it to a file in
-#'   `install_path`, which is shown if `code` fails.
+#' @param show_code_output If `TRUE`, the output of `code` is shown on the
+#'   console while it runs, e.g. to follow it in the logs of a CI job. The
+#'   default, `FALSE`, only saves it to a file in `install_path`, which is shown
+#'   if `code` fails.
 #' @param ... Additional arguments passed to [tools::testInstalledPackage()].
 #'   Use `outDir` to save the output of the tests and examples to a directory
 #'   which is kept after coverage finishes; by default it is written to
@@ -797,7 +797,7 @@ package_coverage <- function(
   exclusions,
   pre_clean = TRUE,
   allow_failures = getOption("covr.allow_failures", FALSE),
-  code_stdout = FALSE
+  show_code_output = FALSE
 ) {
   if (!missing(exclusions)) {
     covr_warn(c(
@@ -995,7 +995,12 @@ package_coverage <- function(
 
             # We always run the commands file (even if empty) to load the package and
             # initialize all the counters to 0.
-            run_commands(pkg, install_path, code, code_stdout = code_stdout)
+            run_commands(
+              pkg,
+              install_path,
+              code,
+              show_output = show_code_output
+            )
           },
           message = function(e) {
             if (quiet) invokeRestart("muffleMessage") else e
@@ -1493,21 +1498,19 @@ run_vignettes <- function(pkg, lib) {
   }
 }
 
-run_commands <- function(pkg, lib, commands, code_stdout = FALSE) {
+run_commands <- function(pkg, lib, commands, show_output = FALSE) {
   outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
   failfile <- paste(outfile, "fail", sep = ".")
-  commands <- c(paste0("library('", pkg$package, "')"), commands)
-  if (isTRUE(code_stdout)) {
-    # The output is read from the R process's stdout, so messages, warnings
-    # and errors are diverted there. Echoing is only turned on afterwards, so
-    # the output starts with the commands, as in `R CMD BATCH`.
-    writeLines(
-      c("sink(stdout(), type = 'message')", "options(echo = TRUE)", commands),
-      con = outfile
-    )
+  writeLines(
+    c(
+      paste0("library('", pkg$package, "')"),
+      commands
+    ),
+    con = outfile
+  )
+  if (isTRUE(show_output)) {
     res <- run_r_live(outfile, failfile)
   } else {
-    writeLines(commands, con = outfile)
     cmd <- paste(
       shQuote(file.path(R.home("bin"), "R")),
       "CMD BATCH --vanilla --no-timing",
@@ -1523,32 +1526,26 @@ run_commands <- function(pkg, lib, commands, code_stdout = FALSE) {
   }
 }
 
-# Run the R script `infile` in a new R process, showing its stdout on the
-# console as it runs and saving it to `outfile`. Returns the exit status.
+# Run the R script `infile` like `R CMD BATCH` does, but also show its stdout
+# and stderr on the console (on stdout and stderr respectively) as it runs.
+# Both are saved to `outfile`, in the order they are read. Returns the exit
+# status.
 run_r_live <- function(infile, outfile) {
-  cmd <- paste(
-    shQuote(file.path(R.home("bin"), "R")),
-    "--vanilla --slave -f",
-    shQuote(infile)
-  )
-  if (.Platform$OS.type == "windows") {
-    # pipe() runs the command with `cmd.exe /c`, which strips the first and
-    # last quotes of a command with more than two of them.
-    cmd <- paste0("\"", cmd, "\"")
-  }
-  out <- file(outfile, "w")
+  out <- file(outfile, "wb")
   on.exit(close(out))
-  con <- pipe(cmd, "r")
-  # Close the pipe if reading is interrupted; normally it is closed below to
-  # get the exit status.
-  on.exit(if (!is.null(con)) close(con), add = TRUE)
-  while (length(line <- readLines(con, n = 1L, warn = FALSE)) > 0L) {
-    writeLines(line)
-    writeLines(line, out)
+  show <- function(con) {
+    function(x) {
+      cat(rawToChar(x), file = con)
+      writeBin(x, out)
+    }
   }
-  status <- close(con)
-  con <- NULL
-  if (is.null(status)) 0L else status
+  name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
+  sys::exec_wait(
+    file.path(R.home("bin"), name),
+    c("--vanilla", "--quiet", "-f", infile),
+    std_out = show(stdout()),
+    std_err = show(stderr())
+  )
 }
 
 # Add hooks to the installed package

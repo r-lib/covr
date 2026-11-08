@@ -43,39 +43,41 @@ test_that("package_coverage runs additional test code", {
 })
 
 test_that("package_coverage can show the output of code while it runs", {
-  expect_output(
-    cov <- package_coverage(
-      "TestS4",
-      type = "none",
-      code = c("a(1)", "message('from code')"),
-      code_stdout = TRUE
+  stderr <- capture.output(
+    stdout <- capture.output(
+      cov <- package_coverage(
+        "TestS4",
+        type = "none",
+        code = c("a(1)", "message('from code')"),
+        show_code_output = TRUE
+      )
     ),
-    "> a(1)\n[1] 1\n> message('from code')\nfrom code",
-    fixed = TRUE
+    type = "message"
   )
+  expect_equal(
+    stdout,
+    c("> library('TestS4')", "> a(1)", "[1] 1", "> message('from code')", "> ")
+  )
+  expect_equal(stderr, "from code")
   expect_gt(percent_coverage(cov), 0.00)
 })
 
 test_that("package_coverage reports failures of code shown while it runs", {
-  expect_output(
-    err <- expect_error(
-      package_coverage(
-        "TestS4",
-        type = "none",
-        code = "stop('boom')",
-        code_stdout = TRUE
-      ),
-      class = "covr_error"
+  stderr <- capture.output(
+    stdout <- capture.output(
+      err <- expect_error(
+        package_coverage(
+          "TestS4",
+          type = "none",
+          code = "stop('boom')",
+          show_code_output = TRUE
+        ),
+        class = "covr_error"
+      )
     ),
-    "Error: boom"
+    type = "message"
   )
-  expect_equal(
-    err$output,
-    c(
-      "> library('TestS4')",
-      "> stop('boom')",
-      "Error: boom",
-      "Execution halted"
-    )
-  )
+  expect_equal(stdout, c("> library('TestS4')", "> stop('boom')"))
+  expect_equal(stderr, c("Error: boom", "Execution halted"))
+  expect_contains(err$output, c("> stop('boom')", "Error: boom"))
 })
