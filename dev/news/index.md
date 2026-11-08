@@ -10,6 +10,16 @@
   `options(covr.full_traversal = TRUE)`
   ([\#113](https://github.com/r-lib/covr/issues/113)).
 
+- New
+  [`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md)
+  measures the coverage of arbitrary code, such as
+  [`testthat::test_file()`](https://testthat.r-lib.org/reference/test_file.html),
+  run against an environment like a package namespace loaded with
+  [`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html).
+  This allows tools such as `devtools::test_coverage_active_file()` to
+  use testthat’s own runner instead of recreating it (related to
+  [\#543](https://github.com/r-lib/covr/issues/543)).
+
 - [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
   gains `by = "function"`, with one row for each function, so
   `zero_coverage(cov, by = "function")` lists the functions that were

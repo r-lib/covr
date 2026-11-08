@@ -333,6 +333,8 @@ By contributing to this project, you agree to abide by its terms.
   : Truncate call objects to limit the number of arguments
 - [`value()`](https://covr.r-lib.org/dev/reference/value.md) : Retrieve
   the execution counts from a coverage object
+- [`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md)
+  : Calculate coverage of arbitrary code run against an environment
 - [`zero_coverage()`](https://covr.r-lib.org/dev/reference/zero_coverage.md)
   : Provide locations of zero coverage
 
