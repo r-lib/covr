@@ -78,6 +78,15 @@ test file. \code{expect_snapshot()} also needs testthat's 3rd edition (e.g.
 For more control, source the files yourself and use \code{\link[=with_coverage]{with_coverage()}}.
 }
 
+\section{Files from a package}{
+
+To make the package's other functions available, load the package (e.g.
+with \code{pkgload::load_all()}) and use \code{parent_env = asNamespace("pkg")}.
+Calls from other package files use the namespace's untraced functions, so
+don't count. \code{\link[devtools:test_coverage_active_file]{devtools::test_coverage_active_file()}} measures the coverage
+of one file of a package without this limitation.
+}
+
 \examples{
 # For the purpose of this example, save code containing code and tests to files
 cat("add <- function(x, y) { x + y }", file="add.R")
