@@ -569,64 +569,57 @@ sort_file_stats <- function(stats) {
 }
 
 renderSourceTable <- function(data, class = "covr-hidden") {
-  htmltools::div(
-    class = "covr-files",
-    Map(
-      function(lines, file) {
-        htmltools::div(
-          `data-file` = file,
-          class = class,
-          htmltools::tags$table(
-            class = "table-condensed",
-            htmltools::tags$tbody(
-              lapply(seq_len(NROW(lines)), function(row_num) {
-                coverage <- lines[row_num, "coverage"]
-
-                cov_type <- NULL
-                if (coverage == 0) {
-                  cov_value <- "!"
-                  cov_type <- "missed"
-                } else if (coverage > 0) {
-                  cov_value <- htmltools::HTML(paste0(
-                    lines[row_num, "coverage"],
-                    "<em>x</em>",
-                    collapse = ""
-                  ))
-                  cov_type <- "covered"
-                } else {
-                  cov_type <- "never"
-                  cov_value <- ""
-                }
-                htmltools::tags$tr(
-                  class = cov_type,
-                  htmltools::tags$td(class = "num", lines[row_num, "line"]),
-                  htmltools::tags$td(class = "coverage", cov_value),
-                  htmltools::tags$td(
-                    class = "covr-source",
-                    htmltools::pre(
-                      class = "language-r",
-                      lines[row_num, "source"]
-                    )
-                  )
-                )
-              })
-            )
-          )
-        )
-      },
-      lines = data,
-      file = names(data)
-    ),
-    # Only the code of this report, if a document includes several
-    htmltools::tags$script(
-      "(function(script) {
+  class_attr <- htmltools::htmlEscape(class, attribute = TRUE)
+  files <- Map(
+    function(lines, file) {
+      cov <- lines$coverage
+      type <- ifelse(
+        cov == "",
+        "never",
+        ifelse(cov == "0", "missed", "covered")
+      )
+      value <- ifelse(
+        cov == "",
+        "",
+        ifelse(cov == "0", "!", paste0(cov, "<em>x</em>"))
+      )
+      rows <- paste0(
+        "<tr class=\"",
+        type,
+        "\"><td class=\"num\">",
+        lines$line,
+        "</td><td class=\"coverage\">",
+        value,
+        "</td><td class=\"covr-source\"><pre class=\"language-r\">",
+        htmltools::htmlEscape(lines$source),
+        "</pre></td></tr>",
+        collapse = "\n"
+      )
+      paste0(
+        "<div data-file=\"",
+        htmltools::htmlEscape(file, attribute = TRUE),
+        "\" class=\"",
+        class_attr,
+        "\"><table class=\"table-condensed\"><tbody>\n",
+        rows,
+        "\n</tbody></table></div>"
+      )
+    },
+    data,
+    names(data)
+  )
+  htmltools::HTML(paste0(
+    "<div class=\"covr-files\">",
+    paste(files, collapse = "\n"),
+    "\n<script>",
+    "(function(script) {
   var files = script ? script.parentNode : document;
   files.querySelectorAll('div.covr-files pre').forEach(function(block) {
     covrHljs.highlightBlock(block);
   });
-})(document.currentScript);"
-    )
-  )
+})(document.currentScript);",
+    "</script></div>"
+  ))
 }
 
 # covr's copy of highlight.js sets `covrHljs` rather than `hljs`, so it doesn't

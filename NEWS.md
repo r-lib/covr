@@ -1,5 +1,9 @@
 # covr (development version)
 
+* `report()` and `report_html()` build the source tables with string operations
+  rather than htmltools tag objects, which makes them much faster for large
+  packages (e.g. Luminescence, from about 354 s to a few seconds).
+
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
   which is much faster than `package_coverage()` (#605). It loads the package
