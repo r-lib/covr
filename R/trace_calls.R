@@ -8,6 +8,12 @@
 #' @param impute_ref a function returning the srcref of the current call, if it
 #'   has no srcref of its own. It is only called to impute srcrefs for nested
 #'   conditionals, so the expressions in their branches get their own counters.
+#' @param test_file a test file tracer from `new_test_file_tracer()`, to
+#'   instrument the code of a test file rather than a function (see
+#'   `instrument_test_file()`). The traces are then counted with
+#'   `count_test_file()`, the arguments of calls that quote code (such as
+#'   `quote()` or `testthat::expect_snapshot()`) are left alone, and the
+#'   srcrefs of the instrumented code are kept.
 #' @seealso <http://adv-r.had.co.nz/Expressions.html>
 #' @return a modified expression with count calls inserted before each previous
 #' call.
@@ -16,26 +22,40 @@ trace_calls <- function(
   x,
   parent_functions = NULL,
   parent_ref = NULL,
-  impute_ref = NULL
+  impute_ref = NULL,
+  test_file = NULL
 ) {
   # Construct the calls by hand to avoid a NOTE from R CMD check
-  count <- function(key, val) {
-    call(
-      "if",
-      TRUE,
-      call(
-        "{",
-        as.call(list(call(":::", as.symbol("covr"), as.symbol("count")), key)),
-        val
-      )
+  count <- function(src_ref, val) {
+    if (is.null(test_file)) {
+      key <- new_counter(src_ref, parent_functions)
+      counter <- "count"
+    } else {
+      key <- test_file_counter(test_file, src_ref, parent_functions)
+      counter <- "count_test_file"
+    }
+    block <- call(
+      "{",
+      as.call(list(call(":::", as.symbol("covr"), as.symbol(counter)), key)),
+      val
     )
+    if (!is.null(test_file)) {
+      # So calls in `val` have the srcref of the original expression
+      attr(block, "srcref") <- list(src_ref, src_ref, src_ref)
+    }
+    call("if", TRUE, block)
   }
 
   if (is.null(parent_functions)) {
     parent_functions <- deparse(substitute(x))
   }
   recurse <- function(y) {
-    lapply(y, trace_calls, parent_functions = parent_functions)
+    lapply(
+      y,
+      trace_calls,
+      parent_functions = parent_functions,
+      test_file = test_file
+    )
   }
   # `ref` is a function returning the srcref of `y`. The srcrefs of the
   # components of `y` are only looked up in the parse data when a conditional
@@ -59,7 +79,8 @@ trace_calls <- function(
         trace_calls(
           z,
           parent_functions = parent_functions,
-          impute_ref = child_ref(i)
+          impute_ref = child_ref(i),
+          test_file = test_file
         )
       },
       y,
@@ -74,11 +95,14 @@ trace_calls <- function(
       if (is_na(x) || is_brace(x)) {
         x
       } else {
-        key <- new_counter(parent_ref, parent_functions) # nolint
-        count(key, x)
+        count(parent_ref, x)
       }
     }
   } else if (is.call(x)) {
+    if (!is.null(test_file) && is_quoting_call(x)) {
+      return(if (is.null(parent_ref)) x else count(parent_ref, x))
+    }
+
     # `impute_srcref()` only evaluates its `parent_ref` argument for
     # conditionals, so `impute_ref()` is not called for other calls.
     src_ref <- attr(x, "srcref") %||%
@@ -99,15 +123,21 @@ trace_calls <- function(
     ) {
       as.call(x)
     } else if (!is.null(src_ref)) {
-      as.call(Map(
+      res <- as.call(Map(
         trace_calls,
         x,
         src_ref,
-        MoreArgs = list(parent_functions = parent_functions)
+        MoreArgs = list(
+          parent_functions = parent_functions,
+          test_file = test_file
+        )
       ))
+      if (!is.null(test_file)) {
+        attributes(res) <- attributes(x)
+      }
+      res
     } else if (!is.null(parent_ref)) {
-      key <- new_counter(parent_ref, parent_functions)
-      count(key, as.call(recurse_imputed(x, function() parent_ref)))
+      count(parent_ref, as.call(recurse_imputed(x, function() parent_ref)))
     } else {
       as.call(recurse_imputed(x, impute_ref))
     }
@@ -124,20 +154,24 @@ trace_calls <- function(
         (is.symbol(fun_body) || !identical(fun_body[[1]], as.name("{")))
     ) {
       src_ref <- attr(x, "srcref")
-      key <- new_counter(src_ref, parent_functions)
       fun_body <- count(
-        key,
+        src_ref,
         trace_calls(
           fun_body,
           parent_functions,
-          impute_ref = function() impute_body_srcref(src_ref)
+          impute_ref = function() impute_body_srcref(src_ref),
+          test_file = test_file
         )
       )
     } else {
-      fun_body <- trace_calls(fun_body, parent_functions)
+      fun_body <- trace_calls(fun_body, parent_functions, test_file = test_file)
     }
 
-    new_formals <- trace_calls(formals(x), parent_functions)
+    new_formals <- trace_calls(
+      formals(x),
+      parent_functions,
+      test_file = test_file
+    )
     if (is.null(new_formals)) {
       new_formals <- list()
     }

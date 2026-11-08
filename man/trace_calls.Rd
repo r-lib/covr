@@ -4,7 +4,13 @@
 \alias{trace_calls}
 \title{trace each call with a srcref attribute}
 \usage{
-trace_calls(x, parent_functions = NULL, parent_ref = NULL, impute_ref = NULL)
+trace_calls(
+  x,
+  parent_functions = NULL,
+  parent_ref = NULL,
+  impute_ref = NULL,
+  test_file = NULL
+)
 }
 \arguments{
 \item{x}{the call}
@@ -17,6 +23,13 @@ the recursion.}
 \item{impute_ref}{a function returning the srcref of the current call, if it
 has no srcref of its own. It is only called to impute srcrefs for nested
 conditionals, so the expressions in their branches get their own counters.}
+
+\item{test_file}{a test file tracer from \code{new_test_file_tracer()}, to
+instrument the code of a test file rather than a function (see
+\code{instrument_test_file()}). The traces are then counted with
+\code{count_test_file()}, the arguments of calls that quote code (such as
+\code{quote()} or \code{testthat::expect_snapshot()}) are left alone, and the
+srcrefs of the instrumented code are kept.}
 }
 \value{
 a modified expression with count calls inserted before each previous

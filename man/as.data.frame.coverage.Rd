@@ -25,7 +25,9 @@ each line of compiled code, and the columns:
 \item \code{filename}: the source file, relative to the \code{root} attribute of \code{x}
 (the package directory, for \code{\link[=package_coverage]{package_coverage()}}) if there is one.
 \item \code{functions}: the name of the function containing the expression, or
-\code{NA} for compiled code.
+\code{NA} for compiled code. For the code of test files (see
+\code{include_tests} in \code{\link[=package_coverage]{package_coverage()}}), the description of the test
+or \code{"(top level)"} for code outside of tests and functions.
 \item \code{first_line}, \code{last_line}: the lines the expression starts and ends on.
 \item \code{first_byte}, \code{last_byte}: the bytes of those lines the expression
 starts and ends at.

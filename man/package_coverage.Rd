@@ -19,7 +19,8 @@ package_coverage(
   exclusions,
   pre_clean = TRUE,
   allow_failures = getOption("covr.allow_failures", FALSE),
-  show_code_output = FALSE
+  show_code_output = FALSE,
+  include_tests = FALSE
 )
 }
 \arguments{
@@ -78,6 +79,10 @@ on the first failure. The default can be changed with the
 console while it runs, e.g. to follow it in the logs of a CI job. The
 default, \code{FALSE}, only saves it to a file in \code{install_path}, which is shown
 if \code{code} fails.}
+
+\item{include_tests}{If \code{TRUE}, also measure the coverage of the test files,
+when the tests are run. See the section on coverage of test files. The
+default is \code{FALSE}.}
 }
 \value{
 A \link{coverage} object. If \code{combine_types = FALSE} and more than one
@@ -113,6 +118,28 @@ environment variable \code{COVR_FIX_PARALLEL_MCEXIT} or the global option
 \code{covr.fix_parallel_mcexit}.
 #endif
 }
+\section{Coverage of test files}{
+
+With \code{include_tests = TRUE}, the coverage also includes the files that run
+the tests: the scripts in \verb{tests/} and the test, helper, setup and teardown
+files in \verb{tests/testthat/}. This shows test helpers that are never used, and
+tests that don't run, e.g. because they are skipped. Other files, such as
+fixtures in subdirectories of \verb{tests/testthat/} or files sourced by the
+tests, are not included. The test files are named in the coverage like the
+package files (e.g. \code{tests/testthat/test-foo.R}), so they can be told apart
+in the coverage report, or by Codecov components or flags based on paths.
+
+The installed copy of each test file is replaced by a call that runs an
+instrumented version of its code, which is otherwise run as before. The
+arguments of calls that quote code, such as \code{quote()}, \code{bquote()} and
+\code{testthat::expect_snapshot()}, are not instrumented, so they are unchanged,
+e.g. when they are deparsed. Code within other calls which capture their
+code with \code{\link[=substitute]{substitute()}} is instrumented, so when deparsed it shows the
+extra calls that count it. The functions of the coverage of a test file
+(see \code{\link[=as.data.frame.coverage]{as.data.frame.coverage()}}) are the descriptions of the tests, the
+names of the functions it defines, or \code{"(top level)"} for other code.
+}
+
 \seealso{
 \code{\link[=exclusions]{exclusions()}} For details on excluding parts of the
 package from the coverage calculations.

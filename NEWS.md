@@ -37,6 +37,11 @@
   output of `code` is shown on the console while it runs, e.g. to follow it in
   the logs of a CI job, rather than only being shown when `code` fails
   (@gergness, #558).
+* `package_coverage()` gains an `include_tests` argument to also measure the
+  coverage of the test files: the scripts in `tests/` and the test, helper,
+  setup and teardown files in `tests/testthat/`. This shows unused test
+  helpers and tests that don't run, e.g. because they are skipped, and the
+  test files can be given their own Codecov components or flags (#541).
 
 * `file_report()` now highlights the syntax of the source code, which failed
   with JavaScript errors because the report didn't include jQuery.

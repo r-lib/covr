@@ -193,13 +193,15 @@ reset_traces <- function() {
 #
 # If serializing the counters fails (e.g. with ALTREP vectors, #509) an error
 # marker is written instead, so the main process can report the failed save.
-save_trace <- function(directory) {
+# `counters` is `.test_counters` for the counts of test files (see
+# `run_traced_file()`).
+save_trace <- function(directory, counters = .counters) {
   final_file <- temp_file("covr_trace_", tmpdir = directory)
   tmp_file <- temp_file(".covr_tmp_", tmpdir = directory)
   on.exit(unlink(tmp_file), add = TRUE)
 
   tryCatch(
-    save_rds(portable_srcfiles(.counters), tmp_file),
+    save_rds(portable_srcfiles(counters), tmp_file),
     error = function(e) {
       marker <- structure(
         list(message = conditionMessage(e), pid = Sys.getpid()),
@@ -734,6 +736,26 @@ with_coverage <- function(
 #' `covr.fix_parallel_mcexit`.
 #' #endif
 #'
+#' @section Coverage of test files:
+#' With `include_tests = TRUE`, the coverage also includes the files that run
+#' the tests: the scripts in `tests/` and the test, helper, setup and teardown
+#' files in `tests/testthat/`. This shows test helpers that are never used, and
+#' tests that don't run, e.g. because they are skipped. Other files, such as
+#' fixtures in subdirectories of `tests/testthat/` or files sourced by the
+#' tests, are not included. The test files are named in the coverage like the
+#' package files (e.g. `tests/testthat/test-foo.R`), so they can be told apart
+#' in the coverage report, or by Codecov components or flags based on paths.
+#'
+#' The installed copy of each test file is replaced by a call that runs an
+#' instrumented version of its code, which is otherwise run as before. The
+#' arguments of calls that quote code, such as `quote()`, `bquote()` and
+#' `testthat::expect_snapshot()`, are not instrumented, so they are unchanged,
+#' e.g. when they are deparsed. Code within other calls which capture their
+#' code with [substitute()] is instrumented, so when deparsed it shows the
+#' extra calls that count it. The functions of the coverage of a test file
+#' (see [as.data.frame.coverage()]) are the descriptions of the tests, the
+#' names of the functions it defines, or `"(top level)"` for other code.
+#'
 #' @param path file path to the package.
 #' @param type run the package \sQuote{tests}, \sQuote{vignettes},
 #' \sQuote{examples}, \sQuote{all}, or \sQuote{none}. The default is
@@ -776,6 +798,9 @@ with_coverage <- function(
 #'   tracked. The default, `FALSE`, throws an error (with class `covr_error`)
 #'   on the first failure. The default can be changed with the
 #'   `covr.allow_failures` option, e.g. `options(covr.allow_failures = TRUE)`.
+#' @param include_tests If `TRUE`, also measure the coverage of the test files,
+#'   when the tests are run. See the section on coverage of test files. The
+#'   default is `FALSE`.
 #' @return A [coverage] object. If `combine_types = FALSE` and more than one
 #'   `type` is run, a list of class `coverages` with one coverage object for
 #'   each type, named by type.
@@ -797,7 +822,8 @@ package_coverage <- function(
   exclusions,
   pre_clean = TRUE,
   allow_failures = getOption("covr.allow_failures", FALSE),
-  show_code_output = FALSE
+  show_code_output = FALSE,
+  include_tests = FALSE
 ) {
   if (!missing(exclusions)) {
     covr_warn(c(
@@ -926,6 +952,10 @@ package_coverage <- function(
     )
   )
 
+  test_traces <- if (isTRUE(include_tests) && "tests" %in% type) {
+    trace_test_files(pkg, install_path)
+  }
+
   libs <- env_path(install_path, .libPaths())
   # The processes only get the site libraries of this session, not all of
   # `libs`: renv removes the site libraries from the library paths when it
@@ -1041,6 +1071,12 @@ package_coverage <- function(
       }
     }
   )
+
+  # The counts of the test files are added to their traces from the main
+  # process, which have the srcrefs of the source files.
+  if (length(test_traces) > 0) {
+    coverage <- merge_coverage(compact(list(test_traces, coverage)))
+  }
 
   for (failure in failures) {
     warning(structure(
