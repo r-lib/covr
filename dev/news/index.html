@@ -44,7 +44,7 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="covr-development-version">covr (development version)<a class="anchor" aria-label="anchor" href="#covr-development-version"></a></h2>
 <ul><li>
-<p>Compiled code coverage now reads gcov’s structured JSON output (<code>gcov --json-format</code>) when gcov supports it (gcc &gt;= 9), instead of parsing its text output with regular expressions. covr still parses the text output of llvm-cov, the gcov on macOS, and older gcc (<a href="https://github.com/r-lib/covr/issues/609" class="external-link">#609</a>).</p>
+<p>Compiled code coverage now reads gcov’s structured JSON output (<code>gcov --json-format</code>) when gcov supports it (gcc &gt;= 9), instead of parsing its text output with regular expressions. covr still parses the text output of llvm-cov, the gcov on macOS, and older gcc, and falls back to it for any file whose JSON output is missing or can’t be read (<a href="https://github.com/r-lib/covr/issues/609" class="external-link">#609</a>).</p>
 <ul><li>Lines of C++ templates instantiated more than once in a file are no longer counted twice, which also stopped <code>options(covr.gcov_partial = "uncovered")</code> from working on them.</li>
 <li>Lines only reached by C++ exceptions, such as a <code>catch</code> block that never ran, now count as not covered instead of being left out of the coverage.</li>
 </ul></li>
