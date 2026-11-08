@@ -15,6 +15,8 @@
   e.g. `f <- function(x) if (x) 1 else 2` tested only with `f(TRUE)` drops from
   100% to 0% line coverage. This is more complete expression coverage, not
   branch coverage (#279).
+* `report()` no longer fails with "invalid argument to unary operator" when
+  the coverage object has no traces (#540).
 
 * `print.coverage()` gains an `n` argument to limit the number of files or
   functions printed, showing the least covered first (#215).
@@ -45,8 +47,6 @@
   processes forked by parallel's `mclapply()`, `mcparallel()` and related
   functions, as `package_coverage()` already did. Set
   `options(covr.fix_parallel_mcexit = FALSE)` to turn this off (#410).
-* `report()` no longer fails with "invalid argument to unary operator" when
-  the coverage object has no traces (#540).
 
 * `package_coverage()` now warns when an R process started by the tests, such
   as a Shiny app, callr session or future worker, loaded the package but did
