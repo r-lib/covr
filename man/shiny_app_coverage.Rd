@@ -36,9 +36,9 @@ processes that \pkg{shinytest2} starts to run it. For apps in a package, use
 \details{
 The functions defined by the app's files (\code{app.R}, \code{ui.R}, \code{server.R},
 \code{global.R} and the files in \verb{R/}) are instrumented when Shiny loads them,
-in this R process and in the R processes started while \code{code} runs. The
-server function is also instrumented when Shiny starts it, which includes
-a server function defined inline, e.g. \code{shinyApp(ui, function(input, output) ...)}. Code outside functions, such as building the UI, is not
+in this R process and in the R processes started while \code{code} runs. This
+includes a server function that isn't assigned to a name, such as the one
+in \code{server.R} or one defined inline, e.g. \code{shinyApp(ui, function(input, output) ...)}. Code outside functions, such as building the UI, is not
 counted, as in \code{\link[=package_coverage]{package_coverage()}}.
 
 This works by adding covr to the default packages of R processes started

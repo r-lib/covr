@@ -9,9 +9,9 @@
 #' @details
 #' The functions defined by the app's files (`app.R`, `ui.R`, `server.R`,
 #' `global.R` and the files in `R/`) are instrumented when Shiny loads them,
-#' in this R process and in the R processes started while `code` runs. The
-#' server function is also instrumented when Shiny starts it, which includes
-#' a server function defined inline, e.g. `shinyApp(ui, function(input,
+#' in this R process and in the R processes started while `code` runs. This
+#' includes a server function that isn't assigned to a name, such as the one
+#' in `server.R` or one defined inline, e.g. `shinyApp(ui, function(input,
 #' output) ...)`. Code outside functions, such as building the UI, is not
 #' counted, as in [package_coverage()].
 #'
@@ -60,7 +60,13 @@ shiny_app_coverage <- function(
   clear_counters()
   the$shiny_app_dir <- app_dir
   untrace_source <- trace_shiny_source()
+  restore_forks <- if (should_enable_parallel_mcexit_fix()) {
+    trace_forks(trace_dir)
+  } else {
+    function() invisible()
+  }
   on.exit({
+    restore_forks()
     untrace_source()
     lapply(rev(the$shiny_replacements), reset)
     the$shiny_replacements <- list()
@@ -146,11 +152,13 @@ start_shiny_app_tracing <- function(app_dir, trace_dir, attach_env) {
 }
 
 # Shiny sources the files of an app with its internal `sourceUTF8(file,
-# envir)`, keeping their srcrefs. The functions they define are instrumented
-# when it returns. Returns a function that removes the trace.
+# envir)`, keeping their srcrefs. The functions they define, and the server
+# function they return, are instrumented when it returns. Returns a function
+# that restores `sourceUTF8()` as it was before, e.g. traced by the user.
 trace_shiny_source <- function() {
   shiny <- asNamespace("shiny")
-  if (!all(c("file", "envir") %in% names(formals(shiny$sourceUTF8)))) {
+  original <- shiny$sourceUTF8
+  if (!all(c("file", "envir") %in% names(formals(original)))) {
     covr_warn(c(
       "Can't instrument the files of the Shiny app.",
       i = "This version of {.pkg shiny} is not supported by covr."
@@ -159,14 +167,19 @@ trace_shiny_source <- function() {
   }
   suppressMessages(trace(
     "sourceUTF8",
-    exit = as.call(list(instrument_shiny_source, quote(file), quote(envir))),
+    exit = as.call(list(
+      instrument_shiny_source,
+      quote(file),
+      quote(envir),
+      quote(returnValue())
+    )),
     where = shiny,
     print = FALSE
   ))
-  function() suppressMessages(untrace("sourceUTF8", where = shiny))
+  function() replace_binding("shiny", "sourceUTF8", original)
 }
 
-instrument_shiny_source <- function(file, env) {
+instrument_shiny_source <- function(file, env, value) {
   if (!in_shiny_app(normalize_path(file))) {
     return(invisible())
   }
@@ -175,15 +188,26 @@ instrument_shiny_source <- function(file, env) {
       instrument_shiny_function(name, env)
     }
   }
+  # A server function that isn't bound to a name, e.g. the value of
+  # `server.R` or defined inline in `shinyApp()` in `app.R`. Shiny's debug hook
+  # only sees it when a session starts, not in `testServer()`.
+  if (inherits(value, "shiny.appobj")) {
+    instrument_shiny_function("server", environment(value$serverFuncSource))
+  } else if (is.function(value)) {
+    instrument_shiny_function("server", env, value)
+  }
   invisible()
 }
 
-# Instruments the function `name` in `env` in place if it was defined in a file
-# of the app and is not instrumented yet, e.g. because it was already
-# instrumented when its file was sourced, or was created from instrumented code
-# by a render function.
-instrument_shiny_function <- function(name, env) {
-  fun <- get0(name, envir = env, inherits = FALSE)
+# Instruments the function `fun` (by default `name` in `env`) in place if it
+# was defined in a file of the app and is not instrumented yet, e.g. because
+# it was already instrumented when its file was sourced, or was created from
+# instrumented code by a render function.
+instrument_shiny_function <- function(
+  name,
+  env,
+  fun = get0(name, envir = env, inherits = FALSE)
+) {
   if (!is.function(fun) || is.primitive(fun)) {
     return(invisible())
   }
@@ -199,6 +223,11 @@ instrument_shiny_function <- function(name, env) {
 
   if (!is.null(the$shiny_trace_dir) && !isTRUE(the$shiny_trace_registered)) {
     register_trace(asNamespace("covr"), the$shiny_trace_dir)
+    # Forked processes, e.g. from `parallel::mclapply()`, exit without running
+    # the finalizer that saves the trace.
+    if (should_enable_parallel_mcexit_fix()) {
+      trace_forks(the$shiny_trace_dir)
+    }
     the$shiny_trace_registered <- TRUE
   }
   the$shiny_replacements <- c(the$shiny_replacements, list(replacement))
