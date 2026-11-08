@@ -264,6 +264,15 @@ test_that("c() drops NULL arguments", {
   expect_equal(c(cov, NULL, cov)$t1$value, 2L)
 })
 
+test_that("c() only keeps the type if all objects have it", {
+  cov <- function(type) {
+    structure(list(t1 = list(value = 1L)), type = type, class = "coverage")
+  }
+  expect_equal(attr(c(cov("tests"), cov("tests")), "type"), "tests")
+  expect_null(attr(c(cov("tests"), cov("examples")), "type"))
+  expect_null(attr(c(cov("tests"), cov(NULL)), "type"))
+})
+
 test_that("re-tracing an already traced namespace keeps the counts (#641)", {
   cov <- package_coverage(
     test_path("TestSummary"),

@@ -25,7 +25,9 @@ combined as well.
 \details{
 The result keeps the attributes of the first object, such as the package
 and root used for relative paths, except that the lines excluded from line
-coverage are the union of the excluded lines of all objects.
+coverage are the union of the excluded lines of all objects. As with
+\code{package_coverage(type = c("tests", "examples"))}, the result only has a
+\code{type} if all objects have the same \code{type}.
 
 As with any S3 method for \code{\link[=c]{c()}}, this method is only used when the first
 argument is a coverage object.

@@ -1461,7 +1461,9 @@ add_hooks <- function(
 #'
 #' The result keeps the attributes of the first object, such as the package
 #' and root used for relative paths, except that the lines excluded from line
-#' coverage are the union of the excluded lines of all objects.
+#' coverage are the union of the excluded lines of all objects. As with
+#' `package_coverage(type = c("tests", "examples"))`, the result only has a
+#' `type` if all objects have the same `type`.
 #'
 #' As with any S3 method for [c()], this method is only used when the first
 #' argument is a coverage object.
@@ -1526,6 +1528,10 @@ c.coverage <- function(...) {
   attrs$excluded_lines <- union_excluded_lines(
     lapply(covs, attr, "excluded_lines")
   )
+  types <- unique(lapply(covs, attr, "type"))
+  if (length(types) > 1L) {
+    attrs$type <- NULL
+  }
   attributes(merged) <- attrs
   merged
 }
