@@ -214,6 +214,8 @@ per_line <- function(coverage) {
     length(file$file_lines)
   })
 
+  excluded_lines <- attr(coverage, "excluded_lines")
+
   res <- lapply(file_lengths, function(x) {
     rep(NA_real_, length.out = x)
   })
@@ -227,8 +229,15 @@ per_line <- function(coverage) {
   for (i in seq_len(NROW(df))) {
     filename <- df[i, "filename"]
     for (line in seq(df[i, "first_line"], df[i, "last_line"])) {
-      # if it is not a blank line or empty line
-      if (!line %in% c(blank_lines[[filename]], empty_lines[[filename]])) {
+      # if it is not a blank, empty or excluded line
+      if (
+        !line %in%
+          c(
+            blank_lines[[filename]],
+            empty_lines[[filename]],
+            excluded_lines[[filename]]
+          )
+      ) {
         value <- df[i, "value"]
         # if current coverage is NA or last line < max last line
         if (

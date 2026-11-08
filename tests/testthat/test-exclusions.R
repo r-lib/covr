@@ -157,6 +157,22 @@ test_that("it excludes properly", {
   expect_equal(length(t1), 0)
 })
 
+test_that("excluded lines of a multi-line expression are not counted (#594)", {
+  src <- paste(
+    "maker <- function(fun) {",
+    "  function(x) { # nocov",
+    "    fun(x)",
+    "  } # nocov",
+    "}",
+    "f <- maker(identity)",
+    sep = "\n"
+  )
+  cov <- code_coverage(src, "f(1)")
+
+  expect_equal(tally_coverage(cov)$line, 3)
+  expect_equal(per_line(cov)[[1]]$coverage, c(NA, NA, 1, NA, NA, NA))
+})
+
 test_that("it returns NULL if empty or no file exclusions", {
   expect_equal(file_exclusions(NULL, ""), NULL)
 
