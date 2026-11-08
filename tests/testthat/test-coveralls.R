@@ -336,3 +336,16 @@ test_that("coveralls can spawn a job using repo_token - travis-pro #285", {
   expect_equal(json$git$head$commiter_email, "e")
   expect_equal(json$git$head$message, "f")
 })
+
+test_that("a line is only covered if all its expressions ran (#620)", {
+  withr::local_envvar(c(ci_vars, "CI_NAME" = "FAKECI"))
+  local_mocked_bindings(
+    RETRY = function(...) list(...),
+    content = identity,
+    upload_file = function(file) readChar(file, file.info(file)$size)
+  )
+  res <- coveralls(coverage = shared_line_coverage())
+  json <- jsonlite::fromJSON(res$body$json_file)
+
+  expect_equal(json$source_files$coverage[[1]], c(NA, 1, 0, NA, NA, 0))
+})

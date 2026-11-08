@@ -113,37 +113,70 @@ tally_lines <- function(df, x) {
 # loop or a function defined inside another, would otherwise lower the counts
 # of the expressions inside it, which can run more often, or, for a function
 # created when the package was installed, run when the outer one never did.
+#
+# Source ranges of parsed code are nested or disjoint, so an expression isn't
+# innermost on a line exactly when an expression directly inside it is on it.
 innermost_lines <- function(df) {
-  rows <- rep(seq_len(NROW(df)), df$last_line - df$first_line + 1L)
-  res <- df[rows, c("filename", "functions", "value")]
-  res$line <- unlist(Map(seq, df$first_line, df$last_line))
-  res$row <- rows
-  rownames(res) <- NULL
+  # Byte positions within each file, comparable across lines.
+  width <- max(df$first_byte, df$last_byte) + 1
+  start <- df$first_line * width + df$first_byte
+  end <- df$last_line * width + df$last_byte
 
-  pairs <- merge(
-    res[c("filename", "line", "row")],
-    res[c("filename", "line", "row")],
-    by = c("filename", "line")
+  # Expressions with the same range, such as identical code in two functions,
+  # don't contain each other, so they share a node.
+  node <- paste(df$filename, start, end, sep = "\r")
+  nodes <- unique(node)
+  id <- match(node, nodes)
+  first <- match(seq_along(nodes), id)
+  parent <- nesting_parents(df$filename[first], start[first], end[first])
+
+  # Lines of each node that a node directly inside it is on.
+  child <- which(!is.na(parent))
+  max_line <- max(df$last_line) + 1
+  child_lines <- expand_range(
+    df$first_line[first][child],
+    df$last_line[first][child]
   )
-  outer <- pairs[which(contains(df, pairs$row.x, pairs$row.y)), ]
-  keep <- !paste(res$row, res$line) %in% paste(outer$row.x, outer$line)
+  outer <- parent[child][child_lines$index] * max_line + child_lines$line
 
-  res[keep, c("filename", "functions", "line", "value")]
+  rows <- expand_range(df$first_line, df$last_line)
+  keep <- !(id[rows$index] * max_line + rows$line) %in% outer
+
+  res <- df[rows$index[keep], c("filename", "functions", "value")]
+  res$line <- rows$line[keep]
+  rownames(res) <- NULL
+  res
 }
 
-# Whether expression `i` of `df` contains a different expression `j`.
-contains <- function(df, i, j) {
-  starts_before <- df$first_line[i] < df$first_line[j] |
-    (df$first_line[i] == df$first_line[j] &
-      df$first_byte[i] <= df$first_byte[j])
-  ends_after <- df$last_line[i] > df$last_line[j] |
-    (df$last_line[i] == df$last_line[j] & df$last_byte[i] >= df$last_byte[j])
-  same <- df$first_line[i] == df$first_line[j] &
-    df$first_byte[i] == df$first_byte[j] &
-    df$last_line[i] == df$last_line[j] &
-    df$last_byte[i] == df$last_byte[j]
+# The innermost range containing each range, or `NA`. Sorting by start, and the
+# longest range first, puts each range after the ranges containing it, so a
+# stack of the open ranges gives its parent in a single pass.
+nesting_parents <- function(filename, start, end) {
+  ord <- order(filename, start, -end)
+  parent <- rep(NA_integer_, length(ord))
+  stack <- integer(length(ord))
+  top <- 0L
+  for (i in ord) {
+    while (
+      top > 0L &&
+        (filename[stack[top]] != filename[i] || end[stack[top]] < end[i])
+    ) {
+      top <- top - 1L
+    }
+    if (top > 0L) {
+      parent[i] <- stack[top]
+    }
+    top <- top + 1L
+    stack[top] <- i
+  }
+  parent
+}
 
-  starts_before & ends_after & !same
+# Each line from `first` to `last` of each range, with the range's index.
+expand_range <- function(first, last) {
+  n <- last - first + 1L
+  index <- rep(seq_along(first), n)
+  list(index = index, line = first[index] + sequence(n) - 1L)
 }
 
 # The lines of each traced file that aren't code, named by filename: blank

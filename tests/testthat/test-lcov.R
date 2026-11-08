@@ -41,3 +41,11 @@ test_that("line totals match the line coverage of reports", {
     paste0("LH:", sum(lines > 0, na.rm = TRUE))
   )
 })
+
+test_that("a line is only covered if all its expressions ran (#620)", {
+  out <- to_lcov(shared_line_coverage(), tempfile())
+  expect_equal(
+    grep("^(DA|LF|LH):", out, value = TRUE),
+    c("DA:2,1", "DA:3,0", "DA:6,0", "LF:3", "LH:1")
+  )
+})
