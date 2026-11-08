@@ -2,6 +2,15 @@
 
 ## covr (development version)
 
+- [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
+  now only lists the lines of a method from the file it is defined in.
+  Previously methods sharing a name across files, such as the
+  [`initialize()`](https://rdrr.io/r/methods/new.html) methods of R6
+  classes, listed each other’s lines, so Codecov showed line numbers
+  past the end of the file and a different coverage than
+  [`print()`](https://rdrr.io/r/base/print.html)
+  ([\#629](https://github.com/r-lib/covr/issues/629)).
+
 - Compiled code coverage now reads gcov’s structured JSON output
   (`gcov --json-format`) when gcov supports it (gcc \>= 9), instead of
   parsing its text output with regular expressions. covr still parses
