@@ -426,14 +426,16 @@ test_that("save_trace writes an error marker when serialization fails", {
   )
 })
 
-test_that("save_trace does not save the environments of lazy-loaded srcfiles", {
+test_that("save_trace does not save environments referenced by srcfiles", {
   # The srcfiles of installed packages have promises to lazy-load their lines
   # and parse data, evaluated in an environment that references the
-  # environments of the package (#602).
+  # environments of the package (#602). Packages can also add bindings to
+  # srcfiles, e.g. this.path adds an environment.
   pkg_env <- new.env()
   srcfile <- srcfilecopy("R/f.R", character())
   delayedAssign("lines", "f <- function() 1", pkg_env, srcfile)
   delayedAssign("parseData", NULL, pkg_env, srcfile)
+  srcfile$context <- new.env(parent = pkg_env)
   clear_counters()
   withr::defer(clear_counters())
   new_counter(srcref(srcfile, c(1, 1, 1, 17, 1, 17, 1, 1)), "f")

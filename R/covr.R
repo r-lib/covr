@@ -246,26 +246,46 @@ portable_srcfiles <- function(x) {
   })
 }
 
-# A copy of `srcfile` with the values of its bindings, i.e. its lines are
-# loaded, but without its parse data, which is not needed to report coverage.
+# A copy of `srcfile` that only holds what is needed to report coverage: its
+# atomic values, such as its file name and lines, and copies of the srcfiles it
+# references, such as the `original` of a `srcfilealias`. Its parse data and
+# anything packages added to it are left out, e.g. this.path adds an
+# environment with a promise referencing the srcfile. Only R's promise to
+# load `lines` is forced; other promises and active bindings could run
+# arbitrary code while R exits.
+#
 # `copies` holds the copies made so far by the address of their srcfile, so
 # the srcfiles of the files of a package share the copy of the srcfile they are
-# an alias of, which holds the lines of all the files.
+# an alias of, which holds the lines of all the files. A copy is added before
+# its bindings are copied, so srcfiles that reference each other don't recurse
+# forever.
 copy_srcfile <- function(srcfile, copies) {
   id <- address(srcfile)
-  if (is.null(copies[[id]])) {
-    copy <- new.env(parent = emptyenv())
-    for (name in setdiff(ls(srcfile, all.names = TRUE), "parseData")) {
-      value <- get(name, envir = srcfile, inherits = FALSE)
-      if (inherits(value, "srcfile")) {
-        value <- copy_srcfile(value, copies)
-      }
+  if (!is.null(copies[[id]])) {
+    return(copies[[id]])
+  }
+  copy <- new.env(parent = emptyenv())
+  class(copy) <- class(srcfile)
+  copies[[id]] <- copy
+  for (name in setdiff(ls(srcfile, all.names = TRUE), "parseData")) {
+    if (
+      bindingIsActive(name, srcfile) ||
+        (name != "lines" && is_unforced_promise(srcfile, name))
+    ) {
+      next
+    }
+    value <- get(name, envir = srcfile, inherits = FALSE)
+    if (is.environment(value) && inherits(value, "srcfile")) {
+      assign(name, copy_srcfile(value, copies), envir = copy)
+    } else if (
+      is.null(value) ||
+        is.atomic(value) &&
+          all(vapply(attributes(value), is.atomic, logical(1)))
+    ) {
       assign(name, value, envir = copy)
     }
-    attributes(copy) <- attributes(srcfile)
-    copies[[id]] <- copy
   }
-  copies[[id]]
+  copy
 }
 
 # Called from the loader script of the instrumented package (see `add_hooks()`)
