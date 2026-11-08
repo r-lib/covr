@@ -62,6 +62,18 @@ functions with fresh, uninstrumented ones.
 The instrumentation is removed and the counters are cleared when
 `with_coverage()` exits, even if `code` fails.
 
+## Parallel code
+
+Code run in processes forked by
+[`parallel::mclapply()`](https://rdrr.io/r/parallel/mclapply.html),
+[`parallel::mcparallel()`](https://rdrr.io/r/parallel/mcparallel.html)
+and related functions (not available on Windows) is included in the
+coverage. While the code runs, `parallel:::mcfork` and
+`parallel:::mcexit` are patched so that the forked processes save their
+counts when they exit. To turn this off, set the environment variable
+`COVR_FIX_PARALLEL_MCEXIT` or the option `covr.fix_parallel_mcexit` to
+`FALSE`.
+
 ## See also
 
 [`environment_coverage()`](https://covr.r-lib.org/dev/reference/environment_coverage.md)

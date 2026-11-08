@@ -46,6 +46,18 @@ environment_coverage(
 
 A [coverage](https://covr.r-lib.org/dev/reference/coverage.md) object.
 
+## Parallel code
+
+Code run in processes forked by
+[`parallel::mclapply()`](https://rdrr.io/r/parallel/mclapply.html),
+[`parallel::mcparallel()`](https://rdrr.io/r/parallel/mcparallel.html)
+and related functions (not available on Windows) is included in the
+coverage. While the code runs, `parallel:::mcfork` and
+`parallel:::mcexit` are patched so that the forked processes save their
+counts when they exit. To turn this off, set the environment variable
+`COVR_FIX_PARALLEL_MCEXIT` or the option `covr.fix_parallel_mcexit` to
+`FALSE`.
+
 ## See also
 
 [`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md)

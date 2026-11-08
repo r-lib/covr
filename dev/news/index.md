@@ -2,6 +2,18 @@
 
 ## covr (development version)
 
+- [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md),
+  [`code_coverage()`](https://covr.r-lib.org/dev/reference/code_coverage.md),
+  [`environment_coverage()`](https://covr.r-lib.org/dev/reference/environment_coverage.md),
+  [`function_coverage()`](https://covr.r-lib.org/dev/reference/function_coverage.md)
+  and
+  [`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md)
+  now include code run in processes forked by parallel’s `mclapply()`,
+  `mcparallel()` and related functions, as
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  already did. Set `options(covr.fix_parallel_mcexit = FALSE)` to turn
+  this off ([\#410](https://github.com/r-lib/covr/issues/410)).
+
 - [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   now warns when an R process started by the tests, such as a Shiny app,
   callr session or future worker, loaded the package but did not save

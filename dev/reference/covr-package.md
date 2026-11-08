@@ -55,7 +55,15 @@ behaviour:
   `50`). The full output is always available in the condition's
   `$output` field.
 
-- `covr.fix_parallel_mcexit`:
+- `covr.fix_parallel_mcexit`: Whether to include code run in processes
+  forked by parallel's `mclapply()`, `mcparallel()` and related
+  functions, by patching `parallel:::mcexit`. By default
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  does this if the package uses parallel, and the functions that measure
+  coverage in the current session, such as
+  [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md),
+  always do. The environment variable `COVR_FIX_PARALLEL_MCEXIT` takes
+  precedence over this option. Not supported on Windows.
 
 - `covr.flags`:
 

@@ -95,6 +95,18 @@ names to exclude. Example <code>print\\\.</code> to match print methods.</p></dd
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <a href="coverage.html">coverage</a> object.</p>
     </div>
+    <div class="section level2">
+    <h2 id="parallel-code">Parallel code<a class="anchor" aria-label="anchor" href="#parallel-code"></a></h2>
+
+
+<p>Code run in processes forked by <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply()</a></code>,
+<code><a href="https://rdrr.io/r/parallel/mcparallel.html" class="external-link">parallel::mcparallel()</a></code> and related functions (not available on Windows)
+is included in the coverage. While the code runs, <code>parallel:::mcfork</code> and
+<code>parallel:::mcexit</code> are patched so that the forked processes save their
+counts when they exit. To turn this off, set the environment variable
+<code>COVR_FIX_PARALLEL_MCEXIT</code> or the option <code>covr.fix_parallel_mcexit</code> to
+<code>FALSE</code>.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

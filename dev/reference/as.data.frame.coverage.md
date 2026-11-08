@@ -69,7 +69,7 @@ for one row for each line instead.
 cov <- code_coverage("add <- function(x, y) { x + y }", "add(1, 2)")
 as.data.frame(cov)
 #>                               filename functions first_line first_byte
-#> 1 /tmp/RtmpZ4lwUr/source.R191232feb2b4       add          1         25
+#> 1 /tmp/RtmpUL6DLJ/source.R190b1ee73aac       add          1         25
 #>   last_line last_byte first_column last_column first_parsed last_parsed value
 #> 1         1        29           25          29            1           1     1
 ```
