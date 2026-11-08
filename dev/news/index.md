@@ -2,6 +2,10 @@
 
 ## covr (development version)
 
+- [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
+  now highlights the syntax of the source code, which failed with
+  JavaScript errors because the report didn’t include jQuery.
+
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md) and
   [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
   use a dark theme when the browser prefers one, and have a button to

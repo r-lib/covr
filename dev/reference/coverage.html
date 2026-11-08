@@ -98,14 +98,14 @@ if <code>clean = FALSE</code>, <code>library</code> (the <code>install_path</cod
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="code_coverage.html">code_coverage</a></span><span class="op">(</span><span class="st">"add &lt;- function(x, y) { x + y }"</span>, <span class="st">"add(1, 2)"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">cov</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Coverage: </span><span style="color: #00BB00;">100.00%</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">/tmp/RtmpVfD3y8/source.R190c60be9c9e: </span><span style="color: #00BB00;">100.00%</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">/tmp/Rtmp2Qb4Db/source.R184561787a90: </span><span style="color: #00BB00;">100.00%</span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">cov</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                               filename functions first_line first_byte</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpVfD3y8/source.R190c60be9c9e       add          1         25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/Rtmp2Qb4Db/source.R184561787a90       add          1         25</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   last_line last_byte first_column last_column first_parsed last_parsed value</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1         1        29           25          29            1           1     1</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">cov</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "source.R190c60be9c9e:1:25:1:29:25:29:1:1"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "source.R184561787a90:1:25:1:29:25:29:1:1"</span>
 <span class="r-in"><span><span class="va">cov</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">value</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
 </code></pre></div>
