@@ -67,10 +67,15 @@
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <code>data.frame</code>. With <code>by = "expression"</code> it is the same as
 <code><a href="as.data.frame.coverage.html">as.data.frame.coverage()</a></code>. With <code>by = "line"</code> it has one row for each
-line of code (excluding blank and comment lines of R code) and the
-columns <code>filename</code>, <code>functions</code>, <code>line</code> and <code>value</code>, where <code>value</code> is the
-smallest execution count of the expressions on that line, so a line only
-counts as covered if all its expressions were run.</p>
+function on each line of code (excluding blank lines, comments and lines
+with only punctuation such as <code>}</code>) and the columns <code>filename</code>,
+<code>functions</code>, <code>line</code> and <code>value</code>, where <code>value</code> is the smallest execution
+count of the expressions on that line, so a line only counts as covered
+if all its expressions were run. An expression spanning several lines,
+such as a loop, only counts for the lines that none of the expressions
+inside it are on. <code><a href="percent_coverage.html">percent_coverage()</a></code>, <code><a href="report.html">report()</a></code> and the other line
+based outputs count each line once, with the smallest count of its
+functions.</p>
 <p>With <code>by = "function"</code> it has one row for each top level R function and
 the columns <code>filename</code>, <code>functions</code>, <code>first_line</code>, <code>last_line</code> and
 <code>value</code>, where <code>first_line</code> and <code>last_line</code> span the function's traced
@@ -86,24 +91,24 @@ no function names, so it is left out.</p>
 <span class="r-in"><span>  <span class="st">"f(TRUE)"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">tally_coverage</span><span class="op">(</span><span class="va">cov</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                              filename functions line value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpDSr8PE/source.R18525cdd4fc         f    2     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpDSr8PE/source.R18525cdd4fc         g    4     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                               filename functions line value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpzNidPd/source.R183676774691         f    2     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpzNidPd/source.R183676774691         g    4     0</span>
 <span class="r-in"><span><span class="fu">tally_coverage</span><span class="op">(</span><span class="va">cov</span>, by <span class="op">=</span> <span class="st">"expression"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                              filename functions first_line first_byte last_line</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpDSr8PE/source.R18525cdd4fc         f          2          7         2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpDSr8PE/source.R18525cdd4fc         f          2         10         2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 /tmp/RtmpDSr8PE/source.R18525cdd4fc         f          2         21         2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 /tmp/RtmpDSr8PE/source.R18525cdd4fc         g          4          6         4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   last_byte first_column last_column first_parsed last_parsed value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1         7            7           7            2           2     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        14           10          14            2           2     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3        24           21          24            2           2     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4        17            6          17            4           4     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                               filename functions first_line first_byte</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpzNidPd/source.R183676774691         f          2          7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpzNidPd/source.R183676774691         f          2         10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 /tmp/RtmpzNidPd/source.R183676774691         f          2         21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 /tmp/RtmpzNidPd/source.R183676774691         g          4          6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   last_line last_byte first_column last_column first_parsed last_parsed value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         2         7            7           7            2           2     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2         2        14           10          14            2           2     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3         2        24           21          24            2           2     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4         4        17            6          17            4           4     0</span>
 <span class="r-in"><span><span class="fu">tally_coverage</span><span class="op">(</span><span class="va">cov</span>, by <span class="op">=</span> <span class="st">"function"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                              filename functions first_line last_line value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpDSr8PE/source.R18525cdd4fc         f          2         2     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpDSr8PE/source.R18525cdd4fc         g          4         4     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                               filename functions first_line last_line value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpzNidPd/source.R183676774691         f          2         2     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpzNidPd/source.R183676774691         g          4         4     0</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

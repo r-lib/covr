@@ -83,8 +83,9 @@ plugins such as Coverage Gutters.</p>
 <code><a href="tally_coverage.html">tally_coverage()</a></code> with <code>by = "line"</code>, combined so that each source line
 has a single <code>DA</code> record: when several functions share a line, the line's
 count is the smallest of theirs, so a line only counts as covered if all its
-code was run, as in <code><a href="report.html">report()</a></code> and <code><a href="codecov.html">codecov()</a></code>. A function's count is the
-largest count of any of its expressions. Branch coverage is not recorded.</p>
+code was run, as in <code><a href="report.html">report()</a></code>, <code><a href="percent_coverage.html">percent_coverage()</a></code> and <code><a href="codecov.html">codecov()</a></code>. A
+function's count is the largest count of any of its expressions. Branch
+coverage is not recorded.</p>
 <p>Source file paths (<code>SF</code>) are written as covr reports them, for a package
 relative to the package root, so tools such as <code>genhtml</code> should be run from
 that directory.</p>
@@ -100,7 +101,7 @@ that directory.</p>
 <span class="r-in"><span><span class="fu">to_lcov</span><span class="op">(</span><span class="va">cov</span>, <span class="va">tmp</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">)</span>, sep <span class="op">=</span> <span class="st">"\n"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> TN:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> SF:/tmp/RtmpDSr8PE/source.R185212469ac3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> SF:/tmp/RtmpzNidPd/source.R183632af387c</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> FN:2,f</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> FN:5,g</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> FNDA:1,f</span>

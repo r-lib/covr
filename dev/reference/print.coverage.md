@@ -44,7 +44,7 @@ cov <- code_coverage(
   "f(1)"
 )
 print(cov, group = "functions", n = 2)
-#> Coverage: 33.33%
+#> Coverage: 0.00%
 #> g: 0.00%
 #> h: 0.00%
 #> ... and 1 more function; use `print(x, n = Inf)` to show all

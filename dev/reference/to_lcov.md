@@ -34,7 +34,8 @@ Each source file gets a record with its functions (`FN`, `FNDA`, `FNF`,
 with `by = "line"`, combined so that each source line has a single `DA`
 record: when several functions share a line, the line's count is the
 smallest of theirs, so a line only counts as covered if all its code was
-run, as in [`report()`](https://covr.r-lib.org/dev/reference/report.md)
+run, as in [`report()`](https://covr.r-lib.org/dev/reference/report.md),
+[`percent_coverage()`](https://covr.r-lib.org/dev/reference/percent_coverage.md)
 and [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md). A
 function's count is the largest count of any of its expressions. Branch
 coverage is not recorded.
@@ -54,7 +55,7 @@ tmp <- tempfile(fileext = ".info")
 to_lcov(cov, tmp)
 cat(readLines(tmp), sep = "\n")
 #> TN:
-#> SF:/tmp/RtmpDSr8PE/source.R185212469ac3
+#> SF:/tmp/RtmpzNidPd/source.R183632af387c
 #> FN:2,f
 #> FN:5,g
 #> FNDA:1,f

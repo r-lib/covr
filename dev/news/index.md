@@ -2,6 +2,30 @@
 
 ## covr (development version)
 
+- Line coverage is now computed the same way everywhere, so
+  [`print()`](https://rdrr.io/r/base/print.html),
+  [`percent_coverage()`](https://covr.r-lib.org/dev/reference/percent_coverage.md),
+  [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md),
+  [`report()`](https://covr.r-lib.org/dev/reference/report.md),
+  [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md),
+  [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md),
+  [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md),
+  [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/to_sonarqube.md)
+  and [`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md)
+  agree. A line only counts as covered if all its expressions ran,
+  e.g. `if (x) a else b` on one line where `a` never ran is now
+  uncovered in
+  [`report()`](https://covr.r-lib.org/dev/reference/report.md),
+  [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) and
+  [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md).
+  Lines shared by several functions, such as
+  `f <- function() 1; g <- function() 2`, are counted once, and
+  [`print()`](https://rdrr.io/r/base/print.html) and
+  [`percent_coverage()`](https://covr.r-lib.org/dev/reference/percent_coverage.md)
+  no longer count lines with only punctuation such as `}`. Reported line
+  coverage may decrease slightly
+  ([\#620](https://github.com/r-lib/covr/issues/620)).
+
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md) no longer
   fails with “invalid argument to unary operator” when the coverage
   object has no traces
