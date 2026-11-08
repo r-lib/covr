@@ -4,7 +4,7 @@ covr measures test coverage of R packages. `package_coverage()` installs an inst
 
 ### Compatibility
 
-- covr depends on `R (>= 3.1.0)`, so do not use the base pipe (`|>`), `\(x)` lambdas, or other syntax and functions newer than that.
+- covr depends on `R (>= 4.0.0)`, so do not use the base pipe (`|>`), `\(x)` lambdas, or other syntax and functions newer than that.
 - Functions from optional dependencies such as httr must be called with `pkg::fun()` (or a small wrapper in covr, which also makes them mockable), not imported with `@importFrom`. Importing them makes them load time dependencies, which causes cyclic namespace errors when computing coverage of those packages (#623).
 
 ### Tests

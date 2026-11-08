@@ -124,13 +124,6 @@ SEXP covr_reassign_function(SEXP old_fun, SEXP new_fun) {
   MARK_NOT_MUTABLE(new->u.closxp.env);
   MARK_NOT_MUTABLE(new->u.closxp.formals);
 
-#if R_VERSION < R_Version(3, 3, 0)
-  // SHALLOW_DUPLICATE_ATTRIB was added in R 3.3. Earlier versions still expose
-  // these setters, which perform the write barrier themselves.
-  SET_FORMALS(old_fun, FORMALS(new_fun));
-  SET_BODY(old_fun, BODY(new_fun));
-  SET_CLOENV(old_fun, CLOENV(new_fun));
-#else
   // A raw field copy bypasses R's generational-GC write barrier. Install a
   // temporary attribute pointing to new_fun through the barrier-aware API.
   // The copy must be shallow so it references the exact incoming closure.
@@ -141,15 +134,12 @@ SEXP covr_reassign_function(SEXP old_fun, SEXP new_fun) {
   // R now either remembers old_fun for scanning or has aged the incoming
   // reference graph. Removing the attribute does not undo that bookkeeping.
   old->u.closxp = new->u.closxp;
-#endif
 
   // Restore the replacement's attributes and object/S4 flags, removing the
   // temporary anchor. No permanent GC roots or extra user-visible attributes
   // remain after reassignment.
   DUPLICATE_ATTRIB(old_fun, new_fun);
-#if R_VERSION >= R_Version(3, 3, 0)
   UNPROTECT(1);
-#endif
 
   return R_NilValue;
 }
