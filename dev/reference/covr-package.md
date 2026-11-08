@@ -90,6 +90,16 @@ behaviour:
   evaluated during the test's execution. For more details, see
   [`?covr.record_tests`](https://covr.r-lib.org/dev/reference/covr.record_tests.md).
 
+- `covr.full_traversal`: If `TRUE` (default `FALSE`), also trace
+  functions nested inside lists and environments, such as
+  `fns <- list(a = function(x) x)` or functions defined inside
+  [`local()`](https://rdrr.io/r/base/eval.html). This walks every object
+  in the package, so it is off by default. For
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  it can also be enabled for a package by adding
+  `Config/covr/full_traversal: true` to its DESCRIPTION; the option
+  takes precedence when set.
+
 - `covr.showCfunctions`:
 
 ## See also
@@ -105,6 +115,10 @@ Useful links:
 ## Author
 
 **Maintainer**: Jim Hester <james.f.hester@gmail.com>
+
+Authors:
+
+- Jim Hester <james.f.hester@gmail.com>
 
 Other contributors:
 

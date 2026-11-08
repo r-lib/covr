@@ -120,6 +120,13 @@ when using <code>zero_coverage</code>.</p></li>
 top level test expressions and associate tests with <code>covr</code> traces
 evaluated during the test's execution. For more details, see
 <code><a href="covr.record_tests.html">?covr.record_tests</a></code>.</p></li>
+<li><p><code>covr.full_traversal</code>: If <code>TRUE</code> (default <code>FALSE</code>), also trace
+functions nested inside lists and environments, such as
+<code>fns &lt;- list(a = function(x) x)</code> or functions defined inside <code><a href="https://rdrr.io/r/base/eval.html" class="external-link">local()</a></code>.
+This walks every object in the package, so it is off by default. For
+<code><a href="package_coverage.html">package_coverage()</a></code> it can also be enabled for a package by adding
+<code>Config/covr/full_traversal: true</code> to its DESCRIPTION; the option takes
+precedence when set.</p></li>
 <li><p><code>covr.showCfunctions</code>:</p></li>
 </ul></div>
     <div class="section level2">
@@ -132,7 +139,8 @@ evaluated during the test's execution. For more details, see
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
     <p><strong>Maintainer</strong>: Jim Hester <a href="mailto:james.f.hester@gmail.com">james.f.hester@gmail.com</a></p>
-<p>Other contributors:</p><ul><li><p>Willem Ligtenberg [contributor]</p></li>
+<p>Authors:</p><ul><li><p>Jim Hester <a href="mailto:james.f.hester@gmail.com">james.f.hester@gmail.com</a></p></li>
+</ul><p>Other contributors:</p><ul><li><p>Willem Ligtenberg [contributor]</p></li>
 <li><p>Kirill Müller [contributor]</p></li>
 <li><p>Henrik Bengtsson [contributor]</p></li>
 <li><p>Steve Peak [contributor]</p></li>
