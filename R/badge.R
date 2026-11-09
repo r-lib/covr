@@ -14,8 +14,9 @@
 #'
 #' The badge is a plain file, so on a continuous integration service it needs
 #' to be stored somewhere that the README can link to, e.g. committed to a
-#' separate branch of the repository. See the README of covr for an example
-#' GitHub Actions workflow.
+#' separate branch of the repository.
+#' `system.file("workflows", "test-coverage-badge.yaml", package = "covr")` is
+#' a GitHub Actions workflow that does this.
 #'
 #' @param cov the coverage object returned from [package_coverage()]
 #' @param filename the name of the SVG file
