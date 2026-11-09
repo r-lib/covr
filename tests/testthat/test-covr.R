@@ -714,6 +714,21 @@ test_that("package_coverage works if the site libraries are removed (#560)", {
   expect_gt(values[["test_me"]], 0)
 })
 
+test_that("R processes get only the site libraries of this session (#560)", {
+  site_libraries <- function(site) {
+    withr::local_envvar(R_LIBS_SITE = r_libs_site(site))
+    system2(
+      file.path(R.home("bin"), "Rscript"),
+      c("--vanilla", "-e", shQuote("writeLines(.Library.site)")),
+      stdout = TRUE
+    )
+  }
+
+  expect_equal(site_libraries(character()), character())
+  site <- normalize_path(withr::local_tempdir())
+  expect_equal(normalize_path(site_libraries(site)), site)
+})
+
 test_that("unsaved_traces ignores the markers of the current process", {
   dir <- withr::local_tempdir()
   pid <- Sys.getpid()

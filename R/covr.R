@@ -1045,12 +1045,8 @@ package_coverage <- function(
   # `libs`: renv removes the site libraries from the library paths when it
   # activates its sandbox, e.g. when the package imports renv (or vetiver,
   # which embeds it) in an renv project, which would also remove covr and the
-  # package (#560). An empty R_LIBS_SITE is the default site library, so no
-  # site libraries (as in renv projects) is "NULL".
-  site_libs <- env_path(.Library.site)
-  if (!nzchar(site_libs)) {
-    site_libs <- "NULL"
-  }
+  # package (#560).
+  site_libs <- r_libs_site()
 
   # Failures collected when `allow_failures` is TRUE, signaled as warnings
   # after the tests have run.
@@ -1644,6 +1640,17 @@ run_vignettes <- function(pkg, lib) {
   } else {
     file.rename(failfile, outfile)
   }
+}
+
+# The value of R_LIBS_SITE that gives R processes the site libraries `site`.
+# An empty R_LIBS_SITE is the default site library, so no site libraries (as in
+# renv projects) is "NULL".
+r_libs_site <- function(site = .Library.site) {
+  site_libs <- env_path(site)
+  if (!nzchar(site_libs)) {
+    site_libs <- "NULL"
+  }
+  site_libs
 }
 
 r_binary <- function() {
