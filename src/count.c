@@ -90,6 +90,16 @@ static void grow(void) {
   }
 }
 
+// `Rf_charIsASCII()` is only in R's API since R 4.5.0.
+static int is_ascii(SEXP x) {
+  for (const unsigned char *s = (const unsigned char *)CHAR(x); *s; ++s) {
+    if (*s > 127) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
 static SEXP utf8_key(SEXP x) {
   return Rf_mkCharCE(Rf_translateCharUTF8(x), CE_UTF8);
 }
@@ -100,7 +110,7 @@ static void add_key(SEXP x) {
   }
   // Strings of the other encoding are found by their UTF-8 form, see
   // `covr_count()`.
-  if (!Rf_charIsASCII(x) && Rf_getCharCE(x) != CE_UTF8) {
+  if (!is_ascii(x) && Rf_getCharCE(x) != CE_UTF8) {
     x = utf8_key(x);
     if (find(x) >= 0) {
       return;
@@ -132,7 +142,7 @@ SEXP covr_count(SEXP key) {
   int i = find(x);
   if (i >= 0) {
     counts[i]++;
-  } else if (!Rf_charIsASCII(x)) {
+  } else if (!is_ascii(x)) {
     // The same string with another encoding is another `CHARSXP`.
     SEXP u = PROTECT(utf8_key(x));
     i = find(u);
