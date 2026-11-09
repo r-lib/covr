@@ -491,3 +491,50 @@ test_that("covr.record_tests tallies every hit of a trace", {
   expect_equal(unname(tally[, "test"]), rep(1L, 6))
   expect_equal(unname(tally[, "i"]), seq(2L, 12L, by = 2L))
 })
+
+test_that("tally_tests() has no rows if all lines with test hits are excluded", {
+  cov <- withr::with_options(
+    list(covr.record_tests = TRUE),
+    code_coverage("f <- function(x) {\n  x\n}", "f(1)")
+  )
+  file <- as.data.frame(cov)$filename[[1]]
+  attr(cov, "excluded_lines") <- setNames(list(1:3), file)
+
+  res <- tally_tests(cov)
+  expect_equal(NROW(res), 0)
+  expect_named(
+    res,
+    c(
+      "filename",
+      "functions",
+      "line",
+      "test_file",
+      "test_line",
+      "test",
+      "value"
+    )
+  )
+})
+
+test_that("count_test ignores traces without a test counter", {
+  withr::local_options(covr.record_tests = FALSE)
+  clear_counters()
+  withr::defer(clear_counters())
+  key <- new_counter(parse_srcrefs("f(x)")$refs[[1]], "f")
+
+  expect_null(count_test(key))
+})
+
+test_that("count_test ignores traces hit before a test is known", {
+  withr::local_options(covr.record_tests = TRUE)
+  clear_counters()
+  withr::defer(clear_counters())
+  key <- new_counter(parse_srcrefs("f(x)")$refs[[1]], "f")
+
+  expect_null(count_test(key))
+  expect_equal(unname(.counters[[key]]$tests$tally[1, ]), rep(NA_integer_, 4))
+})
+
+test_that("in_caller_body is FALSE for the first frame", {
+  expect_false(in_caller_body(1L, quote(f())))
+})

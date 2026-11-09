@@ -112,3 +112,14 @@ test_that("function coverage restores closures and releases their local environm
   }
   expect_true(state$finalized)
 })
+
+test_that("function_coverage() finds a function by name without an env", {
+  withr::with_options(list(keep.source = TRUE), {
+    eval(parse(text = "covr_test_f <- function() { 42L }"), envir = globalenv())
+  })
+  withr::defer(rm("covr_test_f", envir = globalenv()))
+
+  cov <- function_coverage("covr_test_f", covr_test_f())
+  expect_equal(percent_coverage(cov), 100)
+  expect_equal(percent_coverage(function_coverage("covr_test_f")), 0)
+})

@@ -476,10 +476,11 @@ format_percentage <- function(x, styles = console_styles()) {
 }
 
 rstudio_has_source_markers <- function() {
-  requireNamespace("rstudioapi", quietly = TRUE) &&
+  is_installed("rstudioapi") &&
     rstudioapi::hasFun("sourceMarkers")
 }
 
+# nocov start
 rstudio_source_markers <- function(markers, base_path) {
   rstudioapi::callFun(
     "sourceMarkers",
@@ -489,6 +490,7 @@ rstudio_source_markers <- function(markers, base_path) {
     autoSelect = "first"
   )
 }
+# nocov end
 
 source_markers <- function(x, type = "test") {
   Map(

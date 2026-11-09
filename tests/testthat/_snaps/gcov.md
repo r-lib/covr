@@ -91,3 +91,11 @@
       Moving gcov outputs to covr directory.
       
 
+# run_gcov reports errors in gcov's text output
+
+    Code
+      run_gcov(pkg, gcov_path = "gcov")
+    Condition
+      Error in `parse_gcov()`:
+      ! can't parse
+

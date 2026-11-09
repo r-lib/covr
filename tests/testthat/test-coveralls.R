@@ -288,6 +288,54 @@ test_that("coveralls submits no git info outside a git repository", {
   expect_null(json$git)
 })
 
+test_that("coveralls computes the coverage when none is given", {
+  withr::local_envvar(ci_vars)
+  local_coveralls_mocks()
+  args <- NULL
+  local_mocked_bindings(
+    package_coverage = function(...) {
+      args <<- list(...)
+      cov
+    }
+  )
+  json <- coveralls_json(coveralls("TestS4", repo_token = NULL))
+
+  expect_equal(args, list("TestS4", quiet = TRUE))
+  expect_equal(nrow(json$source_files), 1)
+})
+
+test_that("coveralls prints the coverage unless quiet", {
+  withr::local_envvar(ci_vars)
+  local_coveralls_mocks()
+  expect_silent(coveralls(coverage = cov))
+  expect_snapshot(res <- coveralls(coverage = cov, quiet = FALSE))
+})
+
+test_that("coveralls errors if Coveralls reports an error", {
+  withr::local_envvar(ci_vars)
+  local_coveralls_mocks()
+  local_mocked_bindings(
+    content = function(x) list(error = TRUE, message = "Bad repo token")
+  )
+  expect_snapshot(coveralls(coverage = cov), error = TRUE)
+})
+
+test_that("git_head gives the id of a commit that isn't in the repository", {
+  local_mocked_bindings(system_output = function(...) stop("bad object"))
+  expect_equal(git_head("abc123"), list(id = jsonlite::unbox("abc123")))
+  expect_equal(git_head(), list())
+})
+
+test_that("RETRY() and upload_file() wrap httr", {
+  skip_if_not_installed("httr")
+  skip_on_os("windows")
+  file <- withr::local_tempfile(lines = "hello")
+
+  res <- RETRY("GET", paste0("file://", file), times = 1, quiet = TRUE)
+  expect_equal(rawToChar(res$content), "hello\n")
+  expect_s3_class(upload_file(file), "form_file")
+})
+
 test_that("coveralls can spawn a job using repo_token - travis-pro #285", {
   withr::local_envvar(
     c(ci_vars, "CI_NAME" = "travis-pro")

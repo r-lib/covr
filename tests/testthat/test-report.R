@@ -365,3 +365,33 @@ test_that("file_report() marks the lines that were not run", {
   expect_match(html, "<td class=\"coverage\">!</td>", fixed = TRUE)
   expect_match(html, "<td class=\"coverage\">1<em>x</em></td>", fixed = TRUE)
 })
+
+test_that("report() and file_report() require htmltools", {
+  cov <- code_coverage("f <- function(x) x + 1", "f(1)")
+  local_mocked_bindings(is_installed = function(pkg) FALSE)
+  expect_snapshot(report(cov, browse = FALSE), error = TRUE)
+  expect_snapshot(file_report(cov, browse = FALSE), error = TRUE)
+})
+
+test_that("addin_report() reports the coverage of the active project", {
+  covered <- NULL
+  local_mocked_bindings(
+    rstudio_active_project = function() test_path("TestS4"),
+    package_coverage = function(path) path,
+    report = function(x) covered <<- x
+  )
+  expect_snapshot(addin_report())
+  expect_equal(covered, as_package(test_path("TestS4"))$path)
+})
+
+test_that("addin_report() uses the working directory without a project", {
+  covered <- NULL
+  withr::local_dir(test_path("TestS4"))
+  local_mocked_bindings(
+    rstudio_active_project = function() NULL,
+    package_coverage = function(path) path,
+    report = function(x) covered <<- x
+  )
+  expect_snapshot(addin_report())
+  expect_equal(covered, as_package(getwd())$path)
+})

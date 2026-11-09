@@ -379,6 +379,59 @@ test_that("package_coverage gives the reason the package can't be installed", {
   expect_match(conditionMessage(err), "unexpected")
 })
 
+test_that("package_coverage shows messages and warnings unless quiet", {
+  local_mocked_bindings(
+    run_commands = function(...) {
+      message("a message")
+      warning("a warning")
+    }
+  )
+  expect_no_message(expect_no_warning(
+    package_coverage(test_path("TestS4"), type = "none", quiet = TRUE)
+  ))
+  expect_message(
+    expect_warning(
+      package_coverage(test_path("TestS4"), type = "none", quiet = FALSE),
+      "a warning"
+    ),
+    "a message"
+  )
+})
+
+test_that("install_package shows the installation output unless quiet", {
+  lib <- withr::local_tempdir()
+  pkg <- as_package(test_path("TestS4"))
+  install_package(pkg, lib, character(), quiet = FALSE)
+  expect_contains(list.files(lib), "TestS4")
+})
+
+test_that("copy_installed_package gives the reasons the copy failed", {
+  pkg <- local_installed_package("TestSummary", "--with-keep.source")
+  err <- tryCatch(
+    copy_installed_package(as_package(pkg), file.path(tempfile(), "lib")),
+    error = conditionMessage
+  )
+  expect_match(err, "Can't copy the installed package TestSummary")
+  # the reasons are the warnings of `file.copy()`, not the fallback
+  expect_no_match(err, "`file.copy()` failed.", fixed = TRUE)
+})
+
+test_that("copy_installed_package fails if the copy has no DESCRIPTION", {
+  pkg <- list(package = "pkg", path = file.path(withr::local_tempdir(), "pkg"))
+  dir.create(pkg$path)
+  err <- tryCatch(
+    copy_installed_package(pkg, withr::local_tempdir()),
+    error = conditionMessage
+  )
+  expect_match(err, "`file.copy()` failed.", fixed = TRUE)
+})
+
+test_that("run_vignettes reports failures to build the vignettes", {
+  lib <- withr::local_tempdir()
+  pkg <- list(package = "TestMissing", path = file.path(lib, "missing"))
+  expect_error(run_vignettes(pkg, lib), class = "covr_error")
+})
+
 test_that("package_coverage measures installed packages (#638)", {
   pkg <- local_installed_package(
     "TestSummary",
@@ -549,6 +602,23 @@ test_that("save_trace does not save environments referenced by srcfiles", {
     getSrcLines(attr(trace[[1]]$srcref, "srcfile"), 1, 1),
     "f <- function() 1"
   )
+})
+
+test_that("save_trace does not copy active bindings or unforced promises of srcfiles", {
+  srcfile <- srcfilecopy("R/f.R", "f <- function() 1")
+  makeActiveBinding("active", function() stop("ran active binding"), srcfile)
+  delayedAssign("promise", stop("ran promise"), assign.env = srcfile)
+
+  copy <- portable_srcfiles(list(srcfile))[[1]]
+  expect_false(any(c("active", "promise") %in% ls(copy, all.names = TRUE)))
+  expect_equal(copy$lines, "f <- function() 1")
+})
+
+test_that("save_trace errors if the trace file can't be written", {
+  local_mocked_bindings(save_rds = function(object, file) NULL)
+  dir <- file.path(withr::local_tempdir(), "missing")
+  err <- tryCatch(suppressWarnings(save_trace(dir)), error = conditionMessage)
+  expect_match(err, "Can't write trace file")
 })
 
 test_that("package_coverage reports bad trace files", {

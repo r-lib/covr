@@ -320,3 +320,28 @@ test_that("subsetting coverage subsets its branches", {
   expect_equal(res$functions, c("g", "g"))
   expect_equal(res$value, c(0, 0))
 })
+
+test_that("`switch()` without arms has no branches", {
+  cov <- branch_coverage("f <- function(x) switch(x)", "NULL")
+  expect_equal(NROW(tally_coverage(cov, by = "branch")), 0)
+})
+
+test_that("merge_branches keeps the decisions of the side that has them", {
+  branches <- list(a = list(value = c(1, 0)))
+  expect_equal(merge_branches(NULL, branches), branches)
+  expect_equal(merge_branches(branches, NULL), branches)
+  expect_null(merge_branches(NULL, NULL))
+})
+
+test_that("exclude_branches keeps an empty list of decisions", {
+  expect_equal(exclude_branches(list(), list()), list())
+})
+
+test_that("line_branch_totals has no rows without branches", {
+  res <- line_branch_totals(tally_coverage(
+    code_coverage("1", "1"),
+    by = "branch"
+  ))
+  expect_equal(NROW(res), 0)
+  expect_named(res, c("filename", "line", "taken", "total"))
+})

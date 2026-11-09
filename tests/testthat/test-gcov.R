@@ -374,6 +374,21 @@ test_that("find_gcov returns NA when gcov is not on the path", {
   expect_equal(find_gcov(), NA_character_)
 })
 
+test_that("find_gcov returns the path of gcov on the path", {
+  skip_on_os("windows")
+  dir <- withr::local_tempdir()
+  gcov <- file.path(dir, "gcov")
+  file.create(gcov)
+  Sys.chmod(gcov, "755")
+  withr::local_path(dir, action = "replace")
+
+  expect_equal(find_gcov(), gcov)
+})
+
+test_that("parse_gcov_json returns NULL for a missing file", {
+  expect_null(parse_gcov_json(withr::local_tempfile()))
+})
+
 test_that("gcov_run reports the command and output when not quiet", {
   # shQuote() quotes differently on Windows
   skip_on_os("windows")
@@ -464,4 +479,31 @@ test_that("run_gcov reports progress when not quiet", {
     file.path(pkg, "src", "f.c.gcov")
   )
   expect_snapshot(cat(gsub(pkg, "<pkg>", msgs(FALSE), fixed = TRUE), sep = ""))
+})
+
+test_that("run_gcov reports errors in gcov's text output", {
+  pkg <- local_gcov_package()
+  local_mocked_bindings(
+    gcov_run = function(...) NULL,
+    gcov_unexecuted_block = function(...) "%%%%%",
+    gcov_json_supported = function(...) FALSE,
+    parse_gcov = function(...) stop("can't parse")
+  )
+
+  expect_snapshot(run_gcov(pkg, gcov_path = "gcov"), error = TRUE)
+})
+
+test_that("run_gcov says when it uses the text output instead of JSON", {
+  pkg <- local_gcov_package()
+  local_mocked_bindings(
+    gcov_run = function(...) NULL,
+    gcov_unexecuted_block = function(...) "%%%%%",
+    gcov_json_supported = function(...) TRUE
+  )
+
+  expect_message(
+    res <- run_gcov(pkg, quiet = FALSE, gcov_path = "gcov"),
+    "Falling back to gcov's text output"
+  )
+  expect_length(res, 1)
 })

@@ -191,7 +191,7 @@ file_report_html <- function(x = package_coverage(), file = NULL) {
 }
 
 check_report_installed <- function() {
-  if (!requireNamespace("htmltools", quietly = TRUE)) {
+  if (!is_installed("htmltools")) {
     covr_abort(c(
       "{.fn report} requires the {.pkg htmltools} package.",
       i = "Install it with {.code install.packages(\"htmltools\")}."
@@ -638,15 +638,13 @@ addHighlight <- function(x = list()) {
   )
 }
 
+rstudio_active_project <- function() rstudioapi::getActiveProject() # nocov
+
 addin_report <- function() {
-  loadNamespace("rstudioapi")
-
-  project <- rstudioapi::getActiveProject()
-
-  pkg <- as_package(project %||% getwd())
+  pkg <- as_package(rstudio_active_project() %||% getwd())
   message("Calculating test coverage for ", pkg$package, "...")
 
-  covr::report(covr::package_coverage(pkg$path))
+  report(package_coverage(pkg$path))
 }
 
 tab_panel <- function(title, ...) {
