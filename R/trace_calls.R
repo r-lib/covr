@@ -29,13 +29,14 @@ trace_calls <- function(
     } else {
       # The `.Call` primitive itself rather than the symbol, so a `.Call`
       # defined where the traced function lives can't mask it. Primitives are
-      # serialized by name; the external pointer to the count is NULL once
-      # unserialized, so a traced function sent to another process runs but
-      # doesn't count there.
+      # serialized by name, and keys are strings, so traced functions can be
+      # saved, e.g. in the lazy-load database of an instrumented package. In
+      # a process where the key isn't registered, e.g. one that a traced
+      # function was sent to, the call runs but doesn't count.
       as.call(list(
         .Call,
         call(":::", as.symbol("covr"), as.symbol("covr_count")),
-        .count_ptrs[[key]]
+        key
       ))
     }
     call("if", TRUE, call("{", count_call, val))
@@ -183,21 +184,15 @@ trace_calls <- function(
 .counters <- new.env(parent = emptyenv())
 .current_test <- new.env(parent = emptyenv())
 
-# Add the counts held in C (see `covr_count()`) to the values of the traces and
-# reset them. Call before reading the values of `.counters`.
-# An external pointer to each key's count in C, which instrumented code passes
-# to `covr_count()` (see src/count.c). A key keeps its count for the life of
-# the process, also after `clear_counters()`, so instrumented functions always
-# count into their own trace.
-.count_ptrs <- new.env(parent = emptyenv())
-
+# Make `covr_count()` count the evaluations of `key` (see src/count.c). A key
+# keeps its count for the life of the process, also after `clear_counters()`,
+# so instrumented functions always count into their own trace.
 register_count <- function(key) {
-  if (is.null(.count_ptrs[[key]])) {
-    .count_ptrs[[key]] <- .Call(covr_counter_add, key)
-  }
-  .count_ptrs[[key]]
+  invisible(.Call(covr_counter_add, key))
 }
 
+# Add the counts held in C to the values of the traces and reset them. Call
+# before reading the values of `.counters`.
 sync_counts <- function() {
   counts <- .Call(covr_counter_take)
   for (key in names(counts)) {
@@ -261,6 +256,11 @@ is_traced <- function(fun) {
     return(FALSE)
   }
   x <- body(fun)
+  # Instrumented bodies start with a counter, so check that before searching
+  # the whole body.
+  if (starts_with_count(x)) {
+    return(TRUE)
+  }
   # `all.names()` is fast, so only search functions that might be traced.
   nms <- all.names(x)
   any(c("count", "count_and_record", "covr_count") %in% nms) &&
@@ -268,10 +268,39 @@ is_traced <- function(fun) {
     has_count_call(x)
 }
 
-has_count_call <- function(x) {
+# Whether `x` is `if (TRUE) { <count call>; expr }`, as added by
+# `trace_calls()`, or a `{` call that starts with it.
+starts_with_count <- function(x) {
+  if (!is.call(x)) {
+    return(FALSE)
+  }
+  if (identical(x[[1L]], as.name("{")) && length(x) > 1L) {
+    x <- x[[2L]]
+  }
   is.call(x) &&
-    (is_covr_count_call(x) ||
-      any(vapply(as.list(x), has_count_call, logical(1))))
+    length(x) == 3L &&
+    identical(x[[1L]], as.name("if")) &&
+    isTRUE(x[[2L]]) &&
+    is.call(x[[3L]]) &&
+    length(x[[3L]]) > 1L &&
+    is.call(x[[3L]][[2L]]) &&
+    is_covr_count_call(x[[3L]][[2L]])
+}
+
+# Stops at the first counter, which instrumented code has near its start.
+has_count_call <- function(x) {
+  if (!is.call(x)) {
+    return(FALSE)
+  }
+  if (is_covr_count_call(x)) {
+    return(TRUE)
+  }
+  for (i in seq_along(x)) {
+    if (is.call(x[[i]]) && has_count_call(x[[i]])) {
+      return(TRUE)
+    }
+  }
+  FALSE
 }
 
 #' clear all previous counters

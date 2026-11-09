@@ -197,17 +197,15 @@ test_that("the C counter counts, survives retracing and resets", {
 
   # Tracing again keeps the count of each trace (#641)
   keys <- names(value())
-  ptrs <- mget(keys, envir = .count_ptrs)
   env$g <- trace_calls(original)
-  expect_identical(mget(keys, envir = .count_ptrs), ptrs)
   expect_equal(unname(value()[keys]), rep(2, length(keys)))
 
-  # A function serialized and unserialized, as when it's sent to another
-  # process, runs but doesn't count
+  # A function serialized and unserialized, as when it's saved, counts into
+  # the same traces
   h <- unserialize(serialize(env$f, NULL))
   expect_equal(h(1), 2)
   sync_counts()
-  expect_equal(unname(value()[keys]), rep(2, length(keys)))
+  expect_equal(unname(value()[keys]), rep(3, length(keys)))
 
   env$f(1)
   zero_counters()
@@ -221,10 +219,95 @@ test_that("the C counter counts, survives retracing and resets", {
   expect_length(.Call(covr_counter_take), 0L)
   expect_length(ls(.counters), 0)
   env$g <- trace_calls(original)
-  expect_identical(mget(keys, envir = .count_ptrs), ptrs)
   env$f(1)
   sync_counts()
   expect_equal(unname(value()[keys]), rep(1, length(keys)))
+})
+
+test_that("the C counter counts keys by their string, ignoring unknown keys", {
+  clear_counters()
+  withr::defer(clear_counters())
+  .Call(covr_counter_reset)
+  utf8 <- enc2utf8("R/\u00e9.R:1:1")
+  latin1 <- iconv(utf8, "UTF-8", "latin1")
+  expect_identical(Encoding(latin1), "latin1")
+  register_count(c("a.R:1:1", utf8))
+  register_count(c("a.R:1:1", latin1))
+
+  for (key in c("a.R:1:1", "a.R:1:1", utf8, latin1, "unknown.R:1:1")) {
+    expect_null(.Call(covr_count, key))
+  }
+  counts <- .Call(covr_counter_take)
+  expect_equal(counts[["a.R:1:1"]], 2)
+  expect_equal(counts[[utf8]], 2)
+  expect_length(counts, 2L)
+})
+
+test_that("is_traced() finds the counter at the start of the body, or anywhere", {
+  clear_counters()
+  withr::defer(clear_counters())
+  src <- srcfilecopy("t.R", c("f <- function(x) {", "  x + 1", "}"))
+  f <- eval(parse(text = src$lines, keep.source = TRUE, srcfile = src)[[1]])
+  expect_false(is_traced(f))
+
+  traced <- trace_calls(f)
+  expect_true(starts_with_count(body(traced)))
+  expect_true(is_traced(traced))
+
+  later <- f
+  body(later) <- as.call(list(as.name("{"), quote(x), body(traced)[[2]]))
+  expect_false(starts_with_count(body(later)))
+  expect_true(is_traced(later))
+
+  expect_false(starts_with_count(quote(x)))
+  expect_false(starts_with_count(quote({
+    if (TRUE) x
+  })))
+})
+
+test_that("the C counter grows to many keys of different encodings", {
+  clear_counters()
+  withr::defer(clear_counters())
+  .Call(covr_counter_reset)
+  take <- function() {
+    x <- .Call(covr_counter_take)
+    setNames(as.numeric(x), enc2utf8(names(x)))
+  }
+  count <- function(key) .Call(covr_count, key)
+  i <- 1:5000
+  ascii <- sprintf("f%d.R:%d:1", i, i)
+  utf8 <- enc2utf8(sprintf("\u00e9%d.R:%d:1", i, i))
+  latin1 <- iconv(utf8, "UTF-8", "latin1")
+
+  for (chunk in split(i, ceiling(i / 997))) {
+    register_count(ascii[chunk])
+    register_count(utf8[chunk])
+    register_count(latin1[chunk])
+  }
+  expect_length(take(), 0L)
+
+  for (j in i) {
+    for (key in rep(ascii[j], j %% 5L + 1L)) {
+      count(key)
+    }
+    for (key in rep(utf8[j], j %% 3L)) {
+      count(key)
+    }
+    for (key in rep(latin1[j], j %% 4L)) {
+      count(key)
+    }
+  }
+  count("unregistered.R:1:1")
+  got <- take()
+
+  expect_equal(unname(got[ascii]), i %% 5 + 1)
+  both <- i %% 3 + i %% 4
+  expect_equal(unname(got[utf8[both > 0]]), both[both > 0])
+  expect_length(got, 5000L + sum(both > 0))
+
+  # Counts start again from zero for the keys that are still registered
+  count(ascii[1])
+  expect_equal(take(), setNames(1, ascii[1]))
 })
 
 test_that("a `.Call` where the traced function lives doesn't mask the counter", {

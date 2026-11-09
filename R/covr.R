@@ -123,6 +123,17 @@
 #'     `Config/covr/full_traversal: true` to its DESCRIPTION; the option takes
 #'     precedence when set.
 #'
+#'   \item `covr.install_instrument`: If `FALSE` (default `TRUE`, or the value
+#'     of the environment variable `COVR_INSTALL_INSTRUMENT`),
+#'     `package_coverage()` installs a package as usual and instruments it each
+#'     time a process loads it, rather than once after installing it.
+#'
+#'   \item `covr.install_compile`: If `FALSE` (default `TRUE`, or the value of
+#'     the environment variable `COVR_INSTALL_COMPILE`), `package_coverage()`
+#'     doesn't byte-compile the instrumented functions of a package after
+#'     installing it, so each process that runs them compiles them with the
+#'     JIT instead.
+#'
 #'   \item `covr.showCfunctions`:
 #' }
 #'
@@ -1014,18 +1025,35 @@ package_coverage <- function(
     rust_coverage_setup(pkg$path, install_path)
   }
 
+  full_traversal <- getOption(
+    "covr.full_traversal",
+    # DESCRIPTION field names are lowercased by `read_description()`
+    isTRUE(as.logical(pkg[[tolower("Config/covr/full_traversal")]]))
+  )
+  counters_file <- NULL
   if (installed) {
     # `R CMD INSTALL` fails to reinstall an installed package on Windows, and
     # only copies it elsewhere, so copy it directly (#638).
     copy_installed_package(pkg, install_path)
   } else {
+    # The package is instrumented and byte-compiled once after it is
+    # installed, so there is no point byte-compiling the original code.
+    instrument <- isTRUE(install_instrument())
     install_package(
       pkg,
       install_path,
       add_rust_flags(flags, rust),
       quiet,
-      env = rust$build_env
+      env = rust$build_env,
+      byte_compile = !instrument
     )
+    if (instrument) {
+      counters_file <- instrument_package(
+        pkg,
+        install_path,
+        full_traversal = full_traversal
+      )
+    }
     if (!is.null(rust)) {
       rust <- rust_check_build(rust)
     }
@@ -1036,11 +1064,8 @@ package_coverage <- function(
     pkg$package,
     install_path,
     fix_mcexit = should_enable_parallel_mcexit_fix(pkg),
-    full_traversal = getOption(
-      "covr.full_traversal",
-      # DESCRIPTION field names are lowercased by `read_description()`
-      isTRUE(as.logical(pkg[[tolower("Config/covr/full_traversal")]]))
-    )
+    full_traversal = full_traversal,
+    counters_file = counters_file
   )
 
   libs <- env_path(install_path, .libPaths())
@@ -1666,7 +1691,14 @@ r_binary <- function() {
 
 # Install the package source with the options covr needs. With `quiet`, the
 # output is captured to give the reason if the installation fails.
-install_package <- function(pkg, install_path, flags, quiet, env = NULL) {
+install_package <- function(
+  pkg,
+  install_path,
+  flags,
+  quiet,
+  env = NULL,
+  byte_compile = TRUE
+) {
   output <- withr::with_envvar(
     c(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep), env),
     withr::with_makevars(flags, assignment = "+=", {
@@ -1682,6 +1714,7 @@ install_package <- function(pkg, install_path, flags, quiet, env = NULL) {
         "--with-keep.parse.data",
         "--no-staged-install",
         "--no-multiarch",
+        if (!byte_compile) "--no-byte-compile",
         shQuote(pkg$path)
       )
 
@@ -1800,18 +1833,41 @@ run_r_live <- function(infile, outfile) {
 # @param pkg_name name of the package to add hooks to
 # @param lib the library path to look in
 # @param fix_mcexit whether to add the fix for mcparallel:::mcexit
+# @param counters_file the file with the counters of a package that was
+#   instrumented by `instrument_package()`, which are restored when the package
+#   is loaded instead of tracing its namespace.
 add_hooks <- function(
   pkg_name,
   lib,
   fix_mcexit = FALSE,
   record_tests = isTRUE(getOption("covr.record_tests", FALSE)),
   full_traversal = FALSE,
-  branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE))
+  branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE)),
+  counters_file = NULL
 ) {
   trace_dir <- paste0("Sys.getenv(\"COVERAGE_DIR\", \"", lib, "\")")
 
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
   lines <- readLines(load_script)
+  if (!is.null(counters_file)) {
+    # Load the instrumented code that `instrument_package()` saved
+    db_line <- grep(
+      'dbbase <- file.path(info$libname, pkg, "R", pkg)',
+      lines,
+      fixed = TRUE
+    )
+    if (length(db_line) != 1L) {
+      covr_abort(
+        "Can't find where the loader script of {.pkg {pkg_name}} reads the package."
+      )
+    }
+    lines[db_line] <- sub(
+      '"R", pkg)',
+      '"R", paste0(pkg, ".covr"))',
+      lines[db_line],
+      fixed = TRUE
+    )
+  }
   lines <- append(
     lines,
     c(
@@ -1830,7 +1886,15 @@ add_hooks <- function(
         isTRUE(branch_coverage),
         "))"
       ),
-      "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
+      if (is.null(counters_file)) {
+        "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))"
+      } else {
+        paste0(
+          "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::restore_counters(ns, file.path(info$libname, pkg, \"R\", \"",
+          basename(counters_file),
+          "\")))"
+        )
+      },
       paste0(
         "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::register_trace(ns, ",
         trace_dir,
