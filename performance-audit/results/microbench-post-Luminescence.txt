@@ -1,0 +1,10 @@
+16208 traces, 144 files, 67555 lines in the concatenated package source
+
+traced_files() (current: whole source split once per file)            1.723 s
+prototype: split the concatenated source once                         0.094 s
+non_code_lines() regexes via rex::re_matches()                        0.036 s
+prototype: the same regexes via grepl(perl = TRUE)                    0.025 s
+to_report_data() (per_line() + percent_coverage())                    7.138 s
+source table rows: 66339
+renderSourceTable() + renderTags() (current)                        287.725 s
+prototype: source table as strings + renderTags()                     0.313 s

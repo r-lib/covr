@@ -1,0 +1,47 @@
+sampling time: 2.65 s
+
+by self:
+                     self.time self.pct total.time total.pct
+"regexpr"                 0.67    25.28       0.67     25.28
+"substring"               0.35    13.21       0.39     14.72
+"process_matches"         0.23     8.68       1.43     53.96
+"order"                   0.20     7.55       0.20      7.55
+"setNames"                0.12     4.53       0.12      4.53
+"sort.int"                0.12     4.53       0.12      4.53
+"as.vector"               0.10     3.77       0.10      3.77
+"factor"                  0.08     3.02       0.22      8.30
+"getSrcLines"             0.07     2.64       0.07      2.64
+"<Anonymous>"             0.06     2.26       0.06      2.26
+"FUN"                     0.04     1.51       0.45     16.98
+"na.omit.data.frame"      0.04     1.51       0.24      9.06
+"as.integer"              0.04     1.51       0.04      1.51
+"is.na"                   0.04     1.51       0.04      1.51
+"lapply"                  0.03     1.13       2.20     83.02
+"vapply"                  0.03     1.13       0.18      6.79
+"unique"                  0.03     1.13       0.05      1.89
+"!"                       0.03     1.13       0.03      1.13
+"gc"                      0.03     1.13       0.03      1.13
+"matrix"                  0.03     1.13       0.03      1.13
+
+by total:
+                         total.time total.pct self.time self.pct
+"system.time"                  2.65    100.00      0.00     0.00
+"covr::percent_coverage"       2.62     98.87      0.00     0.00
+"steps[[name]]"                2.62     98.87      0.00     0.00
+"tally_coverage"               2.47     93.21      0.00     0.00
+"lapply"                       2.20     83.02      0.03     1.13
+"tally_lines"                  2.20     83.02      0.00     0.00
+"drop_lines"                   1.98     74.72      0.00     0.00
+"compact"                      1.94     73.21      0.00     0.00
+"non_code_lines"               1.94     73.21      0.00     0.00
+"traced_files"                 1.91     72.08      0.02     0.75
+"rex::re_matches"              1.51     56.98      0.00     0.00
+"process_matches"              1.43     53.96      0.23     8.68
+"regexpr"                      0.67     25.28      0.67    25.28
+"no_capture"                   0.67     25.28      0.00     0.00
+"FUN"                          0.45     16.98      0.04     1.51
+"aggregate.formula"            0.42     15.85      0.00     0.00
+"aggregate"                    0.42     15.85      0.00     0.00
+"aggregate.data.frame"         0.41     15.47      0.00     0.00
+"substring"                    0.39     14.72      0.35    13.21
+"as.data.frame"                0.38     14.34      0.00     0.00

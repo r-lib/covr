@@ -632,9 +632,14 @@ in_caller_body <- function(n, call) {
 #'
 #' @param expr A language object
 #' @return A logical value indicating whether the object is a call to
-#'   `covr:::count`.
+#'   `covr:::count` or `covr:::count_and_record`.
 #'
 is_covr_count_call <- function(expr) {
-  count_call <- call(":::", as.symbol("covr"), as.symbol("count"))
-  identical(expr[[1]], count_call)
+  # Constructed by hand like in `trace_calls()`, to avoid a NOTE from R CMD
+  # check
+  identical(expr[[1]], call(":::", as.symbol("covr"), as.symbol("count"))) ||
+    identical(
+      expr[[1]],
+      call(":::", as.symbol("covr"), as.symbol("count_and_record"))
+    )
 }

@@ -11,7 +11,7 @@ is_covr_count_call(expr)
 }
 \value{
 A logical value indicating whether the object is a call to
-\code{covr:::count}.
+\code{covr:::count} or \code{covr:::count_and_record}.
 }
 \description{
 Is the expression a call to covr:::count
