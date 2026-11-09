@@ -152,6 +152,24 @@ test_that("show_failures handles output without a prompt", {
   expect_equal(err$output, c("a", "b"))
 })
 
+test_that("covr_error message is only the header if warning.length is too small", {
+  withr::local_options(warning.length = 100)
+  err <- covr_error_for(paste0("line ", 1:3))
+  msg <- conditionMessage(err)
+  expect_match(msg, "Code run to compute coverage failed", fixed = TRUE)
+  expect_no_match(msg, "line", fixed = TRUE)
+  expect_length(err$output, 4)
+})
+
+test_that("covr_error truncates a single line that is too long", {
+  withr::local_options(warning.length = 250)
+  err <- covr_error_for(paste0(strrep("a", 500), "END"))
+  msg <- conditionMessage(err)
+  expect_lte(nchar(msg), 250 - 9)
+  expect_match(msg, "\na+END$")
+  expect_equal(nchar(err$output[[2]]), 503)
+})
+
 test_that("clean_coverage_tests works with degenerated objects", {
   obj <- list(
     a = list(tests = new.env()),
@@ -169,6 +187,43 @@ test_that("clean_coverage_tests works with degenerated objects", {
   expect_no_error(
     covr:::clean_coverage_tests(obj)
   )
+})
+
+test_that("clean_coverage_tests keeps tallies with fewer rows than hits", {
+  tally <- cbind(test = 1L, call = 1L, depth = 0L, i = 1L)
+  obj <- list(a = list(value = 3L, tests = as.environment(list(tally = tally))))
+
+  clean_coverage_tests(obj)
+
+  expect_equal(obj$a$tests$tally, tally)
+})
+
+test_that("merge_coverage_pair handles an object with an empty tests list", {
+  tally <- cbind(test = 1L, call = 1L, depth = 0L, i = 1L)
+  into <- list(
+    tests = list(test1 = list(quote(a()))),
+    a = list(value = 1L, tests = as.environment(list(tally = tally)))
+  )
+  from <- list(tests = list(), a = list(value = 2L))
+
+  merged <- merge_coverage_pair(into, from)
+
+  expect_equal(names(merged$tests), "test1")
+  expect_equal(merged$a$value, 3L)
+  expect_equal(merged$a$tests$tally, tally)
+})
+
+test_that("merge_coverage returns NULL for no coverage", {
+  expect_null(merge_coverage(list()))
+  expect_null(merge_coverage(character()))
+})
+
+test_that("in_covr() reflects R_COVR", {
+  withr::local_envvar(R_COVR = "true")
+  expect_equal(in_covr(), TRUE)
+
+  withr::local_envvar(R_COVR = NA)
+  expect_equal(in_covr(), FALSE)
 })
 
 test_that("merge_coverage sums the counts of shared traces", {
@@ -596,4 +651,47 @@ test_that("unsaved_traces ignores the markers of the current process", {
   file.create(file.path(dir, paste0("covr_pending_", pid, "0_b")))
 
   expect_equal(unsaved_traces(dir), paste0("covr_pending_", pid, "0_b"))
+})
+
+test_that("active bindings are not read when looking for functions", {
+  src <- paste(
+    "makeActiveBinding('ab', function() stop('boom'), environment())",
+    "f <- function() {",
+    "  1",
+    "}",
+    sep = "\n"
+  )
+  for (full in c(FALSE, TRUE)) {
+    withr::local_options(covr.full_traversal = full)
+    cov <- as.data.frame(code_coverage(src, "f()"))
+    expect_equal(cov$functions, "f")
+    expect_equal(cov$value, 1)
+  }
+})
+
+test_that("active bindings in a package are not read", {
+  dir <- withr::local_tempdir()
+  file.copy("TestFullTraversal", dir, recursive = TRUE)
+  pkg <- file.path(dir, "TestFullTraversal")
+  # Active bindings can't be defined at the top level of an installed package,
+  # as saving them for lazy loading evaluates them.
+  cat(
+    ".onLoad <- function(libname, pkgname) {\n",
+    "  makeActiveBinding('ab', function() stop('boom'), topenv())\n",
+    "}\n",
+    file = file.path(pkg, "R", "TestFullTraversal.R"),
+    append = TRUE
+  )
+  for (full in c(FALSE, TRUE)) {
+    withr::local_options(covr.full_traversal = full)
+    cov <- as.data.frame(package_coverage(pkg))
+    expect_true("api" %in% cov$functions)
+  }
+})
+
+test_that("package_coverage(pre_clean =) is deprecated", {
+  expect_snapshot(
+    cov <- package_coverage(test_path("TestS4"), pre_clean = FALSE)
+  )
+  expect_gt(length(cov), 0)
 })

@@ -320,3 +320,148 @@ test_that("clean_gcov correctly clears files", {
   clean_gcov(dirname(dir))
   expect_identical(list.files(dir), sort(c("simple.c", "Makevars")))
 })
+
+test_that("parse_gcov ignores missing files and sources outside the package", {
+  expect_null(parse_gcov(tempfile(fileext = ".c.gcov")))
+
+  dir <- normalize_path(withr::local_tempdir())
+  other <- file.path(dir, "other")
+  pkg <- file.path(dir, "pkg")
+  dir.create(other)
+  dir.create(pkg)
+  writeLines("int f() { return 1; }", file.path(other, "f.c"))
+  gcov <- file.path(dir, "f.c.gcov")
+  writeLines(
+    c(
+      paste0("        -:    0:Source:", file.path(other, "f.c")),
+      "        1:    1:int f() { return 1; }"
+    ),
+    gcov
+  )
+
+  expect_null(parse_gcov(gcov, package_path = pkg))
+  expect_length(parse_gcov(gcov, package_path = other), 1)
+})
+
+test_that("parse_gcov returns NULL when no lines are counted", {
+  dir <- withr::local_tempdir()
+  writeLines("#define X 1", file.path(dir, "f.c"))
+  gcov <- file.path(dir, "f.c.gcov")
+  writeLines(
+    c(
+      paste0("        -:    0:Source:", file.path(dir, "f.c")),
+      "        -:    1:#define X 1"
+    ),
+    gcov
+  )
+
+  expect_null(parse_gcov(gcov, package_path = dir))
+})
+
+test_that("parse_gcov errors on coverage values it cannot parse", {
+  local_mocked_bindings(
+    file.exists = function(path) TRUE,
+    normalize_path = function(path) "simple.c",
+    readLines = function(x) {
+      c("        -:    0:Source:simple.c", "     ###*#:    1:x;")
+    }
+  )
+  expect_snapshot(suppressWarnings(parse_gcov("hi.c.gcov")), error = TRUE)
+})
+
+test_that("find_gcov returns NA when gcov is not on the path", {
+  withr::local_path(character(), action = "replace")
+  expect_equal(find_gcov(), NA_character_)
+})
+
+test_that("gcov_run reports the command and output when not quiet", {
+  # shQuote() quotes differently on Windows
+  skip_on_os("windows")
+  local_mocked_bindings(system2 = function(...) "line one")
+  expect_snapshot(gcov_run("gcov", c("a b.gcno", "-a"), quiet = FALSE))
+})
+
+local_gcov_package <- function(env = parent.frame()) {
+  pkg <- withr::local_tempdir(.local_envir = env)
+  dir.create(file.path(pkg, "src"))
+  writeLines("int f() { return 1; }", file.path(pkg, "src", "f.c"))
+  file.create(file.path(pkg, "src", "f.gcno"))
+  writeLines(
+    c(
+      "        -:    0:Source:f.c",
+      "        1:    1:int f() { return 1; }"
+    ),
+    file.path(pkg, "src", "f.c.gcov")
+  )
+  normalize_path(pkg)
+}
+
+test_that("run_gcov returns without error when gcov is unavailable and unused", {
+  pkg <- withr::local_tempdir()
+  expect_null(run_gcov(pkg, gcov_path = NA_character_))
+
+  dir.create(file.path(pkg, "src"))
+  expect_null(run_gcov(pkg, gcov_path = NA_character_))
+
+  file.create(file.path(pkg, "src", "f.gcno"))
+  expect_snapshot(run_gcov(pkg, gcov_path = NA_character_), error = TRUE)
+})
+
+test_that("run_gcov cleans gcov outputs by default", {
+  pkg <- local_gcov_package()
+  local_mocked_bindings(
+    gcov_run = function(...) NULL,
+    gcov_unexecuted_block = function(...) "%%%%%",
+    gcov_json_supported = function(...) FALSE
+  )
+
+  res <- run_gcov(pkg, gcov_path = "gcov")
+  expect_length(res, 1)
+  expect_equal(list.files(file.path(pkg, "src")), c("f.c", "f.gcno"))
+  expect_equal(list.files(pkg), "src")
+})
+
+test_that("run_gcov(clean = FALSE) moves gcov outputs to the covr directory", {
+  pkg <- local_gcov_package()
+  local_mocked_bindings(
+    gcov_run = function(...) NULL,
+    gcov_unexecuted_block = function(...) "%%%%%",
+    gcov_json_supported = function(...) FALSE
+  )
+
+  res <- run_gcov(pkg, clean = FALSE, gcov_path = "gcov")
+  expect_length(res, 1)
+  expect_equal(list.files(file.path(pkg, "src")), c("f.c", "f.gcno"))
+  expect_equal(
+    basename(list.files(file.path(pkg, "covr"), recursive = TRUE)),
+    "f.c.gcov"
+  )
+})
+
+test_that("run_gcov reports progress when not quiet", {
+  pkg <- local_gcov_package()
+  local_mocked_bindings(
+    gcov_run = function(...) NULL,
+    gcov_unexecuted_block = function(...) "%%%%%",
+    gcov_json_supported = function(...) FALSE
+  )
+
+  msgs <- function(clean) {
+    out <- character()
+    withCallingHandlers(
+      run_gcov(pkg, quiet = FALSE, clean = clean, gcov_path = "gcov"),
+      message = function(m) {
+        out <<- c(out, conditionMessage(m))
+        invokeRestart("muffleMessage")
+      }
+    )
+    out
+  }
+
+  expect_snapshot(cat(msgs(TRUE), sep = ""))
+  writeLines(
+    c("        -:    0:Source:f.c", "        1:    1:int f() { return 1; }"),
+    file.path(pkg, "src", "f.c.gcov")
+  )
+  expect_snapshot(cat(gsub(pkg, "<pkg>", msgs(FALSE), fixed = TRUE), sep = ""))
+})

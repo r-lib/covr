@@ -68,9 +68,6 @@ uses_parallel <- function(pkg) {
   ))
 }
 
-on_windows <- function() {
-  "windows" %in% tolower(Sys.info()[["sysname"]])
-}
 
 # consider in that order: the environment variable COVR_FIX_PARALLEL_MCEXIT,
 # the option covr.fix_parallel_mcexit, or auto-detection of the usage of
@@ -78,7 +75,7 @@ on_windows <- function() {
 # coverage measured in the current session, it is enabled by default.
 should_enable_parallel_mcexit_fix <- function(pkg = NULL) {
   isTRUE(
-    !on_windows() &&
+    !is_windows() &&
       as.logical(Sys.getenv(
         "COVR_FIX_PARALLEL_MCEXIT",
         getOption(

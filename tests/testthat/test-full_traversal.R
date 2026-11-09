@@ -93,3 +93,21 @@ test_that("full traversal visits shared lists once", {
 
   expect_equal(cov$functions, "f")
 })
+
+test_that("full traversal names functions without srcrefs", {
+  withr::local_options(covr.full_traversal = TRUE)
+  src <- "g <- function() {\n  1\n}\nf <- g\nattr(f, \"srcref\") <- NULL\nfns <- list(a = f)\n"
+  cov <- as.data.frame(code_coverage(src, "fns$a()"))
+
+  expect_equal(cov$functions, "g")
+  expect_equal(cov$value, 1)
+})
+
+test_that("full traversal skips functions not created in the traced environment", {
+  withr::local_options(covr.full_traversal = TRUE)
+  src <- "f <- function() {\n  1\n}\nenvironment(f) <- baseenv()\nfns <- list(a = f, b = function() {\n  2\n})\n"
+  cov <- as.data.frame(code_coverage(src, "fns$a()"))
+
+  expect_equal(cov$functions, c("f", "fns$b"))
+  expect_equal(cov$value, c(1, 0))
+})

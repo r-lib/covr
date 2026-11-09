@@ -25,7 +25,7 @@ impute_child_srcrefs <- function(x, parent_ref) {
   make_srcref <- children$make_srcref
   token <- pd_child$token
   n <- length(token)
-  if (n == 0 || any(token == "PIPE")) {
+  if (n == 0) {
     return(NULL)
   }
   is_expr <- token == "expr"
@@ -78,9 +78,6 @@ impute_body_srcref <- function(fun_ref) {
     return(NULL)
   }
   is_expr <- children$pd_child$token == "expr"
-  if (!any(is_expr)) {
-    return(NULL)
-  }
   children$make_srcref(max(which(is_expr)))
 }
 
@@ -157,14 +154,17 @@ parse_children <- function(parent_ref) {
     )
   }
 
-  if (
-    pd$line1[pd_expr_idx] == parent_ref[[7L]] &
-      pd$line2[pd_expr_idx] == parent_ref[[8L]]
-  ) {
-    line_offset <- parent_ref[[7L]] - parent_ref[[1L]]
-  } else {
-    line_offset <- 0
-  }
+  # `pd` has either the lines of the file (from `get_parse_data()`) or the
+  # lines of the parsed, collated source (from `getParseData(srcref)`). The
+  # srcrefs created here always use the lines of the file for the first and
+  # last line and the lines of the parsed source for the parsed lines, like
+  # the srcrefs of the parser, so a call gets the same key whichever way its
+  # parse data is found.
+  shift <- parent_ref[[7L]] - parent_ref[[1L]]
+  pd_is_parsed <- pd$line1[pd_expr_idx] == parent_ref[[7L]] &
+    pd$line2[pd_expr_idx] == parent_ref[[8L]]
+  line_offset <- if (pd_is_parsed) shift else 0
+  parsed_offset <- if (pd_is_parsed) 0 else shift
 
   make_srcref <- function(from, to = from) {
     if (length(from) == 0) {
@@ -180,8 +180,8 @@ parse_children <- function(parent_ref) {
         pd_child$col2[to],
         pd_child$col1[from],
         pd_child$col2[to],
-        pd_child$line1[from],
-        pd_child$line2[to]
+        pd_child$line1[from] + parsed_offset,
+        pd_child$line2[to] + parsed_offset
       )
     )
   }
@@ -255,15 +255,13 @@ impute_conditional <- function(x, pd, pd_child, make_srcref) {
       # with no expression in the parse data
       length(src_ref) <- length(x)
       src_ref
-    },
-
-    NULL
+    }
   )
 }
 
 is_conditional_or_loop <- function(x) {
   is.symbol(x[[1L]]) &&
-    as.character(x[[1L]]) %in% c("if", "for", "else", "switch")
+    as.character(x[[1L]]) %in% c("if", "for", "while", "switch")
 }
 
 package_parse_data <- new.env()
@@ -277,7 +275,9 @@ get_parse_data <- function(srcfile) {
     }
 
     res <- lapply(lines_split, function(x) {
-      getParseData(parse(text = x, keep.source = TRUE), includeText = NA)
+      withr::with_options(c(keep.parse.data = TRUE), {
+        getParseData(parse(text = x, keep.source = TRUE), includeText = NA)
+      })
     })
     for (i in seq_along(res)) {
       package_parse_data[[names(res)[[i]]]] <- res[[i]]

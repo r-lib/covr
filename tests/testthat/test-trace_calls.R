@@ -175,3 +175,12 @@ stopifnot(foo(bar(1)) == 2)
   )
   expect_equal(percent_coverage(cov), 100)
 })
+
+test_that("primitive functions are not traced", {
+  expect_identical(trace_calls(sum), sum)
+})
+
+test_that("is_traced() is FALSE for primitives and non-functions", {
+  expect_identical(is_traced(sum), FALSE)
+  expect_identical(is_traced(1), FALSE)
+})

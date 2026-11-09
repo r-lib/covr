@@ -476,3 +476,18 @@ test_that("covr.record_tests: objects used in tests can be garbage collected (#6
   # each object is collected by the `gc()` right after it is used
   expect_equal(events, c("method", "gc", "active", "gc"))
 })
+
+test_that("covr.record_tests tallies every hit of a trace", {
+  # more hits than the initial 4 rows of the tally matrix
+  withr::local_options(covr.record_tests = TRUE)
+  cov <- package_coverage(
+    test_path("TestFunctional"),
+    type = "none",
+    code = "for (i in 1:6) TestFunctional::a()"
+  )
+
+  tally <- cov[[1]]$tests
+  expect_equal(nrow(tally), 6L)
+  expect_equal(unname(tally[, "test"]), rep(1L, 6))
+  expect_equal(unname(tally[, "i"]), seq(2L, 12L, by = 2L))
+})

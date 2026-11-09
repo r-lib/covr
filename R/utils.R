@@ -10,28 +10,21 @@ compact <- function(x) {
   x[viapply(x, length) != 0]
 }
 
-trim <- function(x) {
-  rex::re_substitutes(
-    x,
-    rex::rex(list(start, spaces) %or% list(spaces, end)),
-    "",
-    global = TRUE
-  )
-}
 
 local_branch <- function(dir = ".") {
   withr::with_dir(
     dir,
     branch <- system_output("git", c("rev-parse", "--abbrev-ref", "HEAD"))
   )
-  trim(branch)
+  trimws(branch)
 }
 
 current_commit <- function(dir = ".") {
   withr::with_dir(dir, commit <- system_output("git", c("rev-parse", "HEAD")))
-  trim(commit)
+  trimws(commit)
 }
 
+#' @export
 `[.coverage` <- function(x, i, ...) {
   attrs <- attributes(x)
   attrs$names <- attrs$names[i]
@@ -298,28 +291,6 @@ clean_objects <- function(path) {
   invisible(files)
 }
 
-# This is not actually an S3 method
-# From http://stackoverflow.com/a/34639237/2055486
-setdiff.data.frame <- function(
-  x,
-  y,
-  by = intersect(names(x), names(y)),
-  by.x = by,
-  by.y = by
-) {
-  stopifnot(
-    is.data.frame(x),
-    is.data.frame(y),
-    length(by.x) == length(by.y)
-  )
-
-  !do.call(paste, c(x[by.x], sep = "\30")) %in%
-    do.call(paste, c(y[by.y], sep = "\30"))
-}
-
-`%==%` <- function(x, y) identical(x, y)
-
-`%!=%` <- function(x, y) !identical(x, y)
 
 is_na <- function(x) {
   !is.null(x) && !is.symbol(x) && is.na(x)
@@ -395,7 +366,18 @@ vdapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = numeric(1))
 viapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = integer(1))
 vlapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = logical(1))
 
-trim_ws <- function(x) {
-  x <- sub("^[ \t\r\n]+", "", x, perl = TRUE)
-  sub("[ \t\r\n]+$", "", x, perl = TRUE)
+# Names of the bindings in `env` that can be read without side effects: active
+# bindings run arbitrary code (which can fail) when they are read.
+inactive_names <- function(env) {
+  nms <- ls(env, all.names = TRUE)
+  nms[!vlapply(nms, bindingIsActive, env = env)]
+}
+
+# Like `eapply(env, FUN, all.names = TRUE)`, but without reading active
+# bindings.
+eapply_inactive <- function(env, FUN) {
+  nms <- inactive_names(env)
+  res <- lapply(nms, function(nm) FUN(get(nm, envir = env, inherits = FALSE)))
+  names(res) <- nms
+  res
 }

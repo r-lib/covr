@@ -52,3 +52,12 @@
       i Coverage is lost if a process is killed or outlives the tests.
       i Did a test leave a Shiny app, callr session, or future worker running?
 
+# package_coverage(pre_clean =) is deprecated
+
+    Code
+      cov <- package_coverage(test_path("TestS4"), pre_clean = FALSE)
+    Condition
+      Warning:
+      `pre_clean` is deprecated and ignored.
+      i Objects in 'src' are always removed before installing.
+

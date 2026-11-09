@@ -99,3 +99,33 @@ test_that("print.coverage limits the files or functions printed with n", {
     print(cov, n = 0)
   })
 })
+
+test_that("print.coverage prints nothing for empty coverage", {
+  expect_silent(res <- print(structure(list(), class = "coverage")))
+  expect_null(res)
+
+  # compiled code has no functions, so there is nothing to tally by function
+  cov <- code_coverage("f <- function() 1", "f()")
+  cov[[1]]$functions <- NA_character_
+  expect_silent(res <- print(cov, by = "function"))
+  expect_null(res)
+})
+
+test_that("print.coverages prints the coverage of each type", {
+  cov <- code_coverage("f <- function() 1", "f()")
+  attr(cov, "package") <- list(package = "pkg")
+  covs <- structure(
+    list(
+      tests = structure(cov, type = "tests"),
+      examples = structure(cov, type = "examples")
+    ),
+    package = list(package = "pkg"),
+    class = "coverages"
+  )
+
+  expect_snapshot(
+    res <- print(covs),
+    transform = function(x) sub("^[^ ]*source\\.R\\w*", "<file>", x)
+  )
+  expect_identical(res, covs)
+})

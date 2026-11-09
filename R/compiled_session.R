@@ -29,9 +29,6 @@ start_compiled_coverage <- function(env, required = FALSE) {
     }
     return(NULL)
   }
-  if (uses_icc()) {
-    return(NULL)
-  }
 
   path <- normalize_path(getNamespaceInfo(env, "path"))
   build <- file.path(
@@ -260,7 +257,7 @@ read_rbuildignore <- function(path) {
   if (!file.exists(file)) {
     return(character())
   }
-  patterns <- trim_ws(readLines(file, warn = FALSE))
+  patterns <- trimws(readLines(file, warn = FALSE))
   patterns[nzchar(patterns) & !grepl("^#", patterns)]
 }
 

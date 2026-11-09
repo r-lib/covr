@@ -126,3 +126,48 @@ test_that("coverage_to_markdown() escapes file names and handles missing/lower b
     coverage_to_markdown(part, base = full)
   })
 })
+
+test_that("tally_coverage() ignores expressions without source lines", {
+  cov <- code_coverage("f <- function() 1\ng <- function() 2", "f()")
+  df <- as.data.frame(cov, sort = FALSE)
+
+  df$first_line[df$functions == "f"] <- NA
+  res <- tally_coverage(df)
+  expect_equal(res$functions, "g")
+  expect_equal(res$line, 2)
+
+  df$first_line <- NA
+  res <- tally_coverage(df)
+  expect_equal(nrow(res), 0)
+  expect_named(res, c("filename", "functions", "line", "value"))
+})
+
+test_that("zero_coverage() sends the zero coverage to RStudio markers", {
+  cov <- code_coverage(
+    "f <- function() {\n  1\n}\ng <- function() {\n  2\n}",
+    "f()"
+  )
+  attr(cov, "package") <- list(package = "pkg", path = "/path/to/pkg")
+
+  sent <- NULL
+  local_mocked_bindings(
+    rstudio_has_source_markers = function() TRUE,
+    rstudio_source_markers = function(markers, base_path) {
+      sent <<- list(markers = markers, base_path = base_path)
+    }
+  )
+
+  res <- zero_coverage(cov)
+  expect_equal(res$line, 5)
+  expect_equal(sent$base_path, "/path/to/pkg")
+  expect_length(sent$markers, 1)
+  expect_equal(sent$markers[[1]]$type, "warning")
+  expect_equal(sent$markers[[1]]$line, 5)
+  expect_equal(sent$markers[[1]]$message, "No Test Coverage!")
+
+  # the option turns the markers off
+  sent <- NULL
+  withr::local_options(covr.rstudio_source_markers = FALSE)
+  zero_coverage(cov)
+  expect_null(sent)
+})

@@ -4,14 +4,7 @@
 \alias{system_output}
 \title{Run a system command and capture the output.}
 \usage{
-system_output(
-  cmd,
-  args = character(),
-  env = character(),
-  quiet = FALSE,
-  echo = FALSE,
-  ...
-)
+system_output(cmd, args = character(), env = character(), quiet = FALSE, ...)
 }
 \arguments{
 \item{cmd}{the command to run.}
@@ -20,9 +13,7 @@ system_output(
 
 \item{env}{a named character vector of environment variables.  Will be quoted}
 
-\item{quiet}{if \code{TRUE}, the command output will be echoed.}
-
-\item{echo}{if \code{TRUE}, the command to run will be echoed.}
+\item{quiet}{if \code{TRUE}, the command's standard error is discarded.}
 
 \item{...}{additional arguments passed to \code{\link[base:system]{base::system()}}}
 }

@@ -84,14 +84,6 @@
 #'     thrown, so lines that create objects with destructors may also count as
 #'     partially executed.
 #'
-#'   \item `covr.icov`:
-#'
-#'   \item `covr.icov_args`:
-#'
-#'   \item `covr.icov_flags`:
-#'
-#'   \item `covr.icov_prof`:
-#'
 #'   \item `covr.llvm_cov`: Path to the `llvm-cov` used to read the coverage
 #'     of Rust code. Defaults to the one of the Rust toolchain, installed with
 #'     `rustup component add llvm-tools`, or for Rust installed without rustup
@@ -182,7 +174,7 @@ trace_environment <- function(env) {
     replacements_R6(env),
     replacements_S7(env),
     replacements_box(env),
-    lapply(ls(env, all.names = TRUE), replacement, env = env)
+    lapply(inactive_names(env), replacement, env = env)
   ))
   if (isTRUE(getOption("covr.full_traversal", FALSE))) {
     replacements <- c(replacements, replacements_nested(env, replacements))
@@ -356,15 +348,10 @@ unsaved_traces <- function(directory) {
 #' Convert a counters object to a coverage object
 #'
 #' @param counters An environment of covr trace results to convert to a coverage
-#'   object. If `counters` is not provided, the `covr` namespace value
-#'   `.counters` is used.
+#'   object.
 #' @param ... Additional attributes to include with the coverage object.
 #'
-as_coverage <- function(counters = NULL, ...) {
-  if (missing(counters)) {
-    counters <- .counters
-  }
-
+as_coverage <- function(counters, ...) {
   counters <- as.list(counters)
   counters <- as_coverage_with_tests(counters)
 
@@ -405,6 +392,40 @@ as_coverage_with_tests <- function(counters) {
   )
 }
 
+# Merge the traces saved in `directory` by other processes, into `counters` if
+# given.
+merge_traces <- function(directory, counters = NULL) {
+  trace_files <- list.files(
+    directory,
+    pattern = "^covr_trace_",
+    full.names = TRUE
+  )
+  traces <- merge_coverage(trace_files)
+  if (is.null(counters)) {
+    traces
+  } else if (is.null(traces)) {
+    counters
+  } else {
+    merge_coverage(list(counters, traces))
+  }
+}
+
+# Warn, with class `covr_unsaved_trace`, about the processes in `directory`
+# that did not save their trace. `subject` says what they did.
+warn_unsaved_traces <- function(directory, subject, hint) {
+  n <- length(unsaved_traces(directory))
+  if (n > 0) {
+    covr_warn(
+      c(
+        "Can't find coverage from {n} R process{?es} that {subject}.",
+        i = "Coverage is lost if a process is killed or outlives the tests.",
+        i = hint
+      ),
+      class = "covr_unsaved_trace"
+    )
+  }
+}
+
 # Evaluate `code` and return the coverage it produced from the current traces.
 # Unless disabled (see should_enable_parallel_mcexit_fix()), this includes code
 # run in processes forked by parallel's mclapply(), mcparallel() etc.
@@ -425,15 +446,7 @@ collect_coverage <- function(code) {
   withr::with_envvar(c("R_COVR" = "true"), code)
 
   counters <- as.list(.counters)
-  trace_files <- list.files(
-    trace_dir,
-    pattern = "^covr_trace_",
-    full.names = TRUE
-  )
-  if (length(trace_files) > 0) {
-    counters <- merge_coverage(list(counters, merge_coverage(trace_files)))
-  }
-  as_coverage(counters)
+  as_coverage(merge_traces(trace_dir, counters))
 }
 
 #' Calculate test coverage for a specific function.
@@ -704,28 +717,11 @@ environment_coverage <- function(
 ) {
   exec_env <- new.env(parent = env)
 
-  compiled <- start_compiled_coverage(env)
-  on.exit(stop_compiled_coverage(compiled), add = TRUE)
-
-  trace_environment(env)
-  on.exit(
-    {
-      reset_traces()
-      clear_counters()
-    },
-    add = TRUE
-  )
-
-  coverage <- collect_coverage(
-    lapply(test_files, sys.source, keep.source = TRUE, envir = exec_env)
-  )
-  coverage <- add_compiled_coverage(coverage, compiled)
-
-  exclude(
-    coverage,
+  with_coverage(
+    lapply(test_files, sys.source, keep.source = TRUE, envir = exec_env),
+    env = env,
     line_exclusions = line_exclusions,
-    function_exclusions = function_exclusions,
-    path = NULL
+    function_exclusions = function_exclusions
   )
 }
 
@@ -889,8 +885,8 @@ with_coverage <- function(
 #'   Use `outDir` to save the output of the tests and examples to a directory
 #'   which is kept after coverage finishes; by default it is written to
 #'   `install_path`.
-#' @param exclusions \sQuote{Deprecated}, please use \sQuote{line_exclusions} instead.
-#' @param pre_clean whether to delete all objects present in the src directory before recompiling
+#' @param pre_clean Deprecated and ignored. Objects present in the src directory
+#'   are always deleted before recompiling.
 #' @param install_path The path the instrumented package will be installed to
 #'   and tests run in. By default it is a path in the R sessions temporary
 #'   directory. It can sometimes be useful to set this (along with `clean =
@@ -920,17 +916,15 @@ package_coverage <- function(
   code = character(),
   install_path = temp_file("R_LIBS"),
   ...,
-  exclusions,
-  pre_clean = TRUE,
+  pre_clean,
   allow_failures = getOption("covr.allow_failures", FALSE),
   show_code_output = FALSE
 ) {
-  if (!missing(exclusions)) {
+  if (!missing(pre_clean)) {
     covr_warn(c(
-      "{.arg exclusions} is deprecated.",
-      i = "Use {.arg line_exclusions} instead."
+      "{.arg pre_clean} is deprecated and ignored.",
+      i = "Objects in {.file src} are always removed before installing."
     ))
-    line_exclusions <- exclusions
   }
 
   pkg <- as_package(path)
@@ -955,8 +949,9 @@ package_coverage <- function(
 
   run_separately <- !isTRUE(combine_types) && length(type) > 1
   if (run_separately) {
-    # store the args that were called
-    called_args <- as.list(match.call())[-1]
+    # store the args that were called, evaluated in the caller's frame so
+    # `Recall()` doesn't look up local variables in this one
+    called_args <- lapply(as.list(match.call())[-1], eval, parent.frame())
 
     # remove the type
     called_args$type <- NULL
@@ -984,17 +979,7 @@ package_coverage <- function(
   install_path <- normalize_path(install_path)
   dir.create(install_path)
 
-  # check for compiler
-  if (!uses_icc()) {
-    flags <- getOption("covr.flags")
-  } else if (length(getOption("covr.icov")) > 0L) {
-    flags <- getOption("covr.icov_flags")
-    # clean up old icov files
-    unlink(file.path(pkg$path, "src", "*.dyn"))
-    unlink(file.path(pkg$path, "src", "pgopti.*"))
-  } else {
-    covr_abort("Can't find icc.")
-  }
+  flags <- getOption("covr.flags")
 
   if (isTRUE(clean)) {
     # The install directory is only removed on success, so the test output
@@ -1016,7 +1001,7 @@ package_coverage <- function(
   }
 
   # clean any dlls prior to trying to install
-  if (isTRUE(pre_clean) && !installed) {
+  if (!installed) {
     clean_objects(pkg$path)
   }
 
@@ -1157,13 +1142,8 @@ package_coverage <- function(
   })
 
   # read tracing files
-  trace_files <- list.files(
-    path = install_path,
-    pattern = "^covr_trace_[^/]+$",
-    full.names = TRUE
-  )
   coverage <- withCallingHandlers(
-    merge_coverage(trace_files),
+    merge_traces(install_path),
     covr_error = function(e) {
       if (isTRUE(allow_failures)) {
         failures[[length(failures) + 1L]] <<- e
@@ -1184,18 +1164,11 @@ package_coverage <- function(
     ))
   }
 
-  unsaved <- unsaved_traces(install_path)
-  if (length(unsaved) > 0) {
-    n <- length(unsaved)
-    covr_warn(
-      c(
-        "Can't find coverage from {n} R process{?es} that loaded {.pkg {pkg$package}}.",
-        i = "Coverage is lost if a process is killed or outlives the tests.",
-        i = "Did a test leave a Shiny app, callr session, or future worker running?"
-      ),
-      class = "covr_unsaved_trace"
-    )
-  }
+  warn_unsaved_traces(
+    install_path,
+    cli::format_inline("loaded {.pkg {pkg$package}}"),
+    "Did a test leave a Shiny app, callr session, or future worker running?"
+  )
 
   if (installed) {
     # `R CMD INSTALL` copies an installed package rather than building it, so
@@ -1213,10 +1186,8 @@ package_coverage <- function(
       root <- pkg$path
     }
     res <- NULL
-  } else if (!uses_icc()) {
-    res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
   } else {
-    res <- run_icov(pkg$path, quiet = quiet)
+    res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
   }
 
   if (!is.null(rust)) {
@@ -1626,7 +1597,7 @@ parse_type <- function(type) {
     choices = c("tests", "vignettes", "examples", "all", "none"),
     several.ok = TRUE
   )
-  if (type %==% "all") {
+  if (identical(type, "all")) {
     type <- c("tests", "vignettes", "examples")
   }
 
@@ -1854,11 +1825,6 @@ add_hooks <- function(
   }
 
   writeLines(text = lines, con = load_script)
-}
-
-#' @export
-`[.coverage` <- function(x, ...) {
-  structure(NextMethod(), class = "coverage")
 }
 
 #' Combine coverage objects

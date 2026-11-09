@@ -21,6 +21,50 @@
   distribution, those of the LLVM version rustc uses (e.g. `llvm-cov-18`).
   Without them covr warns and only skips the Rust code.
   `options(covr.llvm_cov = "")` turns this off (#728).
+* `codecov()` no longer detects Codeship, Semaphore (classic) and Wercker, which
+  have been shut down. Their environment variables are now ignored and the
+  commit, branch and repository come from the local git repository.
+
+* `package_coverage()` no longer accepts the `exclusions` argument, deprecated
+  in favor of `line_exclusions`.
+
+* `package_coverage(pre_clean =)` is deprecated and ignored; compiled objects
+  in `src/` are always removed before the package is installed.
+
+* `azure()` is deprecated. Use `to_cobertura()`, which it calls, instead.
+
+* covr no longer reads active bindings (which could fail, e.g. with
+  `makeActiveBinding('x', function() stop('boom'), environment())`) when looking
+  for functions to trace in packages, R6 classes, S7 objects and box modules.
+
+* `codecov()` outside a git repository now gives its "Can't determine the
+  repository" error instead of a git failure, as covr's failed git commands
+  could escape its error handlers.
+
+* `package_coverage(combine_types = FALSE)` now works when its arguments are
+  local variables of the calling function.
+
+* `zero_coverage()` no longer errors in RStudio when rstudioapi isn't
+  installed.
+
+* `package_coverage()` no longer reports spurious uncovered lines for braceless
+  `if`, `for` and `switch` conditions when some of the R processes that load
+  the package run with `options(keep.parse.data = FALSE)`.
+
+* Braceless `while` loop bodies are now counted separately from the loop
+  condition, like `if` and `for`.
+
+* covr no longer supports code coverage with Intel's classic `icc` compiler,
+  which Intel discontinued in 2024, and the `covr.icov`, `covr.icov_args`,
+  `covr.icov_flags` and `covr.icov_prof` options have been removed.
+* `coveralls()` now detects the CI service, job and pull request on the
+  services that `codecov()` supports, e.g. GitHub Actions, instead of
+  assuming Travis CI. With a `repo_token`, it also submits the git commit,
+  branch and remote on every service, or from the local git repository
+  outside CI, so the Coveralls badge is updated for the right branch (#535).
+  Outside a supported CI service, `service_name` is now `"local"` rather than
+  `"travis-ci"`, and the git committer fields are now named as Coveralls
+  expects (`committer_name`, `committer_email`).
 
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
@@ -214,10 +258,6 @@
 * The error for unpaired `# nocov start` and `# nocov end` comments now gives
   the name of the file along with the line numbers of the comments (#409).
 
-* `coveralls()` now submits the git commit, branch and remote when
-  `service_name = "github-actions"` and a `repo_token` is given, so the
-  Coveralls badge is updated for the right branch (#535).
-
 * `to_sonarqube()` now writes file paths relative to the package root (e.g.
   `R/foo.R`) instead of prefixing them with the package name, so the report
   works when the package is the root of the SonarQube project. Use the new
@@ -262,16 +302,8 @@
   `genhtml` and other tools that read the LCOV format (#442, thanks to
   @MichaelChirico for the initial implementation in #637).
 
-* New `to_lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
-  `genhtml` and other tools that read the LCOV format (#442, thanks to
-  @MichaelChirico for the initial implementation in #637).
-
 * `package_coverage()` no longer reports 0% coverage for packages whose last
   file in `R/` is empty (#522).
-
-* New `coverage_to_markdown()` formats coverage as a markdown table, optionally
-  compared against a baseline, for GitHub Actions job summaries or pull
-  request comments (#519).
 
 * New `coverage_to_markdown()` formats coverage as a markdown table, optionally
   compared against a baseline, for GitHub Actions job summaries or pull
