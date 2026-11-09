@@ -2,6 +2,11 @@
 
 ## covr (development version)
 
+- Code run to measure coverage is faster, as evaluated expressions are
+  counted in C rather than in R (about 6 times less overhead per
+  expression). An instrumented function sent to another process, e.g. a
+  parallel worker, runs there but isn’t counted.
+
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md),
   [`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md)
   and
