@@ -357,3 +357,19 @@ test_that("renderSourceTable() escapes the source and file names", {
     fixed = TRUE
   )
 })
+
+test_that("renderSourceTable() has no rows for an empty file", {
+  skip_if_not_installed("htmltools")
+
+  data <- list(
+    "empty.R" = data.frame(
+      line = integer(),
+      source = character(),
+      coverage = character()
+    )
+  )
+  html <- as.character(renderSourceTable(data))
+
+  expect_match(html, 'data-file="empty.R"', fixed = TRUE)
+  expect_no_match(html, "<tr", fixed = TRUE)
+})

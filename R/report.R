@@ -583,18 +583,23 @@ renderSourceTable <- function(data, class = "covr-hidden") {
         "",
         ifelse(cov == "0", "!", paste0(cov, "<em>x</em>"))
       )
-      rows <- paste0(
-        "<tr class=\"",
-        type,
-        "\"><td class=\"num\">",
-        lines$line,
-        "</td><td class=\"coverage\">",
-        value,
-        "</td><td class=\"covr-source\"><pre class=\"language-r\">",
-        htmltools::htmlEscape(lines$source),
-        "</pre></td></tr>",
-        collapse = "\n"
-      )
+      # `paste0()` would make one empty row from zero-length columns
+      rows <- if (NROW(lines) == 0) {
+        ""
+      } else {
+        paste0(
+          "<tr class=\"",
+          type,
+          "\"><td class=\"num\">",
+          lines$line,
+          "</td><td class=\"coverage\">",
+          value,
+          "</td><td class=\"covr-source\"><pre class=\"language-r\">",
+          htmltools::htmlEscape(lines$source),
+          "</pre></td></tr>",
+          collapse = "\n"
+        )
+      }
       paste0(
         "<div data-file=\"",
         htmltools::htmlEscape(file, attribute = TRUE),
