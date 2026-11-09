@@ -1,0 +1,38 @@
+Warning message:
+1 R process loaded covrShim but did not save its coverage, so it is missing from the results.
+Coverage is saved when R exits normally; it is lost if a process is killed (e.g. with SIGKILL or SIGTERM) or is still running when the tests finish.
+Stop background processes started by the tests, such as Shiny apps, callr sessions or future workers, gracefully and wait for them to exit. 
+covrShim Coverage: 75.91%
+R/system.R: 0.00%
+R/zzz.R: 0.00%
+R/icc.R: 5.69%
+R/compiled.R: 44.12%
+R/gitlab.R: 60.00%
+R/summary_functions.R: 66.12%
+R/parse_data.R: 74.36%
+R/codecov.R: 78.89%
+R/exclusions.R: 78.99%
+R/trace_tests.R: 80.51%
+R/coveralls.R: 80.85%
+R/covr.R: 81.36%
+R/display_name.R: 83.33%
+R/utils.R: 84.43%
+R/sonarqube.R: 85.00%
+R/S7.R: 87.50%
+R/box.R: 88.24%
+src/reassign.c: 88.89%
+R/report.R: 89.97%
+R/trace_calls.R: 90.99%
+R/data_frame.R: 91.11%
+R/lcov.R: 91.67%
+R/cobertura.R: 94.12%
+R/traverse.R: 96.43%
+R/parallel.R: 97.56%
+R/azure.R: 100.00%
+R/R6.R: 100.00%
+R/RC.R: 100.00%
+R/replace.R: 100.00%
+R/S4.R: 100.00%
+R/value.R: 100.00%
+R/vectorized.R: 100.00%
+percent: 75.90852 

@@ -1,0 +1,18 @@
+List of 17
+ $ label                 : chr "9ba4bc2"
+ $ covr                  : chr "3.6.5.9002"
+ $ r                     : chr "4.6.2"
+ $ pkg                   : chr "Luminescence"
+ $ total                 : num 173
+ $ install               : num 17.7
+ $ run_code              : num 152
+ $ merge                 : num 0.365
+ $ gcov_in_run           : num 0.322
+ $ exclude               : num 2.56
+ $ main_mem_mb           : num 185
+ $ n_traces              : int 16155
+ $ percent               : num 89.9
+ $ percent_coverage      : num 2.77
+ $ tally_coverage        : num 2.56
+ $ gcov                  : num 0.309
+ $ main_mem_after_post_mb: num 205

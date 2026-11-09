@@ -1,0 +1,243 @@
+checkmate rep 1
+checkmate Coverage: 96.01%
+R/checkNamed.R: 0.00%
+R/zzz.R: 0.00%
+R/makeExpectation.R: 67.92%
+R/checkTibble.R: 80.00%
+R/checkFormula.R: 85.71%
+R/checkOS.R: 87.50%
+R/checkScalarNA.R: 87.50%
+R/checkMultiClass.R: 90.00%
+R/checkR6.R: 90.00%
+R/checkDataTable.R: 90.48%
+R/checkEnvironment.R: 92.31%
+R/checkPermutation.R: 92.31%
+src/helper.c: 92.45%
+R/makeAssertion.R: 93.33%
+R/checkClass.R: 94.44%
+R/checkPathForOutput.R: 94.44%
+src/all_missing.c: 94.81%
+R/checkDate.R: 95.45%
+src/guess_type.c: 95.45%
+src/any_missing.c: 95.74%
+src/qassert.c: 95.79%
+src/is_sorted.c: 96.08%
+R/checkFunction.R: 96.30%
+src/checks.c: 99.23%
+R/allMissing.R: 100.00%
+R/anyInfinite.R: 100.00%
+R/anyMissing.R: 100.00%
+R/anyNaN.R: 100.00%
+R/asInteger.R: 100.00%
+R/assert.R: 100.00%
+R/AssertCollection.R: 100.00%
+R/checkAccess.R: 100.00%
+R/checkArray.R: 100.00%
+R/checkAtomic.R: 100.00%
+R/checkAtomicVector.R: 100.00%
+R/checkCharacter.R: 100.00%
+R/checkChoice.R: 100.00%
+R/checkComplex.R: 100.00%
+R/checkCount.R: 100.00%
+R/checkDataFrame.R: 100.00%
+R/checkDirectoryExists.R: 100.00%
+R/checkDisjunct.R: 100.00%
+R/checkDouble.R: 100.00%
+R/checkFactor.R: 100.00%
+R/checkFALSE.R: 100.00%
+R/checkFileExists.R: 100.00%
+R/checkFlag.R: 100.00%
+R/checkInt.R: 100.00%
+R/checkInteger.R: 100.00%
+R/checkIntegerish.R: 100.00%
+R/checkList.R: 100.00%
+R/checkLogical.R: 100.00%
+R/checkMatrix.R: 100.00%
+R/checkNames.R: 100.00%
+R/checkNull.R: 100.00%
+R/checkNumber.R: 100.00%
+R/checkNumeric.R: 100.00%
+R/checkPOSIXct.R: 100.00%
+R/checkRaw.R: 100.00%
+R/checkScalar.R: 100.00%
+R/checkSetEqual.R: 100.00%
+R/checkString.R: 100.00%
+R/checkSubset.R: 100.00%
+R/checkTRUE.R: 100.00%
+R/checkVector.R: 100.00%
+R/coalesce.R: 100.00%
+R/helper.R: 100.00%
+R/isIntegerish.R: 100.00%
+R/makeTest.R: 100.00%
+R/matchArg.R: 100.00%
+R/qassert.R: 100.00%
+R/qassertr.R: 100.00%
+R/vname.R: 100.00%
+R/wfwl.R: 100.00%
+src/any_infinite.c: 100.00%
+src/any_nan.c: 100.00%
+src/find_nchar.c: 100.00%
+src/init.c: 100.00%
+src/integerish.c: 100.00%
+src/which_first.c: 100.00%
+checkmate rep 2
+checkmate Coverage: 96.05%
+R/checkNamed.R: 0.00%
+R/zzz.R: 0.00%
+R/makeExpectation.R: 67.92%
+R/checkTibble.R: 80.00%
+R/checkFormula.R: 85.71%
+R/checkOS.R: 87.50%
+R/checkScalarNA.R: 87.50%
+R/checkMultiClass.R: 90.00%
+R/checkR6.R: 90.00%
+R/checkDataTable.R: 90.48%
+R/checkEnvironment.R: 92.31%
+R/checkPermutation.R: 92.31%
+src/helper.c: 92.45%
+R/makeAssertion.R: 93.33%
+R/checkClass.R: 94.44%
+R/checkPathForOutput.R: 94.44%
+src/all_missing.c: 94.81%
+R/checkDate.R: 95.45%
+src/guess_type.c: 95.45%
+src/any_missing.c: 95.74%
+src/qassert.c: 95.79%
+R/checkFunction.R: 96.30%
+src/is_sorted.c: 98.04%
+src/checks.c: 99.23%
+R/allMissing.R: 100.00%
+R/anyInfinite.R: 100.00%
+R/anyMissing.R: 100.00%
+R/anyNaN.R: 100.00%
+R/asInteger.R: 100.00%
+R/assert.R: 100.00%
+R/AssertCollection.R: 100.00%
+R/checkAccess.R: 100.00%
+R/checkArray.R: 100.00%
+R/checkAtomic.R: 100.00%
+R/checkAtomicVector.R: 100.00%
+R/checkCharacter.R: 100.00%
+R/checkChoice.R: 100.00%
+R/checkComplex.R: 100.00%
+R/checkCount.R: 100.00%
+R/checkDataFrame.R: 100.00%
+R/checkDirectoryExists.R: 100.00%
+R/checkDisjunct.R: 100.00%
+R/checkDouble.R: 100.00%
+R/checkFactor.R: 100.00%
+R/checkFALSE.R: 100.00%
+R/checkFileExists.R: 100.00%
+R/checkFlag.R: 100.00%
+R/checkInt.R: 100.00%
+R/checkInteger.R: 100.00%
+R/checkIntegerish.R: 100.00%
+R/checkList.R: 100.00%
+R/checkLogical.R: 100.00%
+R/checkMatrix.R: 100.00%
+R/checkNames.R: 100.00%
+R/checkNull.R: 100.00%
+R/checkNumber.R: 100.00%
+R/checkNumeric.R: 100.00%
+R/checkPOSIXct.R: 100.00%
+R/checkRaw.R: 100.00%
+R/checkScalar.R: 100.00%
+R/checkSetEqual.R: 100.00%
+R/checkString.R: 100.00%
+R/checkSubset.R: 100.00%
+R/checkTRUE.R: 100.00%
+R/checkVector.R: 100.00%
+R/coalesce.R: 100.00%
+R/helper.R: 100.00%
+R/isIntegerish.R: 100.00%
+R/makeTest.R: 100.00%
+R/matchArg.R: 100.00%
+R/qassert.R: 100.00%
+R/qassertr.R: 100.00%
+R/vname.R: 100.00%
+R/wfwl.R: 100.00%
+src/any_infinite.c: 100.00%
+src/any_nan.c: 100.00%
+src/find_nchar.c: 100.00%
+src/init.c: 100.00%
+src/integerish.c: 100.00%
+src/which_first.c: 100.00%
+$mode
+[1] "instr"
+
+$pkg
+[1] "checkmate"
+
+$load
+[1] 0.449
+
+$tests
+[1] 7.163
+
+$n_tests
+[1] 169
+
+$mem_start_mb
+[1] 76.39453
+
+$mem_after_tests_mb
+[1] 146.4766
+
+$save
+[1] 0.032
+
+$trace_file
+[1] "/tmp/RtmpRc69e6/traces1f8d4171c9ac57/covr_trace_1f989842f42aea"
+
+$trace_bytes
+[1] 69848
+
+$n_traces
+[1] 879
+
+$n_counts
+[1] 33718
+
+$n_if_counts
+[1] 13468
+
+$n_if_statements
+[1] 208
+
+$covr
+[1] "3.6.5.9002"
+
+$mem_after_save_mb
+[1] 146.4844
+
+                               phase seconds
+1           baseline: load namespace  0.0125
+2            baseline: R CMD INSTALL  2.4760
+3                baseline: run tests  6.6635
+4    covr: as_coverage() + exclude()  0.1085
+5  covr: install with coverage flags  2.1720
+6   covr: load + trace_environment()  0.4600
+7             covr: merge_coverage()  0.0070
+8         covr: run tests (counting)  7.0955
+9                   covr: run_gcov()  0.0780
+10                covr: save_trace()  0.0320
+11     package_coverage() end to end  9.9380
+12          post: coverage_to_list()  0.0920
+13          post: percent_coverage()  0.0980
+14                     post: print()  0.3930
+15                    post: report()  0.4295
+16            post: tally_coverage()  0.0965
+17              post: to_cobertura()  0.5255
+18             post: zero_coverage()  0.0885
+List of 11
+ $ covr_in_child : chr "3.6.5.9002"
+ $ n_traces      : int 879
+ $ n_counts      : num 33718
+ $ n_if_counts   : num 13468
+ $ n_tests       : int 169
+ $ trace_bytes   : num 69835
+ $ coverage_bytes: num 3422760
+ $ percent       : num 96.1
+ $ plain_mem_mb  : num 128
+ $ instr_mem_mb  : num 146
+ $ main_mem_mb   : num 154

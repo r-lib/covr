@@ -1,0 +1,18 @@
+<environment: namespace:covr>
+List of 16
+ $ label                 : chr "3.5.1"
+ $ covr                  : chr "3.5.1"
+ $ r                     : chr "4.4.3"
+ $ pkg                   : chr "forcats"
+ $ total                 : num 5.15
+ $ install               : num 1.23
+ $ run_code              : num 3.82
+ $ merge                 : num 0.006
+ $ gcov_in_run           : num 0
+ $ exclude               : num 0.052
+ $ main_mem_mb           : num 87.3
+ $ n_traces              : int 372
+ $ percent               : num 99.6
+ $ percent_coverage      : num 0.031
+ $ tally_coverage        : num 0.031
+ $ main_mem_after_post_mb: num 87.5

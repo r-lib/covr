@@ -1,0 +1,7 @@
+10,12c10
+< Warning message:
+< In spelling::spell_check_test(vignettes = TRUE, error = FALSE, skip_on_cran = TRUE) :
+<   Failed to find package source directory from: /tmp/RtmpdJuyL4/R_LIBS3647956f0d3062/devtools/devtools-tests
+---
+> All Done!
+itnc devtools: 26.5 s, 1240 traces, 41.18%

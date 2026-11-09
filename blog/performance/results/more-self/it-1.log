@@ -1,0 +1,5 @@
+Warning message:
+Can't find coverage from 2 R processes that loaded covrShim.
+ℹ Coverage is lost if a process is killed or outlives the tests.
+ℹ Did a test leave a Shiny app, callr session, or future worker running? 
+percent: 95.56541 

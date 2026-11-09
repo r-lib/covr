@@ -1,0 +1,21 @@
+Error: Code run to compute coverage failed.
+ℹ Its full output is in
+  '/tmp/RtmpKIvJ7J/R_LIBS38670c3b5ca1ee/covrShim/covrShim-tests/testthat.Rout.fail'
+  and in the `$output` of this condition.
+Backtrace:
+     ▆
+  1. └─covrShim (local) run(TRUE) at test-instrument.R:159:3
+  2.   └─covrShim::package_coverage(...) at test-instrument.R:146:5
+  3.     ├─withr::with_libpaths(...)
+  4.     │ └─base::force(code)
+  5.     ├─withr::with_envvar(...)
+  6.     │ └─base::force(code)
+  7.     ├─base::withCallingHandlers(...)
+  8.     └─covrShim:::run_commands(pkg, install_path, code, show_output = show_code_output)
+  9.       └─covrShim:::show_failures(dirname(failfile))
+ 10.         └─base::withRestarts(stop(covrShim_error(file)), covrShim_continue = function() NULL)
+ 11.           └─base (local) withOneRestart(expr, restarts[[1L]])
+ 12.             └─base (local) doWithOneRestart(return(expr), restart)
+
+[ FAIL 2 | WARN 0 | SKIP 2 | PASS 1210 
+Execution halted

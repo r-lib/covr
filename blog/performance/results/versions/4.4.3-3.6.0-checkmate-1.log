@@ -1,0 +1,20 @@
+<environment: namespace:covr>
+List of 18
+ $ label                 : chr "3.6.0"
+ $ covr                  : chr "3.6.0"
+ $ r                     : chr "4.4.3"
+ $ pkg                   : chr "checkmate"
+ $ total                 : num 13.6
+ $ install               : num 2.27
+ $ run_code              : num 10.4
+ $ merge                 : num 0.02
+ $ gcov_in_run           : num 0.315
+ $ exclude               : num 0.461
+ $ main_mem_mb           : num 111
+ $ n_traces              : int 9732
+ $ percent               : num 96.4
+ $ percent_coverage      : num 0.266
+ $ tally_coverage        : num 0.259
+ $ report                : num 6.1
+ $ gcov                  : num 0.587
+ $ main_mem_after_post_mb: num 291

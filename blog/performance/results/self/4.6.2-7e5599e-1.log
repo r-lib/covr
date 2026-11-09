@@ -1,0 +1,41 @@
+Warning message:
+Can't find coverage from 2 R processes that loaded covrShim.
+ℹ Coverage is lost if a process is killed or outlives the tests.
+ℹ Did a test leave a Shiny app, callr session, or future worker running? 
+covrShim Coverage: 70.51%
+R/system.R: 0.00%
+R/zzz.R: 1.75%
+R/compiled_session.R: 5.13%
+R/icc.R: 5.69%
+R/compiled.R: 53.62%
+R/shiny.R: 56.88%
+R/gitlab.R: 60.00%
+R/summary_functions.R: 66.12%
+R/parse_data.R: 69.87%
+R/traverse.R: 73.81%
+R/codecov.R: 78.59%
+R/covr.R: 79.07%
+R/trace_tests.R: 80.00%
+R/exclusions.R: 80.53%
+R/coveralls.R: 80.85%
+R/display_name.R: 83.33%
+R/R6.R: 84.62%
+R/sonarqube.R: 85.00%
+R/utils.R: 85.64%
+R/S7.R: 87.50%
+R/box.R: 88.24%
+R/report.R: 88.30%
+R/RC.R: 90.00%
+R/trace_calls.R: 90.09%
+R/badge.R: 91.03%
+R/data_frame.R: 91.11%
+src/reassign.c: 91.18%
+R/lcov.R: 91.67%
+R/cobertura.R: 94.05%
+R/S4.R: 95.00%
+R/parallel.R: 97.56%
+R/azure.R: 100.00%
+R/replace.R: 100.00%
+R/value.R: 100.00%
+R/vectorized.R: 100.00%
+percent: 70.50726 

@@ -1,0 +1,7 @@
+8,10c8
+< Warning message:
+< In spelling::spell_check_test(vignettes = TRUE, error = FALSE, skip_on_cran = TRUE) :
+<   Failed to find package source directory from: /tmp/RtmpsZCAUQ/R_LIBS368b7861b5637b/Luminescence/Luminescence-tests
+---
+> All Done!
+itnc Luminescence: 135.0 s, 16156 traces, 89.86%

@@ -1,0 +1,371 @@
+Luminescence rep 1
+Luminescence Coverage: 89.89%
+R/internals_Thermochronometry.R: 0.00%
+R/combine_De_Dr.R: 1.10%
+R/analyse_baSAR.R: 1.20%
+src/src_create_RLumDataCurve_matrix.cpp: 81.82%
+R/plot_RLum.Analysis.R: 85.71%
+R/analyse_pIRIRSequence.R: 87.33%
+R/analyse_IRSAR.RF.R: 88.35%
+R/read_SPE2R.R: 88.89%
+R/read_XSYG2R.R: 89.06%
+R/trim_RLum.Data.R: 89.47%
+R/analyse_FadingMeasurement.R: 90.15%
+R/calc_MinDose.R: 90.52%
+R/use_DRAC.R: 90.71%
+R/analyse_Al2O3C_Measurement.R: 90.80%
+R/extract_IrradiationTimes.R: 91.30%
+R/plot_GrowthCurve.R: 91.84%
+R/Second2Gray.R: 91.89%
+R/calc_CosmicDoseRate.R: 91.94%
+R/analyse_SAR.CWOSL.R: 92.25%
+R/plot_AbanicoPlot.R: 92.31%
+R/report_RLum.R: 92.61%
+R/calc_SourceDoseRate.R: 92.68%
+R/fit_OSLLifeTimes.R: 92.97%
+R/calc_Huntley2006.R: 92.99%
+R/read_BIN2R.R: 93.32%
+R/import_Data.R: 93.33%
+R/calc_AverageDose.R: 93.68%
+R/plot_RLum.Results.R: 93.70%
+R/calc_AliquotSize.R: 93.79%
+R/fit_LMCurve.R: 93.90%
+R/calc_gSGC.R: 94.33%
+R/methods_DRAC.R: 94.87%
+R/read_HeliosOSL2R.R: 94.92%
+R/calc_ThermalLifetime.R: 95.00%
+R/github.R: 95.08%
+R/fit_CWCurve.R: 95.10%
+R/plot_DetPlot.R: 95.12%
+R/verify_SingleGrainData.R: 95.12%
+R/plot_RLum.Data.Spectrum.R: 95.22%
+R/get_RLum.R: 95.45%
+R/plot_KDE.R: 95.49%
+R/merge_RLum.Data.Curve.R: 95.77%
+R/merge_Risoe.BINfileData.R: 95.83%
+R/analyse_portableOSL.R: 95.96%
+R/plot_DRTResults.R: 95.98%
+R/fit_EmissionSpectra.R: 96.36%
+R/Risoe.BINfileData2RLum.Analysis.R: 96.51%
+R/analyse_SAR.TL.R: 96.58%
+R/calc_FastRatio.R: 96.61%
+R/plot_Risoe.BINfileData.R: 96.77%
+R/calc_CobbleDoseRate.R: 96.82%
+R/Analyse_SAR.OSLdata.R: 97.00%
+R/calc_FiniteMixture.R: 97.13%
+R/RLum.Analysis-class.R: 97.13%
+R/plot_NRt.R: 97.22%
+R/plot_RLum.R: 97.30%
+R/plot_DRCSummary.R: 97.54%
+R/calc_OSLLxTxDecomposed.R: 98.00%
+R/utils_DRAC.R: 98.06%
+R/zzz.R: 98.15%
+R/internal_as.latex.table.R: 98.43%
+R/internals_RLum.R: 98.58%
+R/plot_OSLAgeSummary.R: 98.65%
+R/write_RLum2CSV.R: 98.75%
+R/calc_gSGC_feldspar.R: 98.80%
+R/convert_RLum2Risoe.BINfileData.R: 98.86%
+R/RLum.Data.Curve-class.R: 98.88%
+R/plot_RadialPlot.R: 98.95%
+R/methods_RLum.R: 99.02%
+R/plot_Histogram.R: 99.08%
+R/plot_RLum.Data.Image.R: 99.17%
+R/fit_SurfaceExposure.R: 99.53%
+R/write_R2BIN.R: 99.72%
+R/analyse_Al2O3C_CrossTalk.R: 100.00%
+R/analyse_Al2O3C_ITC.R: 100.00%
+R/apply_CosmicRayRemoval.R: 100.00%
+R/apply_EfficiencyCorrection.R: 100.00%
+R/bin_RLum.Data.R: 100.00%
+R/calc_CentralDose.R: 100.00%
+R/calc_CommonDose.R: 100.00%
+R/calc_FadingCorr.R: 100.00%
+R/calc_FuchsLang2001.R: 100.00%
+R/calc_HomogeneityTest.R: 100.00%
+R/calc_IEU.R: 100.00%
+R/calc_Kars2008.R: 100.00%
+R/calc_Lamothe2003.R: 100.00%
+R/calc_MaxDose.R: 100.00%
+R/calc_OSLLxTxRatio.R: 100.00%
+R/calc_Statistics.R: 100.00%
+R/calc_TLLxTxRatio.R: 100.00%
+R/calc_WodaFuchs2008.R: 100.00%
+R/convert_Activity2Concentration.R: 100.00%
+R/convert_BIN2CSV.R: 100.00%
+R/convert_Concentration2DoseRate.R: 100.00%
+R/convert_Daybreak2CSV.R: 100.00%
+R/convert_PSL2CSV.R: 100.00%
+R/convert_SG2MG.R: 100.00%
+R/convert_Wavelength2Energy.R: 100.00%
+R/convert_XSYG2CSV.R: 100.00%
+R/CW2pHMi.R: 100.00%
+R/CW2pLM.R: 100.00%
+R/CW2pLMi.R: 100.00%
+R/CW2pPMi.R: 100.00%
+R/extract_ROI.R: 100.00%
+R/fit_ThermalQuenching.R: 100.00%
+R/get_Layout.R: 100.00%
+R/get_Quote.R: 100.00%
+R/get_rightAnswer.R: 100.00%
+R/get_Risoe.BINfileData.R: 100.00%
+R/length_RLum.R: 100.00%
+R/merge_RLum.Analysis.R: 100.00%
+R/merge_RLum.R: 100.00%
+R/merge_RLum.Results.R: 100.00%
+R/names_RLum.R: 100.00%
+R/plot_FilterCombinations.R: 100.00%
+R/plot_RLum.Data.Curve.R: 100.00%
+R/plot_ROI.R: 100.00%
+R/plot_ViolinPlot.R: 100.00%
+R/PSL2Risoe.BINfileData.R: 100.00%
+R/RcppExports.R: 100.00%
+R/read_Daybreak2R.R: 100.00%
+R/read_PSL2R.R: 100.00%
+R/read_RF2R.R: 100.00%
+R/read_TIFF2R.R: 100.00%
+R/replicate_RLum.R: 100.00%
+R/Risoe.BINfileData-class.R: 100.00%
+R/Risoe.BINfileData2RLum.Data.Curve.R: 100.00%
+R/RLum-class.R: 100.00%
+R/RLum.Data.Image-class.R: 100.00%
+R/RLum.Data.Spectrum-class.R: 100.00%
+R/RLum.Results-class.R: 100.00%
+R/scale_GammaDose.R: 100.00%
+R/set_Risoe.BINfileData.R: 100.00%
+R/set_RLum.R: 100.00%
+R/smooth_RLum.R: 100.00%
+R/structure_RLum.R: 100.00%
+R/subset_SingleGrainData.R: 100.00%
+R/template_DRAC.R: 100.00%
+R/tune_Data.R: 100.00%
+R/write_R2TIFF.R: 100.00%
+src/create_UID.cpp: 100.00%
+src/RcppExports.cpp: 100.00%
+src/src_analyse_IRSARRF_SRS.cpp: 100.00%
+src/src_get_XSYG_curve_values.cpp: 100.00%
+Luminescence rep 2
+Luminescence Coverage: 89.71%
+R/internals_Thermochronometry.R: 0.00%
+R/combine_De_Dr.R: 1.10%
+R/analyse_baSAR.R: 1.20%
+R/github.R: 14.75%
+src/src_create_RLumDataCurve_matrix.cpp: 81.82%
+R/plot_RLum.Analysis.R: 85.71%
+R/analyse_pIRIRSequence.R: 87.33%
+R/analyse_IRSAR.RF.R: 88.35%
+R/read_SPE2R.R: 88.89%
+R/read_XSYG2R.R: 89.06%
+R/trim_RLum.Data.R: 89.47%
+R/analyse_FadingMeasurement.R: 90.15%
+R/calc_MinDose.R: 90.52%
+R/use_DRAC.R: 90.71%
+R/analyse_Al2O3C_Measurement.R: 90.80%
+R/extract_IrradiationTimes.R: 91.30%
+R/plot_GrowthCurve.R: 91.84%
+R/Second2Gray.R: 91.89%
+R/calc_CosmicDoseRate.R: 91.94%
+R/analyse_SAR.CWOSL.R: 92.25%
+R/plot_AbanicoPlot.R: 92.31%
+R/report_RLum.R: 92.61%
+R/calc_SourceDoseRate.R: 92.68%
+R/fit_OSLLifeTimes.R: 92.97%
+R/calc_Huntley2006.R: 92.99%
+R/read_BIN2R.R: 93.32%
+R/import_Data.R: 93.33%
+R/calc_AverageDose.R: 93.68%
+R/plot_RLum.Results.R: 93.70%
+R/calc_AliquotSize.R: 93.79%
+R/fit_LMCurve.R: 93.90%
+R/calc_gSGC.R: 94.33%
+R/methods_DRAC.R: 94.87%
+R/read_HeliosOSL2R.R: 94.92%
+R/calc_ThermalLifetime.R: 95.00%
+R/fit_CWCurve.R: 95.10%
+R/plot_DetPlot.R: 95.12%
+R/verify_SingleGrainData.R: 95.12%
+R/plot_RLum.Data.Spectrum.R: 95.22%
+R/get_RLum.R: 95.45%
+R/plot_KDE.R: 95.49%
+R/merge_RLum.Data.Curve.R: 95.77%
+R/merge_Risoe.BINfileData.R: 95.83%
+R/analyse_portableOSL.R: 95.96%
+R/plot_DRTResults.R: 95.98%
+R/fit_EmissionSpectra.R: 96.36%
+R/Risoe.BINfileData2RLum.Analysis.R: 96.51%
+R/analyse_SAR.TL.R: 96.58%
+R/calc_FastRatio.R: 96.61%
+R/plot_Risoe.BINfileData.R: 96.77%
+R/calc_CobbleDoseRate.R: 96.82%
+R/Analyse_SAR.OSLdata.R: 97.00%
+R/calc_FiniteMixture.R: 97.13%
+R/RLum.Analysis-class.R: 97.13%
+R/plot_NRt.R: 97.22%
+R/plot_RLum.R: 97.30%
+R/plot_DRCSummary.R: 97.54%
+R/calc_OSLLxTxDecomposed.R: 98.00%
+R/utils_DRAC.R: 98.06%
+R/zzz.R: 98.15%
+R/internal_as.latex.table.R: 98.43%
+R/internals_RLum.R: 98.58%
+R/plot_OSLAgeSummary.R: 98.65%
+R/write_RLum2CSV.R: 98.75%
+R/calc_gSGC_feldspar.R: 98.80%
+R/convert_RLum2Risoe.BINfileData.R: 98.86%
+R/RLum.Data.Curve-class.R: 98.88%
+R/plot_RadialPlot.R: 98.95%
+R/methods_RLum.R: 99.02%
+R/plot_Histogram.R: 99.08%
+R/plot_RLum.Data.Image.R: 99.17%
+R/fit_SurfaceExposure.R: 99.53%
+R/write_R2BIN.R: 99.72%
+R/analyse_Al2O3C_CrossTalk.R: 100.00%
+R/analyse_Al2O3C_ITC.R: 100.00%
+R/apply_CosmicRayRemoval.R: 100.00%
+R/apply_EfficiencyCorrection.R: 100.00%
+R/bin_RLum.Data.R: 100.00%
+R/calc_CentralDose.R: 100.00%
+R/calc_CommonDose.R: 100.00%
+R/calc_FadingCorr.R: 100.00%
+R/calc_FuchsLang2001.R: 100.00%
+R/calc_HomogeneityTest.R: 100.00%
+R/calc_IEU.R: 100.00%
+R/calc_Kars2008.R: 100.00%
+R/calc_Lamothe2003.R: 100.00%
+R/calc_MaxDose.R: 100.00%
+R/calc_OSLLxTxRatio.R: 100.00%
+R/calc_Statistics.R: 100.00%
+R/calc_TLLxTxRatio.R: 100.00%
+R/calc_WodaFuchs2008.R: 100.00%
+R/convert_Activity2Concentration.R: 100.00%
+R/convert_BIN2CSV.R: 100.00%
+R/convert_Concentration2DoseRate.R: 100.00%
+R/convert_Daybreak2CSV.R: 100.00%
+R/convert_PSL2CSV.R: 100.00%
+R/convert_SG2MG.R: 100.00%
+R/convert_Wavelength2Energy.R: 100.00%
+R/convert_XSYG2CSV.R: 100.00%
+R/CW2pHMi.R: 100.00%
+R/CW2pLM.R: 100.00%
+R/CW2pLMi.R: 100.00%
+R/CW2pPMi.R: 100.00%
+R/extract_ROI.R: 100.00%
+R/fit_ThermalQuenching.R: 100.00%
+R/get_Layout.R: 100.00%
+R/get_Quote.R: 100.00%
+R/get_rightAnswer.R: 100.00%
+R/get_Risoe.BINfileData.R: 100.00%
+R/length_RLum.R: 100.00%
+R/merge_RLum.Analysis.R: 100.00%
+R/merge_RLum.R: 100.00%
+R/merge_RLum.Results.R: 100.00%
+R/names_RLum.R: 100.00%
+R/plot_FilterCombinations.R: 100.00%
+R/plot_RLum.Data.Curve.R: 100.00%
+R/plot_ROI.R: 100.00%
+R/plot_ViolinPlot.R: 100.00%
+R/PSL2Risoe.BINfileData.R: 100.00%
+R/RcppExports.R: 100.00%
+R/read_Daybreak2R.R: 100.00%
+R/read_PSL2R.R: 100.00%
+R/read_RF2R.R: 100.00%
+R/read_TIFF2R.R: 100.00%
+R/replicate_RLum.R: 100.00%
+R/Risoe.BINfileData-class.R: 100.00%
+R/Risoe.BINfileData2RLum.Data.Curve.R: 100.00%
+R/RLum-class.R: 100.00%
+R/RLum.Data.Image-class.R: 100.00%
+R/RLum.Data.Spectrum-class.R: 100.00%
+R/RLum.Results-class.R: 100.00%
+R/scale_GammaDose.R: 100.00%
+R/set_Risoe.BINfileData.R: 100.00%
+R/set_RLum.R: 100.00%
+R/smooth_RLum.R: 100.00%
+R/structure_RLum.R: 100.00%
+R/subset_SingleGrainData.R: 100.00%
+R/template_DRAC.R: 100.00%
+R/tune_Data.R: 100.00%
+R/write_R2TIFF.R: 100.00%
+src/create_UID.cpp: 100.00%
+src/RcppExports.cpp: 100.00%
+src/src_analyse_IRSARRF_SRS.cpp: 100.00%
+src/src_get_XSYG_curve_values.cpp: 100.00%
+$mode
+[1] "instr"
+
+$pkg
+[1] "Luminescence"
+
+$load
+[1] 4.184
+
+$tests
+[1] 149.915
+
+$n_tests
+[1] 247
+
+$mem_start_mb
+[1] 76.18359
+
+$mem_after_tests_mb
+[1] 876.3047
+
+$save
+[1] 0.46
+
+$trace_file
+[1] "/tmp/RtmpvaZyyN/traces17fcac251f8e53/covr_trace_186f746810e6c0"
+
+$trace_bytes
+[1] 1363658
+
+$n_traces
+[1] 16158
+
+$n_counts
+[1] 19849462
+
+$n_if_counts
+[1] 8620002
+
+$n_if_statements
+[1] 3510
+
+$covr
+[1] "3.6.5.9002"
+
+$mem_after_save_mb
+[1] 876.3086
+
+                               phase  seconds
+1           baseline: load namespace   0.1535
+2            baseline: R CMD INSTALL  21.3435
+3                baseline: run tests  85.9280
+4    covr: as_coverage() + exclude()   2.6715
+5  covr: install with coverage flags  19.3675
+6   covr: load + trace_environment()   4.1390
+7             covr: merge_coverage()   0.0885
+8         covr: run tests (counting) 150.3310
+9                   covr: run_gcov()   0.1975
+10                covr: save_trace()   0.4595
+11     package_coverage() end to end 174.9780
+12          post: coverage_to_list()   2.3940
+13          post: percent_coverage()   2.6440
+14                     post: print()   3.3890
+15                    post: report() 353.8160
+16            post: tally_coverage()   2.6080
+17              post: to_cobertura()   9.3025
+18             post: zero_coverage()   2.5730
+List of 11
+ $ covr_in_child : chr "3.6.5.9002"
+ $ n_traces      : int 16158
+ $ n_counts      : num 19849339
+ $ n_if_counts   : num 8619999
+ $ n_tests       : int 247
+ $ trace_bytes   : num 1363660
+ $ coverage_bytes: num 24746264
+ $ percent       : num 89.7
+ $ plain_mem_mb  : num 755
+ $ instr_mem_mb  : num 875
+ $ main_mem_mb   : num 1317

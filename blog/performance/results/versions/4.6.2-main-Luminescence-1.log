@@ -1,0 +1,20 @@
+<environment: namespace:covr>
+List of 18
+ $ label                 : chr "main"
+ $ covr                  : chr "3.6.5.9002"
+ $ r                     : chr "4.6.2"
+ $ pkg                   : chr "Luminescence"
+ $ total                 : num 176
+ $ install               : num 18.8
+ $ run_code              : num 154
+ $ merge                 : num 0.393
+ $ gcov_in_run           : num 0.153
+ $ exclude               : num 2.61
+ $ main_mem_mb           : num 187
+ $ n_traces              : int 16156
+ $ percent               : num 89.9
+ $ percent_coverage      : num 2.85
+ $ tally_coverage        : num 2.71
+ $ report                : num 363
+ $ gcov                  : num 0.128
+ $ main_mem_after_post_mb: num 1008

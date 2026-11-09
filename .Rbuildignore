@@ -34,3 +34,4 @@ _dev\.R$
 ^\.git-blame-ignore-revs$
 ^\.covrignore$
 ^performance-audit(\.md)?$
+^blog$
