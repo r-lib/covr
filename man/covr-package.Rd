@@ -60,6 +60,14 @@ shown in the message and \code{print()} method of a \code{covr_error} when tests
 vignettes, examples or \code{code} fail (default \code{50}). The full output is
 always available in the condition's \verb{$output} field.
 
+\item \code{covr.annotate_max_lines}: The maximum number of source lines shown
+by \code{\link[=annotate_coverage]{annotate_coverage()}} (default \code{200}), the default of its \code{max_lines}
+argument. \code{Inf} shows everything.
+
+\item \code{covr.print_max_ranges}: The maximum number of missed ranges, and of
+missed branches, listed per file or function by \code{print(x, missing = TRUE)} and the \code{print()} method of \code{\link[=diff_coverage]{diff_coverage()}} results (default
+\code{10}). More are summarised as \verb{... (<k> more)}. \code{Inf} lists them all.
+
 \item \code{covr.fix_parallel_mcexit}: Whether to include code run in processes
 forked by \pkg{parallel}'s \code{mclapply()}, \code{mcparallel()} and related
 functions, by patching \code{parallel:::mcexit}. By default

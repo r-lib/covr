@@ -349,6 +349,24 @@ zero_coverage <- function(x, ...) {
 #' @param by whether to count coverage by line, expression or function
 #' @param n the maximum number of files or functions to print. They are
 #'   sorted from least to most covered, so the least covered are shown first.
+#' @param missing whether to list the lines that were not run after each file
+#'   or function that has any, as ranges such as `missed 41-48, 112`. Lines
+#'   are joined into a range when only blank lines, comments and lines with
+#'   only punctuation, such as closing braces, are between them. Code that was
+#'   run, or that has no coverage data, such as the line a function is defined
+#'   on, ends the range. Only used with `by = "line"`, and ignored otherwise.
+#'
+#'   If branch coverage was measured (see [covr.branch_coverage]), the missed
+#'   branches of each file or function are also listed, as `missed branches 12
+#'   FALSE, 30 b`: the line of the `if` or `switch()` and the label of the
+#'   branch that was not taken. Only `if` and `switch()` calls that were
+#'   evaluated are listed; the others are covered by the missed lines.
+#'
+#' @section Branches:
+#' If branch coverage was measured (see [covr.branch_coverage]), the
+#' percentage of branches taken is also shown after the overall coverage, e.g.
+#' `Coverage: 87.40% (branches 72.00%)`.
+#'
 #' @param ... additional arguments ignored
 #' @return The coverage object (invisibly).
 #' @examples
@@ -357,12 +375,19 @@ zero_coverage <- function(x, ...) {
 #'   "f(1)"
 #' )
 #' print(cov, group = "functions", n = 2)
+#'
+#' cov <- code_coverage(
+#'   "f <- function(x) {\n  if (x) {\n    1\n\n    # no\n    2\n  }\n}",
+#'   "f(FALSE)"
+#' )
+#' print(cov, missing = TRUE)
 #' @export
 print.coverage <- function(
   x,
   group = c("filename", "functions"),
   by = "line",
   n = Inf,
+  missing = FALSE,
   ...
 ) {
   if (length(x) == 0) {
@@ -393,14 +418,34 @@ print.coverage <- function(
   overall_percentage <- percent_coverage(df, by = by)
   styles <- console_styles()
 
-  msg <- cli::format_message(paste0(
+  branches <- tally_coverage(x, by = "branch")
+  if (!NROW(branches)) {
+    branches <- NULL
+  }
+  header <- paste0(
     cli::style_bold(
       "{attr(x, 'package')$package} {to_title(type)} Coverage: "
     ),
     format_percentage(overall_percentage, styles)
-  ))
+  )
+  if (!is.null(branches)) {
+    header <- paste0(
+      header,
+      " (branches ",
+      format_percentage(percent_coverage(x, by = "branch"), styles),
+      ")"
+    )
+  }
+  msg <- cli::format_message(header)
   message(msg)
   by_coverage <- percents[order(percents, names(percents))]
+
+  missed <- if (missing && identical(by, "line")) {
+    missed_ranges_by(df, group, non_code_lines(x))
+  }
+  missed_branches <- if (missing && !is.null(branches)) {
+    missed_branches_by(branches, group)
+  }
 
   for (i in seq_len(min(n, length(by_coverage)))) {
     msg <- cli::format_message(
@@ -409,6 +454,14 @@ print.coverage <- function(
         format_percentage(by_coverage[i], styles)
       )
     )
+    # Outside of format_message(), which would collapse the spaces.
+    name <- names(by_coverage)[i]
+    if (name %in% names(missed)) {
+      msg <- paste0(msg, "  missed ", missed[[name]])
+    }
+    if (name %in% names(missed_branches)) {
+      msg <- paste0(msg, "  missed branches ", missed_branches[[name]])
+    }
     message(msg)
   }
   if (length(by_coverage) > n) {
@@ -424,6 +477,120 @@ print.coverage <- function(
     )
   }
   invisible(x)
+}
+
+# The missed ranges of each file or function, a named character vector. `df` is
+# the tally by line and `non_code` the non-code lines of each file, so a
+# missed line is joined to the next only if everything between them is
+# non-code.
+missed_ranges_by <- function(df, group, non_code) {
+  df <- df[!is.na(df$value) & df$value == 0, , drop = FALSE]
+  df <- df[!is.na(df[[group]]), , drop = FALSE]
+  df$filename <- as.character(df$filename)
+
+  by_group <- split(df, df[[group]])
+  vapply(
+    by_group,
+    function(rows) {
+      by_file <- split(rows$line, rows$filename)
+      pieces <- unlist(lapply(
+        names(by_file),
+        function(file) range_pieces(by_file[[file]], non_code[[file]])
+      ))
+      cap_items(pieces, print_max_ranges())
+    },
+    character(1)
+  )
+}
+
+# The maximum number of missed ranges or branches listed per row by `print()`,
+# from the option `covr.print_max_ranges` (default 10, `Inf` for no limit).
+print_max_ranges <- function() {
+  max <- getOption("covr.print_max_ranges", 10)
+  if (!is.numeric(max) || length(max) != 1 || is.na(max) || max < 0) {
+    stop(
+      "`covr.print_max_ranges` must be a single non-negative number.",
+      call. = FALSE
+    )
+  }
+  max
+}
+
+# Joins `items` with commas, keeping at most `max` of them and ending with
+# ", ... (<k> more)" if any were left out. The one rule for capping listed
+# ranges and branches.
+cap_items <- function(items, max = Inf) {
+  if (length(items) > max) {
+    more <- length(items) - max
+    items <- c(items[seq_len(max)], sprintf("... (%d more)", more))
+  }
+  paste(items, collapse = ", ")
+}
+
+# The untaken branches in the branch tally `df` whose `if` or `switch()` was
+# evaluated, i.e. where another branch of the same construct (filename, line,
+# column) was taken. Unevaluated constructs are covered by the missed lines.
+evaluated_missed_branches <- function(df) {
+  key <- paste(df$filename, df$line, df$column)
+  evaluated <- unique(key[!is.na(df$value) & df$value > 0])
+  df[!is.na(df$value) & df$value == 0 & key %in% evaluated, , drop = FALSE]
+}
+
+# The missed branches of each file or function, a named character vector, from
+# the branch tally `df`.
+missed_branches_by <- function(df, group) {
+  df <- evaluated_missed_branches(df)
+  df <- df[!is.na(df[[group]]), , drop = FALSE]
+  df$filename <- as.character(df$filename)
+  vapply(
+    split(df, df[[group]]),
+    function(rows) cap_items(branch_pieces(rows), print_max_ranges()),
+    character(1)
+  )
+}
+
+# The missed branches in `df`, rows of the branch tally with a `value` of zero,
+# as `<line> <label>` strings ordered by line, then branch, e.g.
+# c("12 FALSE", "30 b").
+branch_pieces <- function(df) {
+  df <- df[order(df$line, df$branch), , drop = FALSE]
+  paste(df$line, df$label)
+}
+
+# Formats the missed branches in `df` joined by commas, e.g. "12 FALSE, 30 b",
+# with at most `max` of them (see `cap_items()`).
+format_branches <- function(df, max = Inf) {
+  cap_items(branch_pieces(df), max)
+}
+
+# The missed `lines` of a file as ranges, e.g. c("41-48", "112"). Two missed
+# lines are in the same range only if every line between them is in `non_code`
+# (blank lines, comments and punctuation); covered code, and code without
+# coverage data, such as a function header, ends the range.
+range_pieces <- function(lines, non_code = integer()) {
+  lines <- sort(unique(as.integer(lines)))
+  if (!length(lines)) {
+    return(character())
+  }
+
+  joined <- vapply(
+    seq_len(length(lines) - 1L),
+    function(i) {
+      between <- seq_len(lines[[i + 1L]] - lines[[i]] - 1L) + lines[[i]]
+      all(between %in% non_code)
+    },
+    logical(1)
+  )
+  run <- cumsum(c(TRUE, !joined))
+  starts <- tapply(lines, run, min)
+  ends <- tapply(lines, run, max)
+  as.character(ifelse(starts == ends, starts, paste0(starts, "-", ends)))
+}
+
+# Formats the missed `lines` of a file as ranges, e.g. "41-48, 112", with at
+# most `max` of them (see `cap_items()`).
+missed_ranges <- function(lines, non_code = integer(), max = Inf) {
+  cap_items(range_pieces(lines, non_code), max)
 }
 
 #' @export

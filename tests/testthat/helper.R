@@ -89,3 +89,44 @@ local_install_defaults <- function(env = parent.frame()) {
     .local_envir = env
   )
 }
+
+# A git repository with a committed (empty) package on a `main` branch. The
+# package is in `subdir` of the repository, if given.
+local_diff_repo <- function(
+  subdir = NULL,
+  init = TRUE,
+  frame = parent.frame()
+) {
+  skip_if_not(nzchar(Sys.which("git")))
+  repo <- normalizePath(withr::local_tempdir(.local_envir = frame))
+  pkg <- if (is.null(subdir)) repo else file.path(repo, subdir)
+  dir.create(file.path(pkg, "R"), recursive = TRUE)
+  writeLines(
+    c(
+      "Package: diffpkg",
+      "Title: Diff",
+      "Version: 0.0.1",
+      "Description: Diff.",
+      "License: GPL-3"
+    ),
+    file.path(pkg, "DESCRIPTION")
+  )
+  writeLines("# empty", file.path(pkg, "R", "a.R"))
+  writeLines("exportPattern(\"^[a-z]\")", file.path(pkg, "NAMESPACE"))
+  if (init) {
+    git <- function(...) {
+      system2(
+        "git",
+        c("-c", "user.name=t", "-c", "user.email=t@t", ...),
+        stdout = FALSE,
+        stderr = FALSE
+      )
+    }
+    withr::with_dir(repo, {
+      git("init", "-q", "-b", "main")
+      git("add", ".")
+      git("commit", "-q", "-m", "init")
+    })
+  }
+  repo
+}
