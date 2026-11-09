@@ -129,10 +129,6 @@ This works with both gcc's gcov and llvm-cov (the gcov on macOS).
 llvm-cov can't tell apart code that only runs when a C++ exception is
 thrown, so lines that create objects with destructors may also count as
 partially executed.</p></li>
-<li><p><code>covr.icov</code>:</p></li>
-<li><p><code>covr.icov_args</code>:</p></li>
-<li><p><code>covr.icov_flags</code>:</p></li>
-<li><p><code>covr.icov_prof</code>:</p></li>
 <li><p><code>covr.llvm_cov</code>: Path to the <code>llvm-cov</code> used to read the coverage
 of Rust code. Defaults to the one of the Rust toolchain, installed with
 <code>rustup component add llvm-tools</code>, or for Rust installed without rustup

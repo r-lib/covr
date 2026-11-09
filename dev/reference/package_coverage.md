@@ -19,8 +19,7 @@ package_coverage(
   code = character(),
   install_path = temp_file("R_LIBS"),
   ...,
-  exclusions,
-  pre_clean = TRUE,
+  pre_clean,
   allow_failures = getOption("covr.allow_failures", FALSE),
   show_code_output = FALSE
 )
@@ -89,14 +88,10 @@ package_coverage(
   directory which is kept after coverage finishes; by default it is
   written to `install_path`.
 
-- exclusions:
-
-  ‘Deprecated’, please use ‘line_exclusions’ instead.
-
 - pre_clean:
 
-  whether to delete all objects present in the src directory before
-  recompiling
+  Deprecated and ignored. Objects present in the src directory are
+  always deleted before recompiling.
 
 - allow_failures:
 

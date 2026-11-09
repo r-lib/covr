@@ -68,6 +68,7 @@
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">sh</span> shim_package.sh         <span class="co"># then rename the source to covrShim</span></span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="va">R_LIBS</span><span class="op">=</span><span class="st">"</span><span class="va">$lib</span><span class="st">"</span> <span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'covr::report(covr::package_coverage())'</span></span></code></pre></div>
 <p>If you do shim your working tree, run <code>sh unshim_package.sh</code> before committing. <code>git archive HEAD</code> only includes committed changes, so commit (or copy the files) first if you want to measure uncommitted work.</p>
+<p>When covr measures itself you will see <code>Can't find coverage from 1 R process that loaded covrShim</code>. This is expected: the SIGKILL test in <code>test-covr.R</code> (“package_coverage warns about processes that did not save a trace”) starts a child R that loads the inner <code>TestSummary</code> hooks, which load the outer, instrumented <code>covrShim</code> (writing a <code>covr_pending_&lt;pid&gt;_*</code> marker to the outer install dir) before the child kills itself, so that child’s <code>covrShim</code> coverage is lost by design.</p>
 </div>
 <div class="section level3">
 <h3 id="running-on-windows">Running on Windows<a class="anchor" aria-label="anchor" href="#running-on-windows"></a></h3>

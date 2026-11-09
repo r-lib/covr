@@ -277,10 +277,7 @@ describes both.
 vignette("shiny", package = "covr")
 ```
 
-## Will covr work with alternative compilers such as ICC
-
-Covr now supports Intel’s `icc` compiler, thanks to work contributed by
-Qin Wang at Oracle.
+## Will covr work with alternative compilers?
 
 Covr is known to work with clang versions `3.5+` and gcc version `4.2+`.
 

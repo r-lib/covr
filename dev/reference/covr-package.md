@@ -96,14 +96,6 @@ behaviour:
   exception is thrown, so lines that create objects with destructors may
   also count as partially executed.
 
-- `covr.icov`:
-
-- `covr.icov_args`:
-
-- `covr.icov_flags`:
-
-- `covr.icov_prof`:
-
 - `covr.llvm_cov`: Path to the `llvm-cov` used to read the coverage of
   Rust code. Defaults to the one of the Rust toolchain, installed with
   `rustup component add llvm-tools`, or for Rust installed without

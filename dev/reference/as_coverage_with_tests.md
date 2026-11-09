@@ -15,5 +15,3 @@ as_coverage_with_tests(counters)
 - counters:
 
   An environment of covr trace results to convert to a coverage object.
-  If `counters` is not provided, the `covr` namespace value `.counters`
-  is used.

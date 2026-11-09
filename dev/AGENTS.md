@@ -64,6 +64,15 @@ committing. `git archive HEAD` only includes committed changes, so
 commit (or copy the files) first if you want to measure uncommitted
 work.
 
+When covr measures itself you will see
+`Can't find coverage from 1 R process that loaded covrShim`. This is
+expected: the SIGKILL test in `test-covr.R` (“package_coverage warns
+about processes that did not save a trace”) starts a child R that loads
+the inner `TestSummary` hooks, which load the outer, instrumented
+`covrShim` (writing a `covr_pending_<pid>_*` marker to the outer install
+dir) before the child kills itself, so that child’s `covrShim` coverage
+is lost by design.
+
 ### Running on Windows
 
 Windows behaves differently in ways that matter to covr,

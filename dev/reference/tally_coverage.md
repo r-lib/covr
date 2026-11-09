@@ -60,22 +60,22 @@ cov <- code_coverage(
   "f(TRUE)"
 )
 tally_coverage(cov)
-#>                              filename functions line value
-#> 1 /tmp/Rtmpp7vAB7/source.R185dc25357c         f    2     0
-#> 2 /tmp/Rtmpp7vAB7/source.R185dc25357c         g    4     0
+#>                               filename functions line value
+#> 1 /tmp/RtmptGlYyl/source.R190c4aa47a9c         f    2     0
+#> 2 /tmp/RtmptGlYyl/source.R190c4aa47a9c         g    4     0
 tally_coverage(cov, by = "expression")
-#>                              filename functions first_line first_byte last_line
-#> 1 /tmp/Rtmpp7vAB7/source.R185dc25357c         f          2          7         2
-#> 2 /tmp/Rtmpp7vAB7/source.R185dc25357c         f          2         10         2
-#> 3 /tmp/Rtmpp7vAB7/source.R185dc25357c         f          2         21         2
-#> 4 /tmp/Rtmpp7vAB7/source.R185dc25357c         g          4          6         4
-#>   last_byte first_column last_column first_parsed last_parsed value
-#> 1         7            7           7            2           2     1
-#> 2        14           10          14            2           2     1
-#> 3        24           21          24            2           2     0
-#> 4        17            6          17            4           4     0
+#>                               filename functions first_line first_byte
+#> 1 /tmp/RtmptGlYyl/source.R190c4aa47a9c         f          2          7
+#> 2 /tmp/RtmptGlYyl/source.R190c4aa47a9c         f          2         10
+#> 3 /tmp/RtmptGlYyl/source.R190c4aa47a9c         f          2         21
+#> 4 /tmp/RtmptGlYyl/source.R190c4aa47a9c         g          4          6
+#>   last_line last_byte first_column last_column first_parsed last_parsed value
+#> 1         2         7            7           7            2           2     1
+#> 2         2        14           10          14            2           2     1
+#> 3         2        24           21          24            2           2     0
+#> 4         4        17            6          17            4           4     0
 tally_coverage(cov, by = "function")
-#>                              filename functions first_line last_line value
-#> 1 /tmp/Rtmpp7vAB7/source.R185dc25357c         f          2         2     1
-#> 2 /tmp/Rtmpp7vAB7/source.R185dc25357c         g          4         4     0
+#>                               filename functions first_line last_line value
+#> 1 /tmp/RtmptGlYyl/source.R190c4aa47a9c         f          2         2     1
+#> 2 /tmp/RtmptGlYyl/source.R190c4aa47a9c         g          4         4     0
 ```

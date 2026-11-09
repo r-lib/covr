@@ -114,14 +114,13 @@ a successful upload.
 
 The commit, branch, pull request, job, build URL and repository are
 looked up from the environment variables of the CI service, which is one
-of Jenkins, Travis, Codeship, CircleCI, Semaphore, Drone, AppVeyor,
-Wercker, GitLab CI, GitHub Actions or Google Cloud Build. Anywhere else,
-or for values the service does not provide, they are looked up from the
-local git repository in the working directory. The repository
-(`owner/repo`) and the git service (`github`, `gitlab`, `bitbucket`,
-...) come from the CI service when it provides them, otherwise from the
-`origin` remote of the local git repository, otherwise the git service
-is assumed to be `github`.
+of Jenkins, Travis, CircleCI, Drone, AppVeyor, GitLab CI, GitHub Actions
+or Google Cloud Build. Anywhere else, or for values the service does not
+provide, they are looked up from the local git repository in the working
+directory. The repository (`owner/repo`) and the git service (`github`,
+`gitlab`, `bitbucket`, ...) come from the CI service when it provides
+them, otherwise from the `origin` remote of the local git repository,
+otherwise the git service is assumed to be `github`.
 
 ## Tokens
 

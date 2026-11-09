@@ -73,16 +73,15 @@ exclude all the print methods defined in a package from coverage.</p>
 
 <p>In addition you can exclude lines from the coverage by putting special comments
 in your source code. This can be done per line or by specifying a range.
-The patterns used can be specified by the <code>exclude_pattern</code>, <code>exclude_start</code>,
-<code>exclude_end</code> arguments to <code><a href="package_coverage.html">package_coverage()</a></code> or by setting the global
-options <code>covr.exclude_pattern</code>, <code>covr.exclude_start</code>, <code>covr.exclude_end</code>.</p>
+The patterns used can be specified by setting the global options
+<code>covr.exclude_pattern</code>, <code>covr.exclude_start</code>, <code>covr.exclude_end</code>.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># exclude whole file of R/test.R</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span>exclusions <span class="op">=</span> <span class="st">"R/test.R"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"R/test.R"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># exclude lines 1 to 10 and 15 from R/test.R</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"R/test.R"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>

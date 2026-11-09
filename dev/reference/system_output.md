@@ -6,14 +6,7 @@ they are properly protected from shell expansion.
 ## Usage
 
 ``` r
-system_output(
-  cmd,
-  args = character(),
-  env = character(),
-  quiet = FALSE,
-  echo = FALSE,
-  ...
-)
+system_output(cmd, args = character(), env = character(), quiet = FALSE, ...)
 ```
 
 ## Arguments
@@ -32,11 +25,7 @@ system_output(
 
 - quiet:
 
-  if `TRUE`, the command output will be echoed.
-
-- echo:
-
-  if `TRUE`, the command to run will be echoed.
+  if `TRUE`, the command's standard error is discarded.
 
 - ...:
 
