@@ -265,6 +265,51 @@ test_that("is_traced() finds the counter at the start of the body, or anywhere",
   })))
 })
 
+test_that("the C counter grows to many keys of different encodings", {
+  clear_counters()
+  withr::defer(clear_counters())
+  .Call(covr_counter_reset)
+  take <- function() {
+    x <- .Call(covr_counter_take)
+    setNames(as.numeric(x), enc2utf8(names(x)))
+  }
+  count <- function(key) .Call(covr_count, key)
+  i <- 1:5000
+  ascii <- sprintf("f%d.R:%d:1", i, i)
+  utf8 <- enc2utf8(sprintf("\u00e9%d.R:%d:1", i, i))
+  latin1 <- iconv(utf8, "UTF-8", "latin1")
+
+  for (chunk in split(i, ceiling(i / 997))) {
+    register_count(ascii[chunk])
+    register_count(utf8[chunk])
+    register_count(latin1[chunk])
+  }
+  expect_length(take(), 0L)
+
+  for (j in i) {
+    for (key in rep(ascii[j], j %% 5L + 1L)) {
+      count(key)
+    }
+    for (key in rep(utf8[j], j %% 3L)) {
+      count(key)
+    }
+    for (key in rep(latin1[j], j %% 4L)) {
+      count(key)
+    }
+  }
+  count("unregistered.R:1:1")
+  got <- take()
+
+  expect_equal(unname(got[ascii]), i %% 5 + 1)
+  both <- i %% 3 + i %% 4
+  expect_equal(unname(got[utf8[both > 0]]), both[both > 0])
+  expect_length(got, 5000L + sum(both > 0))
+
+  # Counts start again from zero for the keys that are still registered
+  count(ascii[1])
+  expect_equal(take(), setNames(1, ascii[1]))
+})
+
 test_that("a `.Call` where the traced function lives doesn't mask the counter", {
   skip_on_cran()
   clear_counters()

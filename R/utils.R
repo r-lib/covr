@@ -341,13 +341,13 @@ vlapply <- function(X, FUN, ...) vapply(X, FUN, ..., FUN.VALUE = logical(1))
 
 # Names of the bindings in `env` that can be read without side effects: active
 # bindings run arbitrary code (which can fail) when they are read. With
-# `the$skip_unforced`, promises that haven't been forced are left out too (see
-# `restore_counters()`).
+# `the$skip_lazy_load`, promises to read the saved code of a package that
+# haven't been forced are left out too (see `restore_counters()`).
 inactive_names <- function(env) {
   nms <- ls(env, all.names = TRUE)
   nms <- nms[!vlapply(nms, bindingIsActive, env = env)]
-  if (isTRUE(the$skip_unforced)) {
-    nms <- nms[!vlapply(nms, is_unforced_promise, env = env)]
+  if (isTRUE(the$skip_lazy_load)) {
+    nms <- nms[!vlapply(nms, is_lazy_load_promise, env = env)]
   }
   nms
 }

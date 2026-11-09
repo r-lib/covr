@@ -5,10 +5,11 @@
 # starts an R process (see `instrument_installed_package()`) that loads the
 # namespace from the lazy-load database that `R CMD INSTALL` wrote, as
 # `tools:::code2LazyLoadDB()` does when it builds the database, instruments
-# and byte-compiles its functions in place and writes the database again. The
-# keys, source references and functions of the traces are saved next to it, and
-# restored by the hook added to the package's loader script (see
-# `add_hooks()`), instead of tracing the namespace each time it is loaded.
+# and byte-compiles its functions in place and writes the database again, next
+# to the original. The keys, source references and functions of the traces are
+# saved with it, and the loader script (see `add_hooks()`) reads that database
+# and restores the counters instead of tracing the namespace each time it is
+# loaded.
 # Instrumented code identifies its trace by the key string, so it can be saved
 # in the database (see `covr_count()` in src/count.c).
 
@@ -87,6 +88,12 @@ install_compile <- function() {
 # package as installed.
 instrument_skipped <- 2L
 
+# The base of the lazy-load database of the instrumented code, next to the
+# database of the installed code.
+instrumented_db_base <- function(pkg_name, lib) {
+  file.path(lib, pkg_name, "R", paste0(pkg_name, ".covr"))
+}
+
 instrumented_counters_file <- function(pkg_name, lib) {
   file.path(lib, pkg_name, "R", "covr_counters.rds")
 }
@@ -134,21 +141,22 @@ instrument_installed_package <- function(pkg_name, lib, compile = TRUE) {
     compile_replacements(the$replacements)
   }
 
-  # The functions hold promises that read the old database, so the new one is
-  # written under another name until it is complete.
-  new_base <- paste0(base, ".covr")
-  on.exit(unlink(paste0(new_base, c(".rdb", ".rdx", ".rds"))), add = TRUE)
+  # The functions hold promises that read the original database, which is left
+  # as it is: the new one is written next to it, and the loader script that
+  # `add_hooks()` writes reads it. A process that fails before then leaves a
+  # package that still works as installed.
+  new_base <- instrumented_db_base(pkg_name, lib)
+  counters_file <- instrumented_counters_file(pkg_name, lib)
+  done <- FALSE
+  on.exit(
+    if (!done) unlink(c(paste0(new_base, c(".rdb", ".rdx")), counters_file)),
+    add = TRUE
+  )
   compress <- readRDS(paste0(base, ".rdx"))$compressed
   make_lazy_load_db <- get("makeLazyLoadDB", envir = asNamespace("tools"))
   make_lazy_load_db(ns, new_base, compress = compress)
-  saveRDS(portable_srcfiles(.counters), paste0(new_base, ".rds"))
-
-  file.rename(paste0(new_base, ".rdb"), paste0(base, ".rdb"))
-  file.rename(paste0(new_base, ".rdx"), paste0(base, ".rdx"))
-  file.rename(
-    paste0(new_base, ".rds"),
-    instrumented_counters_file(pkg_name, lib)
-  )
+  saveRDS(portable_srcfiles(.counters), counters_file)
+  done <- TRUE
   TRUE
 }
 
@@ -235,13 +243,20 @@ compile_in_place <- function(fun) {
 # in the code that was saved by `instrument_installed_package()`.
 #
 # The hook runs after `.onLoad()`, which can create or replace functions in the
-# namespace (e.g. with `assign()` or `memoise::memoise()`). These are not in
-# the saved code, so `trace_environment()` instruments the functions that
-# are not instrumented yet, as when the namespace is loaded again by
-# `pkgload::load_all()`. The same happens for a package that is loaded again
-# in the same process. Bindings that are still promises to read the saved code
-# are not forced for that, which would read all the functions of the package.
+# namespace (e.g. with `assign()`, `delayedAssign()` or `memoise::memoise()`).
+# These are not in the saved code, so `trace_environment()` instruments the
+# functions that are not instrumented yet, as when the namespace is loaded
+# again by `pkgload::load_all()`. The same happens for a package that is
+# loaded again in the same process. Bindings that are still promises to read
+# the saved code are not forced for that, which would read all the functions
+# of the package.
 restore_counters <- function(ns, file) {
+  # The loader script reads the instrumented code, which needs its counters.
+  if (!file.exists(file)) {
+    covr_abort(
+      "Can't find the counters of the instrumented package at {.path {file}}."
+    )
+  }
   # As in `trace_environment()`, the counters of a namespace that is already
   # restored are kept.
   if (identical(the$traced_env, ns)) {
@@ -261,23 +276,49 @@ restore_counters <- function(ns, file) {
   invisible()
 }
 
-# `trace_environment()` without reading the bindings that haven't been
-# forced, which are the saved functions, as `.onLoad()` replaces bindings
-# rather than forcing them.
+# `trace_environment()` without reading the bindings that are still promises to
+# read the saved code, which `.onLoad()` replaces rather than forces.
 trace_unforced_environment <- function(ns) {
-  the$skip_unforced <- TRUE
-  on.exit(the$skip_unforced <- NULL)
+  the$skip_lazy_load <- TRUE
+  on.exit(the$skip_lazy_load <- NULL)
   trace_environment(ns)
 }
 
-# Add the counters in `file` that don't exist yet.
+# Whether `name` in `env` is a promise, that hasn't been forced, to read a
+# value from a lazy-load database, as made by `lazyLoad()`, rather than one
+# that was made by the package, e.g. with `delayedAssign()`.
+is_lazy_load_promise <- function(env, name) {
+  is_unforced_promise(env, name) &&
+    {
+      # The expression of a promise, without forcing it
+      expr <- do.call(substitute, list(as.name(name), env))
+      is.call(expr) && identical(expr[[1L]], as.name("lazyLoadDBfetch"))
+    }
+}
+
+# Add the counters in `file` that don't exist yet. The decisions of branch
+# coverage are in an environment that can already exist, if functions were
+# instrumented since the counters were cleared.
 add_saved_counters <- function(file) {
   counters <- as.list(readRDS(file), all.names = TRUE)
+  saved_branches <- counters$branches
   counters <- counters[setdiff(
     names(counters),
     ls(.counters, all.names = TRUE)
   )]
   list2env(counters, .counters)
+  if (
+    is.environment(saved_branches) &&
+      !identical(saved_branches, .counters$branches)
+  ) {
+    branches <- .counters$branches
+    for (key in setdiff(
+      ls(saved_branches, all.names = TRUE),
+      ls(branches, all.names = TRUE)
+    )) {
+      branches[[key]] <- saved_branches[[key]]
+    }
+  }
   register_count(names(counters)[
     !vapply(counters, function(x) is.null(x$value), logical(1))
   ])

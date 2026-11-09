@@ -1841,6 +1841,25 @@ add_hooks <- function(
 
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
   lines <- readLines(load_script)
+  if (!is.null(counters_file)) {
+    # Load the instrumented code that `instrument_package()` saved
+    db_line <- grep(
+      'dbbase <- file.path(info$libname, pkg, "R", pkg)',
+      lines,
+      fixed = TRUE
+    )
+    if (length(db_line) != 1L) {
+      covr_abort(
+        "Can't find where the loader script of {.pkg {pkg_name}} reads the package."
+      )
+    }
+    lines[db_line] <- sub(
+      '"R", pkg)',
+      '"R", paste0(pkg, ".covr"))',
+      lines[db_line],
+      fixed = TRUE
+    )
+  }
   lines <- append(
     lines,
     c(

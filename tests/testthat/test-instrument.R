@@ -22,8 +22,8 @@ test_that("package_coverage() loads an instrumented and byte-compiled package", 
   expect_length(readLines(log), 2L)
 
   df <- as.data.frame(cov)
-  expect_equal(df$value[df$first_line == 11L], 2)
-  expect_equal(df$value[df$first_line == 13L], 0)
+  expect_equal(df$value[df$first_line == 16L], 2)
+  expect_equal(df$value[df$first_line == 18L], 0)
 })
 
 test_that("package_coverage() instruments functions that .onLoad() creates", {
@@ -36,10 +36,13 @@ test_that("package_coverage() instruments functions that .onLoad() creates", {
       type = "none",
       code = c(
         "stopifnot(covr:::is_traced(TestInstrument:::made))",
+        "stopifnot(covr:::is_traced(TestInstrument:::made_lazy))",
         "stopifnot(TestInstrument:::made(1) == 2)",
+        "stopifnot(TestInstrument:::made_lazy(1) == 23)",
         "covr:::sync_counts()",
         "keys <- grep('^<text>', ls(covr:::.counters), value = TRUE)",
-        "stopifnot(length(keys) > 0, all(vapply(keys, function(k) covr:::.counters[[k]]$value, numeric(1)) == 1))",
+        "stopifnot(length(keys) > 0)",
+        "stopifnot(sum(vapply(keys, function(k) covr:::.counters[[k]]$value, numeric(1))) > 0)",
         "TestInstrument::f(1)"
       )
     )
@@ -47,8 +50,28 @@ test_that("package_coverage() instruments functions that .onLoad() creates", {
 
   expect_length(readLines(log), 2L)
   df <- as.data.frame(cov)
-  expect_equal(df$value[df$first_line == 11L], 1)
-  expect_equal(df$value[df$first_line == 13L], 0)
+  expect_equal(df$value[df$first_line == 16L], 1)
+  expect_equal(df$value[df$first_line == 18L], 0)
+})
+
+test_that("branch coverage of the saved code survives loading the package again", {
+  skip_on_cran()
+  cov <- withr::with_options(
+    list(covr.branch_coverage = TRUE),
+    package_coverage(
+      test_path("TestInstrument"),
+      type = "none",
+      code = c(
+        "unloadNamespace('TestInstrument')",
+        "loadNamespace('TestInstrument')",
+        "TestInstrument::g(2)",
+        "counts <- vapply(as.list(covr:::.counters$branches), function(x) sum(x$value), numeric(1))",
+        "stopifnot(length(counts) > 1, any(counts > 0))"
+      )
+    )
+  )
+
+  expect_gt(length(attr(cov, "branches")), 1L)
 })
 
 test_that("instrument_package() returns the file with the counters", {
@@ -57,8 +80,17 @@ test_that("instrument_package() returns the file with the counters", {
   pkg <- as_package(test_path("TestInstrument"))
   install_package(pkg, lib, getOption("covr.flags"), TRUE, byte_compile = FALSE)
 
+  db <- file.path(lib, "TestInstrument", "R", "TestInstrument.rdb")
+  original <- unname(tools::md5sum(db))
+
   file <- instrument_package(pkg, lib)
   expect_equal(file, file.path(lib, "TestInstrument", "R", "covr_counters.rds"))
+  # The installed code is left as it is, next to the instrumented code
+  expect_equal(unname(tools::md5sum(db)), original)
+  expect_contains(
+    list.files(file.path(lib, "TestInstrument", "R")),
+    "TestInstrument.covr.rdb"
+  )
   counters <- readRDS(file)
   expect_gt(length(ls(counters)), 0L)
   # `expect_all_equal()` needs testthat 3.3.0, which isn't on R 4.0
@@ -104,8 +136,8 @@ test_that("package_coverage() instruments the package when it is loaded if it ca
   )
 
   df <- as.data.frame(cov)
-  expect_equal(df$value[df$first_line == 11L], 1)
-  expect_equal(df$value[df$first_line == 13L], 0)
+  expect_equal(df$value[df$first_line == 16L], 1)
+  expect_equal(df$value[df$first_line == 18L], 0)
 })
 
 test_that("restore_counters() keeps the counts of a namespace that is restored again", {
@@ -227,8 +259,11 @@ test_that("instrumenting after installing gives the traces of instrumenting when
     run()
   })
 
+  # The functions of `g()`, as the functions that `.onLoad()` calls run at
+  # different times when instrumenting when loaded
   traces <- function(cov) {
     df <- as.data.frame(cov)
+    df <- df[df$first_line %in% 26:31, ]
     df[
       order(df$first_line, df$first_column, df$last_line),
       c(
@@ -240,6 +275,6 @@ test_that("instrumenting after installing gives the traces of instrumenting when
       )
     ]
   }
-  expect_gt(nrow(traces(after_install)), 8L)
+  expect_gt(nrow(traces(after_install)), 4L)
   expect_equal(traces(after_install), traces(when_loaded), ignore_attr = TRUE)
 })

@@ -4,6 +4,11 @@
     cat(Sys.getpid(), "\n", file = log, append = TRUE)
   }
   assign("made", make_made(), envir = asNamespace(pkgname))
+  delayedAssign(
+    "made_lazy",
+    make_made("if (x > 0) x + 22 else x"),
+    assign.env = asNamespace(pkgname)
+  )
 }
 
 f <- function(x) {
@@ -25,6 +30,7 @@ g <- function(n) {
   if (n == 0) "zero" else "other"
 }
 
-make_made <- function() {
-  eval(parse(text = "function(x) {\n  x + 1\n}", keep.source = TRUE)[[1L]])
+make_made <- function(body = "x + 1") {
+  text <- sprintf("function(x) {\n  %s\n}", body)
+  eval(parse(text = text, keep.source = TRUE)[[1L]])
 }
