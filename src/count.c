@@ -52,33 +52,41 @@ static void insert(SEXP x, int index) {
   table_index[i] = index + 1;
 }
 
+// Grow the counts, keys and table. R allocations can longjmp, so they are
+// done before the raw allocations, and a failure of those releases the new
+// keys, leaving the state as it was.
 static void grow(void) {
   int new_capacity = capacity == 0 ? 4096 : capacity * 2;
-  double *new_counts =
-      (double *)realloc(counts, (size_t)new_capacity * sizeof(double));
-  if (new_counts == NULL) {
-    Rf_error("can't allocate memory for the counts");
-  }
-  counts = new_counts;
   size_t new_size = (size_t)new_capacity * 2;
-  SEXP *new_table_keys = (SEXP *)calloc(new_size, sizeof(SEXP));
-  int *new_table_index = (int *)calloc(new_size, sizeof(int));
-  if (new_table_keys == NULL || new_table_index == NULL) {
-    free(new_table_keys);
-    free(new_table_index);
-    Rf_error("can't allocate memory for the counts");
-  }
+
   SEXP new_keys = PROTECT(Rf_allocVector(STRSXP, new_capacity));
   for (int i = 0; i < n_keys; ++i) {
     SET_STRING_ELT(new_keys, i, STRING_ELT(keys, i));
   }
   R_PreserveObject(new_keys);
+  UNPROTECT(1);
+
+  SEXP *new_table_keys = (SEXP *)calloc(new_size, sizeof(SEXP));
+  int *new_table_index = (int *)calloc(new_size, sizeof(int));
+  double *new_counts =
+      (double *)realloc(counts, (size_t)new_capacity * sizeof(double));
+  if (new_table_keys == NULL || new_table_index == NULL ||
+      new_counts == NULL) {
+    free(new_table_keys);
+    free(new_table_index);
+    // `counts` is still valid if only another allocation failed
+    if (new_counts != NULL) {
+      counts = new_counts;
+    }
+    R_ReleaseObject(new_keys);
+    Rf_error("can't allocate memory for the counts");
+  }
+  counts = new_counts;
+
   if (keys != NULL) {
     R_ReleaseObject(keys);
   }
   keys = new_keys;
-  UNPROTECT(1);
-
   free(table_keys);
   free(table_index);
   table_keys = new_table_keys;
