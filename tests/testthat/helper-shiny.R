@@ -16,8 +16,11 @@ local_shiny_tracing_state <- function(env = parent.frame()) {
       clear_counters()
       the$shiny_trace_registered <- NULL
       replace_binding("shiny", "sourceUTF8", source_utf8)
-      replace_binding("parallel", "mcfork", mcfork)
-      replace_binding("parallel", "mcexit", mcexit)
+      # parallel has no mcfork() on Windows, where forks aren't traced
+      if (!is.null(mcfork)) {
+        replace_binding("parallel", "mcfork", mcfork)
+        replace_binding("parallel", "mcexit", mcexit)
+      }
       setHook(event, hooks, "replace")
     },
     envir = env

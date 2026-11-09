@@ -382,7 +382,8 @@ test_that("find_gcov returns the path of gcov on the path", {
   Sys.chmod(gcov, "755")
   withr::local_path(dir, action = "replace")
 
-  expect_equal(find_gcov(), gcov)
+  # macOS's temp dir is a symlink, which `Sys.which()` resolves
+  expect_equal(normalize_path(find_gcov()), normalize_path(gcov))
 })
 
 test_that("parse_gcov_json returns NULL for a missing file", {
