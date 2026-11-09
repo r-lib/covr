@@ -25,9 +25,6 @@ impute_child_srcrefs <- function(x, parent_ref) {
   make_srcref <- children$make_srcref
   token <- pd_child$token
   n <- length(token)
-  if (n == 0) {
-    return(NULL)
-  }
   is_expr <- token == "expr"
 
   res <- if (token[[1]] == "FUNCTION" || token[[1]] == "'\\\\'") {
@@ -124,9 +121,8 @@ parse_children <- function(parent_ref) {
     return(NULL)
   } # srcref not found in parse data
 
-  if (length(pd_expr_idx) > 1) {
-    pd_expr_idx <- pd_expr_idx[[1]]
-  }
+  # Use the first expr if more than one spans the srcref
+  pd_expr_idx <- pd_expr_idx[[1L]]
 
   expr_id <- pd$id[pd_expr_idx]
   # Subset the data frame once, excluding comments, as `[.data.frame` is slow

@@ -155,3 +155,20 @@ test_that("inactive_names() and eapply_inactive() skip active bindings", {
   expect_equal(inactive_names(env), c(".y", "x"))
   expect_equal(eapply_inactive(env, identity), list(.y = 2, x = 1))
 })
+
+test_that("traced_files skips traces without a source file", {
+  ref <- parse_srcrefs("x <- 1")$refs[[1]]
+  cov <- structure(
+    list(
+      a = list(srcref = NULL, value = 1),
+      b = list(srcref = ref, value = 1),
+      c = list(srcref = ref, value = 1)
+    ),
+    class = "coverage"
+  )
+  expect_named(traced_files(cov), "<text>")
+})
+
+test_that("read_description errors if there is no DESCRIPTION file", {
+  expect_snapshot(read_description("no-such-dir/DESCRIPTION"), error = TRUE)
+})

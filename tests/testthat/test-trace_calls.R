@@ -184,3 +184,9 @@ test_that("is_traced() is FALSE for primitives and non-functions", {
   expect_identical(is_traced(sum), FALSE)
   expect_identical(is_traced(1), FALSE)
 })
+
+test_that("trace_calls reports objects it cannot trace and returns them unchanged", {
+  env <- globalenv()
+  expect_snapshot(res <- trace_calls(env))
+  expect_identical(res, env)
+})

@@ -1045,12 +1045,8 @@ package_coverage <- function(
   # `libs`: renv removes the site libraries from the library paths when it
   # activates its sandbox, e.g. when the package imports renv (or vetiver,
   # which embeds it) in an renv project, which would also remove covr and the
-  # package (#560). An empty R_LIBS_SITE is the default site library, so no
-  # site libraries (as in renv projects) is "NULL".
-  site_libs <- env_path(.Library.site)
-  if (!nzchar(site_libs)) {
-    site_libs <- "NULL"
-  }
+  # package (#560).
+  site_libs <- r_libs_site()
 
   # Failures collected when `allow_failures` is TRUE, signaled as warnings
   # after the tests have run.
@@ -1592,10 +1588,14 @@ clean_coverage_tests <- function(obj) {
 }
 
 parse_type <- function(type) {
-  type <- match_arg(
+  # Each type must match a choice, unlike `match.arg(several.ok = TRUE)`,
+  # which only fails if none of them do.
+  type <- vapply(
     type,
+    match.arg,
+    character(1),
     choices = c("tests", "vignettes", "examples", "all", "none"),
-    several.ok = TRUE
+    USE.NAMES = FALSE
   )
   if (identical(type, "all")) {
     type <- c("tests", "vignettes", "examples")
@@ -1642,6 +1642,25 @@ run_vignettes <- function(pkg, lib) {
   }
 }
 
+# The value of R_LIBS_SITE that gives R processes the site libraries `site`.
+# An empty R_LIBS_SITE is the default site library, so no site libraries (as in
+# renv projects) is "NULL".
+r_libs_site <- function(site = .Library.site) {
+  site_libs <- env_path(site)
+  if (!nzchar(site_libs)) {
+    site_libs <- "NULL"
+  }
+  site_libs
+}
+
+r_binary <- function() {
+  name <- "R"
+  if (is_windows()) {
+    name <- "R.exe" # nocov
+  }
+  file.path(R.home("bin"), name)
+}
+
 # Install the package source with the options covr needs. With `quiet`, the
 # output is captured to give the reason if the installation fails.
 install_package <- function(pkg, install_path, flags, quiet, env = NULL) {
@@ -1663,8 +1682,7 @@ install_package <- function(pkg, install_path, flags, quiet, env = NULL) {
         shQuote(pkg$path)
       )
 
-      name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
-      path <- file.path(R.home("bin"), name)
+      path <- r_binary()
       if (quiet) {
         suppressWarnings(system2(path, args, stdout = TRUE, stderr = TRUE))
       } else {
@@ -1748,10 +1766,9 @@ run_r_live <- function(infile, outfile) {
       writeBin(x, out)
     }
   }
-  name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
   tryCatch(
     sys::exec_wait(
-      file.path(R.home("bin"), name),
+      r_binary(),
       c("--vanilla", "--quiet", "-f", infile),
       std_out = show(stdout()),
       std_err = show(stderr())

@@ -46,7 +46,7 @@ shiny_app_coverage <- function(
   line_exclusions = NULL,
   function_exclusions = NULL
 ) {
-  if (!requireNamespace("shiny", quietly = TRUE)) {
+  if (!is_installed("shiny")) {
     covr_abort("{.pkg shiny} must be installed to measure Shiny app coverage.")
   }
   app_dir <- normalize_path(app_dir)
@@ -126,7 +126,7 @@ start_shiny_app_tracing <- function(app_dir, trace_dir, attach_env) {
     envir = attach_env
   )
 
-  if (isNamespaceLoaded("shiny")) {
+  if (shiny_loaded()) {
     trace_shiny_source()
   } else {
     setHook(
@@ -137,13 +137,20 @@ start_shiny_app_tracing <- function(app_dir, trace_dir, attach_env) {
   invisible()
 }
 
+# A mockable `isNamespaceLoaded()`, so tests can take the branch that waits
+# for Shiny to load.
+shiny_loaded <- function() {
+  isNamespaceLoaded("shiny")
+}
+
 # Shiny sources the files of an app with its internal `sourceUTF8(file,
 # envir)`, keeping their srcrefs. The functions they define, and the server
 # function they return, are instrumented when it returns. Returns a function
 # that restores `sourceUTF8()` as it was before, e.g. traced by the user.
-trace_shiny_source <- function() {
+trace_shiny_source <- function(
+  original = asNamespace("shiny")$sourceUTF8
+) {
   shiny <- asNamespace("shiny")
-  original <- shiny$sourceUTF8
   if (!all(c("file", "envir") %in% names(formals(original)))) {
     covr_warn(c(
       "Can't instrument the files of the Shiny app.",

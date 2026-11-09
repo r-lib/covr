@@ -32,4 +32,5 @@ _dev\.R$
 ^air\.toml$
 ^AGENTS\.md$
 ^\.git-blame-ignore-revs$
+^\.covrignore$
 ^performance-audit(\.md)?$

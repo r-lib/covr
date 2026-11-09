@@ -38,15 +38,15 @@ void CheckBody(SEXP x) {
   case S4SXP: // renamed to OBJSXP
     return;
 
-  default:
-    error("Unexpected closure body type");
+  default: // # nocov start
+    error("Unexpected closure body type"); // # nocov end
   }
 }
 
 inline static
 void CheckEnvironment(SEXP x) {
   if(TYPEOF(x) != ENVSXP)
-    error("Unexpected closure env type");
+    error("Unexpected closure env type"); // # nocov
 }
 
 inline static
@@ -56,11 +56,11 @@ void CheckFormals(SEXP ls) {
   if (isList(ls)) {
     for (; ls != R_NilValue; ls = CDR(ls))
       if (TYPEOF(TAG(ls)) != SYMSXP)
-        goto err;
+        goto err; // # nocov
     return;
   }
-  err:
-    error("Unexpected closure formals");
+  err: // # nocov start
+    error("Unexpected closure formals"); // # nocov end
 }
 
 SEXP covr_reassign_function(SEXP old_fun, SEXP new_fun) {

@@ -306,11 +306,7 @@ llvm_tool_run <- function(tool, args, quiet = TRUE, empty = NULL) {
   output <- suppressWarnings(
     system2(tool, shQuote(args), stdout = TRUE, stderr = errors_file)
   )
-  errors <- if (file.exists(errors_file)) {
-    readLines(errors_file)
-  } else {
-    character()
-  }
+  errors <- readLines(errors_file)
   if (!quiet && length(errors)) {
     message(paste(errors, collapse = "\n"))
   }

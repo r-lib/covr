@@ -24,3 +24,8 @@ local_keep_parse_data_package <- function(frame = parent.frame()) {
   )
   pkg
 }
+
+parse_srcrefs <- function(text) {
+  exprs <- parse(text = text, keep.source = TRUE)
+  list(exprs = exprs, refs = getSrcref(exprs))
+}

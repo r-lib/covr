@@ -159,6 +159,107 @@ test_that("covr.gcov = '' turns off compiled code coverage in the session", {
   expect_equal(unique(basename(as.data.frame(cov)$filename)), "TestCompiled.R")
 })
 
+test_that("compiled coverage is only measured for load_all()ed packages", {
+  skip_if_not_installed("pkgload")
+
+  expect_null(start_compiled_coverage(asNamespace("stats")))
+})
+
+test_that("compiled coverage requires the package to have compiled code", {
+  skip_if_not_installed("pkgload")
+  local_compiled_package("TestSummary")
+  ns <- asNamespace("TestSummary")
+
+  expect_null(start_compiled_coverage(ns))
+  expect_snapshot(start_compiled_coverage(ns, required = TRUE), error = TRUE)
+})
+
+test_that("compiled coverage handles a build without the package's DLLs", {
+  skip_on_cran()
+  skip_if(is_win_r41())
+  skip_if_not_installed("pkgload")
+  local_compiled_package()
+  ns <- asNamespace("TestCompiled")
+  dll_dir <- NULL
+  local_mocked_bindings(
+    build_instrumented_copy = function(path, build) {
+      dll_dir <<- temp_dir_create("covr_dll")
+      dll_dir
+    }
+  )
+
+  expect_null(suppressWarnings(start_compiled_coverage(ns)))
+  expect_false(dir.exists(dll_dir))
+  expect_snapshot(
+    suppressWarnings(start_compiled_coverage(ns, required = TRUE)),
+    error = TRUE
+  )
+  expect_false(dir.exists(dll_dir))
+})
+
+test_that("has_gcov() looks for gcov unless covr.gcov is set", {
+  withr::local_options(covr.gcov = NULL)
+  local_mocked_bindings(find_gcov = function() "/usr/bin/gcov")
+  expect_true(has_gcov(FALSE))
+
+  withr::local_options(covr.gcov = "")
+  expect_false(has_gcov(FALSE))
+
+  withr::local_options(covr.gcov = NA_character_)
+  expect_false(has_gcov(FALSE))
+  expect_snapshot(has_gcov(TRUE), error = TRUE)
+})
+
+test_that("read_rbuildignore() drops blank lines and comments", {
+  path <- withr::local_tempdir()
+  expect_equal(read_rbuildignore(path), character())
+
+  writeLines(
+    c("^docs$", "", "# a comment", "  ", "  ^[.]github  "),
+    file.path(path, ".Rbuildignore")
+  )
+  expect_equal(read_rbuildignore(path), c("^docs$", "^[.]github"))
+})
+
+test_that("dll_bindings() finds the bindings that refer to the DLL", {
+  skip_on_cran()
+  skip_if_not_installed("pkgload")
+  local_compiled_package_with_bindings()
+  ns <- asNamespace("TestCompiled")
+
+  expect_setequal(
+    dll_bindings(ns, "TestCompiled"),
+    c("dllinfo", "simple_", "simple3_", "simple4_", "unrecorded_routine")
+  )
+})
+
+test_that("compiled coverage replaces the DLL object and routines in the namespace", {
+  skip_on_cran()
+  skip_if(is_win_r41())
+  skip_if_not_installed("pkgload")
+  local_compiled_package_with_bindings()
+  ns <- asNamespace("TestCompiled")
+  original_dll <- ns$dllinfo
+  instrumented_dll <- NULL
+
+  cov <- with_coverage(
+    {
+      instrumented_dll <- ns$dllinfo
+      ns$simple(-1)
+    },
+    env = ns
+  )
+
+  expect_false(identical(instrumented_dll[["path"]], original_dll[["path"]]))
+  expect_identical(ns$dllinfo[["path"]], original_dll[["path"]])
+  expect_equal(compiled_counts(cov, "simple.cc")[["21"]], 1)
+})
+
+test_that("file_coverage() requires pkgload for compiled code", {
+  local_mocked_bindings(is_installed = function(pkg) FALSE)
+  expect_snapshot(file_coverage("foo.c", character()), error = TRUE)
+})
+
 test_that("file_coverage() requires compiled files to be in one package", {
   skip_if_not_installed("pkgload")
   withr::local_dir(withr::local_tempdir())

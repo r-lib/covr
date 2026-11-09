@@ -56,3 +56,49 @@
       Can't measure the coverage of Rust code.
       x 'false' failed with exit status 1.
 
+# Rust coverage isn't measured on Windows
+
+    Code
+      expect_null(rust_coverage_setup(test_path("TestRust"), tempdir()))
+    Condition
+      Warning:
+      Can't measure the coverage of Rust code on Windows.
+      i Use `options(covr.llvm_cov = "")` to turn this off.
+
+# llvm_tool_run reports what the tool prints
+
+    Code
+      expect_null(llvm_tool_run(failing, "arg"))
+    Condition
+      Warning:
+      Can't measure the coverage of Rust code.
+      x 'llvm-profdata' failed with exit status 2.
+      i Its output:
+      boom
+
+---
+
+    Code
+      expect_null(llvm_tool_run(silent, "arg"))
+    Condition
+      Warning:
+      Can't measure the coverage of Rust code.
+      x 'llvm-profdata' failed with exit status 3.
+
+# Rust coverage is skipped with a warning without counts or merging
+
+    Code
+      expect_null(run_llvm_cov(rust, ".", ".", "pkg"))
+    Condition
+      Warning:
+      Can't find any coverage of Rust code.
+
+---
+
+    Code
+      expect_null(run_llvm_cov(rust, ".", ".", "pkg"))
+    Condition
+      Warning:
+      Can't measure the coverage of Rust code.
+      x 'llvm-profdata' failed with exit status 1.
+

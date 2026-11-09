@@ -286,23 +286,10 @@ is_brace <- function(x) {
   is.symbol(x) && as.character(x) == "{"
 }
 
-modify_name <- function(expr, old, new) {
-  replace <- function(e) {
-    if (is.name(e) && identical(e, as.name(old))) {
-      e <- as.name(new)
-    } else if (length(e) <= 1L) {
-      e
-    } else {
-      as.call(lapply(e, replace))
-    }
-  }
-  replace(expr)
+# A mockable `requireNamespace()`, so tests can simulate a missing package.
+is_installed <- function(pkg) {
+  requireNamespace(pkg, quietly = TRUE)
 }
-
-
-# This is the fix for https://bugs.r-project.org/bugzilla3/show_bug.cgi?id=16659
-match_arg <- base::match.arg
-body(match_arg) <- modify_name(body(match_arg), "all", "any")
 
 # from https://github.com/wch/r-source/blob/2065bd3c09813949e9fa7236d167f1b7ed5c8ba3/src/library/tools/R/check.R#L4134-L4137
 env_path <- function(...) {

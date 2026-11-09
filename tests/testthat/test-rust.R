@@ -118,6 +118,7 @@ test_that("The system's llvm tools need rustc's LLVM version (#728)", {
     path
   }
   withr::local_envvar(PATH = bin)
+  expect_null(system_llvm_tool("llvm-cov", "17"))
 
   llvm_cov <- tool("llvm-cov", "Ubuntu LLVM version 17.0.6")
   expect_equal(system_llvm_tool("llvm-cov", "17"), llvm_cov)
@@ -262,4 +263,107 @@ test_that("Cleaning the objects keeps cargo's build output (#728)", {
     file.exists(file.path(pkg, "src", c(objects, cargo))),
     c(FALSE, TRUE, TRUE, TRUE)
   )
+})
+
+test_that("Rust coverage isn't measured on Windows", {
+  local_mocked_bindings(is_windows = function() TRUE)
+  withr::local_options(covr.llvm_cov = NULL)
+  expect_snapshot(
+    expect_null(rust_coverage_setup(test_path("TestRust"), tempdir()))
+  )
+})
+
+test_that("The rustc wrapper runs a wrapper the user has set", {
+  skip_on_os("windows")
+  dir <- withr::local_tempdir()
+  user <- fake_tool(dir, "user", "echo user \"$@\"")
+  withr::local_envvar(RUSTC_WORKSPACE_WRAPPER = user)
+  wrapper <- rust_coverage_wrapper(dir, dir)
+  expect_equal(
+    system2(wrapper, c("rustc", "--crate-name", "pkg"), stdout = TRUE),
+    "user rustc --crate-name pkg"
+  )
+})
+
+test_that("rustc is found on the PATH, or in cargo's home", {
+  skip_on_os("windows")
+  bin <- withr::local_tempdir()
+  home <- withr::local_tempdir()
+  withr::local_envvar(PATH = bin, CARGO_HOME = NA, HOME = home)
+  expect_null(find_rustc())
+
+  dir.create(file.path(home, ".cargo", "bin"), recursive = TRUE)
+  cargo_rustc <- fake_tool(file.path(home, ".cargo", "bin"), "rustc", "")
+  expect_equal(find_rustc(), cargo_rustc)
+
+  cargo_home <- withr::local_tempdir()
+  withr::local_envvar(CARGO_HOME = cargo_home)
+  expect_null(find_rustc())
+  dir.create(file.path(cargo_home, "bin"))
+  other_rustc <- fake_tool(file.path(cargo_home, "bin"), "rustc", "")
+  expect_equal(find_rustc(), other_rustc)
+
+  path_rustc <- fake_tool(bin, "rustc", "")
+  expect_equal(find_rustc(), path_rustc)
+})
+
+test_that("The Rust toolchain is incomplete without a working rustc", {
+  skip_on_os("windows")
+  bin <- withr::local_tempdir()
+  withr::local_envvar(PATH = bin, CARGO_HOME = withr::local_tempdir())
+  expect_equal(rust_toolchain("."), list())
+
+  rustc <- fake_tool(bin, "rustc", "echo unknown")
+  expect_equal(rust_toolchain("."), list(rustc = rustc))
+})
+
+test_that("llvm_major_version is NA without a version", {
+  expect_equal(llvm_major_version("rustc 1.88.0"), NA_character_)
+  expect_equal(llvm_major_version("LLVM version: 20.1.1"), "20")
+})
+
+test_that("llvm_tool_run reports what the tool prints", {
+  skip_on_os("windows")
+  dir <- withr::local_tempdir()
+  tool <- fake_tool(dir, "llvm-cov", "echo out; echo err >&2")
+  expect_equal(llvm_tool_run(tool, "arg"), "out")
+  expect_message(
+    expect_message(
+      expect_equal(llvm_tool_run(tool, "arg", quiet = FALSE), "out"),
+      "'arg'",
+      fixed = TRUE
+    ),
+    "err",
+    fixed = TRUE
+  )
+
+  failing <- fake_tool(
+    dir,
+    "llvm-profdata",
+    "echo 'no coverage data found' >&2; exit 1"
+  )
+  expect_equal(
+    llvm_tool_run(failing, "arg", empty = "no coverage data found"),
+    character()
+  )
+
+  failing <- fake_tool(dir, "llvm-profdata", "echo boom >&2; exit 2")
+  expect_snapshot(expect_null(llvm_tool_run(failing, "arg")))
+  silent <- fake_tool(dir, "llvm-profdata", "exit 3")
+  expect_snapshot(expect_null(llvm_tool_run(silent, "arg")))
+})
+
+test_that("Rust coverage is skipped with a warning without counts or merging", {
+  skip_on_os("windows")
+  profiles <- withr::local_tempdir()
+  rust <- list(profiles = profiles)
+  expect_snapshot(expect_null(run_llvm_cov(rust, ".", ".", "pkg")))
+
+  file.create(file.path(profiles, "1.profraw"))
+  rust$llvm_profdata <- fake_tool(
+    withr::local_tempdir(),
+    "llvm-profdata",
+    "exit 1"
+  )
+  expect_snapshot(expect_null(run_llvm_cov(rust, ".", ".", "pkg")))
 })

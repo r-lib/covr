@@ -1,3 +1,86 @@
+test_that("shiny_app_coverage() requires shiny and an existing app directory", {
+  local_mocked_bindings(is_installed = function(pkg) FALSE)
+  expect_snapshot(shiny_app_coverage(test_path("TestShinyApp")), error = TRUE)
+
+  local_mocked_bindings(is_installed = function(pkg) TRUE)
+  missing <- file.path(normalize_path(withr::local_tempdir()), "app")
+  expect_snapshot(
+    shiny_app_coverage(missing),
+    error = TRUE,
+    transform = function(x) sub(missing, "<app>", x, fixed = TRUE)
+  )
+})
+
+test_that("shiny_app_coverage() works without the parallel fix", {
+  skip_if_not_installed("shiny")
+
+  local_mocked_bindings(should_enable_parallel_mcexit_fix = function(...) FALSE)
+  cov <- shiny_app_coverage(
+    test_path("TestShinyApp"),
+    shiny::testServer(test_path("TestShinyApp"), session$setInputs(n = 2))
+  )
+
+  expect_equal(as.data.frame(cov)$value, c(1, 0, 1))
+})
+
+test_that("start_shiny_app_tracing() instruments the app's functions when shiny is loaded", {
+  skip_on_os("windows")
+  skip_if_not_installed("shiny")
+  local_shiny_tracing_state()
+
+  app_dir <- normalize_path(test_path("TestShinyApp"))
+  trace_dir <- withr::local_tempdir()
+  attach_env <- new.env()
+  registered <- character()
+  local_mocked_bindings(
+    register_trace = function(ns, directory) {
+      registered <<- c(registered, directory)
+    }
+  )
+
+  start_shiny_app_tracing(app_dir, trace_dir, attach_env)
+  expect_s4_class(shiny:::sourceUTF8, "functionWithTrace")
+
+  outside <- withr::local_tempfile(fileext = ".R")
+  writeLines("x <- function() 1", outside)
+  env <- new.env()
+  shiny:::sourceUTF8(outside, env)
+  expect_equal(length(the$shiny_replacements), 0)
+
+  attach_env$registerShinyDebugHook(list(name = "x", where = env))
+  expect_equal(length(the$shiny_replacements), 0)
+  expect_equal(registered, character())
+
+  env <- new.env()
+  shiny:::sourceUTF8(file.path(app_dir, "R", "helpers.R"), env)
+  expect_equal(registered, trace_dir)
+  expect_equal(length(the$shiny_replacements), 2)
+  expect_identical(the$shiny_trace_registered, TRUE)
+})
+
+test_that("start_shiny_app_tracing() waits for shiny to load", {
+  skip_if_not_installed("shiny")
+  local_shiny_tracing_state()
+  local_mocked_bindings(shiny_loaded = function() FALSE)
+
+  original <- shiny:::sourceUTF8
+  attach_env <- new.env()
+  start_shiny_app_tracing("app", "trace", attach_env)
+  expect_type(attach_env$registerShinyDebugHook, "closure")
+  expect_identical(shiny:::sourceUTF8, original)
+
+  hooks <- getHook(packageEvent("shiny", "onLoad"))
+  hooks[[length(hooks)]]("shiny", .libPaths()[1])
+  expect_s4_class(shiny:::sourceUTF8, "functionWithTrace")
+})
+
+test_that("trace_shiny_source() warns if shiny's sourceUTF8() has changed", {
+  skip_if_not_installed("shiny")
+
+  expect_snapshot(restore <- trace_shiny_source(function(path) NULL))
+  expect_null(restore())
+})
+
 test_that("shiny_app_coverage() instruments the app's files in this process", {
   skip_if_not_installed("shiny")
 

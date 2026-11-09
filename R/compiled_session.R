@@ -414,7 +414,7 @@ relocate_line_coverages <- function(x, from, to) {
 # Loads the package containing the compiled `files` with pkgload::load_all()
 # for file_coverage(), returning its namespace.
 load_compiled_package <- function(files) {
-  if (!requireNamespace("pkgload", quietly = TRUE)) {
+  if (!is_installed("pkgload")) {
     covr_abort(
       "{.fn file_coverage} requires {.pkg pkgload} for compiled code."
     )
