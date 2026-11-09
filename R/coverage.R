@@ -44,6 +44,10 @@
 #' With `options(covr.record_tests = TRUE)`, coverage objects also have a
 #' `tests` attribute with the test calls, see [covr.record_tests].
 #'
+#' With `options(covr.branch_coverage = TRUE)`, coverage objects also have a
+#' `branches` attribute with the branches of each `if` and `switch()`, see
+#' [covr.branch_coverage].
+#'
 #' @examples
 #' cov <- code_coverage("add <- function(x, y) { x + y }", "add(1, 2)")
 #' cov

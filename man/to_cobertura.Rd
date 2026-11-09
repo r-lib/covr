@@ -17,9 +17,16 @@ cobertura-compliant XML report following \href{https://github.com/cobertura/cobe
 Because there are \emph{two} DTDs called \verb{coverage-04.dtd} and some tools do not seem to
 adhere to either of them, the parser you're using may balk at the file. Please see
 \href{https://github.com/cobertura/cobertura/issues/425}{this github discussion} for
-context. Where \code{covr} doesn't provide a coverage metric (branch coverage,
-complexity), a zero is reported.
+context. Where \code{covr} doesn't provide a coverage metric (complexity), a zero
+is reported.
 }
 \details{
+Branch rates are only reported if branches were measured with
+\code{options(covr.branch_coverage = TRUE)} (see \link{covr.branch_coverage}),
+otherwise they are zero. Each line where an \code{if} or \code{switch()} starts then
+has \code{branch="true"} and a \code{condition-coverage} such as \code{"50\% (1/2)"}, the
+percentage and number of the branches of the \code{if} and \code{switch()} calls on
+the line that were taken. The branch rate of code without branches is one.
+
 \emph{Note}: This functionality requires the xml2 package be installed.
 }

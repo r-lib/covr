@@ -1,0 +1,7 @@
+Package: TestBranches
+Title: Test Branch Coverage
+Version: 0.0.0.9000
+Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
+Description: Functions with branches, to test branch coverage.
+Suggests: parallel, testthat
+License: MIT

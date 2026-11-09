@@ -2,11 +2,16 @@
 #'
 #' Calculate the total percent coverage from a coverage result object.
 #' @param x the coverage object returned from [package_coverage()]
-#' @param ... additional arguments passed to [tally_coverage()]
+#' @param ... additional arguments passed to [tally_coverage()], such as `by
+#'   = "branch"` for the percentage of branches taken (see
+#'   [covr.branch_coverage]).
 #' @return The total percentage as a `numeric(1)`.
 #' @export
 percent_coverage <- function(x, ...) {
   res <- tally_coverage(x, ...)
+  if (!is.null(res$branch)) {
+    return((sum(res$value > 0) / NROW(res)) * 100)
+  }
   if (!is.null(res$line)) {
     res <- collapse_lines(res)
   }
@@ -14,10 +19,11 @@ percent_coverage <- function(x, ...) {
   (sum(res$value > 0) / length(res$value)) * 100
 }
 
-#' Tally coverage by line, expression or function
+#' Tally coverage by line, expression, function or branch
 #'
 #' @inheritParams percent_coverage
-#' @param by whether to tally coverage by line, expression or function
+#' @param by whether to tally coverage by line, expression, function or
+#'   branch
 #' @return A `data.frame`. With `by = "expression"` it is the same as
 #'   [as.data.frame.coverage()]. With `by = "line"` it has one row for each
 #'   function on each line of code (excluding blank lines, comments and lines
@@ -36,6 +42,13 @@ percent_coverage <- function(x, ...) {
 #'   code and `value` is the largest execution count of its expressions, so a
 #'   function counts as covered if any of its code was run. Compiled code has
 #'   no function names, so it is left out.
+#'
+#'   With `by = "branch"` it has one row for each branch measured with
+#'   `options(covr.branch_coverage = TRUE)` (see [covr.branch_coverage]), and
+#'   the columns `filename`, `functions`, `line` and `column` (where the `if`
+#'   or `switch()` starts), `branch` (the index of the branch in its `if` or
+#'   `switch()`), `label` and `value`, the number of times the branch was
+#'   taken. It has no rows if branch coverage wasn't measured.
 #' @examples
 #' cov <- code_coverage(
 #'   "f <- function(x) {\n  if (x) 'yes' else 'no'\n}\ng <- function() 1",
@@ -45,7 +58,15 @@ percent_coverage <- function(x, ...) {
 #' tally_coverage(cov, by = "expression")
 #' tally_coverage(cov, by = "function")
 #' @export
-tally_coverage <- function(x, by = c("line", "expression", "function")) {
+tally_coverage <- function(
+  x,
+  by = c("line", "expression", "function", "branch")
+) {
+  by <- match.arg(by)
+  if (by == "branch") {
+    return(tally_branches(x))
+  }
+
   # Rarely something goes wrong with the source references and we get all NAs
   # for them, so we omit them here
   df <- as.data.frame(x)
@@ -56,8 +77,6 @@ tally_coverage <- function(x, by = c("line", "expression", "function")) {
   if (NROW(df) == 0) {
     return(df)
   }
-
-  by <- match.arg(by)
 
   switch(
     by,

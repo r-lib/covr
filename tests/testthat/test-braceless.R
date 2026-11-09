@@ -203,3 +203,21 @@ test_that("switch with ellipses", {
   expect_equal(res$first_line, c(2, 4))
   expect_equal(res$value, c(1, 1))
 })
+
+test_that("conditionals in argument defaults have counters for their branches", {
+  f <-
+    'f <- function(a,
+              x = if (a) "yes" else "no",
+              y = list(z = switch(a, b = 1, 2))) {
+  c(x, y$z)
+}'
+
+  res <- as.data.frame(code_coverage(f, "f(TRUE)"))
+  expect_equal(res$first_line, c(2, 2, 2, 3, 3, 3, 4))
+  expect_equal(res$value, c(1, 1, 0, 1, 1, 0, 1))
+})
+
+test_that("arguments without conditionals are traced as before", {
+  f <- function(a, b = 2, c = list(1), ...) a
+  expect_identical(formals(trace_calls(f, "f")), formals(f))
+})

@@ -38,5 +38,12 @@ On GitHub Actions, use the official
 \href{https://github.com/coverallsapp/github-action}{Coveralls action} instead of
 this function: write the coverage with \code{\link[=to_cobertura]{to_cobertura()}} and upload
 \code{cobertura.xml} with \code{coverallsapp/github-action@v2}. See the README for an
-example workflow.
+example workflow. With branch coverage, upload the LCOV file written by
+\code{\link[=to_lcov]{to_lcov()}} instead, as the action reads which branches were taken from it.
+}
+\details{
+With branch coverage (see \link{covr.branch_coverage}), each source file sent to
+Coveralls also has its \code{branches}: the line, block, branch and count of
+each branch, as in \code{\link[=to_lcov]{to_lcov()}}. A branch that was never taken has a count of
+zero.
 }
