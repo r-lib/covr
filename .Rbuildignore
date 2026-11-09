@@ -5,8 +5,6 @@
 ^covr\.Rcheck$
 ^shim_package\.sh$
 ^unshim_package\.sh$
-Makefile
-docker_checker
 _dev\.R$
 ^\.lintr$
 ^\.Rproj\.user$
