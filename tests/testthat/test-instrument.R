@@ -1,7 +1,6 @@
 test_that("package_coverage() loads an instrumented and byte-compiled package", {
   skip_on_cran()
-  withr::local_envvar(COVR_INSTALL_COMPILE = NA)
-  withr::local_options(covr.install_compile = NULL)
+  local_install_defaults()
   log <- withr::local_tempfile()
   cov <- withr::with_envvar(
     c(TESTINSTRUMENT_LOG = log),
@@ -28,6 +27,7 @@ test_that("package_coverage() loads an instrumented and byte-compiled package", 
 
 test_that("package_coverage() instruments functions that .onLoad() creates", {
   skip_on_cran()
+  local_install_defaults()
   log <- withr::local_tempfile()
   cov <- withr::with_envvar(
     c(TESTINSTRUMENT_LOG = log),
@@ -56,6 +56,7 @@ test_that("package_coverage() instruments functions that .onLoad() creates", {
 
 test_that("branch coverage of the saved code survives loading the package again", {
   skip_on_cran()
+  local_install_defaults()
   cov <- withr::with_options(
     list(covr.branch_coverage = TRUE),
     package_coverage(
@@ -76,6 +77,7 @@ test_that("branch coverage of the saved code survives loading the package again"
 
 test_that("instrument_package() returns the file with the counters", {
   skip_on_cran()
+  local_install_defaults()
   lib <- withr::local_tempdir()
   pkg <- as_package(test_path("TestInstrument"))
   install_package(pkg, lib, getOption("covr.flags"), TRUE, byte_compile = FALSE)
@@ -100,6 +102,7 @@ test_that("instrument_package() returns the file with the counters", {
 
 test_that("instrument_package() leaves packages with functions in sysdata.rda", {
   skip_on_cran()
+  local_install_defaults()
   src <- withr::local_tempdir()
   file.copy(test_path("TestInstrument"), src, recursive = TRUE)
   g <- function(x) x
@@ -114,6 +117,7 @@ test_that("instrument_package() leaves packages with functions in sysdata.rda", 
 
 test_that("instrument_package() warns if the package can't be instrumented", {
   skip_on_cran()
+  local_install_defaults()
   lib <- withr::local_tempdir()
   pkg <- as_package(test_path("TestInstrument"))
   install_package(pkg, lib, getOption("covr.flags"), TRUE, byte_compile = FALSE)
@@ -128,6 +132,7 @@ test_that("instrument_package() warns if the package can't be instrumented", {
 
 test_that("package_coverage() instruments the package when it is loaded if it can't ahead of time", {
   skip_on_cran()
+  local_install_defaults()
   local_mocked_bindings(instrument_package = function(...) NULL)
   cov <- package_coverage(
     test_path("TestInstrument"),
@@ -200,8 +205,7 @@ test_that("package_byte_compile() reads the ByteCompile field like R CMD INSTALL
 
 test_that("covr.install_compile = FALSE leaves the stored functions uncompiled", {
   skip_on_cran()
-  withr::local_envvar(COVR_INSTALL_COMPILE = NA)
-  withr::local_options(covr.install_compile = NULL)
+  local_install_defaults()
   run <- function(is_compiled) {
     package_coverage(
       test_path("TestInstrument"),
@@ -244,8 +248,81 @@ test_that("install_compile() reads the option and COVR_INSTALL_COMPILE", {
   )
 })
 
+test_that("covr.install_instrument = FALSE instruments when the package is loaded", {
+  skip_on_cran()
+  local_install_defaults()
+  install_path <- withr::local_tempfile()
+  cov <- withr::with_options(
+    list(covr.install_instrument = FALSE),
+    package_coverage(
+      test_path("TestInstrument"),
+      type = "none",
+      code = c(
+        "stopifnot(!TestInstrument::is_compiled(TestInstrument::f))",
+        "TestInstrument::f(1)",
+        "TestInstrument::f(2)"
+      ),
+      clean = FALSE,
+      install_path = install_path
+    )
+  )
+
+  files <- list.files(file.path(install_path, "TestInstrument", "R"))
+  expect_equal(
+    files,
+    c("TestInstrument", "TestInstrument.rdb", "TestInstrument.rdx")
+  )
+  df <- as.data.frame(cov)
+  expect_equal(df$value[df$first_line == 16L], 2)
+  expect_equal(df$value[df$first_line == 18L], 0)
+})
+
+test_that("install_instrument() reads the option and COVR_INSTALL_INSTRUMENT", {
+  local_install_defaults()
+  expect_true(install_instrument())
+  expect_false(
+    withr::with_envvar(
+      c(COVR_INSTALL_INSTRUMENT = "false"),
+      install_instrument()
+    )
+  )
+  expect_true(
+    withr::with_options(
+      list(covr.install_instrument = TRUE),
+      withr::with_envvar(
+        c(COVR_INSTALL_INSTRUMENT = "false"),
+        install_instrument()
+      )
+    )
+  )
+})
+
+test_that("COVR_INSTALL_INSTRUMENT=false instruments when the package is loaded", {
+  skip_on_cran()
+  local_install_defaults()
+  withr::local_envvar(COVR_INSTALL_INSTRUMENT = "false")
+  install_path <- withr::local_tempfile()
+  package_coverage(
+    test_path("TestInstrument"),
+    type = "none",
+    code = "TestInstrument::f(1)",
+    clean = FALSE,
+    install_path = install_path
+  )
+
+  expect_false(
+    file.exists(file.path(
+      install_path,
+      "TestInstrument",
+      "R",
+      "covr_counters.rds"
+    ))
+  )
+})
+
 test_that("instrumenting after installing gives the traces of instrumenting when loaded", {
   skip_on_cran()
+  local_install_defaults()
   run <- function() {
     package_coverage(
       test_path("TestInstrument"),

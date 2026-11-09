@@ -77,10 +77,21 @@ instrument_package <- function(
 # `COVR_INSTALL_COMPILE=false`, leaves them to be compiled by the JIT in each
 # process that runs them.
 install_compile <- function() {
+  install_setting("covr.install_compile", "COVR_INSTALL_COMPILE")
+}
+
+# Whether a package is instrumented after it is installed, rather than when it
+# is loaded: `options(covr.install_instrument = FALSE)`, or the environment
+# variable `COVR_INSTALL_INSTRUMENT=false`.
+install_instrument <- function() {
+  install_setting("covr.install_instrument", "COVR_INSTALL_INSTRUMENT")
+}
+
+# A logical option, which is `TRUE` unless the environment variable is false.
+install_setting <- function(option, envvar) {
   getOption(
-    "covr.install_compile",
-    !tolower(Sys.getenv("COVR_INSTALL_COMPILE", "true")) %in%
-      c("false", "f", "no", "0")
+    option,
+    !tolower(Sys.getenv(envvar, "true")) %in% c("false", "f", "no", "0")
   )
 }
 

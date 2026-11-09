@@ -123,6 +123,11 @@
 #'     `Config/covr/full_traversal: true` to its DESCRIPTION; the option takes
 #'     precedence when set.
 #'
+#'   \item `covr.install_instrument`: If `FALSE` (default `TRUE`, or the value
+#'     of the environment variable `COVR_INSTALL_INSTRUMENT`),
+#'     `package_coverage()` installs a package as usual and instruments it each
+#'     time a process loads it, rather than once after installing it.
+#'
 #'   \item `covr.install_compile`: If `FALSE` (default `TRUE`, or the value of
 #'     the environment variable `COVR_INSTALL_COMPILE`), `package_coverage()`
 #'     doesn't byte-compile the instrumented functions of a package after
@@ -1033,19 +1038,22 @@ package_coverage <- function(
   } else {
     # The package is instrumented and byte-compiled once after it is
     # installed, so there is no point byte-compiling the original code.
+    instrument <- isTRUE(install_instrument())
     install_package(
       pkg,
       install_path,
       add_rust_flags(flags, rust),
       quiet,
       env = rust$build_env,
-      byte_compile = FALSE
+      byte_compile = !instrument
     )
-    counters_file <- instrument_package(
-      pkg,
-      install_path,
-      full_traversal = full_traversal
-    )
+    if (instrument) {
+      counters_file <- instrument_package(
+        pkg,
+        install_path,
+        full_traversal = full_traversal
+      )
+    }
     if (!is.null(rust)) {
       rust <- rust_check_build(rust)
     }

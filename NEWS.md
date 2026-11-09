@@ -12,6 +12,8 @@
   `.onLoad()` creates or replaces are instrumented when the package is loaded.
   If instrumenting after installing fails, or the package has functions in
   `R/sysdata.rda`, the package is instrumented when it is loaded, as before.
+  Set `options(covr.install_instrument = FALSE)` (or the environment variable
+  `COVR_INSTALL_INSTRUMENT=false`) to always do that.
   Functions of the package that are sent to other R processes, e.g. parallel
   workers, are now counted there if the process loads the package. Set
   `options(covr.install_compile = FALSE)` (or the environment variable

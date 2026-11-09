@@ -74,3 +74,18 @@ local_installed_package <- function(name, args, frame = parent.frame()) {
   unlink(src, recursive = TRUE)
   file.path(lib, name)
 }
+
+# Don't let the settings of the environment that runs the tests change how
+# `package_coverage()` instruments packages.
+local_install_defaults <- function(env = parent.frame()) {
+  withr::local_envvar(
+    COVR_INSTALL_COMPILE = NA,
+    COVR_INSTALL_INSTRUMENT = NA,
+    .local_envir = env
+  )
+  withr::local_options(
+    covr.install_compile = NULL,
+    covr.install_instrument = NULL,
+    .local_envir = env
+  )
+}
