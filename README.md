@@ -9,6 +9,9 @@
 Track test coverage for your R package and view reports locally or (optionally)
 upload the results to [codecov](https://about.codecov.io/) or [coveralls](https://coveralls.io/).
 
+covr measures the coverage of the R code and the compiled code of a package,
+C, C++, Fortran and Rust, together in one report.
+
 # Installation #
 
 ```r
