@@ -306,7 +306,7 @@ runtime that writes the coverage counts.
 tracking calls to each call.
 
 The vignette
-[vignettes/how_it_works.Rmd](https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd)
+[vignettes/how_it_works.Rmd](https://github.com/r-lib/covr/blob/main/vignettes/how_it_works.Rmd)
 contains a detailed explanation of the technique and the rationale
 behind it.
 
