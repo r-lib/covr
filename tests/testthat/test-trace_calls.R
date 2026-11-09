@@ -326,6 +326,41 @@ test_that("a `.Call` where the traced function lives doesn't mask the counter", 
   expect_equal(unname(unlist(eapply(.counters, `[[`, "value"))), 1)
 })
 
+test_that("instrumented code has no function objects in it", {
+  # Code that walks the calls of a function and expects each function in them
+  # to have a body and an environment fails on primitives. callr does, to remove
+  # the source references of a function it sends to another process.
+  clear_counters()
+  withr::defer(clear_counters())
+  has_function <- function(x) {
+    if (is.function(x)) {
+      return(TRUE)
+    }
+    if (!is.call(x)) {
+      return(FALSE)
+    }
+    for (i in seq_along(x)) {
+      if (!identical(x[[i]], quote(expr = )) && has_function(x[[i]])) {
+        return(TRUE)
+      }
+    }
+    FALSE
+  }
+  src <- paste(
+    "function(x) {",
+    "  lapply(x, function(y) {",
+    "    if (y) 1 else 2",
+    "  })",
+    "}",
+    sep = "\n"
+  )
+  f <- eval(parse(text = src, keep.source = TRUE)[[1]], new.env())
+  traced <- trace_calls(f)
+  expect_true(is_traced(traced))
+  expect_false(has_function(body(traced)))
+  expect_equal(traced(c(TRUE, FALSE)), list(1, 2))
+})
+
 test_that("primitive functions are not traced", {
   expect_identical(trace_calls(sum), sum)
 })
