@@ -17,4 +17,4 @@ is_covr_count_call(expr)
 ## Value
 
 A logical value indicating whether the object is a call to
-`covr:::count`.
+`covr:::count` or `covr:::count_and_record`.

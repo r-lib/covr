@@ -10,6 +10,7 @@
 <url><loc>https://covr.r-lib.org/dev/authors.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/index.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/news/index.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/performance-audit.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/as.data.frame.coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/as_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/as_coverage_with_tests.html</loc></url>
@@ -19,6 +20,7 @@
 <url><loc>https://covr.r-lib.org/dev/reference/code_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/codecov.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/count.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/count_and_record.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/count_test.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/coverage_to_list.html</loc></url>

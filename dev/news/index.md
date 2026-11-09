@@ -2,6 +2,27 @@
 
 ## covr (development version)
 
+- [`report()`](https://covr.r-lib.org/dev/reference/report.md),
+  [`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md)
+  and
+  [`file_report_html()`](https://covr.r-lib.org/dev/reference/file_report.md)
+  are much faster for large packages, as the source table is built as
+  text rather than an htmltools tag per line (e.g. 6 minutes to a few
+  seconds for Luminescence).
+
+- [`percent_coverage()`](https://covr.r-lib.org/dev/reference/percent_coverage.md),
+  [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md),
+  [`zero_coverage()`](https://covr.r-lib.org/dev/reference/zero_coverage.md),
+  [`report()`](https://covr.r-lib.org/dev/reference/report.md) and the
+  exclusions in
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  are faster for packages with many files, as the package source is now
+  split into files once rather than once per file.
+
+- Code run to measure coverage is faster, as instrumented code no longer
+  checks whether tests are recorded with `covr.record_tests` every time
+  an expression runs.
+
 - New experimental branch coverage of R code. With
   `options(covr.branch_coverage = TRUE)`, covr also records which
   branches of each `if` (including an `if` without an `else`) and
