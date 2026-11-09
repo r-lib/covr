@@ -1,0 +1,56 @@
+# Measures test coverage with covr and publishes a coverage badge to the
+# `badges` branch of the repository, without a coverage service.
+#
+# Copy this file to `.github/workflows/` in your package, then link to the
+# badge in your README:
+#
+#   ![Test coverage](https://raw.githubusercontent.com/OWNER/REPO/badges/coverage.svg)
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+name: test-coverage-badge.yaml
+
+permissions:
+  contents: write
+
+jobs:
+  test-coverage:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::covr
+          needs: coverage
+
+      - name: Test coverage
+        run: |
+          cov <- covr::package_coverage(quiet = FALSE)
+          print(cov)
+          covr::to_badge(cov, "coverage.svg")
+        shell: Rscript {0}
+
+      - name: Publish coverage badge
+        if: github.event_name == 'push'
+        run: |
+          mkdir "$RUNNER_TEMP/badges"
+          cp coverage.svg "$RUNNER_TEMP/badges"
+          cd "$RUNNER_TEMP/badges"
+          git init -b badges
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add coverage.svg
+          git commit -m "Update coverage badge"
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" badges
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -12,7 +12,7 @@ upload the results to a coverage service like 'Codecov' \url{https://about.codec
 code being exercised by a set of tests. It is an indirect measure of test
 quality and completeness. This package is compatible with any testing
 methodology or framework and tracks coverage of both R code and compiled
-C/C++/FORTRAN code.
+C, C++, Fortran and Rust code.
 }
 \details{
 A coverage report can be used to inspect coverage for each line in your

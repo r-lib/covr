@@ -34,7 +34,7 @@ Description: Track and report code coverage for your package and (optionally)
     code being exercised by a set of tests. It is an indirect measure of test
     quality and completeness. This package is compatible with any testing
     methodology or framework and tracks coverage of both R code and compiled
-    C/C++/FORTRAN code.
+    C, C++, Fortran and Rust code.
 URL: https://covr.r-lib.org, https://github.com/r-lib/covr
 BugReports: https://github.com/r-lib/covr/issues
 Depends:
