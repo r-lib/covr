@@ -1,0 +1,9 @@
+R 4.4.3, empty loop 3 ns/iteration (subtracted)
+cheap base R op: x + 1                                               42 ns
+covr:::count(key) (what instrumented code calls)                   1238 ns
+isTRUE(.current_test$record) alone                                  313 ns
+alt: count() without the isTRUE(.current_test$record) check         705 ns
+alt: .Call(<native symbol>, <index constant>) C counter              27 ns
+f(3) uninstrumented (4 statements evaluated)                        162 ns
+f(3) instrumented by trace_calls()                                 3480 ns
+  -> 3 counts per call, 1106 ns overhead per count (21.5x slower)

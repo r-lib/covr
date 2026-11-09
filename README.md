@@ -9,6 +9,9 @@
 Track test coverage for your R package and view reports locally or (optionally)
 upload the results to [codecov](https://about.codecov.io/) or [coveralls](https://coveralls.io/).
 
+covr measures the coverage of the R code and the compiled code of a package,
+C, C++, Fortran and Rust, together in one report.
+
 # Installation #
 
 ```r
@@ -43,47 +46,6 @@ token is needed, the action authenticates with the built-in `GITHUB_TOKEN`.
 
 If the package is in a subdirectory of the repository, also set `base-path` to
 that directory so Coveralls can find the source files.
-
-## Coverage badge without a coverage service ##
-
-If you only want a coverage badge for your README, and not the history and pull
-request checks of Codecov or Coveralls, `to_badge()` writes one as an SVG file
-locally. For example, to update a badge in a `badges` branch on every push to
-GitHub, replace the coverage steps of the test-coverage workflow with these,
-and give the workflow `permissions: contents: write`.
-
-```yaml
-      - name: Test coverage
-        run: |
-          cov <- covr::package_coverage(quiet = FALSE)
-          print(cov)
-          covr::to_badge(cov, "coverage.svg")
-        shell: Rscript {0}
-
-      - name: Publish coverage badge
-        if: github.event_name == 'push'
-        run: |
-          mkdir "$RUNNER_TEMP/badges"
-          cp coverage.svg "$RUNNER_TEMP/badges"
-          cd "$RUNNER_TEMP/badges"
-          git init -b badges
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add coverage.svg
-          git commit -m "Update coverage badge"
-          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" badges
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-```
-
-Then link to the badge in your README:
-
-```md
-![Test coverage](https://raw.githubusercontent.com/OWNER/REPO/badges/coverage.svg)
-```
-
-The same approach works on other forges, such as Codeberg or GitLab, or you can
-commit the badge to the repository when you update your README.
 
 # Usage #
 
@@ -215,6 +177,14 @@ It isn't required, as covr is usually only used in CI rather than by your
 package's code. It is useful though: `devtools::install()` and `pak::pak()`
 will then install covr for local development, and it helps us see which
 packages use covr. `usethis::use_coverage()` adds it for you.
+
+## Can I get a coverage badge without a coverage service? ##
+Yes, `to_badge()` writes a coverage badge as an SVG file. The GitHub Actions
+workflow in
+[`inst/workflows/test-coverage-badge.yaml`](https://github.com/r-lib/covr/blob/main/inst/workflows/test-coverage-badge.yaml)
+(also `system.file("workflows", "test-coverage-badge.yaml", package = "covr")`)
+publishes it to a `badges` branch on every push; copy it to
+`.github/workflows/` and link to the badge from your README.
 
 ## Will covr work with testthat, RUnit, etc... ##
 Covr should be compatible with any testing package, it uses

@@ -5,8 +5,6 @@
 ^covr\.Rcheck$
 ^shim_package\.sh$
 ^unshim_package\.sh$
-Makefile
-docker_checker
 _dev\.R$
 ^\.lintr$
 ^\.Rproj\.user$
@@ -35,3 +33,4 @@ _dev\.R$
 ^AGENTS\.md$
 ^\.git-blame-ignore-revs$
 ^\.covrignore$
+^performance-audit(\.md)?$

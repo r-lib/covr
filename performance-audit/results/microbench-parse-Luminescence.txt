@@ -1,0 +1,5 @@
+143 files, 67555 lines
+parse(keep.source = TRUE) of every file                        0.181 s
+getParseData(includeText = NA) (current, since #644)           0.108 s
+getParseData(includeText = TRUE) (before #644)                 4.355 s
+getParseData(includeText = FALSE)                              0.108 s

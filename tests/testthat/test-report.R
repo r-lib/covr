@@ -324,6 +324,56 @@ test_that("covr.report_colors is validated (#529)", {
   expect_snapshot(file_report(cov, browse = FALSE), error = TRUE)
 })
 
+test_that("renderSourceTable() escapes the source and file names", {
+  skip_if_not_installed("htmltools")
+
+  data <- list(
+    'a"<b>&.R' = data.frame(
+      line = 1:4,
+      source = c("x <- a < b & \"c\"", "y", "z <- 'q'", "<script>"),
+      coverage = c("3", "0", "", "1"),
+      stringsAsFactors = FALSE
+    )
+  )
+  html <- as.character(renderSourceTable(data))
+
+  expect_match(html, 'data-file="a&quot;&lt;b&gt;&amp;.R"', fixed = TRUE)
+  expect_match(html, "x &lt;- a &lt; b &amp; \"c\"</pre>", fixed = TRUE)
+  expect_match(html, "&lt;script&gt;</pre>", fixed = TRUE)
+  expect_equal(lengths(regmatches(html, gregexpr("<script>", html))), 1L)
+  expect_match(
+    html,
+    '<tr class="covered"><td class="num">1</td><td class="coverage">3<em>x</em></td>',
+    fixed = TRUE
+  )
+  expect_match(
+    html,
+    '<tr class="missed"><td class="num">2</td><td class="coverage">!</td>',
+    fixed = TRUE
+  )
+  expect_match(
+    html,
+    '<tr class="never"><td class="num">3</td><td class="coverage"></td>',
+    fixed = TRUE
+  )
+})
+
+test_that("renderSourceTable() has no rows for an empty file", {
+  skip_if_not_installed("htmltools")
+
+  data <- list(
+    "empty.R" = data.frame(
+      line = integer(),
+      source = character(),
+      coverage = character()
+    )
+  )
+  html <- as.character(renderSourceTable(data))
+
+  expect_match(html, 'data-file="empty.R"', fixed = TRUE)
+  expect_no_match(html, "<tr", fixed = TRUE)
+})
+
 test_that("report() and file_report() open the report in the viewer", {
   skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")
