@@ -4,7 +4,13 @@
 #' [Coveralls action](https://github.com/coverallsapp/github-action) instead of
 #' this function: write the coverage with [to_cobertura()] and upload
 #' `cobertura.xml` with `coverallsapp/github-action@v2`. See the README for an
-#' example workflow.
+#' example workflow. With branch coverage, upload the LCOV file written by
+#' [to_lcov()] instead, as the action reads which branches were taken from it.
+#'
+#' With branch coverage (see [covr.branch_coverage]), each source file sent to
+#' Coveralls also has its `branches`: the line, block, branch and count of
+#' each branch, as in [to_lcov()]. A branch that was never taken has a count of
+#' zero.
 #'
 #' @param coverage an existing coverage object to submit, if `NULL`,
 #' [package_coverage()] will be called with the arguments from
@@ -77,11 +83,14 @@ to_coveralls <- function(
   repo_token = ""
 ) {
   coverages <- per_line(x)
+  branches <- if (!is.null(attr(x, "branches"))) {
+    tally_coverage(x, by = "branch")
+  }
 
   res <- Map(
     function(coverage, name) {
       source_code <- paste(collapse = "\n", coverage$file$file_lines)
-      list(
+      file <- list(
         "name" = jsonlite::unbox(name),
         "source" = jsonlite::unbox(source_code),
         "source_digest" = jsonlite::unbox(digest::digest(
@@ -91,6 +100,13 @@ to_coveralls <- function(
         )),
         "coverage" = coverage$coverage
       )
+      if (!is.null(branches)) {
+        file_branches <- branches[branches$filename == name, , drop = FALSE]
+        if (NROW(file_branches)) {
+          file$branches <- coveralls_branches(file_branches)
+        }
+      }
+      file
     },
     coverages,
     names(coverages),
@@ -126,6 +142,14 @@ to_coveralls <- function(
   }
 
   jsonlite::toJSON(na = "null", payload)
+}
+
+# The `branches` of a Coveralls source file, a flat array with the line, block,
+# branch and count of each branch, from the branches of the file from
+# `tally_coverage(by = "branch")`. Blocks and branches are numbered from zero
+# as in `to_lcov()`.
+coveralls_branches <- function(df) {
+  as.vector(rbind(df$line, branch_blocks(df), df$branch - 1L, df$value))
 }
 
 git_info <- function(

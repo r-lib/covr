@@ -78,7 +78,12 @@ by the \href{https://github.com/codecov/codecov-cli}{Codecov CLI} and the
 response contains a \code{url} for the upload on Codecov and a pre-signed
 location to send the coverage report to.
 \item \code{PUT} sends the report, covr's JSON coverage format (processed by
-Codecov as an \code{R} report), to that location.
+Codecov as an \code{R} report), to that location. With branch coverage (see
+\link{covr.branch_coverage}), the report uses Codecov's \href{https://docs.codecov.com/docs/codecov-custom-coverage-format}{generic JSON format}
+instead, as the \code{R} format only takes line hits. A line with branches
+then has the number of its branches taken and the number of branches,
+e.g. \code{"1/2"}, so Codecov shows it as partly covered unless all were
+taken.
 }
 
 If \code{quiet} is \code{FALSE}, the url of the upload on Codecov is printed after a

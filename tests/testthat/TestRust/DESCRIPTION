@@ -1,0 +1,9 @@
+Package: TestRust
+Title: Test Package with Rust Code
+Version: 0.0.0.9000
+Authors@R: "First Last <first.last@example.com> [aut, cre]"
+Description: A package calling Rust code, to test its coverage.
+License: MIT
+Suggests:
+    testthat
+SystemRequirements: Cargo (Rust's package manager), rustc

@@ -46,6 +46,7 @@ export(zero_coverage)
 import(methods)
 importFrom(stats,
   aggregate,
+  ave,
   na.omit,
   na.pass,
   setNames

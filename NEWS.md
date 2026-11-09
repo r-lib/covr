@@ -12,6 +12,27 @@
 * Code run to measure coverage is faster, as instrumented code no longer
   checks whether tests are recorded with `covr.record_tests` every time an
   expression runs.
+* New experimental branch coverage of R code. With
+  `options(covr.branch_coverage = TRUE)`, covr also records which branches of
+  each `if` (including an `if` without an `else`) and `switch()` were taken,
+  in the `branches` attribute of the coverage object. `tally_coverage(by =
+  "branch")` and `percent_coverage(by = "branch")` summarize them, and
+  `to_lcov()`, `to_cobertura()`, `codecov()` and `coveralls()` include them.
+  Line coverage is unchanged, and without the option the code is instrumented
+  as before, so there is no cost. See `?covr.branch_coverage` (#279).
+
+* The branches of `if` and `switch()` without braces in the default values
+  of arguments, e.g. `function(x = if (y) 1 else 2)`, now have their own
+  counters, as in function bodies since #682. This can lower reported
+  coverage, as a default whose branch never ran no longer counts as covered
+  (#279).
+* `package_coverage()` now measures the coverage of Rust code, such as the
+  code of packages using extendr or savvy. It's built with LLVM's source-based
+  coverage, which needs the llvm tools of the Rust toolchain
+  (`rustup component add llvm-tools`), or for Rust installed by a Linux
+  distribution, those of the LLVM version rustc uses (e.g. `llvm-cov-18`).
+  Without them covr warns and only skips the Rust code.
+  `options(covr.llvm_cov = "")` turns this off (#728).
 
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
@@ -44,6 +65,13 @@
   without changing the rest of the page. The reports no longer need the DT
   package, jQuery or Bootstrap, and the list of files is now shown sorted with
   the least covered files first (#316, #709).
+
+* New `report_html()` returns the coverage report of `report()` as HTML that
+  can be included in a larger document, such as an R Markdown or Quarto
+  document. The report's styles and scripts only apply to the report, and it
+  no longer uses Bootstrap's JavaScript or replaces the document's
+  highlight.js, so a document can include several reports without changing
+  the rest of the page (#316).
 
 * covr now requires R 4.0.0 or later.
 

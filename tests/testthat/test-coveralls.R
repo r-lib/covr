@@ -349,3 +349,40 @@ test_that("a line is only covered if all its expressions ran (#620)", {
 
   expect_equal(json$source_files$coverage[[1]], c(NA, 1, 0, NA, NA, 0))
 })
+
+test_that("with branch coverage, source files have their branches", {
+  cov <- branch_coverage(
+    c(
+      "f <- function(x) {",
+      "  if (x) 'yes' else if (!x) 'no'",
+      "  switch(as.character(x), 'TRUE' = 1)",
+      "}",
+      "g <- function() 1"
+    ),
+    "f(TRUE)"
+  )
+  json <- jsonlite::fromJSON(to_coveralls(cov, service_name = "travis-ci"))
+  file <- json$source_files
+
+  expect_equal(file$coverage[[1]], c(NA, 0, 1, NA, 0))
+  expect_equal(
+    file$branches[[1]],
+    c(
+      c(2, 0, 0, 1),
+      c(2, 0, 1, 0),
+      c(2, 1, 0, 0),
+      c(2, 1, 1, 0),
+      c(3, 0, 0, 1),
+      c(3, 0, 1, 0)
+    )
+  )
+})
+
+test_that("without branch coverage, source files have no branches", {
+  cov <- code_coverage("f <- function(x) if (x) 1", "f(TRUE)")
+  json <- jsonlite::fromJSON(to_coveralls(cov, service_name = "travis-ci"))
+  expect_named(
+    json$source_files,
+    c("name", "source", "source_digest", "coverage")
+  )
+})

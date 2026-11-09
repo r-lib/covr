@@ -10,7 +10,13 @@
 #'    response contains a `url` for the upload on Codecov and a pre-signed
 #'    location to send the coverage report to.
 #' 1. `PUT` sends the report, covr's JSON coverage format (processed by
-#'    Codecov as an `R` report), to that location.
+#'    Codecov as an `R` report), to that location. With branch coverage (see
+#'    [covr.branch_coverage]), the report uses Codecov's [generic JSON
+#'    format](https://docs.codecov.com/docs/codecov-custom-coverage-format)
+#'    instead, as the `R` format only takes line hits. A line with branches
+#'    then has the number of its branches taken and the number of branches,
+#'    e.g. `"1/2"`, so Codecov shows it as partly covered unless all were
+#'    taken.
 #'
 #' If `quiet` is `FALSE`, the url of the upload on Codecov is printed after a
 #' successful upload.
@@ -664,6 +670,10 @@ to_codecov <- function(x) {
     xx
   })
 
+  if (!is.null(attr(x, "branches"))) {
+    return(to_codecov_branches(coverages, tally_coverage(x, by = "branch")))
+  }
+
   res <- Map(
     function(coverage, name) {
       list(
@@ -680,4 +690,31 @@ to_codecov <- function(x) {
     na = "null",
     list("files" = res, "uploader" = jsonlite::unbox("R"))
   )
+}
+
+# Codecov's R format only takes line hits, so with branch coverage the report
+# uses Codecov's generic JSON format
+# (<https://docs.codecov.com/docs/codecov-custom-coverage-format>), in which
+# lines with branches have the number of branches taken and the number of
+# branches, e.g. `"1/2"`. It has no `uploader` field, which would make Codecov
+# process it as an R report.
+to_codecov_branches <- function(coverages, branches) {
+  totals <- line_branch_totals(branches)
+  files <- Map(
+    function(coverage, name) {
+      values <- lapply(coverage$coverage, jsonlite::unbox)
+      file_totals <- totals[totals$filename == name, , drop = FALSE]
+      # The first element is line 0
+      idx <- file_totals$line + 1L
+      keep <- idx <= length(values) & !is.na(coverage$coverage[idx])
+      values[idx[keep]] <- lapply(
+        paste0(file_totals$taken[keep], "/", file_totals$total[keep]),
+        jsonlite::unbox
+      )
+      values
+    },
+    coverages,
+    names(coverages)
+  )
+  jsonlite::toJSON(na = "null", list("coverage" = files))
 }

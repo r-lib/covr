@@ -21,6 +21,12 @@
 #' `covr` uses the following [options()] to configure behaviour:
 #'
 #' \itemize{
+#'   \item `covr.branch_coverage`: If `TRUE` (default `FALSE`), also record
+#'     which branches of each `if` and `switch()` in R code were taken. This
+#'     is experimental. It must be set before the code is instrumented, e.g.
+#'     before calling `package_coverage()`. For more details, see
+#'     `?covr.branch_coverage`.
+#'
 #'   \item `covr.covrignore`: A filename to use as an ignore file,
 #'     listing glob-style wildcarded paths of files to ignore for coverage
 #'     calculations. Defaults to the value of environment variable
@@ -86,6 +92,16 @@
 #'
 #'   \item `covr.icov_prof`:
 #'
+#'   \item `covr.llvm_cov`: Path to the `llvm-cov` used to read the coverage
+#'     of Rust code. Defaults to the one of the Rust toolchain, installed with
+#'     `rustup component add llvm-tools`, or for Rust installed without rustup
+#'     (e.g. with `apt-get install cargo rustc`), to the one on the `PATH` with
+#'     the same LLVM version as rustc, e.g. `llvm-cov-18`. If set to `""` the
+#'     Rust code isn't instrumented, which turns off its coverage.
+#'
+#'   \item `covr.llvm_profdata`: Path to the `llvm-profdata` used to merge the
+#'     coverage counts of Rust code. Found like `covr.llvm_cov`.
+#'
 #'   \item `covr.report_colors`: A named character vector with the colors of
 #'     covered and missed lines in [report()] and [file_report()], and of the
 #'     coverage percentages printed in the console, e.g.
@@ -122,7 +138,7 @@
 "_PACKAGE"
 
 #' @import methods
-#' @importFrom stats aggregate na.omit na.pass setNames
+#' @importFrom stats aggregate ave na.omit na.pass setNames
 #' @importFrom utils capture.output getSrcFilename relist str head
 NULL
 
@@ -364,6 +380,11 @@ as_coverage <- function(counters = NULL, ...) {
 #' @inheritParams as_coverage
 #'
 as_coverage_with_tests <- function(counters) {
+  # `[[` rather than `$`, which would partially match the key of a trace in a
+  # file whose name starts with "branches"
+  branches <- as_branch_list(counters[["branches"]])
+  counters$branches <- NULL
+
   clean_coverage_tests(counters)
 
   # unnest environment-wrapped $tests$tally as more accessible $tests
@@ -376,7 +397,12 @@ as_coverage_with_tests <- function(counters) {
 
   tests <- counters$tests
   counters$tests <- NULL
-  structure(counters, tests = tests, class = "coverage")
+  structure(
+    counters,
+    tests = tests,
+    branches = branches,
+    class = "coverage"
+  )
 }
 
 # Evaluate `code` and return the coverage it produced from the current traces.
@@ -808,6 +834,24 @@ with_coverage <- function(
 #' "--with-keep.source"))`. File names are those of the source it was
 #' installed from, and compiled code isn't covered.
 #'
+#' The coverage of Rust code, built by cargo into a static library that is
+#' linked into the package, is measured with LLVM's source-based coverage.
+#' This needs the llvm tools of the Rust toolchain
+#' (`rustup component add llvm-tools`), or for Rust installed by a Linux
+#' distribution, those of the LLVM version rustc uses (e.g.
+#' `apt-get install llvm-18`); without them `package_coverage()`
+#' warns and reports no coverage for the Rust code. covr instruments the
+#' crates of the package's cargo workspace by having cargo run rustc through a
+#' wrapper (with `RUSTC_WORKSPACE_WRAPPER`) that adds `-C instrument-coverage`,
+#' so it works however the package sets `RUSTFLAGS`, and dependencies are
+#' built as usual. Vendored crates, including the C code they compile, and
+#' code generated in cargo's `target` directory aren't included. The code that
+#' macros such as `#[extendr]` and `#[savvy]` generate is counted on the
+#' macro's line, so the line isn't covered if parts of the generated code
+#' never run, e.g. the handling of arguments that can't be converted. The
+#' coverage of Rust code isn't measured on Windows, as rustup's Rust for the
+#' `x86_64-pc-windows-gnu` target that Rtools uses has no profiler runtime.
+#'
 #' #ifdef unix
 #' Parallelized code using \pkg{parallel}'s [mcparallel()] needs to
 #' use a patched `parallel:::mcexit`. This is done automatically if the
@@ -976,12 +1020,27 @@ package_coverage <- function(
     clean_objects(pkg$path)
   }
 
+  # Measure the coverage of Rust code, if the package has any
+  manifests <- if (!installed) rust_manifests(pkg$path)
+  rust <- if (length(manifests)) {
+    rust_coverage_setup(pkg$path, install_path)
+  }
+
   if (installed) {
     # `R CMD INSTALL` fails to reinstall an installed package on Windows, and
     # only copies it elsewhere, so copy it directly (#638).
     copy_installed_package(pkg, install_path)
   } else {
-    install_package(pkg, install_path, flags, quiet)
+    install_package(
+      pkg,
+      install_path,
+      add_rust_flags(flags, rust),
+      quiet,
+      env = rust$build_env
+    )
+    if (!is.null(rust)) {
+      rust <- rust_check_build(rust)
+    }
   }
 
   # add hooks to the package startup
@@ -1030,7 +1089,8 @@ package_coverage <- function(
         R_LIBS_USER = libs,
         R_LIBS_SITE = site_libs,
         R_COVR = "true",
-        R_TESTS = file.path(R.home("share"), "R", "tests-startup.R")
+        R_TESTS = file.path(R.home("share"), "R", "tests-startup.R"),
+        rust$env
       ),
       {
         withCallingHandlers(
@@ -1157,6 +1217,19 @@ package_coverage <- function(
     res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
   } else {
     res <- run_icov(pkg$path, quiet = quiet)
+  }
+
+  if (!is.null(rust)) {
+    res <- c(
+      res,
+      run_llvm_cov(rust, pkg$path, install_path, pkg$package, quiet = quiet)
+    )
+  }
+  if (length(manifests)) {
+    res <- drop_rust_dependencies(
+      res,
+      roots = c(pkg$path, getOption("covr.gcov_additional_paths", NULL))
+    )
   }
 
   coverage <- as_coverage(
@@ -1469,7 +1542,11 @@ merge_coverage_pair <- function(into, from) {
   clean_coverage_tests(from)
 
   tests <- from$tests
-  from <- from[setdiff(names(from), "tests")]
+  # `[[` as in `as_coverage_with_tests()`
+  if (!is.null(into[["branches"]]) || !is.null(from[["branches"]])) {
+    into$branches <- merge_branches(into[["branches"]], from[["branches"]])
+  }
+  from <- from[setdiff(names(from), c("tests", "branches"))]
   idx <- match(names(from), names(into))
   shared <- which(!is.na(idx))
 
@@ -1524,6 +1601,7 @@ renumber_trace_tests <- function(trace, test_idx) {
 #   may have been allocated, but not entirely populated.
 #
 clean_coverage_tests <- function(obj) {
+  obj$branches <- NULL
   counter_has_tests_tally <- function(counter) !is.null(counter$tests)
   if (is.na(Position(counter_has_tests_tally, obj))) {
     return()
@@ -1595,9 +1673,9 @@ run_vignettes <- function(pkg, lib) {
 
 # Install the package source with the options covr needs. With `quiet`, the
 # output is captured to give the reason if the installation fails.
-install_package <- function(pkg, install_path, flags, quiet) {
+install_package <- function(pkg, install_path, flags, quiet, env = NULL) {
   output <- withr::with_envvar(
-    list(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep)),
+    c(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep), env),
     withr::with_makevars(flags, assignment = "+=", {
       args <- c(
         "--vanilla",
@@ -1736,7 +1814,8 @@ add_hooks <- function(
   lib,
   fix_mcexit = FALSE,
   record_tests = isTRUE(getOption("covr.record_tests", FALSE)),
-  full_traversal = FALSE
+  full_traversal = FALSE,
+  branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE))
 ) {
   trace_dir <- paste0("Sys.getenv(\"COVERAGE_DIR\", \"", lib, "\")")
 
@@ -1753,6 +1832,11 @@ add_hooks <- function(
       paste0(
         "setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.full_traversal = ",
         isTRUE(full_traversal),
+        "))"
+      ),
+      paste0(
+        "setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.branch_coverage = ",
+        isTRUE(branch_coverage),
         "))"
       ),
       "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))",
@@ -1847,6 +1931,8 @@ c.coverage <- function(...) {
 
   tests <- merged$tests
   merged$tests <- NULL
+  branches <- as_branch_list(merged[["branches"]])
+  merged$branches <- NULL
   merged <- lapply(merged, function(trace) {
     if (!is.null(trace$tests)) {
       trace$tests <- trace$tests$tally
@@ -1857,6 +1943,7 @@ c.coverage <- function(...) {
   attrs <- attributes(covs[[1L]])
   attrs$names <- names(merged)
   attrs$tests <- tests
+  attrs$branches <- branches
   attrs$excluded_lines <- union_excluded_lines(
     lapply(covs, attr, "excluded_lines")
   )
@@ -1878,6 +1965,7 @@ coverage_to_counters <- function(x) {
     trace
   })
   counters$tests <- attr(x, "tests")
+  counters$branches <- attr(x, "branches")
   counters
 }
 
