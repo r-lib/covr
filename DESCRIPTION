@@ -55,6 +55,7 @@ Imports:
 Suggests:
     R6,
     S7 (>= 0.2.0),
+    compiler,
     curl,
     knitr,
     rmarkdown,

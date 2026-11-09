@@ -1,62 +1,145 @@
 #include <R.h>
 #include <Rinternals.h>
+#include <stdint.h>
 #include <stdlib.h>
 
-/* The counts of the traces live in blocks that are never moved or freed, so
- * instrumented code can hold an external pointer to its count and
- * `covr_count()` only has to increment it. A key keeps its count for the life
- * of the process, also after `clear_counters()`, so an instrumented function
- * always counts into its own trace. External pointers are NULL after they are
- * unserialized, so a function sent to another process doesn't count there,
- * rather than counting into another trace. */
-#define BLOCK_SIZE 4096
-
-static double **blocks = NULL;
-static int n_blocks = 0;
-static int n_keys = 0;
+/* The counts of the traces are held here, in the order their keys were added,
+ * and instrumented code passes the key of its trace to `covr_count()`. R keeps
+ * a single `CHARSXP` for each string, so keys are looked up by the address of
+ * their `CHARSXP` in a hash table. The code can be serialized, e.g. in the
+ * lazy-load database of an instrumented package or sent to another process.
+ * Keys that are not added to the process, e.g. because a function was sent to
+ * another process, are ignored. A key keeps its count for the life of the
+ * process, also after `clear_counters()`. */
+static double *counts = NULL;
 static SEXP keys = NULL; // a preserved STRSXP, for reading the counts back
+static int n_keys = 0;
+static int capacity = 0;
 
-static double *count_at(int i) {
-  return &blocks[i / BLOCK_SIZE][i % BLOCK_SIZE];
+// An open addressing table of the keys' `CHARSXP` addresses to their index + 1.
+static SEXP *table_keys = NULL;
+static int *table_index = NULL;
+static size_t table_size = 0; // a power of two, at least twice n_keys
+
+static size_t slot_of(SEXP x, size_t mask) {
+  uint64_t h = ((uint64_t)(uintptr_t)x >> 4) * 0x9E3779B97F4A7C15ull;
+  return (size_t)(h >> 20) & mask;
 }
 
-// Add a count for `key` and return an external pointer to it.
-// `register_count()` in R makes sure each key is only added once.
-SEXP covr_counter_add(SEXP key) {
-  if (n_keys == n_blocks * BLOCK_SIZE) {
-    double **new_blocks =
-        (double **)realloc(blocks, (size_t)(n_blocks + 1) * sizeof(double *));
-    if (new_blocks == NULL) {
-      Rf_error("can't allocate memory for the counts");
-    }
-    blocks = new_blocks;
-    blocks[n_blocks] = (double *)calloc(BLOCK_SIZE, sizeof(double));
-    if (blocks[n_blocks] == NULL) {
-      Rf_error("can't allocate memory for the counts");
-    }
-    SEXP new_keys = PROTECT(Rf_allocVector(STRSXP, (n_blocks + 1) * BLOCK_SIZE));
-    for (int i = 0; i < n_keys; ++i) {
-      SET_STRING_ELT(new_keys, i, STRING_ELT(keys, i));
-    }
-    R_PreserveObject(new_keys);
-    if (keys != NULL) {
-      R_ReleaseObject(keys);
-    }
-    keys = new_keys;
-    UNPROTECT(1);
-    ++n_blocks;
+// The index of the key `x`, or -1.
+static int find(SEXP x) {
+  if (table_size == 0) {
+    return -1;
   }
-  SET_STRING_ELT(keys, n_keys, STRING_ELT(key, 0));
-  double *count = count_at(n_keys++);
-  *count = 0;
-  return R_MakeExternalPtr(count, R_NilValue, R_NilValue);
+  size_t mask = table_size - 1;
+  for (size_t i = slot_of(x, mask);; i = (i + 1) & mask) {
+    if (table_keys[i] == x) {
+      return table_index[i] - 1;
+    }
+    if (table_keys[i] == NULL) {
+      return -1;
+    }
+  }
+}
+
+static void insert(SEXP x, int index) {
+  size_t mask = table_size - 1;
+  size_t i = slot_of(x, mask);
+  while (table_keys[i] != NULL) {
+    i = (i + 1) & mask;
+  }
+  table_keys[i] = x;
+  table_index[i] = index + 1;
+}
+
+static void grow(void) {
+  int new_capacity = capacity == 0 ? 4096 : capacity * 2;
+  double *new_counts =
+      (double *)realloc(counts, (size_t)new_capacity * sizeof(double));
+  if (new_counts == NULL) {
+    Rf_error("can't allocate memory for the counts");
+  }
+  counts = new_counts;
+  size_t new_size = (size_t)new_capacity * 2;
+  SEXP *new_table_keys = (SEXP *)calloc(new_size, sizeof(SEXP));
+  int *new_table_index = (int *)calloc(new_size, sizeof(int));
+  if (new_table_keys == NULL || new_table_index == NULL) {
+    free(new_table_keys);
+    free(new_table_index);
+    Rf_error("can't allocate memory for the counts");
+  }
+  SEXP new_keys = PROTECT(Rf_allocVector(STRSXP, new_capacity));
+  for (int i = 0; i < n_keys; ++i) {
+    SET_STRING_ELT(new_keys, i, STRING_ELT(keys, i));
+  }
+  R_PreserveObject(new_keys);
+  if (keys != NULL) {
+    R_ReleaseObject(keys);
+  }
+  keys = new_keys;
+  UNPROTECT(1);
+
+  free(table_keys);
+  free(table_index);
+  table_keys = new_table_keys;
+  table_index = new_table_index;
+  table_size = new_size;
+  capacity = new_capacity;
+  for (int i = 0; i < n_keys; ++i) {
+    insert(STRING_ELT(keys, i), i);
+  }
+}
+
+static SEXP utf8_key(SEXP x) {
+  return Rf_mkCharCE(Rf_translateCharUTF8(x), CE_UTF8);
+}
+
+static void add_key(SEXP x) {
+  if (find(x) >= 0) {
+    return;
+  }
+  // Strings of the other encoding are found by their UTF-8 form, see
+  // `covr_count()`.
+  if (!Rf_charIsASCII(x) && Rf_getCharCE(x) != CE_UTF8) {
+    x = utf8_key(x);
+    if (find(x) >= 0) {
+      return;
+    }
+  }
+  if (n_keys == capacity) {
+    PROTECT(x);
+    grow();
+    UNPROTECT(1);
+  }
+  SET_STRING_ELT(keys, n_keys, x);
+  counts[n_keys] = 0;
+  insert(x, n_keys);
+  ++n_keys;
+}
+
+// Add a count for each of the strings `keys` that has none yet.
+SEXP covr_counter_add(SEXP keys_) {
+  R_xlen_t n = XLENGTH(keys_);
+  for (R_xlen_t i = 0; i < n; ++i) {
+    add_key(STRING_ELT(keys_, i));
+  }
+  return R_NilValue;
 }
 
 // Called by instrumented code for every evaluated expression.
-SEXP covr_count(SEXP ptr) {
-  double *count = (double *)R_ExternalPtrAddr(ptr);
-  if (count != NULL) {
-    (*count)++;
+SEXP covr_count(SEXP key) {
+  SEXP x = STRING_ELT(key, 0);
+  int i = find(x);
+  if (i >= 0) {
+    counts[i]++;
+  } else if (!Rf_charIsASCII(x)) {
+    // The same string with another encoding is another `CHARSXP`.
+    SEXP u = PROTECT(utf8_key(x));
+    i = find(u);
+    if (i >= 0) {
+      counts[i]++;
+    }
+    UNPROTECT(1);
   }
   return R_NilValue;
 }
@@ -65,18 +148,17 @@ SEXP covr_count(SEXP ptr) {
 SEXP covr_counter_take(void) {
   int n = 0;
   for (int i = 0; i < n_keys; ++i) {
-    if (*count_at(i) != 0) {
+    if (counts[i] != 0) {
       ++n;
     }
   }
   SEXP res = PROTECT(Rf_allocVector(REALSXP, n));
   SEXP nms = PROTECT(Rf_allocVector(STRSXP, n));
   for (int i = 0, j = 0; i < n_keys; ++i) {
-    double *count = count_at(i);
-    if (*count != 0) {
-      REAL(res)[j] = *count;
+    if (counts[i] != 0) {
+      REAL(res)[j] = counts[i];
       SET_STRING_ELT(nms, j, STRING_ELT(keys, i));
-      *count = 0;
+      counts[i] = 0;
       ++j;
     }
   }
@@ -85,10 +167,10 @@ SEXP covr_counter_take(void) {
   return res;
 }
 
-// Discard the counts, keeping the keys and their counts' addresses.
+// Discard the counts, keeping the keys.
 SEXP covr_counter_reset(void) {
   for (int i = 0; i < n_keys; ++i) {
-    *count_at(i) = 0;
+    counts[i] = 0;
   }
   return R_NilValue;
 }

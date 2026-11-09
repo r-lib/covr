@@ -1,9 +1,22 @@
 # covr (development version)
 
 * Code run to measure coverage is faster, as evaluated expressions are counted
-  in C rather than in R (about 6 times less overhead per expression). An
-  instrumented function sent to another process, e.g. a parallel worker, runs
-  there but isn't counted.
+  in C rather than in R (about 6 times less overhead per expression).
+
+* `package_coverage()` instruments and byte-compiles a source package once,
+  after installing it, rather than every time a process loads it. The package
+  is installed without byte-compiling it, then its instrumented functions are
+  byte-compiled and written back to the installed package, so each process
+  that loads it starts faster (e.g. 0.3 s rather than 4.6 s for Luminescence)
+  and doesn't compile the functions again as it runs them. Functions that
+  `.onLoad()` creates or replaces are instrumented when the package is loaded.
+  If instrumenting after installing fails, or the package has functions in
+  `R/sysdata.rda`, the package is instrumented when it is loaded, as before.
+  Functions of the package that are sent to other R processes, e.g. parallel
+  workers, are now counted there if the process loads the package. Set
+  `options(covr.install_compile = FALSE)` (or the environment variable
+  `COVR_INSTALL_COMPILE=false`) to leave compiling the functions to the JIT in
+  each process instead.
 
 * `report()`, `report_html()` and `file_report_html()` are much faster for
   large packages, as the source table is built as text rather than an

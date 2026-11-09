@@ -1,0 +1,7 @@
+Package: TestInstrument
+Title: Package That Is Instrumented After It Is Installed
+Version: 0.0.0.9000
+Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
+Description: Used to test that covr instruments and byte-compiles a package
+    once, after installing it.
+License: MIT

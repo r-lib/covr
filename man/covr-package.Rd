@@ -130,6 +130,12 @@ This walks every object in the package, so it is off by default. For
 \code{Config/covr/full_traversal: true} to its DESCRIPTION; the option takes
 precedence when set.
 
+\item \code{covr.install_compile}: If \code{FALSE} (default \code{TRUE}, or the value of
+the environment variable \code{COVR_INSTALL_COMPILE}), \code{package_coverage()}
+doesn't byte-compile the instrumented functions of a package after
+installing it, so each process that runs them compiles them with the
+JIT instead.
+
 \item \code{covr.showCfunctions}:
 }
 }

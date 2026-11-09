@@ -17,9 +17,8 @@ traced_fixture_bodies <- function(
   setNames(lapply(bodies, function(x) as_r_count(strip_srcrefs(x))), names)
 }
 
-# Rewrite `.Call(pkg:::covr_count, <pointer>)` as `pkg:::count(key)`, the form
-# instrumentation had before counting moved to C, so the pointer to the count
-# is compared as the key it stands for.
+# Rewrite `.Call(pkg:::covr_count, key)` as `pkg:::count(key)`, the form
+# instrumentation had before counting moved to C.
 as_r_count <- function(x) {
   if (!is.call(x)) {
     return(x)
@@ -30,9 +29,7 @@ as_r_count <- function(x) {
       identical(x[[2]][[1]], as.symbol(":::")) &&
       identical(x[[2]][[3]], as.symbol("covr_count"))
   ) {
-    ptrs <- as.list(.count_ptrs)
-    key <- names(ptrs)[vapply(ptrs, identical, logical(1), x[[3]])]
-    return(as.call(list(call(":::", x[[2]][[2]], as.symbol("count")), key)))
+    return(as.call(list(call(":::", x[[2]][[2]], as.symbol("count")), x[[3]])))
   }
   for (i in seq_along(x)) {
     if (!identical(x[[i]], quote(expr = ))) {
