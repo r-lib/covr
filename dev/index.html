@@ -10,8 +10,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Test Coverage for Packages">
-<meta name="description" content="Track and report code coverage for your package and (optionally) upload the results to a coverage service like Codecov &lt;https://about.codecov.io&gt; or Coveralls &lt;https://coveralls.io&gt;. Code coverage is a measure of the amount of code being exercised by a set of tests. It is an indirect measure of test quality and completeness. This package is compatible with any testing methodology or framework and tracks coverage of both R code and compiled C/C++/FORTRAN code.">
-<meta property="og:description" content="Track and report code coverage for your package and (optionally) upload the results to a coverage service like Codecov &lt;https://about.codecov.io&gt; or Coveralls &lt;https://coveralls.io&gt;. Code coverage is a measure of the amount of code being exercised by a set of tests. It is an indirect measure of test quality and completeness. This package is compatible with any testing methodology or framework and tracks coverage of both R code and compiled C/C++/FORTRAN code.">
+<meta name="description" content="Track and report code coverage for your package and (optionally) upload the results to a coverage service like Codecov &lt;https://about.codecov.io&gt; or Coveralls &lt;https://coveralls.io&gt;. Code coverage is a measure of the amount of code being exercised by a set of tests. It is an indirect measure of test quality and completeness. This package is compatible with any testing methodology or framework and tracks coverage of both R code and compiled C, C++, Fortran and Rust code.">
+<meta property="og:description" content="Track and report code coverage for your package and (optionally) upload the results to a coverage service like Codecov &lt;https://about.codecov.io&gt; or Coveralls &lt;https://coveralls.io&gt;. Code coverage is a measure of the amount of code being exercised by a set of tests. It is an indirect measure of test quality and completeness. This package is compatible with any testing methodology or framework and tracks coverage of both R code and compiled C, C++, Fortran and Rust code.">
 <meta property="og:image" content="https://covr.r-lib.org/logo.png">
 <meta name="robots" content="noindex">
 <!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-115082821-1"></script><script>
@@ -69,6 +69,7 @@
 <!-- badges: start -->
 
 <p>Track test coverage for your R package and view reports locally or (optionally) upload the results to <a href="https://about.codecov.io/" class="external-link">codecov</a> or <a href="https://coveralls.io/" class="external-link">coveralls</a>.</p>
+<p>covr measures the coverage of the R code and the compiled code of a package, C, C++, Fortran and Rust, together in one report.</p>
 </div>
 <div class="section level1">
 <h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -90,41 +91,12 @@
 <span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">          # Fail if error if not on PR</span></span>
 <span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="at">          </span><span class="fu">fail-on-error</span><span class="kw">:</span><span class="at"> ${{ github.event_name != 'pull_request' }}</span></span></code></pre></div>
 <p>If the package is in a subdirectory of the repository, also set <code>base-path</code> to that directory so Coveralls can find the source files.</p>
-<div class="section level2">
-<h2 id="coverage-badge-without-a-coverage-service">Coverage badge without a coverage service<a class="anchor" aria-label="anchor" href="#coverage-badge-without-a-coverage-service"></a>
-</h2>
-<p>If you only want a coverage badge for your README, and not the history and pull request checks of Codecov or Coveralls, <code><a href="reference/to_badge.html">to_badge()</a></code> writes one as an SVG file locally. For example, to update a badge in a <code>badges</code> branch on every push to GitHub, replace the coverage steps of the test-coverage workflow with these, and give the workflow <code>permissions: contents: write</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Test coverage</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>          cov &lt;- covr::package_coverage(quiet = FALSE)</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>          print(cov)</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>          covr::to_badge(cov, "coverage.svg")</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="at">        </span><span class="fu">shell</span><span class="kw">:</span><span class="at"> Rscript {0}</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Publish coverage badge</span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="at">        </span><span class="fu">if</span><span class="kw">:</span><span class="at"> github.event_name == 'push'</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="fu">        run</span><span class="kw">: </span><span class="ch">|</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>          mkdir "$RUNNER_TEMP/badges"</span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>          cp coverage.svg "$RUNNER_TEMP/badges"</span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>          cd "$RUNNER_TEMP/badges"</span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>          git init -b badges</span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>          git config user.name "github-actions[bot]"</span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"</span>
-<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>          git add coverage.svg</span>
-<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>          git commit -m "Update coverage badge"</span>
-<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" badges</span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="at">        </span><span class="fu">env</span><span class="kw">:</span></span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="at">          </span><span class="fu">GITHUB_TOKEN</span><span class="kw">:</span><span class="at"> ${{ secrets.GITHUB_TOKEN }}</span></span></code></pre></div>
-<p>Then link to the badge in your README:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode md"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="al">![Test coverage](https://raw.githubusercontent.com/OWNER/REPO/badges/coverage.svg)</span></span></code></pre></div>
-<p>The same approach works on other forges, such as Codeberg or GitLab, or you can commit the badge to the repository when you update your README.</p>
-</div>
 </div>
 <div class="section level1">
 <h1 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h1>
 <p>For local development a coverage report can be used to inspect coverage for each line in your package. <em>Note</em> requires the <a href="https://github.com/rstudio/htmltools" class="external-link">htmltools</a> package to be installed. <code><a href="reference/report_html.html">report_html()</a></code> creates the same report to include in an R Markdown or Quarto document.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://covr.r-lib.org">covr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># If run with no arguments implicitly calls `package_coverage()`</span></span>
@@ -133,7 +105,7 @@
 <div class="section level2">
 <h2 id="interactively">Interactively<a class="anchor" aria-label="anchor" href="#interactively"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># If run with the working directory within the package source.</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -171,7 +143,7 @@
 <h2 id="function-exclusions">Function Exclusions<a class="anchor" aria-label="anchor" href="#function-exclusions"></a>
 </h2>
 <p>The <code>function_exclusions</code> argument to <code><a href="reference/package_coverage.html">package_coverage()</a></code> can be used to exclude functions by name. This argument takes a vector of regular expressions matching functions to exclude.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># exclude print functions</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>function_exclusions <span class="op">=</span> <span class="st">"print\\."</span><span class="op">)</span></span>
 <span></span>
@@ -182,7 +154,7 @@
 <h2 id="line-exclusions">Line Exclusions<a class="anchor" aria-label="anchor" href="#line-exclusions"></a>
 </h2>
 <p>The <code>line_exclusions</code> argument to <code><a href="reference/package_coverage.html">package_coverage()</a></code> can be used to exclude some or all of a file. This argument takes a list of filenames or named ranges to exclude.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># exclude whole file of R/test.R</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span>line_exclusions <span class="op">=</span> <span class="st">"R/test.R"</span><span class="op">)</span></span>
 <span></span>
@@ -197,12 +169,12 @@
 </h2>
 <p>In addition you can exclude lines from the coverage by putting special comments in your source code.</p>
 <p>This can be done per line.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f1</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># nocov</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Or by specifying a range with a start and end.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="co"># nocov start</span></span>
 <span>  <span class="va">x</span> <span class="op">+</span> <span class="fl">2</span></span>
 <span><span class="op">}</span> <span class="co"># nocov end</span></span></code></pre></div>
@@ -219,6 +191,11 @@
 <p>It isn’t required, as covr is usually only used in CI rather than by your package’s code. It is useful though: <code>devtools::install()</code> and <code><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak::pak()</a></code> will then install covr for local development, and it helps us see which packages use covr. <code>usethis::use_coverage()</code> adds it for you.</p>
 </div>
 <div class="section level2">
+<h2 id="can-i-get-a-coverage-badge-without-a-coverage-service">Can I get a coverage badge without a coverage service?<a class="anchor" aria-label="anchor" href="#can-i-get-a-coverage-badge-without-a-coverage-service"></a>
+</h2>
+<p>Yes, <code><a href="reference/to_badge.html">to_badge()</a></code> writes a coverage badge as an SVG file. The GitHub Actions workflow in <a href="https://github.com/r-lib/covr/blob/main/inst/workflows/test-coverage-badge.yaml" class="external-link"><code>inst/workflows/test-coverage-badge.yaml</code></a> (also <code>system.file("workflows", "test-coverage-badge.yaml", package = "covr")</code>) publishes it to a <code>badges</code> branch on every push; copy it to <code>.github/workflows/</code> and link to the badge from your README.</p>
+</div>
+<div class="section level2">
 <h2 id="will-covr-work-with-testthat-runit-etc">Will covr work with testthat, RUnit, etc…<a class="anchor" aria-label="anchor" href="#will-covr-work-with-testthat-runit-etc"></a>
 </h2>
 <p>Covr should be compatible with any testing package, it uses <code><a href="https://rdrr.io/r/tools/testInstalledPackage.html" class="external-link">tools::testInstalledPackage()</a></code> to run your packages tests.</p>
@@ -227,7 +204,7 @@
 <h2 id="why-are-tests-using-skip_on_cran-not-counted-in-my-coverage">Why are tests using <code>skip_on_cran()</code> not counted in my coverage?<a class="anchor" aria-label="anchor" href="#why-are-tests-using-skip_on_cran-not-counted-in-my-coverage"></a>
 </h2>
 <p><code><a href="reference/package_coverage.html">package_coverage()</a></code> runs your tests non-interactively in a separate R process, so testthat assumes it is running on CRAN unless the <code>NOT_CRAN</code> environment variable is <code>"true"</code>. Tests that call <code>skip_on_cran()</code> are then skipped, and the code they exercise is reported as uncovered. To include them, set the variable before computing coverage:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>NOT_CRAN <span class="op">=</span> <span class="st">"true"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/package_coverage.html">package_coverage</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><code>devtools::test_coverage()</code> sets <code>NOT_CRAN</code> for you.</p>
@@ -236,7 +213,7 @@
 <h2 id="can-covr-measure-the-coverage-of-a-shiny-app">Can covr measure the coverage of a Shiny app?<a class="anchor" aria-label="anchor" href="#can-covr-measure-the-coverage-of-a-shiny-app"></a>
 </h2>
 <p>Yes, including tests that run the app with shinytest2. Use <code><a href="reference/package_coverage.html">package_coverage()</a></code> for an app in a package, and <code><a href="reference/shiny_app_coverage.html">shiny_app_coverage()</a></code> for other apps. The vignette <a href="https://github.com/r-lib/covr/blob/main/vignettes/shiny.Rmd" class="external-link">vignettes/shiny.Rmd</a> describes both.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"shiny"</span>, package <span class="op">=</span> <span class="st">"covr"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -244,19 +221,19 @@
 </h2>
 <p>Covr is known to work with clang versions <code>3.5+</code> and gcc version <code>4.2+</code>.</p>
 <p>If the appropriate gcov version is not on your path you can set the appropriate location with the <code>covr.gcov</code> options. If you set this path to “” it will turn <em>off</em> coverage of compiled code.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.gcov <span class="op">=</span> <span class="st">"path/to/gcov"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="can-covr-measure-the-coverage-of-rust-code">Can covr measure the coverage of Rust code?<a class="anchor" aria-label="anchor" href="#can-covr-measure-the-coverage-of-rust-code"></a>
 </h2>
 <p>Yes. <code><a href="reference/package_coverage.html">package_coverage()</a></code> measures the coverage of the Rust code in <code>src/</code>, e.g. of packages using <a href="https://extendr.github.io/" class="external-link">extendr</a> or <a href="https://yutannihilation.github.io/savvy/guide/" class="external-link">savvy</a>, with LLVM’s source-based coverage. This needs the llvm tools of your Rust toolchain:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="ex">rustup</span> component add llvm-tools</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="ex">rustup</span> component add llvm-tools</span></code></pre></div>
 <p>If Rust is installed by your Linux distribution (e.g. with <code>apt-get install cargo rustc</code>), install the LLVM version that rustc uses instead, e.g. <code>apt-get install llvm-18</code> if <code>rustc -vV</code> shows <code>LLVM version: 18.1.3</code>.</p>
 <p>Without the tools covr warns and reports no coverage for the Rust code. Set <code>options(covr.llvm_cov = "")</code> to turn off the coverage of Rust code.</p>
 <p>On GitHub Actions, add a step that installs the tools before computing coverage, e.g. in the <code>test-coverage.yaml</code> workflow from <code>usethis::use_github_action("test-coverage")</code>, after <code>setup-r-dependencies</code>:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Install Rust's llvm-tools</span></span>
-<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> rustup component add llvm-tools</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Install Rust's llvm-tools</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> rustup component add llvm-tools</span></span></code></pre></div>
 <p>Exclusions work in Rust files too, e.g. <code>// # nocov</code> at the end of a line. Code generated by macros such as <code>#[extendr]</code> or <code>#[savvy]</code> counts on the macro’s line, which is only covered if all of that code runs, e.g. including the errors for arguments that can’t be converted.</p>
 <p>This isn’t supported on Windows, as rustup’s Rust for the GNU ABI that Rtools uses (<code>x86_64-pc-windows-gnu</code>) doesn’t include the profiler runtime that writes the coverage counts.</p>
 </div>
@@ -266,7 +243,7 @@
 <p><code>covr</code> tracks test coverage by modifying a package’s code to add tracking calls to each call.</p>
 <p>The vignette <a href="https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd" class="external-link">vignettes/how_it_works.Rmd</a> contains a detailed explanation of the technique and the rationale behind it.</p>
 <p>You can view the vignette from within <code>R</code> using</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"how_it_works"</span>, package <span class="op">=</span> <span class="st">"covr"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">

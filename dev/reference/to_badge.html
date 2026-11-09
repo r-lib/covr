@@ -91,8 +91,9 @@ such as that of a package with no R code, shows as <code>unknown</code> on a gra
 badge.</p>
 <p>The badge is a plain file, so on a continuous integration service it needs
 to be stored somewhere that the README can link to, e.g. committed to a
-separate branch of the repository. See the README of covr for an example
-GitHub Actions workflow.</p>
+separate branch of the repository.
+<code>system.file("workflows", "test-coverage-badge.yaml", package = "covr")</code> is
+a GitHub Actions workflow that does this.</p>
     </div>
 
     <div class="section level2">

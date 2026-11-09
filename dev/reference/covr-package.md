@@ -6,7 +6,8 @@ upload the results to a coverage service like 'Codecov'
 coverage is a measure of the amount of code being exercised by a set of
 tests. It is an indirect measure of test quality and completeness. This
 package is compatible with any testing methodology or framework and
-tracks coverage of both R code and compiled C/C++/FORTRAN code.
+tracks coverage of both R code and compiled C, C++, Fortran and Rust
+code.
 
 ## Details
 
