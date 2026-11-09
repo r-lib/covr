@@ -69,7 +69,10 @@ test_that("package_coverage(clean = FALSE) keeps the installed library", {
     install_path = install_path
   )
 
-  expect_equal(attr(cov, "library"), install_path)
+  expect_equal(
+    normalize_path(attr(cov, "library")),
+    normalize_path(install_path)
+  )
   expect_contains(list.files(install_path), "TestS4")
 })
 

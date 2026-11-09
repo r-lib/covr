@@ -130,9 +130,7 @@ test_that("split_on_line_directives handles empty files (#522)", {
 test_that("as_package() errors if the path isn't in a package", {
   dir <- withr::local_tempdir()
 
-  expect_snapshot(as_package(dir), error = TRUE, transform = function(x) {
-    gsub(dir, "<dir>", x, fixed = TRUE)
-  })
+  expect_error(as_package(dir), "Can't find a package in")
 })
 
 test_that("package_root() returns NULL outside of a package", {

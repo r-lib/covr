@@ -77,9 +77,6 @@
       cat(msgs(TRUE), sep = "")
     Output
       gcov output for ./f.gcno:
-      
-      Falling back to gcov's text output for ./f.gcno
-      gcov output for ./f.gcno:
       ./f.c.gcov
 
 ---
@@ -87,13 +84,6 @@
     Code
       cat(gsub(pkg, "<pkg>", msgs(FALSE), fixed = TRUE), sep = "")
     Output
-      gcov output for ./f.gcno:
-      
-      gcov output targets for ./f.gcno:
-      
-      Moving gcov outputs to covr directory.
-      
-      Falling back to gcov's text output for ./f.gcno
       gcov output for ./f.gcno:
       ./f.c.gcov
       gcov output targets for ./f.gcno:

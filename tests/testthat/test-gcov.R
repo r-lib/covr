@@ -324,7 +324,7 @@ test_that("clean_gcov correctly clears files", {
 test_that("parse_gcov ignores missing files and sources outside the package", {
   expect_null(parse_gcov(tempfile(fileext = ".c.gcov")))
 
-  dir <- withr::local_tempdir()
+  dir <- normalize_path(withr::local_tempdir())
   other <- file.path(dir, "other")
   pkg <- file.path(dir, "pkg")
   dir.create(other)
@@ -375,6 +375,8 @@ test_that("find_gcov returns NA when gcov is not on the path", {
 })
 
 test_that("gcov_run reports the command and output when not quiet", {
+  # shQuote() quotes differently on Windows
+  skip_on_os("windows")
   local_mocked_bindings(system2 = function(...) "line one")
   expect_snapshot(gcov_run("gcov", c("a b.gcno", "-a"), quiet = FALSE))
 })
@@ -391,7 +393,7 @@ local_gcov_package <- function(env = parent.frame()) {
     ),
     file.path(pkg, "src", "f.c.gcov")
   )
-  normalizePath(pkg)
+  normalize_path(pkg)
 }
 
 test_that("run_gcov returns without error when gcov is unavailable and unused", {
@@ -409,7 +411,8 @@ test_that("run_gcov cleans gcov outputs by default", {
   pkg <- local_gcov_package()
   local_mocked_bindings(
     gcov_run = function(...) NULL,
-    gcov_unexecuted_block = function(...) "%%%%%"
+    gcov_unexecuted_block = function(...) "%%%%%",
+    gcov_json_supported = function(...) FALSE
   )
 
   res <- run_gcov(pkg, gcov_path = "gcov")
@@ -422,7 +425,8 @@ test_that("run_gcov(clean = FALSE) moves gcov outputs to the covr directory", {
   pkg <- local_gcov_package()
   local_mocked_bindings(
     gcov_run = function(...) NULL,
-    gcov_unexecuted_block = function(...) "%%%%%"
+    gcov_unexecuted_block = function(...) "%%%%%",
+    gcov_json_supported = function(...) FALSE
   )
 
   res <- run_gcov(pkg, clean = FALSE, gcov_path = "gcov")
@@ -438,7 +442,8 @@ test_that("run_gcov reports progress when not quiet", {
   pkg <- local_gcov_package()
   local_mocked_bindings(
     gcov_run = function(...) NULL,
-    gcov_unexecuted_block = function(...) "%%%%%"
+    gcov_unexecuted_block = function(...) "%%%%%",
+    gcov_json_supported = function(...) FALSE
   )
 
   msgs <- function(clean) {

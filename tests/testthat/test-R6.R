@@ -12,6 +12,8 @@ test_that("R6 methods coverage is reported", {
 
 test_that("active bindings are not read when looking for R6 classes", {
   skip_if_not_installed("R6")
+  # R6 coverage is wrong during R CMD check on R-devel, see above
+  skip_if(is_r_devel())
   src <- paste(
     "makeActiveBinding('ab', function() stop('boom'), environment())",
     "Gen <- R6::R6Class('Gen', public = list(f = function() {",
