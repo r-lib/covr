@@ -2,7 +2,7 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/r-lib/covr/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/r-lib/covr/branch/master/graph/badge.svg)](https://app.codecov.io/gh/r-lib/covr?branch=master)
+[![Codecov test coverage](https://codecov.io/gh/r-lib/covr/branch/main/graph/badge.svg)](https://app.codecov.io/gh/r-lib/covr?branch=main)
 [![CRAN version](https://www.r-pkg.org/badges/version/covr)](https://cran.r-project.org/package=covr)
 <!-- badges: end -->
 
@@ -267,7 +267,7 @@ writes the coverage counts.
 to each call.
 
 The vignette
-[vignettes/how_it_works.Rmd](https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd)
+[vignettes/how_it_works.Rmd](https://github.com/r-lib/covr/blob/main/vignettes/how_it_works.Rmd)
 contains a detailed explanation of the technique and the rationale behind it.
 
 You can view the vignette from within `R` using
