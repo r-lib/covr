@@ -12,7 +12,7 @@ replacements_S4 <- function(env) {
 
         table <- get(what, envir = env)
 
-        lapply(ls(table, all.names = TRUE), function(key) {
+        lapply(inactive_names(table), function(key) {
           method <- get(key, envir = table)
           replacement(
             S4_method_name(name, key, method),

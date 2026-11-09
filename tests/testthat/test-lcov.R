@@ -86,3 +86,13 @@ test_that("branches aren't written without branch coverage", {
   cov <- code_coverage("f <- function(x) if (x) 1", "f(TRUE)")
   expect_length(grep("^BR", to_lcov(cov, tempfile())), 0)
 })
+
+test_that("code without function names has no function records", {
+  cov <- code_coverage("f <- function() 1", "f()")
+  cov[[1]]$functions <- NA_character_
+  out <- to_lcov(cov, tempfile())
+  expect_equal(
+    grep("^(FN|FNDA|FNF|FNH|DA|LF|LH):", out, value = TRUE),
+    c("FNF:0", "FNH:0", "DA:1,1", "LF:1", "LH:1")
+  )
+})

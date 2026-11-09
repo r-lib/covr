@@ -91,14 +91,6 @@ llvm-cov can't tell apart code that only runs when a C++ exception is
 thrown, so lines that create objects with destructors may also count as
 partially executed.
 
-\item \code{covr.icov}:
-
-\item \code{covr.icov_args}:
-
-\item \code{covr.icov_flags}:
-
-\item \code{covr.icov_prof}:
-
 \item \code{covr.llvm_cov}: Path to the \code{llvm-cov} used to read the coverage
 of Rust code. Defaults to the one of the Rust toolchain, installed with
 \verb{rustup component add llvm-tools}, or for Rust installed without rustup

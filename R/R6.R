@@ -1,7 +1,7 @@
 replacements_R6 <- function(env) {
   unlist(
     recursive = FALSE,
-    eapply(env, all.names = TRUE, function(obj) {
+    eapply_inactive(env, function(obj) {
       if (inherits(obj, "R6ClassGenerator")) {
         traverse_R6(obj, env)
       }

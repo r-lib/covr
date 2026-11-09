@@ -12,27 +12,33 @@
 #' each branch, as in [to_lcov()]. A branch that was never taken has a count of
 #' zero.
 #'
+#' The CI service, job, pull request, branch and commit are detected from the
+#' environment variables of the services [codecov()] supports. Anywhere else,
+#' the branch, commit and remote are looked up from the local git repository.
+#' The environment variables `CI_BRANCH` and `CI_REMOTE` override the detected
+#' branch and remote.
+#'
 #' @param coverage an existing coverage object to submit, if `NULL`,
 #' [package_coverage()] will be called with the arguments from
 #' `...`
 #' @param ... arguments passed to [package_coverage()]
-#' @param repo_token The secret repo token for your repository,
-#' found at the bottom of your repository's page on Coveralls. This is useful
-#' if your job is running on a service Coveralls doesn't support out-of-the-box.
-#' If set to NULL, it is assumed that the job is running on travis-ci
-#' @param service_name the CI service to use, if environment variable
-#' \sQuote{CI_NAME} is set that is used, otherwise \sQuote{travis-ci} is used.
-#' When `repo_token` is set and `service_name` is \sQuote{drone},
-#' \sQuote{jenkins}, \sQuote{travis-pro} or \sQuote{github-actions},
-#' information about the current git commit, branch and remote is also
-#' submitted.
+#' @param repo_token The secret repo token for your repository, found on your
+#' repository's page on Coveralls. Without a token (`""` or `NULL`), only the
+#' CI service and job are submitted, which Coveralls only accepts from Travis
+#' CI. With a token, information about the git commit, branch and remote is
+#' also submitted.
+#' @param service_name The name of the CI service. If `NULL`, the environment
+#' variable `CI_NAME` is used if it is set, otherwise the CI service is
+#' detected from the environment, e.g. \sQuote{github} on GitHub Actions and
+#' \sQuote{travis-ci} on Travis CI. Outside a supported CI service it is
+#' \sQuote{local}.
 #' @param quiet if `FALSE`, print the coverage before submission.
 #' @export
 coveralls <- function(
   ...,
   coverage = NULL,
   repo_token = Sys.getenv("COVERALLS_TOKEN"),
-  service_name = Sys.getenv("CI_NAME", "travis-ci"),
+  service_name = NULL,
   quiet = TRUE
 ) {
   if (is.null(coverage)) {
@@ -43,13 +49,11 @@ coveralls <- function(
     print(coverage)
   }
 
-  service <- tolower(service_name)
-
   coveralls_url <- "https://coveralls.io/api/v1/jobs"
   coverage_json <- to_coveralls(
     coverage,
     repo_token = repo_token,
-    service_name = service
+    service_name = service_name
   )
 
   result <- RETRY(
@@ -76,12 +80,7 @@ to_file <- function(x) {
   name
 }
 
-to_coveralls <- function(
-  x,
-  service_job_id = Sys.getenv("TRAVIS_JOB_ID"),
-  service_name,
-  repo_token = ""
-) {
+to_coveralls <- function(x, repo_token = "", service_name = NULL) {
   coverages <- per_line(x)
   branches <- if (!is.null(attr(x, "branches"))) {
     tally_coverage(x, by = "branch")
@@ -113,33 +112,16 @@ to_coveralls <- function(
     USE.NAMES = FALSE
   )
 
-  git <- switch(
-    service_name,
-    drone = git_info(), # drone has the same env vars as jenkins
-    jenkins = git_info(),
-    'travis-pro' = git_info(),
-    'github-actions' = git_info(
-      branch = github_actions_branch(),
-      remote = system_output("git", c("config", "--get", "remote.origin.url"))
-    ),
-    list(NULL)
-  )
-
-  payload <- if (!nzchar(repo_token)) {
-    list(
-      "service_job_id" = jsonlite::unbox(service_job_id),
-      "service_name" = jsonlite::unbox(service_name),
-      "source_files" = res
-    )
-  } else {
-    tmp <- list(
-      "repo_token" = jsonlite::unbox(repo_token),
-      "service_name" = jsonlite::unbox(service_name),
-      "source_files" = res
-    )
-    tmp$git <- git
-    tmp
-  }
+  info <- coveralls_ci_info(service_name)
+  has_token <- !is.null(repo_token) && nzchar(repo_token)
+  payload <- compact(list(
+    "repo_token" = if (has_token) jsonlite::unbox(repo_token),
+    "service_name" = jsonlite::unbox(info$service_name),
+    "service_job_id" = unbox_or_null(info$job_code),
+    "service_pull_request" = unbox_or_null(codecov_pr(info$pr)),
+    "source_files" = res,
+    "git" = if (has_token) git_info(info)
+  ))
 
   jsonlite::toJSON(na = "null", payload)
 }
@@ -152,59 +134,85 @@ coveralls_branches <- function(df) {
   as.vector(rbind(df$line, branch_blocks(df), df$branch - 1L, df$value))
 }
 
-git_info <- function(
-  branch = Sys.getenv("CI_BRANCH"),
-  remote = Sys.getenv("CI_REMOTE")
-) {
-  # check https://coveralls.zendesk.com/hc/en-us/articles/201350799-API-Reference
-  # for why and how we are doing this
+# What the CI service knows about the build, as for `codecov()`, with the name
+# Coveralls' own uploader uses for the service.
+coveralls_ci_info <- function(service_name = NULL) {
+  info <- codecov_ci_info()
+  info$service_name <- tolower(
+    service_name %||%
+      env_var("CI_NAME") %||%
+      coveralls_service_name(info$ci_service)
+  )
+  info
+}
+
+coveralls_service_name <- function(ci_service) {
+  if (is.null(ci_service)) {
+    return("local")
+  }
+  switch(
+    ci_service,
+    travis = "travis-ci",
+    drone.io = "drone",
+    gitlab = "gitlab-ci",
+    `github-actions` = "github",
+    ci_service
+  )
+}
+
+git_info <- function(info = list()) {
+  # https://docs.coveralls.io/api-jobs-endpoint
+  branch <- env_var("CI_BRANCH") %||% info$branch %||% try_git(local_branch())
+  remote <- env_var("CI_REMOTE") %||% info$remote %||% try_git(git_remote_url())
+
+  compact(list(
+    branch = unbox_or_null(branch),
+    head = git_head(info$commit),
+    remotes = if (!is.null(remote)) {
+      list(list(
+        name = jsonlite::unbox("origin"),
+        url = jsonlite::unbox(remote)
+      ))
+    }
+  ))
+}
+
+# The commit's author and message, from the local repository. If the commit
+# isn't there, e.g. the head of a pull request in a shallow clone, only its id.
+git_head <- function(commit = NULL) {
   formats <- c(
     id = "%H",
     author_name = "%an",
     author_email = "%ae",
-    commiter_name = "%cn",
-    commiter_email = "%ce",
+    committer_name = "%cn",
+    committer_email = "%ce",
     message = "%s"
   )
-  head <- lapply(
-    structure(
-      scan(
-        sep = "\n",
-        what = "character",
-        text = system_output(
-          "git",
-          c(
-            "log",
-            "-n",
-            "1",
-            paste0("--pretty=format:", paste(collapse = "%n", formats))
-          )
-        ),
-        quiet = TRUE
-      ),
-      names = names(formats)
+  output <- try_git(system_output(
+    "git",
+    c(
+      "log",
+      "-n",
+      "1",
+      paste0("--pretty=format:", paste(collapse = "%n", formats)),
+      commit
     ),
-    jsonlite::unbox
-  )
-
-  remotes <- list(list(
-    name = jsonlite::unbox("origin"),
-    url = jsonlite::unbox(remote)
+    quiet = TRUE
   ))
-
-  c(
-    list(branch = jsonlite::unbox(branch)),
-    head = list(head),
-    remotes = list(remotes)
-  )
+  values <- unlist(strsplit(output %||% character(), "\n", fixed = TRUE))
+  head <- if (length(values) == length(formats)) {
+    as.list(stats::setNames(values, names(formats)))
+  } else if (!is.null(commit)) {
+    list(id = commit)
+  }
+  lapply(head, jsonlite::unbox)
 }
 
-# `GITHUB_REF_NAME` is `<pr_number>/merge` for pull requests, so use the source
-# branch in `GITHUB_HEAD_REF` when it is set.
-github_actions_branch <- function() {
-  branch <- Sys.getenv("GITHUB_HEAD_REF")
-  if (nzchar(branch)) {
-    return(branch)
-  }
-  Sys.getenv("GITHUB_REF_NAME")
+# `system_output()` signals a failed command as an error, or as its warning
+try_git <- function(expr) {
+  tryCatch(expr, error = function(e) NULL, warning = function(w) NULL)
+}
+
+unbox_or_null <- function(x) {
+  if (!is.null(x)) jsonlite::unbox(x)
 }

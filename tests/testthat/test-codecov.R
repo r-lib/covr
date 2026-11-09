@@ -323,27 +323,6 @@ test_that("it works with travis pull requests", {
   expect_equal(body$branch, "master")
 })
 
-test_that("it works with codeship", {
-  withr::local_envvar(c(
-    codecov_ci_vars(),
-    "CI" = "true",
-    "CI_NAME" = "codeship",
-    "CI_BRANCH" = "master",
-    "CI_BUILD_NUMBER" = "5",
-    "CI_BUILD_URL" = "http://test.com/tester/test",
-    "CI_COMMIT_ID" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
-  ))
-  recorded <- local_codecov_mocks()
-  codecov(coverage = cov)
-
-  body <- codecov_post_body(recorded)
-  expect_equal(body$ci_service, "codeship")
-  expect_equal(body$branch, "master")
-  expect_equal(body$job_code, "5")
-  expect_equal(body$ci_url, "http://test.com/tester/test")
-  expect_equal(body$commitid, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
-})
-
 test_that("it works with circleci", {
   withr::local_envvar(c(
     codecov_ci_vars(),
@@ -367,27 +346,6 @@ test_that("it works with circleci", {
   expect_equal(body$job_code, "5")
   expect_equal(body$ci_url, "https://circleci.com/gh/tester/circle/5")
   expect_equal(body$pullid, "7")
-  expect_equal(body$commitid, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
-})
-
-test_that("it works with semaphore", {
-  withr::local_envvar(c(
-    codecov_ci_vars(),
-    "CI" = "true",
-    "SEMAPHORE" = "true",
-    "BRANCH_NAME" = "master",
-    "SEMAPHORE_BUILD_NUMBER" = "5",
-    "SEMAPHORE_REPO_SLUG" = "tester/semaphore",
-    "REVISION" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
-  ))
-  recorded <- local_codecov_mocks()
-  codecov(coverage = cov)
-
-  body <- codecov_post_body(recorded)
-  expect_match(codecov_post(recorded)$url, "/github/tester::::semaphore/")
-  expect_equal(body$ci_service, "semaphore")
-  expect_equal(body$branch, "master")
-  expect_equal(body$job_code, "5")
   expect_equal(body$commitid, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
 
@@ -436,27 +394,6 @@ test_that("it works with AppVeyor", {
   expect_equal(body$ci_service, "appveyor")
   expect_equal(body$branch, "master")
   expect_equal(body$job_code, "testuser/test/1.0.5")
-  expect_equal(body$commitid, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
-})
-
-test_that("it works with Wercker", {
-  withr::local_envvar(c(
-    codecov_ci_vars(),
-    "CI" = "true",
-    "WERCKER_GIT_BRANCH" = "master",
-    "WERCKER_MAIN_PIPELINE_STARTED" = "5",
-    "WERCKER_GIT_OWNER" = "tester",
-    "WERCKER_GIT_REPOSITORY" = "wercker",
-    "WERCKER_GIT_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
-  ))
-  recorded <- local_codecov_mocks()
-  codecov(coverage = cov)
-
-  body <- codecov_post_body(recorded)
-  expect_match(codecov_post(recorded)$url, "/github/tester::::wercker/")
-  expect_equal(body$ci_service, "wercker")
-  expect_equal(body$branch, "master")
-  expect_equal(body$job_code, "5")
   expect_equal(body$commitid, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
 
@@ -851,4 +788,86 @@ test_that("without branch coverage, the report is in the R format", {
   json <- jsonlite::fromJSON(to_codecov(cov))
   expect_equal(json$uploader, "R")
   expect_equal(json$files$coverage[[1]], c(NA, 1))
+})
+
+test_that("git_service_from_host recognises hosted and enterprise services", {
+  expect_equal(git_service_from_host("GitHub.com"), "github")
+  expect_equal(git_service_from_host("gitlab.com"), "gitlab")
+  expect_equal(git_service_from_host("bitbucket.org"), "bitbucket")
+  expect_equal(git_service_from_host("github.example.com"), "github_enterprise")
+  expect_equal(git_service_from_host("gitlab.example.com"), "gitlab_enterprise")
+  expect_equal(
+    git_service_from_host("bitbucket.example.com"),
+    "bitbucket_server"
+  )
+  expect_null(git_service_from_host("git.example.com"))
+})
+
+test_that("it works with AppVeyor on GitHub and GitLab", {
+  appveyor_env <- function(provider) {
+    c(
+      codecov_ci_vars(),
+      "CI" = "True",
+      "APPVEYOR" = "True",
+      "APPVEYOR_REPO_NAME" = "testspace/test",
+      "APPVEYOR_REPO_PROVIDER" = provider,
+      "APPVEYOR_REPO_BRANCH" = "master",
+      "APPVEYOR_REPO_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+    )
+  }
+
+  withr::local_envvar(appveyor_env("gitHub"))
+  recorded <- local_codecov_mocks()
+  codecov(coverage = cov)
+  expect_match(codecov_post(recorded)$url, "/upload/github/testspace::::test/")
+
+  withr::local_envvar(appveyor_env("gitlab"))
+  codecov(coverage = cov)
+  expect_match(
+    recorded$requests[[3]]$url,
+    "/upload/gitlab/testspace::::test/"
+  )
+})
+
+test_that("it calls package_coverage() if there is no coverage", {
+  withr::local_envvar(codecov_ci_vars())
+  local_codecov_mocks()
+  args <- NULL
+  local_mocked_bindings(
+    package_coverage = function(...) {
+      args <<- list(...)
+      cov
+    }
+  )
+
+  codecov(path = "somewhere", quiet = TRUE)
+  expect_equal(args, list(quiet = TRUE, path = "somewhere"))
+})
+
+test_that("extract_from_yaml returns an empty string without codecov.yml", {
+  expect_equal(extract_from_yaml(NULL), "")
+  expect_equal(extract_from_yaml(withr::local_tempdir()), "")
+})
+
+test_that("git_remote_url() and git_files() read a git repository", {
+  skip_if(Sys.which("git") == "", "git is not available")
+  dir <- withr::local_tempdir()
+  git <- function(...) {
+    system2("git", c("-C", shQuote(dir), ...), stdout = FALSE)
+  }
+  git("init", "-q")
+  git("remote", "add", "origin", "https://github.com/tester/test.git")
+  writeLines("a", file.path(dir, "a.R"))
+  writeLines("b", file.path(dir, "b.R"))
+  git("add", "a.R", "b.R")
+
+  expect_equal(git_remote_url(dir), "https://github.com/tester/test.git")
+  expect_equal(git_files(dir), c("a.R", "b.R"))
+})
+
+test_that("git_remote_url() and git_files() ignore directories that aren't repositories", {
+  dir <- withr::local_tempdir()
+
+  expect_null(git_remote_url(dir))
+  expect_equal(git_files(dir), character())
 })

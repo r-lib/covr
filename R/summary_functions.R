@@ -16,7 +16,22 @@ percent_coverage <- function(x, ...) {
     res <- collapse_lines(res)
   }
 
-  (sum(res$value > 0) / length(res$value)) * 100
+  percent_covered(res$value)
+}
+
+percent_covered <- function(x) {
+  sum(x > 0) / length(x) * 100
+}
+
+# The "high" (>= 90%), "mid" (>= 75%) or "low" level of a coverage percentage.
+coverage_level <- function(percent) {
+  if (percent >= 90) {
+    "high"
+  } else if (percent >= 75) {
+    "mid"
+  } else {
+    "low"
+  }
 }
 
 #' Tally coverage by line, expression, function or branch
@@ -242,12 +257,8 @@ drop_lines <- function(res, lines) {
   }
 
   lines <- utils::stack(lines)
-  keep <- setdiff.data.frame(
-    res,
-    lines,
-    by.x = c("filename", "line"),
-    by.y = c("ind", "values")
-  )
+  keep <- !do.call(paste, c(res[c("filename", "line")], sep = "\30")) %in%
+    do.call(paste, c(lines[c("ind", "values")], sep = "\30"))
   res[keep, ]
 }
 
@@ -319,15 +330,11 @@ zero_coverage <- function(x, ...) {
 
   if (
     getOption("covr.rstudio_source_markers", TRUE) &&
-      rstudioapi::hasFun("sourceMarkers")
+      rstudio_has_source_markers()
   ) {
-    markers <- markers(coverage_data)
-    rstudioapi::callFun(
-      "sourceMarkers",
-      name = "covr",
-      markers = markers,
-      basePath = attr(x, "package")$path,
-      autoSelect = "first"
+    rstudio_source_markers(
+      source_markers(coverage_data),
+      attr(x, "package")$path
     )
     invisible(res)
   } else {
@@ -381,9 +388,7 @@ print.coverage <- function(
   } else {
     df
   }
-  percents <- tapply(counted$value, counted[[group]], FUN = function(x) {
-    (sum(x > 0) / length(x)) * 100
-  })
+  percents <- tapply(counted$value, counted[[group]], FUN = percent_covered)
 
   overall_percentage <- percent_coverage(df, by = by)
   styles <- console_styles()
@@ -467,60 +472,26 @@ console_styles <- function() {
 }
 
 format_percentage <- function(x, styles = console_styles()) {
-  style <- if (x >= 90) {
-    styles$high
-  } else if (x >= 75) {
-    styles$mid
-  } else {
-    styles$low
-  }
-
-  style(sprintf("%02.2f%%", x))
+  styles[[coverage_level(x)]](sprintf("%02.2f%%", x))
 }
 
-markers <- function(x, ...) UseMethod("markers")
+rstudio_has_source_markers <- function() {
+  requireNamespace("rstudioapi", quietly = TRUE) &&
+    rstudioapi::hasFun("sourceMarkers")
+}
 
-#' @export
-markers.coverages <- function(x, ...) {
-  mrks <- unlist(lapply(unname(x), markers), recursive = FALSE)
-
-  mrks <- mrks[order(
-    vcapply(mrks, `[[`, "file"),
-    viapply(mrks, `[[`, "line"),
-    vcapply(mrks, `[[`, "message")
-  )]
-
-  # request source markers
+rstudio_source_markers <- function(markers, base_path) {
   rstudioapi::callFun(
     "sourceMarkers",
     name = "covr",
-    markers = mrks,
-    basePath = NULL,
+    markers = markers,
+    basePath = base_path,
     autoSelect = "first"
   )
-  invisible()
-}
-#' @export
-markers.coverage <- function(x, ...) {
-  # generate the markers
-  markers <- lapply(unname(x), function(xx) {
-    filename <- get_source_filename(xx$srcref, full.names = TRUE)
-
-    list(
-      type = "warning",
-      file = filename,
-      line = xx$srcref[1],
-      column = xx$srcref[2],
-      message = sprintf("No %s Coverage!", to_title(attr(x, "type")))
-    )
-  })
 }
 
-#' @export
-markers.data.frame <- function(x, ..., type = "test") {
-  # nolint
-  # generate the markers
-  markers <- Map(
+source_markers <- function(x, type = "test") {
+  Map(
     function(filename, line, column) {
       list(
         type = "warning",

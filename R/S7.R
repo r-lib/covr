@@ -2,7 +2,7 @@ replacements_S7 <- function(env) {
   bindings <- unlist(
     recursive = FALSE,
     use.names = FALSE,
-    eapply(env, all.names = TRUE, function(obj) {
+    eapply_inactive(env, function(obj) {
       if (inherits(obj, "S7_generic")) {
         traverse_S7_generic(obj)
       } else if (inherits(obj, "S7_class")) {

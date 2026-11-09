@@ -14,6 +14,68 @@ test_that("package_coverage returns an error if the type is incorrect", {
   )
 })
 
+test_that("package_coverage requires 'all' and 'none' to be the only type", {
+  expect_snapshot(error = TRUE, {
+    package_coverage("TestPrint", type = c("all", "tests"))
+    package_coverage("TestPrint", type = c("none", "tests"))
+  })
+})
+
+test_that("package_coverage(combine_types = FALSE) works with local variables", {
+  f <- function() {
+    pkg <- test_path("TestSummary")
+    package_coverage(pkg, type = c("tests", "examples"), combine_types = FALSE)
+  }
+  cov <- f()
+  expect_s3_class(cov, "coverages")
+  expect_named(cov, c("tests", "examples"))
+  expect_equal(attr(cov$examples, "type"), "examples")
+})
+
+test_that("package_coverage errors if the package can't be installed", {
+  pkg <- withr::local_tempdir()
+  dir.create(file.path(pkg, "R"))
+  writeLines(
+    c(
+      "Package: TestBroken",
+      "Version: 0.0.1",
+      "Title: Broken",
+      "Description: Does not install.",
+      "License: GPL-3"
+    ),
+    file.path(pkg, "DESCRIPTION")
+  )
+  writeLines("x <- (", file.path(pkg, "R", "broken.R"))
+
+  expect_error(package_coverage(pkg, type = "none"), "Can't install TestBroken")
+})
+
+test_that("package_coverage reports errors in `code` with a covr_error", {
+  expect_error(
+    package_coverage("TestS4", type = "none", code = "stop('boom')"),
+    "boom",
+    class = "covr_error"
+  )
+})
+
+test_that("package_coverage(clean = FALSE) keeps the installed library", {
+  install_path <- tempfile("R_LIBS")
+  on.exit(unlink(install_path, recursive = TRUE), add = TRUE)
+
+  cov <- package_coverage(
+    "TestS4",
+    type = "none",
+    clean = FALSE,
+    install_path = install_path
+  )
+
+  expect_equal(
+    normalize_path(attr(cov, "library")),
+    normalize_path(install_path)
+  )
+  expect_contains(list.files(install_path), "TestS4")
+})
+
 test_that("package_coverage can return just tests and vignettes", {
   cov <- package_coverage(
     "TestPrint",

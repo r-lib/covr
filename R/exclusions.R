@@ -18,14 +18,13 @@
 #'
 #' In addition you can exclude lines from the coverage by putting special comments
 #' in your source code. This can be done per line or by specifying a range.
-#' The patterns used can be specified by the `exclude_pattern`, `exclude_start`,
-#' `exclude_end` arguments to `package_coverage()` or by setting the global
-#' options `covr.exclude_pattern`, `covr.exclude_start`, `covr.exclude_end`.
+#' The patterns used can be specified by setting the global options
+#' `covr.exclude_pattern`, `covr.exclude_start`, `covr.exclude_end`.
 
 #' @examples
 #' \dontrun{
 #' # exclude whole file of R/test.R
-#' package_coverage(exclusions = "R/test.R")
+#' package_coverage(line_exclusions = list("R/test.R"))
 #'
 #' # exclude lines 1 to 10 and 15 from R/test.R
 #' package_coverage(line_exclusions = list("R/test.R" = c(1:10, 15)))
@@ -53,22 +52,13 @@ exclude <- function(
   coverage,
   line_exclusions = NULL,
   function_exclusions = NULL,
-  exclude_pattern = getOption("covr.exclude_pattern"),
-  exclude_start = getOption("covr.exclude_start"),
-  exclude_end = getOption("covr.exclude_end"),
   path = NULL
 ) {
   sources <- traced_files(coverage)
 
   source_exclusions <- Map(
     function(x, file) {
-      parse_exclusions(
-        x$file_lines,
-        exclude_pattern,
-        exclude_start,
-        exclude_end,
-        file = file
-      )
+      parse_exclusions(x$file_lines, file = file)
     },
     sources,
     names(sources)
@@ -134,16 +124,13 @@ exclude <- function(
 
 excluded_lines <- function(df, excl) {
   files <- unique(df[c("filename", "full_name")])
-  lines <- lapply(files$full_name, function(file) {
-    lines <- excl[[file]]
-    if (identical(lines, Inf)) NULL else lines
-  })
+  lines <- lapply(files$full_name, function(file) excl[[file]])
   compact(setNames(lines, files$filename))
 }
 
 parse_exclusions <- function(
   lines,
-  exclude_pattern = getOption("covr.exclude"),
+  exclude_pattern = getOption("covr.exclude_pattern"),
   exclude_start = getOption("covr.exclude_start"),
   exclude_end = getOption("covr.exclude_end"),
   file = NULL
@@ -180,17 +167,6 @@ parse_exclusions <- function(
   exclusions <- c(exclusions, which(rex::re_matches(lines, exclude_pattern)))
 
   sort(unique(exclusions))
-}
-
-file_exclusions <- function(x, path = NULL) {
-  excl <- normalize_exclusions(x, path)
-
-  full_files <- vlapply(excl, function(x1) length(x1) == 1 && x1 == Inf)
-  if (any(full_files)) {
-    names(excl)[full_files]
-  } else {
-    NULL
-  }
 }
 
 normalize_exclusions <- function(x, path = NULL) {

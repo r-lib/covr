@@ -1,7 +1,7 @@
 replacements_box <- function(env) {
   unlist(
     recursive = FALSE,
-    eapply(env, all.names = TRUE, function(obj) {
+    eapply_inactive(env, function(obj) {
       if (inherits(attr(obj, "spec"), "box$mod_spec")) {
         obj_impl <- attr(obj, "namespace")
         compact(

@@ -90,27 +90,13 @@ shiny_app_coverage <- function(
   )
 
   counters <- as.list(.counters)
-  trace_files <- list.files(
-    trace_dir,
-    pattern = "^covr_trace_",
-    full.names = TRUE
-  )
-  if (length(trace_files) > 0) {
-    counters <- merge_coverage(list(counters, merge_coverage(trace_files)))
-  }
+  counters <- merge_traces(trace_dir, counters)
 
-  unsaved <- unsaved_traces(trace_dir)
-  if (length(unsaved) > 0) {
-    n <- length(unsaved)
-    covr_warn(
-      c(
-        "Can't find coverage from {n} R process{?es} that ran the Shiny app.",
-        i = "Coverage is lost if a process is killed or outlives the tests.",
-        i = "Did a test leave an app running? Stop it with {.code app$stop()}."
-      ),
-      class = "covr_unsaved_trace"
-    )
-  }
+  warn_unsaved_traces(
+    trace_dir,
+    "ran the Shiny app",
+    "Did a test leave an app running? Stop it with {.code app$stop()}."
+  )
 
   exclude(
     as_coverage(counters, root = app_dir),

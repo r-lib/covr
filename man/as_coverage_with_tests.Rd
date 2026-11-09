@@ -8,8 +8,7 @@ as_coverage_with_tests(counters)
 }
 \arguments{
 \item{counters}{An environment of covr trace results to convert to a coverage
-object. If \code{counters} is not provided, the \code{covr} namespace value
-\code{.counters} is used.}
+object.}
 }
 \description{
 For tests produced with \code{options(covr.record_tests)}, prune any unused

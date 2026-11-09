@@ -23,5 +23,5 @@ azure(
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }
 \description{
-Run covr on a package and output the result so it is available on Azure Pipelines
+Deprecated. Use \code{\link[=to_cobertura]{to_cobertura()}}, which this function calls, instead.
 }

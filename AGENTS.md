@@ -29,6 +29,8 @@ R_LIBS="$lib" Rscript -e 'covr::report(covr::package_coverage())'
 
 If you do shim your working tree, run `sh unshim_package.sh` before committing. `git archive HEAD` only includes committed changes, so commit (or copy the files) first if you want to measure uncommitted work.
 
+When covr measures itself you will see `Can't find coverage from 1 R process that loaded covrShim`. This is expected: the SIGKILL test in `test-covr.R` ("package_coverage warns about processes that did not save a trace") starts a child R that loads the inner `TestSummary` hooks, which load the outer, instrumented `covrShim` (writing a `covr_pending_<pid>_*` marker to the outer install dir) before the child kills itself, so that child's `covrShim` coverage is lost by design.
+
 ### Running on Windows
 
 Windows behaves differently in ways that matter to covr, e.g. `normalizePath()` turns a relative path that doesn't exist into an absolute one under the working directory, so check path handling there rather than relying on CI. From WSL, Windows R installed with rig can be run directly, e.g. `/mnt/c/Users/<user>/.local/bin/Rscript.exe` and `R.exe` (`rig list` shows the versions):

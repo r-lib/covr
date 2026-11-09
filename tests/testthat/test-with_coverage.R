@@ -72,6 +72,45 @@ test_that("with_coverage() supports exclusions", {
   expect_false(3 %in% as.data.frame(cov)$first_line)
 })
 
+test_that("environment_coverage() runs test files against env", {
+  env <- local_fixture_env()
+  test_file <- withr::local_tempfile(lines = "add(1, 2)", fileext = ".R")
+
+  cov <- environment_coverage(env, test_file)
+
+  expect_s3_class(cov, "coverage")
+  expect_equal(as.data.frame(cov)$value, c(1, 1, 0))
+})
+
+test_that("environment_coverage() supports exclusions", {
+  env <- local_fixture_env()
+  test_file <- withr::local_tempfile(
+    lines = c("add(1, 2)", "add(-1, 2)"),
+    fileext = ".R"
+  )
+
+  cov <- environment_coverage(
+    env,
+    test_file,
+    line_exclusions = structure(list(3), names = attr(env, "src"))
+  )
+  expect_false(3 %in% as.data.frame(cov)$first_line)
+
+  cov <- environment_coverage(env, test_file, function_exclusions = "^add$")
+  expect_equal(length(cov), 0)
+})
+
+test_that("environment_coverage() restores env and counters", {
+  env <- local_fixture_env()
+  original <- body(env$add)
+  test_file <- withr::local_tempfile(lines = "add(1, 2)", fileext = ".R")
+
+  environment_coverage(env, test_file)
+
+  expect_identical(body(env$add), original)
+  expect_length(ls(.counters), 0)
+})
+
 test_that("with_coverage() restores functions and counters on success", {
   env <- local_fixture_env()
   original <- body(env$add)

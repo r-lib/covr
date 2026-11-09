@@ -101,9 +101,6 @@ to_cobertura <- function(cov, filename = "cobertura.xml") {
   }
 
   files <- unique(file_lines$filename)
-  #for (f in files){
-  #xml2::xml_add_child(sources, "source", f)
-  #}
 
   # Add packages
   packages <- xml2::xml_add_child(top, "packages")
