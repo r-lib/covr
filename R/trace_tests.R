@@ -635,6 +635,15 @@ in_caller_body <- function(n, call) {
 #'   `covr:::count` or `covr:::count_and_record`.
 #'
 is_covr_count_call <- function(expr) {
+  if (identical(expr[[1]], .Call)) {
+    return(
+      length(expr) > 1L &&
+        identical(
+          expr[[2]],
+          call(":::", as.symbol("covr"), as.symbol("covr_count"))
+        )
+    )
+  }
   # Constructed by hand like in `trace_calls()`, to avoid a NOTE from R CMD
   # check
   identical(expr[[1]], call(":::", as.symbol("covr"), as.symbol("count"))) ||

@@ -6,15 +6,15 @@ test_that("one-line functions are traced correctly", {
   fun <- function(x) x + 1
 
   expect_equal(
-    as.character(body(trace_calls(fun))[[3]][[2]][[1]]),
-    c(":::", "covr", "count")
+    as.character(body(trace_calls(fun))[[3]][[2]][[2]]),
+    c(":::", "covr", "covr_count")
   )
 
   fun <- function() 1
 
   expect_equal(
-    as.character(body(trace_calls(fun))[[3]][[2]][[1]]),
-    c(":::", "covr", "count")
+    as.character(body(trace_calls(fun))[[3]][[2]][[2]]),
+    c(":::", "covr", "covr_count")
   )
 
   expect_equal(body(trace_calls(fun))[[3]][[3]], body(fun))
@@ -27,8 +27,8 @@ test_that("one-line functions with no calls are traced correctly", {
   fun <- function(x) x
 
   expect_equal(
-    as.character(body(trace_calls(fun))[[3]][[2]][[1]]),
-    c(":::", "covr", "count")
+    as.character(body(trace_calls(fun))[[3]][[2]][[2]]),
+    c(":::", "covr", "covr_count")
   )
 
   expect_equal(body(trace_calls(fun))[[3]][[3]], body(fun))
@@ -43,8 +43,8 @@ test_that("one-line functions with braces are traced correctly", {
   }
 
   expect_equal(
-    as.character(body(trace_calls(fun))[[2]][[3]][[2]][[1]]),
-    c(":::", "covr", "count")
+    as.character(body(trace_calls(fun))[[2]][[3]][[2]][[2]]),
+    c(":::", "covr", "covr_count")
   )
 
   expect_equal(body(trace_calls(fun))[[2]][[3]][[3]], body(fun)[[2]])
@@ -62,7 +62,7 @@ test_that("one-line functions with no calls and braces are traced correctly", {
   e2 <- body(trace_calls(fun))[[2]][[3]]
   expect_true(
     length(e2) > 1 &&
-      identical(as.character(e2[[2]][[1]]), c(":::", "covr", "count"))
+      identical(as.character(e2[[2]][[2]]), c(":::", "covr", "covr_count"))
   )
 
   fun <- function(x) {
@@ -74,7 +74,7 @@ test_that("one-line functions with no calls and braces are traced correctly", {
   # the second expr should be a block
   expect_true(
     length(e2) > 1 &&
-      identical(as.character(e2[[2]][[1]]), c(":::", "covr", "count"))
+      identical(as.character(e2[[2]][[2]]), c(":::", "covr", "covr_count"))
   )
 })
 
@@ -97,7 +97,7 @@ test_that("last evaled expression is traced", {
   e3 <- body[[3]][[3]]
   expect_true(
     length(e3) > 1 &&
-      identical(as.character(e3[[2]][[1]]), c(":::", "covr", "count"))
+      identical(as.character(e3[[2]][[2]]), c(":::", "covr", "covr_count"))
   )
 })
 
@@ -124,8 +124,8 @@ test_that("functions with curly curly syntax are traced correctly", {
   expect_equal(as.character(body(my_capture2)[[2]][[1]]), "if")
   expect_equal(as.character(body(my_capture2)[[2]][[3]][[1]]), "{")
   expect_equal(
-    as.character(body(my_capture2)[[2]][[3]][[2]][[1]]),
-    c(":::", "covr", "count")
+    as.character(body(my_capture2)[[2]][[3]][[2]][[2]]),
+    c(":::", "covr", "covr_count")
   )
 
   # no trace in the internal {{  }}
@@ -174,6 +174,73 @@ stopifnot(foo(bar(1)) == 2)
 '
   )
   expect_equal(percent_coverage(cov), 100)
+})
+
+test_that("the C counter counts, survives retracing and resets", {
+  skip_on_cran()
+  clear_counters()
+  withr::defer(clear_counters())
+  env <- new.env()
+  env$f <- function(x) {
+    x + 1
+  }
+  original <- env$f
+  env$f <- trace_calls(original)
+  expect_true(is_traced(env$f))
+  env$f(1)
+  env$f(1)
+  sync_counts()
+  value <- function() {
+    unlist(lapply(as.list(.counters), `[[`, "value"))
+  }
+  expect_equal(unname(value()), rep(2, length(value())))
+
+  # Tracing again keeps the count of each trace (#641)
+  keys <- names(value())
+  ptrs <- mget(keys, envir = .count_ptrs)
+  env$g <- trace_calls(original)
+  expect_identical(mget(keys, envir = .count_ptrs), ptrs)
+  expect_equal(unname(value()[keys]), rep(2, length(keys)))
+
+  # A function serialized and unserialized, as when it's sent to another
+  # process, runs but doesn't count
+  h <- unserialize(serialize(env$f, NULL))
+  expect_equal(h(1), 2)
+  sync_counts()
+  expect_equal(unname(value()[keys]), rep(2, length(keys)))
+
+  env$f(1)
+  zero_counters()
+  sync_counts()
+  expect_equal(unname(value()), rep(0, length(value())))
+
+  # After clearing, a key keeps its count, so a function instrumented before
+  # still counts into its own trace once it is traced again
+  env$f(1)
+  clear_counters()
+  expect_length(.Call(covr_counter_take), 0L)
+  expect_length(ls(.counters), 0)
+  env$g <- trace_calls(original)
+  expect_identical(mget(keys, envir = .count_ptrs), ptrs)
+  env$f(1)
+  sync_counts()
+  expect_equal(unname(value()[keys]), rep(1, length(keys)))
+})
+
+test_that("a `.Call` where the traced function lives doesn't mask the counter", {
+  skip_on_cran()
+  clear_counters()
+  withr::defer(clear_counters())
+  env <- new.env()
+  env$.Call <- function(...) stop("the local `.Call` was called")
+  env$f <- eval(
+    parse(text = "function(x) {\n  x + 1\n}", keep.source = TRUE)[[1]],
+    env
+  )
+  f <- trace_calls(env$f)
+  expect_equal(f(1), 2)
+  sync_counts()
+  expect_equal(unname(unlist(eapply(.counters, `[[`, "value"))), 1)
 })
 
 test_that("primitive functions are not traced", {

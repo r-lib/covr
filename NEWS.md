@@ -1,5 +1,10 @@
 # covr (development version)
 
+* Code run to measure coverage is faster, as evaluated expressions are counted
+  in C rather than in R (about 6 times less overhead per expression). An
+  instrumented function sent to another process, e.g. a parallel worker, runs
+  there but isn't counted.
+
 * `report()`, `report_html()` and `file_report_html()` are much faster for
   large packages, as the source table is built as text rather than an
   htmltools tag per line (e.g. 6 minutes to a few seconds for Luminescence).
