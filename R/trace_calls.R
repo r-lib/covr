@@ -19,21 +19,26 @@ trace_calls <- function(
   impute_ref = NULL
 ) {
   # Construct the calls by hand to avoid a NOTE from R CMD check
-  count_fn <- if (isTRUE(getOption("covr.record_tests", FALSE))) {
-    "count_and_record"
-  } else {
-    "count"
-  }
+  record_tests <- isTRUE(getOption("covr.record_tests", FALSE))
   count <- function(key, val) {
-    call(
-      "if",
-      TRUE,
-      call(
-        "{",
-        as.call(list(call(":::", as.symbol("covr"), as.symbol(count_fn)), key)),
-        val
-      )
-    )
+    count_call <- if (record_tests) {
+      as.call(list(
+        call(":::", as.symbol("covr"), as.symbol("count_and_record")),
+        key
+      ))
+    } else {
+      # The `.Call` primitive itself rather than the symbol, so a `.Call`
+      # defined where the traced function lives can't mask it. Primitives are
+      # serialized by name; the external pointer to the count is NULL once
+      # unserialized, so a traced function sent to another process runs but
+      # doesn't count there.
+      as.call(list(
+        .Call,
+        call(":::", as.symbol("covr"), as.symbol("covr_count")),
+        .count_ptrs[[key]]
+      ))
+    }
+    call("if", TRUE, call("{", count_call, val))
   }
 
   if (is.null(parent_functions)) {
@@ -178,6 +183,32 @@ trace_calls <- function(
 .counters <- new.env(parent = emptyenv())
 .current_test <- new.env(parent = emptyenv())
 
+# Add the counts held in C (see `covr_count()`) to the values of the traces and
+# reset them. Call before reading the values of `.counters`.
+# An external pointer to each key's count in C, which instrumented code passes
+# to `covr_count()` (see src/count.c). A key keeps its count for the life of
+# the process, also after `clear_counters()`, so instrumented functions always
+# count into their own trace.
+.count_ptrs <- new.env(parent = emptyenv())
+
+register_count <- function(key) {
+  if (is.null(.count_ptrs[[key]])) {
+    .count_ptrs[[key]] <- .Call(covr_counter_add, key)
+  }
+  .count_ptrs[[key]]
+}
+
+sync_counts <- function() {
+  counts <- .Call(covr_counter_take)
+  for (key in names(counts)) {
+    if (!is.null(.counters[[key]]$value)) {
+      .counters[[key]]$value <- .counters[[key]]$value + counts[[key]]
+    }
+  }
+  invisible()
+}
+
+
 #' initialize a new counter
 #'
 #' @param src_ref a [base::srcref()]
@@ -189,6 +220,9 @@ new_counter <- function(src_ref, parent_functions) {
   # replaced in an environment that is traced again (#641).
   if (is.null(.counters[[key]]$value)) {
     .counters[[key]]$value <- 0
+  }
+  if (!isTRUE(getOption("covr.record_tests", FALSE))) {
+    register_count(key)
   }
   .counters[[key]]$srcref <- src_ref
   .counters[[key]]$functions <- parent_functions
@@ -229,7 +263,7 @@ is_traced <- function(fun) {
   x <- body(fun)
   # `all.names()` is fast, so only search functions that might be traced.
   nms <- all.names(x)
-  any(c("count", "count_and_record") %in% nms) &&
+  any(c("count", "count_and_record", "covr_count") %in% nms) &&
     "covr" %in% nms &&
     has_count_call(x)
 }
@@ -244,12 +278,14 @@ has_count_call <- function(x) {
 #'
 #' @keywords internal
 clear_counters <- function() {
+  .Call(covr_counter_reset)
   rm(envir = .counters, list = ls(envir = .counters))
   rm(envir = .current_test, list = ls(envir = .current_test))
 }
 
 # Set the counts of all traces to zero, keeping the traces themselves.
 zero_counters <- function() {
+  .Call(covr_counter_reset)
   for (key in setdiff(
     ls(.counters, all.names = TRUE),
     c("tests", "branches")

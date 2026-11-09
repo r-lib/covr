@@ -206,6 +206,7 @@ save_trace <- function(directory) {
   tmp_file <- temp_file(".covr_tmp_", tmpdir = directory)
   on.exit(unlink(tmp_file), add = TRUE)
 
+  sync_counts()
   tryCatch(
     save_rds(portable_srcfiles(.counters), tmp_file),
     error = function(e) {
@@ -432,6 +433,7 @@ warn_unsaved_traces <- function(directory, subject, hint) {
 collect_coverage <- function(code) {
   if (!should_enable_parallel_mcexit_fix()) {
     withr::with_envvar(c("R_COVR" = "true"), code)
+    sync_counts()
     return(as_coverage(.counters))
   }
 
@@ -445,6 +447,7 @@ collect_coverage <- function(code) {
 
   withr::with_envvar(c("R_COVR" = "true"), code)
 
+  sync_counts()
   counters <- as.list(.counters)
   as_coverage(merge_traces(trace_dir, counters))
 }

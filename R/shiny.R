@@ -89,6 +89,7 @@ shiny_app_coverage <- function(
     code
   )
 
+  sync_counts()
   counters <- as.list(.counters)
   counters <- merge_traces(trace_dir, counters)
 

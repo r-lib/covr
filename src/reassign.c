@@ -203,6 +203,10 @@ extern SEXP covr_is_unforced_promise(SEXP, SEXP);
 extern SEXP covr_weakref(SEXP);
 extern SEXP covr_weakref_key(SEXP);
 extern SEXP covr_has_closure(SEXP);
+extern SEXP covr_counter_add(SEXP);
+extern SEXP covr_count(SEXP);
+extern SEXP covr_counter_take(void);
+extern SEXP covr_counter_reset(void);
 
 static const R_CallMethodDef CallEntries[] = {
     {"covr_duplicate_", (DL_FUNC)&covr_duplicate_, 1},
@@ -212,6 +216,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"covr_weakref", (DL_FUNC)&covr_weakref, 1},
     {"covr_weakref_key", (DL_FUNC)&covr_weakref_key, 1},
     {"covr_has_closure", (DL_FUNC)&covr_has_closure, 1},
+    {"covr_counter_add", (DL_FUNC)&covr_counter_add, 1},
+    {"covr_count", (DL_FUNC)&covr_count, 1},
+    {"covr_counter_take", (DL_FUNC)&covr_counter_take, 0},
+    {"covr_counter_reset", (DL_FUNC)&covr_counter_reset, 0},
     {NULL, NULL, 0}};
 
 void R_init_covr(DllInfo *dll) {
