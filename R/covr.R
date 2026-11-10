@@ -170,6 +170,10 @@ the <- new.env(parent = emptyenv())
 the$replacements <- list()
 
 trace_environment <- function(env) {
+  old_dot_call <- the$dot_call
+  the$dot_call <- dot_call(env)
+  on.exit(the$dot_call <- old_dot_call)
+
   # Tracing an environment that is already traced, e.g. when
   # `pkgload::load_all()` re-fires the onLoad hook, keeps the counts and only
   # instruments the functions that are not instrumented yet, such as functions
@@ -196,6 +200,23 @@ trace_environment <- function(env) {
   the$traced_env <- env
 
   invisible(lapply(replacements, replace))
+}
+
+# The function that the counters added by `trace_calls()` call: the `.Call`
+# symbol, or `base::.Call` if a `.Call` function found from `env` would be
+# called in place of the primitive, e.g. one that a package defines to wrap
+# the calls to its compiled code, as parzer does. Checking this once for each
+# environment is cheaper than looking up `base::.Call` in every count. A
+# `.Call` that `.onLoad()` defines in a package that was instrumented when it
+# was installed is found too late, and masks the counters of the functions
+# that were instrumented then.
+dot_call <- function(env) {
+  fun <- get0(".Call", envir = env, mode = "function")
+  if (is.null(fun) || identical(fun, base::.Call)) {
+    as.symbol(".Call")
+  } else {
+    quote(base::.Call)
+  }
 }
 
 reset_traces <- function() {

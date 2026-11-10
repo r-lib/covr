@@ -17,14 +17,14 @@ traced_fixture_bodies <- function(
   setNames(lapply(bodies, function(x) as_r_count(strip_srcrefs(x))), names)
 }
 
-# Rewrite `base::.Call(pkg:::covr_count, key)` as `pkg:::count(key)`, the form
+# Rewrite `.Call(pkg:::covr_count, key)` as `pkg:::count(key)`, the form
 # instrumentation had before counting moved to C.
 as_r_count <- function(x) {
   if (!is.call(x)) {
     return(x)
   }
   if (
-    identical(x[[1]], call("::", as.symbol("base"), as.symbol(".Call"))) &&
+    identical(x[[1]], as.symbol(".Call")) &&
       is.call(x[[2]]) &&
       identical(x[[2]][[1]], as.symbol(":::")) &&
       identical(x[[2]][[3]], as.symbol("covr_count"))

@@ -310,8 +310,7 @@ test_that("the C counter grows to many keys of different encodings", {
   expect_equal(take(), setNames(1, ascii[1]))
 })
 
-test_that("a `.Call` where the traced function lives doesn't mask the counter", {
-  skip_on_cran()
+test_that("a `.Call` where the traced functions live doesn't mask the counter", {
   clear_counters()
   withr::defer(clear_counters())
   env <- new.env()
@@ -320,10 +319,26 @@ test_that("a `.Call` where the traced function lives doesn't mask the counter", 
     parse(text = "function(x) {\n  x + 1\n}", keep.source = TRUE)[[1]],
     env
   )
-  f <- trace_calls(env$f)
-  expect_equal(f(1), 2)
+  trace_environment(env)
+  withr::defer(reset_traces())
+  expect_equal(env$f(1), 2)
+  # Tracing again doesn't instrument the traced function again
+  trace_environment(env)
+  expect_equal(env$f(1), 2)
   sync_counts()
-  expect_equal(unname(unlist(eapply(.counters, `[[`, "value"))), 1)
+  # The local `.Call` is traced too, but never called
+  expect_equal(sort(unname(unlist(eapply(.counters, `[[`, "value")))), c(0, 2))
+})
+
+test_that("counters only call `base::.Call` where `.Call` is masked", {
+  env <- new.env(parent = baseenv())
+  expect_identical(dot_call(env), as.symbol(".Call"))
+  # Calls only find functions
+  env$.Call <- 1
+  expect_identical(dot_call(env), as.symbol(".Call"))
+  env$.Call <- function(...) base::.Call(...)
+  expect_identical(dot_call(env), quote(base::.Call))
+  expect_identical(dot_call(new.env(parent = env)), quote(base::.Call))
 })
 
 test_that("instrumented code has no function objects in it", {
