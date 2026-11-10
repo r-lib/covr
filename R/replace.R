@@ -23,6 +23,11 @@ replacement <- function(
       return(NULL)
     }
 
+    # The `.Call` the counters call, for `trace_calls()`
+    old_dot_call <- the$dot_call
+    the$dot_call <- dot_call(environment(traced))
+    on.exit(the$dot_call <- old_dot_call)
+
     if (is.null(inner)) {
       new_value <- trace_calls(target_value, name)
       attributes(body(new_value)) <- attributes(body(target_value))

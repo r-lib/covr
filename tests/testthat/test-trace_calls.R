@@ -330,6 +330,17 @@ test_that("a `.Call` where the traced functions live doesn't mask the counter", 
   expect_equal(sort(unname(unlist(eapply(.counters, `[[`, "value")))), c(0, 2))
 })
 
+test_that("a `.Call` where a function lives doesn't mask the counters of function_coverage()", {
+  env <- new.env()
+  env$.Call <- function(...) stop("the local `.Call` was called")
+  env$f <- eval(
+    parse(text = "function(x) {\n  x + 1\n}", keep.source = TRUE)[[1]],
+    env
+  )
+  cov <- function_coverage("f", env$f(1), env = env)
+  expect_equal(as.data.frame(cov)$value, 1)
+})
+
 test_that("counters only call `base::.Call` where `.Call` is masked", {
   env <- new.env(parent = baseenv())
   expect_identical(dot_call(env), as.symbol(".Call"))

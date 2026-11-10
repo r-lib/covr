@@ -171,8 +171,9 @@ instrument_installed_package <- function(pkg_name, lib, compile = TRUE) {
   # Whether a `.Call` that `.onLoad()` defines would mask the saved counters,
   # for `restore_counters()`. Byte-compiled code calls the `.Call` primitive
   # directly, as the compiler inlines base functions that the namespace
-  # doesn't define.
+  # doesn't define, and counters that record tests don't call `.Call`.
   attr(counters, "maskable") <- !compiled &&
+    !isTRUE(getOption("covr.record_tests", FALSE)) &&
     identical(dot_call(ns), as.symbol(".Call"))
   saveRDS(counters, counters_file)
   done <- TRUE
