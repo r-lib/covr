@@ -29,6 +29,17 @@
       pkg Coverage: 33.33%
       ... and 1 more file; use `print(x, n = Inf)` to show all
 
+# print.coverage keeps the rows apart when a long name wraps
+
+    Code
+      print(cov, group = "functions")
+    Message
+      pkg Coverage: 33.33%
+      aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:
+      0.00%
+      h: 0.00%
+      g: 100.00%
+
 # print.coverages prints the coverage of each type
 
     Code

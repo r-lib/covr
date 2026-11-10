@@ -122,24 +122,49 @@ tally_lines <- function(df, x) {
     ))
   }
 
-  # results with NA functions (such as from compiled code) are dropped
-  # unless NA is a level.
-  df$functions <- addNA(df$functions)
   res <- innermost_lines(df)
 
-  res <- aggregate(
-    value ~ filename + functions + line,
-    data = res,
-    FUN = min,
-    na.action = na.pass
-  )
-  res$functions <- as.character(res$functions)
+  # The smallest count of each function on each line, sorted by file, line and
+  # function, with compiled code (`NA` functions) last.
+  file <- collation_rank(res$filename)
+  functions <- collation_rank(res$functions)
+  ord <- order(file, res$line, functions, !is.na(res$value), res$value)
+  first <- run_starts(list(file[ord], res$line[ord], functions[ord]))
+  res <- res[ord[first], c("filename", "functions", "line", "value")]
 
   if (inherits(x, "coverage")) {
     res <- drop_lines(res, non_code_lines(x))
     res <- drop_lines(res, attr(x, "excluded_lines"))
   }
-  res[order(res$filename, res$line), ]
+  rownames(res) <- NULL
+  res
+}
+
+# The rank of each element of `x` in `sort(unique(x))`, so that ordering the
+# ranks orders `x` as `order()` would, but can use the faster radix sort.
+collation_rank <- function(x) {
+  match(x, sort(unique(x)))
+}
+
+# Whether each element of the sorted `keys`, a list of vectors of the same
+# length, starts a run of equal keys. `NA`s are equal to each other.
+run_starts <- function(keys) {
+  n <- length(keys[[1]])
+  starts <- rep(TRUE, n)
+  if (n < 2) {
+    return(starts)
+  }
+  same <- rep(TRUE, n - 1)
+  for (key in keys) {
+    prev <- key[-n]
+    cur <- key[-1]
+    eq <- prev == cur
+    na <- is.na(eq)
+    eq[na] <- is.na(prev[na]) & is.na(cur[na])
+    same <- same & eq
+  }
+  starts[-1] <- !same
+  starts
 }
 
 # Expands each expression to the lines it spans, keeping on each line only the
@@ -158,11 +183,13 @@ innermost_lines <- function(df) {
 
   # Expressions with the same range, such as identical code in two functions,
   # don't contain each other, so they share a node.
-  node <- paste(df$filename, start, end, sep = "\r")
-  nodes <- unique(node)
-  id <- match(node, nodes)
-  first <- match(seq_along(nodes), id)
-  parent <- nesting_parents(df$filename[first], start[first], end[first])
+  file <- match(df$filename, unique(df$filename))
+  ord <- order(file, start, end)
+  new_node <- run_starts(list(file[ord], start[ord], end[ord]))
+  id <- integer(length(ord))
+  id[ord] <- cumsum(new_node)
+  first <- ord[new_node]
+  parent <- nesting_parents(file[first], start[first], end[first])
 
   # Lines of each node that a node directly inside it is on.
   child <- which(!is.na(parent))
@@ -217,14 +244,9 @@ expand_range <- function(first, last) {
 # lines, comments and lines with only punctuation, such as `}` or `} else {`
 # (#387).
 non_code_lines <- function(x) {
+  pattern <- "^[[:space:]]*(?:#.*)?$|^(?:[[:punct:][:space:]]|else)*$"
   compact(lapply(traced_files(x), function(file) {
-    which(
-      rex::re_matches(
-        file$file_lines,
-        rex::rex(start, any_spaces, maybe("#", anything), end)
-      ) |
-        rex::re_matches(file$file_lines, "^(?:[[:punct:][:space:]]|else)*$")
-    )
+    which(grepl(pattern, file$file_lines, perl = TRUE))
   }))
 }
 
@@ -240,26 +262,28 @@ collapse_lines <- function(lines) {
       stringsAsFactors = FALSE
     ))
   }
-  res <- aggregate(
-    value ~ filename + line,
-    data = lines,
-    FUN = min,
-    na.action = na.pass
-  )
-  res[order(res$filename, res$line), ]
+  file <- collation_rank(lines$filename)
+  ord <- order(file, lines$line, !is.na(lines$value), lines$value)
+  first <- run_starts(list(file[ord], lines$line[ord]))
+  res <- lines[ord[first], c("filename", "line", "value")]
+  rownames(res) <- NULL
+  res
 }
 
 # Drops the rows of `res` for the lines in `lines`, a list of line numbers named
 # by filename.
 drop_lines <- function(res, lines) {
-  if (!length(lines)) {
+  if (!length(lines) || !NROW(res)) {
     return(res)
   }
 
-  lines <- utils::stack(lines)
-  keep <- !do.call(paste, c(res[c("filename", "line")], sep = "\30")) %in%
-    do.call(paste, c(lines[c("ind", "values")], sep = "\30"))
-  res[keep, ]
+  files <- unique(names(lines))
+  max_line <- max(res$line, unlist(lines)) + 1
+  drop <- rep(match(names(lines), files), lengths(lines)) *
+    max_line +
+    unlist(lines, use.names = FALSE)
+  keep <- !(match(res$filename, files) * max_line + res$line) %in% drop
+  res[keep, , drop = FALSE]
 }
 
 # Accepts the output of tally_coverage() by expression, line or function.
@@ -447,15 +471,17 @@ print.coverage <- function(
     missed_branches_by(branches, group)
   }
 
-  for (i in seq_len(min(n, length(by_coverage)))) {
-    msg <- cli::format_message(
-      paste0(
-        cli::style_bold(names(by_coverage)[i], ": "),
-        format_percentage(by_coverage[i], styles)
-      )
+  shown <- by_coverage[seq_len(min(n, length(by_coverage)))]
+  msgs <- format_messages(
+    paste0(
+      cli::style_bold(names(shown), ": "),
+      vcapply(shown, format_percentage, styles = styles)
     )
+  )
+  for (i in seq_along(shown)) {
+    msg <- msgs[[i]]
     # Outside of format_message(), which would collapse the spaces.
-    name <- names(by_coverage)[i]
+    name <- names(shown)[i]
     if (name %in% names(missed)) {
       msg <- paste0(msg, "  missed ", missed[[name]])
     }
@@ -477,6 +503,28 @@ print.coverage <- function(
     )
   }
   invisible(x)
+}
+
+# `cli::format_message()` of each element of `lines`. Formatting them as one
+# text with `\f` (a line break for cli) between them is much faster, but only
+# possible when no line is wrapped, as otherwise the output can't be split back
+# into the lines.
+format_messages <- function(lines, .envir = parent.frame()) {
+  if (!length(lines)) {
+    return(character())
+  }
+  text <- paste(lines, collapse = "\f")
+  res <- strsplit(cli::format_message(text, .envir = .envir), "\n")[[1]]
+  if (length(res) != length(lines)) {
+    res <- vapply(
+      lines,
+      cli::format_message,
+      character(1),
+      .envir = .envir,
+      USE.NAMES = FALSE
+    )
+  }
+  res
 }
 
 # The missed ranges of each file or function, a named character vector. `df` is

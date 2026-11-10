@@ -62,32 +62,21 @@ as.data.frame.coverage <- function(
     res$filename <- display_name(x)
     res$functions <- vcapply(x, function(xx) xx$functions[1])
 
-    vals <- t(vapply(
+    vals <- vapply(
       x,
       function(xx) c(xx$srcref, xx$value),
       numeric(9),
       USE.NAMES = FALSE
-    ))
-    for (i in seq_len(NCOL(vals))) {
-      res[[i + 2]] <- vals[, i]
+    )
+    for (i in seq_len(NROW(vals))) {
+      res[[i + 2]] <- vals[i, ]
     }
   }
 
   df <- data.frame(res, stringsAsFactors = FALSE, check.names = FALSE)
 
   if (sort) {
-    # if we are sorting we no longer need to preserve the order of the input and can merge values together
     df <- merge_values(df)
-
-    df <- df[
-      order(
-        df$filename,
-        df$first_line,
-        df$first_byte,
-        df$last_line,
-        df$last_byte
-      ),
-    ]
   }
 
   rownames(df) <- NULL
@@ -95,14 +84,29 @@ as.data.frame.coverage <- function(
   df
 }
 
-merge_values <- function(x, sentinel = "___NA___") {
+# Sums the values of the rows with the same file, function and position, and
+# sorts them by file and position. The remaining keys order rows at the same
+# position as earlier versions of covr did.
+merge_values <- function(x) {
   if (NROW(x) == 0) {
     return(x)
   }
-  # We can't use aggregate directly, because it doesn't allow missing values in
-  # grouping variables...
-  x$functions[is.na(x$functions)] <- sentinel
-  res <- aggregate(value ~ ., x, sum)
-  res$functions[res$functions == sentinel] <- NA_character_
-  res
+  keys <- list(
+    collation_rank(x$filename),
+    x$first_line,
+    x$first_byte,
+    x$last_line,
+    x$last_byte,
+    x$last_parsed,
+    x$first_parsed,
+    x$last_column,
+    x$first_column,
+    collation_rank(x$functions)
+  )
+  ord <- do.call(order, keys)
+  first <- run_starts(lapply(keys, function(key) key[ord]))
+  value <- rowsum(x$value[ord], cumsum(first), reorder = FALSE)
+  x <- x[ord[first], ]
+  x$value <- as.vector(value)
+  x
 }

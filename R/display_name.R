@@ -9,8 +9,10 @@ display_name <- function(x) {
     return()
   }
 
+  # Faster than getSrcFilename(), which matters for large coverage objects.
   filenames <- vcapply(x, function(x) {
-    get_source_filename(x$srcref, full.names = TRUE)
+    filename <- attr(x$srcref, "srcfile")$filename
+    if (length(filename)) filename else ""
   })
   to_relative_path(filenames, attr(x, "root"))
 }
