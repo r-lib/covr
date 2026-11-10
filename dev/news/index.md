@@ -2,6 +2,17 @@
 
 ## covr (development version)
 
+- [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md),
+  and so
+  [`percent_coverage()`](https://covr.r-lib.org/dev/reference/percent_coverage.md),
+  [`zero_coverage()`](https://covr.r-lib.org/dev/reference/zero_coverage.md),
+  [`coverage_to_list()`](https://covr.r-lib.org/dev/reference/coverage_to_list.md)
+  and the reports, are about 4 times faster for large coverage objects,
+  and [`print()`](https://rdrr.io/r/base/print.html) about 8 times
+  faster (e.g. 0.16 s rather than 0.7 s, and 0.18 s rather than 1.4 s,
+  for Luminescence). The rows of `tally_coverage(by = "line")` are now
+  numbered from 1 ([\#745](https://github.com/r-lib/covr/issues/745)).
+
 - New
   [`annotate_coverage()`](https://covr.r-lib.org/dev/reference/annotate_coverage.md)
   shows the source of the missed lines, or any other lines, as plain
