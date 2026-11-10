@@ -245,9 +245,13 @@ expand_range <- function(first, last) {
 # lines, comments and lines with only punctuation, such as `}` or `} else {`
 # (#387).
 non_code_lines <- function(x) {
-  pattern <- "^[[:space:]]*(?:#.*)?$|^(?:[[:punct:][:space:]]|else)*$"
+  blank_or_comment <- rex::rex(start, any_spaces, maybe("#", anything), end)
+  punctuation <- "^(?:[[:punct:][:space:]]|else)*$"
   compact(lapply(traced_files(x), function(file) {
-    which(grepl(pattern, file$file_lines, perl = TRUE))
+    which(
+      rex::re_matches(file$file_lines, blank_or_comment) |
+        rex::re_matches(file$file_lines, punctuation)
+    )
   }))
 }
 
