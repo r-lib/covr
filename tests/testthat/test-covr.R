@@ -614,6 +614,86 @@ test_that("save_trace does not copy active bindings or unforced promises of srcf
   expect_equal(copy$lines, "f <- function() 1")
 })
 
+test_that("traces of processes that restored saved counters are merged with them", {
+  clear_counters()
+  withr::defer(clear_counters())
+  withr::defer(the$traced_env <- NULL)
+  src <- srcfilecopy("a.R", c("x", "y"))
+  counters <- new.env()
+  counters[["a.R:1"]] <- list(
+    value = 0,
+    srcref = srcref(src, c(1, 1, 1, 1)),
+    functions = "f"
+  )
+  counters[["a.R:2"]] <- list(
+    value = 0,
+    srcref = srcref(src, c(2, 1, 2, 1)),
+    functions = "f"
+  )
+  file <- withr::local_tempfile()
+  saveRDS(portable_srcfiles(counters), file)
+  restore_counters(new.env(), file)
+  dir <- withr::local_tempdir()
+
+  # A function instrumented when the package is loaded
+  b <- srcfilecopy("b.R", "z")
+  key_b <- new_counter(srcref(b, c(1, 1, 1, 1)), "g")
+  .Call(covr_count, "a.R:1")
+  .Call(covr_count, key_b)
+  save_trace(dir)
+  zero_counters()
+  .Call(covr_count, "a.R:1")
+  .Call(covr_count, "a.R:1")
+  save_trace(dir)
+
+  merged <- merge_coverage(list.files(dir, full.names = TRUE))
+  values <- vapply(merged, function(x) x$value, numeric(1))
+  expect_equal(
+    values[sort(names(values), method = "radix")],
+    stats::setNames(c(3, 0, 1), c("a.R:1", "a.R:2", key_b))
+  )
+  expect_equal(
+    getSrcLines(attr(merged[["a.R:2"]]$srcref, "srcfile"), 2, 2),
+    "y"
+  )
+  expect_equal(merged[[key_b]]$functions, "g")
+})
+
+test_that("saved counters are merged if no process counted any of them", {
+  clear_counters()
+  withr::defer(clear_counters())
+  withr::defer(the$traced_env <- NULL)
+  src <- srcfilecopy("a.R", "x")
+  counters <- new.env()
+  counters[["a.R:1"]] <- list(
+    value = 0,
+    srcref = srcref(src, c(1, 1, 1, 1)),
+    functions = "f"
+  )
+  file <- withr::local_tempfile()
+  saveRDS(portable_srcfiles(counters), file)
+  restore_counters(new.env(), file)
+
+  merged <- merge_coverage(save_trace(withr::local_tempdir()))
+  expect_named(merged, "a.R:1")
+  expect_equal(merged[["a.R:1"]]$value, 0)
+})
+
+test_that("merge_coverage reports a missing file of saved counters", {
+  clear_counters()
+  withr::defer(clear_counters())
+  withr::defer(the$traced_env <- NULL)
+  counters <- new.env()
+  counters[["a.R:1"]] <- list(value = 0, functions = "f")
+  file <- withr::local_tempfile()
+  saveRDS(counters, file)
+  restore_counters(new.env(), file)
+  trace <- save_trace(withr::local_tempdir())
+  unlink(file)
+
+  expect_error(merge_coverage(trace), "incomplete", class = "covr_error")
+})
+
 test_that("save_trace errors if the trace file can't be written", {
   local_mocked_bindings(save_rds = function(object, file) NULL)
   dir <- file.path(withr::local_tempdir(), "missing")

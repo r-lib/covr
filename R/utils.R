@@ -87,16 +87,9 @@ traced_files <- function(x) {
   # The (concatenated) source is shared by many files, so read and split it
   # once per original srcfile rather than once per file.
   originals <- new.env(parent = emptyenv())
-  for (i in seq_along(x)) {
+  for (i in which(filenames != "" & !duplicated(filenames))) {
     src_file <- attr(x[[i]]$srcref, "srcfile")
     filename <- filenames[[i]]
-
-    if (filename == "") {
-      next
-    }
-    if (!is.null(res[[filename]])) {
-      next
-    }
 
     id <- address(src_file$original %||% src_file)
     source <- originals[[id]]

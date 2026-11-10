@@ -199,9 +199,12 @@ register_count <- function(key) {
 # before reading the values of `.counters`.
 sync_counts <- function() {
   counts <- .Call(covr_counter_take)
-  for (key in names(counts)) {
+  keys <- names(counts)
+  # By position, as looking up each count by name takes quadratic time
+  for (i in seq_along(counts)) {
+    key <- keys[[i]]
     if (!is.null(.counters[[key]]$value)) {
-      .counters[[key]]$value <- .counters[[key]]$value + counts[[key]]
+      .counters[[key]]$value <- .counters[[key]]$value + counts[[i]]
     }
   }
   invisible()
@@ -314,6 +317,8 @@ clear_counters <- function() {
   .Call(covr_counter_reset)
   rm(envir = .counters, list = ls(envir = .counters))
   rm(envir = .current_test, list = ls(envir = .current_test))
+  the$counters_file <- NULL
+  the$counters_keys <- NULL
 }
 
 # Set the counts of all traces to zero, keeping the traces themselves.
