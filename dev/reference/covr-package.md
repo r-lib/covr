@@ -147,13 +147,6 @@ behaviour:
   installs a package as usual and instruments it each time a process
   loads it, rather than once after installing it.
 
-- `covr.install_compile`: If `FALSE` (default `TRUE`, or the value of
-  the environment variable `COVR_INSTALL_COMPILE`),
-  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
-  doesn't byte-compile the instrumented functions of a package after
-  installing it, so each process that runs them compiles them with the
-  JIT instead.
-
 - `covr.showCfunctions`:
 
 ## See also

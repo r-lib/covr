@@ -20,10 +20,7 @@
   `options(covr.install_instrument = FALSE)` (or the environment
   variable `COVR_INSTALL_INSTRUMENT=false`) to always do that. Functions
   of the package that are sent to other R processes, e.g. parallel
-  workers, are now counted there if the process loads the package. Set
-  `options(covr.install_compile = FALSE)` (or the environment variable
-  `COVR_INSTALL_COMPILE=false`) to leave compiling the functions to the
-  JIT in each process instead.
+  workers, are now counted there if the process loads the package.
 
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md),
   [`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md)
