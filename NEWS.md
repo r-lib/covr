@@ -117,11 +117,25 @@ reported coverage" below.
   Set `options(covr.install_instrument = FALSE)` (or the environment variable
   `COVR_INSTALL_INSTRUMENT=false`) to always do that.
   Functions of the package that are sent to other R processes, e.g. parallel
-  workers, are now counted there if the process loads the package.
   workers, are now counted there if the process loads the package. Set
   `options(covr.install_compile = FALSE)` (or the environment variable
   `COVR_INSTALL_COMPILE=false`) to leave compiling the functions to the JIT in
   each process instead (#740).
+
+* `package_coverage()` is faster and uses much less memory when the code
+  starts many R processes that load the package. Each process now saves only
+  the counts it recorded, which are added to the counters saved when the
+  package was instrumented, rather than all its counters and their source
+  references (a few KB rather than 1 MB per process for languageserver). The
+  traces of the processes are also added up as they are read, rather than all
+  read first. Measuring the coverage of languageserver's tests, which start
+  about 1,000 processes, took more than 7 GB to merge their traces (#744).
+
+* `tally_coverage()`, and so `percent_coverage()`, `zero_coverage()`,
+  `coverage_to_list()` and the reports, are about 4 times faster for large
+  coverage objects, and `print()` about 8 times faster (e.g. 0.16 s rather than
+  0.7 s, and 0.18 s rather than 1.4 s, for Luminescence). The rows of
+  `tally_coverage(by = "line")` are now numbered from 1 (#745).
 
 * `report()`, `report_html()` and `file_report_html()` are much faster for
   large packages, as the source table is built as text rather than an
@@ -283,20 +297,6 @@ reported coverage" below.
   `print()` (#629).
 
 ## Working with coverage results
-* `package_coverage()` is faster and uses much less memory when the code
-  starts many R processes that load the package. Each process now saves only
-  the counts it recorded, which are added to the counters saved when the
-  package was instrumented, rather than all its counters and their source
-  references (a few KB rather than 1 MB per process for languageserver). The
-  traces of the processes are also added up as they are read, rather than all
-  read first. Measuring the coverage of languageserver's tests, which start
-  about 1,000 processes, took more than 7 GB to merge their traces (#744).
-
-* `tally_coverage()`, and so `percent_coverage()`, `zero_coverage()`,
-  `coverage_to_list()` and the reports, are about 4 times faster for large
-  coverage objects, and `print()` about 8 times faster (e.g. 0.16 s rather than
-  0.7 s, and 0.18 s rather than 1.4 s, for Luminescence). The rows of
-  `tally_coverage(by = "line")` are now numbered from 1 (#745).
 
 * New `annotate_coverage()` shows the source of the missed lines, or any other
   lines, as plain text with their execution counts, so coverage can be read
