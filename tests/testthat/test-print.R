@@ -100,6 +100,18 @@ test_that("print.coverage limits the files or functions printed with n", {
   })
 })
 
+test_that("print.coverage keeps the rows apart when a long name wraps", {
+  withr::local_options(cli.condition_width = 40)
+  long <- strrep("a", 50)
+  cov <- code_coverage(
+    sprintf("%s <- function() 1\ng <- function() 2\nh <- function() 3", long),
+    "g()"
+  )
+  attr(cov, "package") <- list(package = "pkg")
+
+  expect_snapshot(print(cov, group = "functions"))
+})
+
 test_that("print.coverage prints nothing for empty coverage", {
   expect_silent(res <- print(structure(list(), class = "coverage")))
   expect_null(res)

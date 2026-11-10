@@ -122,24 +122,62 @@ tally_lines <- function(df, x) {
     ))
   }
 
-  # results with NA functions (such as from compiled code) are dropped
-  # unless NA is a level.
-  df$functions <- addNA(df$functions)
   res <- innermost_lines(df)
 
-  res <- aggregate(
-    value ~ filename + functions + line,
-    data = res,
-    FUN = min,
-    na.action = na.pass
+  # The smallest count of each function on each line, sorted by file, line and
+  # function, with compiled code (`NA` functions) last.
+  rows <- smallest_in_groups(
+    list(
+      collation_rank(res$filename),
+      res$line,
+      collation_rank(res$functions)
+    ),
+    res$value
   )
+  res <- res[rows, c("filename", "functions", "line", "value")]
   res$functions <- as.character(res$functions)
 
   if (inherits(x, "coverage")) {
     res <- drop_lines(res, non_code_lines(x))
     res <- drop_lines(res, attr(x, "excluded_lines"))
   }
-  res[order(res$filename, res$line), ]
+  rownames(res) <- NULL
+  res
+}
+
+# The rank of each element of `x` in `sort(unique(x))`, so that ordering the
+# ranks orders `x` as `order()` would, but can use the faster radix sort.
+collation_rank <- function(x) {
+  match(x, sort(unique(x)))
+}
+
+# Whether each element of the sorted `keys`, a list of vectors of the same
+# length, starts a run of equal keys. `NA`s are equal to each other.
+run_starts <- function(keys) {
+  n <- length(keys[[1]])
+  starts <- rep(TRUE, n)
+  if (n < 2) {
+    return(starts)
+  }
+  same_as_previous <- rep(TRUE, n - 1)
+  for (key in keys) {
+    previous <- key[-n]
+    current <- key[-1]
+    equal <- previous == current
+    na <- is.na(equal)
+    equal[na] <- is.na(previous[na]) & is.na(current[na])
+    same_as_previous <- same_as_previous & equal
+  }
+  starts[-1] <- !same_as_previous
+  starts
+}
+
+# The row with the smallest `value` in each group of rows with equal `keys`, a
+# list of vectors, with the groups sorted by `keys`. As with `min()`, a group
+# with an `NA` value gets `NA`, so `NA`s are sorted first within each group.
+smallest_in_groups <- function(keys, value) {
+  ord <- do.call(order, c(keys, list(!is.na(value), value)))
+  ord[run_starts(lapply(keys, function(key) key[ord]))]
 }
 
 # Expands each expression to the lines it spans, keeping on each line only the
@@ -158,11 +196,14 @@ innermost_lines <- function(df) {
 
   # Expressions with the same range, such as identical code in two functions,
   # don't contain each other, so they share a node.
-  node <- paste(df$filename, start, end, sep = "\r")
-  nodes <- unique(node)
-  id <- match(node, nodes)
-  first <- match(seq_along(nodes), id)
-  parent <- nesting_parents(df$filename[first], start[first], end[first])
+  file <- match(df$filename, unique(df$filename))
+  ord <- order(file, start, end)
+  new_node <- run_starts(list(file[ord], start[ord], end[ord]))
+  # The node of each expression, and the first expression of each node.
+  id <- integer(length(ord))
+  id[ord] <- cumsum(new_node)
+  first <- ord[new_node]
+  parent <- nesting_parents(file[first], start[first], end[first])
 
   # Lines of each node that a node directly inside it is on.
   child <- which(!is.na(parent))
@@ -217,13 +258,12 @@ expand_range <- function(first, last) {
 # lines, comments and lines with only punctuation, such as `}` or `} else {`
 # (#387).
 non_code_lines <- function(x) {
+  blank_or_comment <- rex::rex(start, any_spaces, maybe("#", anything), end)
+  punctuation <- "^(?:[[:punct:][:space:]]|else)*$"
   compact(lapply(traced_files(x), function(file) {
     which(
-      rex::re_matches(
-        file$file_lines,
-        rex::rex(start, any_spaces, maybe("#", anything), end)
-      ) |
-        rex::re_matches(file$file_lines, "^(?:[[:punct:][:space:]]|else)*$")
+      rex::re_matches(file$file_lines, blank_or_comment) |
+        rex::re_matches(file$file_lines, punctuation)
     )
   }))
 }
@@ -240,26 +280,33 @@ collapse_lines <- function(lines) {
       stringsAsFactors = FALSE
     ))
   }
-  res <- aggregate(
-    value ~ filename + line,
-    data = lines,
-    FUN = min,
-    na.action = na.pass
+  rows <- smallest_in_groups(
+    list(collation_rank(lines$filename), lines$line),
+    lines$value
   )
-  res[order(res$filename, res$line), ]
+  res <- lines[rows, c("filename", "line", "value")]
+  rownames(res) <- NULL
+  res
 }
 
 # Drops the rows of `res` for the lines in `lines`, a list of line numbers named
 # by filename.
 drop_lines <- function(res, lines) {
-  if (!length(lines)) {
+  if (!length(lines) || !NROW(res)) {
     return(res)
   }
 
-  lines <- utils::stack(lines)
-  keep <- !do.call(paste, c(res[c("filename", "line")], sep = "\30")) %in%
-    do.call(paste, c(lines[c("ind", "values")], sep = "\30"))
-  res[keep, ]
+  # A number for each file and line.
+  files <- unique(names(lines))
+  max_line <- max(res$line, unlist(lines)) + 1
+  line_key <- function(file, line) match(file, files) * max_line + line
+
+  drop <- line_key(
+    rep(names(lines), lengths(lines)),
+    unlist(lines, use.names = FALSE)
+  )
+  keep <- !line_key(res$filename, res$line) %in% drop
+  res[keep, , drop = FALSE]
 }
 
 # Accepts the output of tally_coverage() by expression, line or function.
@@ -447,15 +494,17 @@ print.coverage <- function(
     missed_branches_by(branches, group)
   }
 
-  for (i in seq_len(min(n, length(by_coverage)))) {
-    msg <- cli::format_message(
-      paste0(
-        cli::style_bold(names(by_coverage)[i], ": "),
-        format_percentage(by_coverage[i], styles)
-      )
+  shown <- by_coverage[seq_len(min(n, length(by_coverage)))]
+  msgs <- format_messages(
+    paste0(
+      cli::style_bold(names(shown), ": "),
+      vcapply(shown, format_percentage, styles = styles)
     )
+  )
+  for (i in seq_along(shown)) {
+    msg <- msgs[[i]]
     # Outside of format_message(), which would collapse the spaces.
-    name <- names(by_coverage)[i]
+    name <- names(shown)[i]
     if (name %in% names(missed)) {
       msg <- paste0(msg, "  missed ", missed[[name]])
     }
@@ -477,6 +526,28 @@ print.coverage <- function(
     )
   }
   invisible(x)
+}
+
+# `cli::format_message()` of each element of `lines`. Formatting them as one
+# text with `\f` (a line break for cli) between them is much faster, but only
+# possible when no line is wrapped, as otherwise the output can't be split back
+# into the lines.
+format_messages <- function(lines, .envir = parent.frame()) {
+  if (!length(lines)) {
+    return(character())
+  }
+  text <- paste(lines, collapse = "\f")
+  res <- strsplit(cli::format_message(text, .envir = .envir), "\n")[[1]]
+  if (length(res) != length(lines)) {
+    res <- vapply(
+      lines,
+      cli::format_message,
+      character(1),
+      .envir = .envir,
+      USE.NAMES = FALSE
+    )
+  }
+  res
 }
 
 # The missed ranges of each file or function, a named character vector. `df` is
