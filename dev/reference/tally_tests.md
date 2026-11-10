@@ -59,16 +59,16 @@ cov <- withr::with_options(
 )
 tests <- tally_tests(cov)
 tests
-#>                              filename functions line           test_file
-#> 1 /tmp/RtmpRknI8K/source.R18698797c36         f    2 ./test.R1869c938b95
-#> 2 /tmp/RtmpRknI8K/source.R18698797c36         f    2 ./test.R1869c938b95
+#>                               filename functions line            test_file
+#> 1 /tmp/RtmpYRB8Vn/source.R18634d2ccf7f         f    2 ./test.R18636b66d6cd
+#> 2 /tmp/RtmpYRB8Vn/source.R18634d2ccf7f         f    2 ./test.R18636b66d6cd
 #>   test_line test value
 #> 1         1 <NA>     1
 #> 2         2 <NA>     1
 
 # The tests that ran lines 1 to 2
 unique(tests[tests$line %in% 1:2, c("test_file", "test_line")])
-#>             test_file test_line
-#> 1 ./test.R1869c938b95         1
-#> 2 ./test.R1869c938b95         2
+#>              test_file test_line
+#> 1 ./test.R18636b66d6cd         1
+#> 2 ./test.R18636b66d6cd         2
 ```

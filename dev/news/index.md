@@ -2,6 +2,18 @@
 
 ## covr (development version)
 
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  is faster and uses much less memory when the code starts many R
+  processes that load the package. Each process now saves only the
+  counts it recorded, which are added to the counters saved when the
+  package was instrumented, rather than all its counters and their
+  source references (a few KB rather than 1 MB per process for
+  languageserver). The traces of the processes are also added up as they
+  are read, rather than all read first. Measuring the coverage of
+  languageserver’s tests, which start about 1,000 processes, took more
+  than 7 GB to merge their traces
+  ([\#744](https://github.com/r-lib/covr/issues/744)).
+
 - [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md),
   and so
   [`percent_coverage()`](https://covr.r-lib.org/dev/reference/percent_coverage.md),
