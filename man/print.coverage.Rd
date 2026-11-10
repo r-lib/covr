@@ -4,7 +4,14 @@
 \alias{print.coverage}
 \title{Print a coverage object}
 \usage{
-\method{print}{coverage}(x, group = c("filename", "functions"), by = "line", n = Inf, ...)
+\method{print}{coverage}(
+  x,
+  group = c("filename", "functions"),
+  by = "line",
+  n = Inf,
+  missing = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{the coverage object to be printed}
@@ -16,6 +23,18 @@
 \item{n}{the maximum number of files or functions to print. They are
 sorted from least to most covered, so the least covered are shown first.}
 
+\item{missing}{whether to list the lines that were not run after each file
+or function that has any, as ranges such as \verb{missed 41-48, 112}. Lines
+are joined into a range when only blank lines, comments and lines with
+only punctuation, such as closing braces, are between them. Code that was
+run, or that has no coverage data, such as the line a function is defined
+on, ends the range. Only used with \code{by = "line"}, and ignored otherwise.
+
+If branch coverage was measured (see \link{covr.branch_coverage}), the missed
+branches of each file or function are also listed, as \verb{missed branches 12 FALSE, 30 b}: the line of the \code{if} or \code{switch()} and the label of the
+branch that was not taken. Only \code{if} and \code{switch()} calls that were
+evaluated are listed; the others are covered by the missed lines.}
+
 \item{...}{additional arguments ignored}
 }
 \value{
@@ -24,10 +43,23 @@ The coverage object (invisibly).
 \description{
 Print a coverage object
 }
+\section{Branches}{
+
+If branch coverage was measured (see \link{covr.branch_coverage}), the
+percentage of branches taken is also shown after the overall coverage, e.g.
+\verb{Coverage: 87.40\% (branches 72.00\%)}.
+}
+
 \examples{
 cov <- code_coverage(
   "f <- function(x) x + 1; g <- function(x) x - 1; h <- function(x) 0",
   "f(1)"
 )
 print(cov, group = "functions", n = 2)
+
+cov <- code_coverage(
+  "f <- function(x) {\n  if (x) {\n    1\n\n    # no\n    2\n  }\n}",
+  "f(FALSE)"
+)
+print(cov, missing = TRUE)
 }

@@ -12,7 +12,9 @@
 #'   [tally_coverage()].
 #' * Get the overall percentage with [percent_coverage()], or the percentage
 #'   for each file with [coverage_to_list()].
-#' * Find the lines or functions which were never run with [zero_coverage()].
+#' * Find the lines or functions which were never run with [zero_coverage()],
+#'   list them as ranges with `print(x, missing = TRUE)`, or show their source
+#'   with [annotate_coverage()].
 #' * Get the execution counts as a named numeric vector with [value()].
 #' * Browse the coverage with [report()] or [file_report()].
 #'

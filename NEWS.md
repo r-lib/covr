@@ -1,5 +1,19 @@
 # covr (development version)
 
+* New `annotate_coverage()` shows the source of the missed lines, or any other
+  lines, as plain text with their execution counts, so coverage can be read
+  without the HTML report, e.g. by coding agents. With branch coverage, lines
+  with a branch that was never taken are shown and marked too. Its output is
+  capped at 200 source lines (`max_lines`, or the `covr.annotate_max_lines`
+  option), ending with how many lines were left out.
+
+* `print()` of coverage objects gains a `missing` argument; `missing = TRUE`
+  lists the missed lines of each file or function as ranges such as
+  `41-48, 112`, and the missed branches if branch coverage was measured. The
+  branch coverage percentage is shown when it was measured. At most 10 ranges
+  and branches are listed for each file or function, which can be changed with
+  the `covr.print_max_ranges` option.
+
 * Code run to measure coverage is faster, as evaluated expressions are counted
   in C rather than in R (about 6 times less overhead per expression).
 
