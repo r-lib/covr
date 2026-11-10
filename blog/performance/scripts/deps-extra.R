@@ -1,6 +1,7 @@
-# Download the CRAN source tarballs of more benchmark packages into
-# /tmp/covr-bench/src and install their dependencies (including Suggests, so
-# their tests can run) into the R 4.6.2 deps library.
+# Download the CRAN source tarballs of benchmark packages into <bench>/src and
+# install their dependencies (including Suggests, so their tests can run) into
+# the R 4.6.2 deps library. The bench directory is COVR_BENCH (default
+# ~/covr-bench). Tarballs already in <bench>/src are kept.
 # Usage: Rscript --no-init-file deps-extra.R <pkg>...
 pkgs <- commandArgs(trailingOnly = TRUE)
 bin <- sprintf("https://p3m.dev/cran/latest/bin/linux/manylinux_2_28-%s/%s", R.version$arch, substr(getRversion(), 1, 3))
@@ -9,10 +10,18 @@ options(
   HTTPUserAgent = sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version$platform, R.version$arch, R.version$os)),
   Ncpus = 8L
 )
-lib <- "/tmp/covr-bench/lib/4.6.2/deps"
-src <- "/tmp/covr-bench/src"
+bench <- Sys.getenv("COVR_BENCH", path.expand("~/covr-bench"))
+lib <- file.path(bench, "lib", "4.6.2", "deps")
+src <- file.path(bench, "src")
+dir.create(lib, recursive = TRUE, showWarnings = FALSE)
+dir.create(src, recursive = TRUE, showWarnings = FALSE)
 .libPaths(lib)
-tarballs <- download.packages(pkgs, destdir = src, repos = c(CRAN = "https://cloud.r-project.org"), type = "source")[, 2]
+have <- Sys.glob(file.path(src, paste0(pkgs, "_*.tar.gz")))
+todo <- setdiff(pkgs, sub("_.*", "", basename(have)))
+if (length(todo)) {
+  download.packages(todo, destdir = src, repos = c(CRAN = "https://cloud.r-project.org"), type = "source")
+}
+tarballs <- unlist(lapply(pkgs, function(p) Sys.glob(file.path(src, paste0(p, "_*.tar.gz")))))
 deps <- unique(unlist(lapply(tarballs, function(t) {
   pkg <- sub("_.*", "", basename(t))
   ex <- tempfile()

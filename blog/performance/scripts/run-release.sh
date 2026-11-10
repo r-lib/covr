@@ -12,7 +12,9 @@ reps=$2
 shift 2
 here=$(cd "$(dirname "$0")" && pwd)
 lib=$bench/lib/4.6.2
-out_dir=$bench/out/${OUT_SUBDIR:-release}
+# OUT_DIR, if set, is used as is (e.g. a directory in the repository, so each
+# result is kept on disk the moment its run finishes).
+out_dir=${OUT_DIR:-$bench/out/${OUT_SUBDIR:-release}}
 mkdir -p "$out_dir"
 
 # CPU use of the Windows host in percent (which includes the WSL2 VM), averaged
