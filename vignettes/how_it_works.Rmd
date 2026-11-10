@@ -205,6 +205,7 @@ temporary directory.
 Next, calls are made to the lazy loading code which installs a user hook to modify the code when it is loaded. We also register a finalizer
 which prints the coverage counts when the namespace is unloaded or the R process exits.
 These output files are then aggregated together to determine the coverage.
+When the package is instrumented once after it is installed, its counters are saved with it, along with their source references, so each process only saves the counts it recorded, and these are added to the saved counters.
 
 This procedure works regardless of the number of child R processes used, so
 therefore also works with parallel code.

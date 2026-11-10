@@ -281,6 +281,12 @@ restore_counters <- function(ns, file) {
     the$replacements <- list()
     the$restored <- c(the$restored, file)
     add_saved_counters(saved)
+    # For `process_trace()`, which only saves the counts of these counters
+    the$counters_file <- file
+    the$counters_keys <- setdiff(
+      ls(saved, all.names = TRUE),
+      c("tests", "branches")
+    )
     the$traced_env <- ns
     trace_unforced_environment(ns)
   }
