@@ -160,13 +160,20 @@ if (!is.null(cov)) {
   res$percent_coverage <- timed(covr::percent_coverage(cov))
   res$tally_coverage <- timed(covr::tally_coverage(cov))
   # report() takes minutes for large packages, so the driver only times it in
-  # the first repetition.
+  # the first repetition. That repetition also saves the coverage object to
+  # COVR_BENCH_COV_DIR (if set), for benchmarking post-processing functions
+  # later without rerunning the tests.
   if (!identical(Sys.getenv("COVR_BENCH_REPORT"), "false")) {
     res$report <- timed(covr::report(
       cov,
       file = tempfile(fileext = ".html"),
       browse = FALSE
     ))
+    cov_dir <- Sys.getenv("COVR_BENCH_COV_DIR")
+    if (nzchar(cov_dir)) {
+      dir.create(cov_dir, recursive = TRUE, showWarnings = FALSE)
+      saveRDS(cov, file.path(cov_dir, sprintf("%s-%s.rds", label, pkg)))
+    }
   }
   if (length(list.files(src, pattern = "[.]gcda$", recursive = TRUE)) > 0) {
     res$gcov <- timed(covr:::run_gcov(src, quiet = TRUE, clean = FALSE))

@@ -24,6 +24,9 @@ tarballs() {
 
 final=$here/../results/final
 mkdir -p "$final"
+# Coverage objects from run 1 of each package and version, for benchmarking
+# post-processing later (kept out of the repository; they can be large).
+export COVR_BENCH_COV_DIR="$bench/cov"
 
 # 1. The covr main to benchmark: the commit recorded by the first start, or
 # origin/main now.
