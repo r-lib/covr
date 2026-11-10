@@ -59,8 +59,8 @@
 #'
 #'   \item `covr.print_max_ranges`: The maximum number of missed ranges, and of
 #'     missed branches, listed per file or function by `print(x, missing =
-#'     TRUE)` and the `print()` method of [diff_coverage()] results (default
-#'     `10`). More are summarised as `... (<k> more)`. `Inf` lists them all.
+#'     TRUE)` (default `10`). More are summarised as `... (<k> more)`. `Inf`
+#'     lists them all.
 #'
 #'   \item `covr.fix_parallel_mcexit`: Whether to include code run in processes
 #'     forked by \pkg{parallel}'s `mclapply()`, `mcparallel()` and related

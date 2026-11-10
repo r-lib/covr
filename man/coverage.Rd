@@ -20,8 +20,6 @@ for each file with \code{\link[=coverage_to_list]{coverage_to_list()}}.
 \item Find the lines or functions which were never run with \code{\link[=zero_coverage]{zero_coverage()}},
 list them as ranges with \code{print(x, missing = TRUE)}, or show their source
 with \code{\link[=annotate_coverage]{annotate_coverage()}}.
-\item Get the coverage of the lines changed relative to a git branch with
-\code{\link[=diff_coverage]{diff_coverage()}}.
 \item Get the execution counts as a named numeric vector with \code{\link[=value]{value()}}.
 \item Browse the coverage with \code{\link[=report]{report()}} or \code{\link[=file_report]{file_report()}}.
 }

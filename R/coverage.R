@@ -15,8 +15,6 @@
 #' * Find the lines or functions which were never run with [zero_coverage()],
 #'   list them as ranges with `print(x, missing = TRUE)`, or show their source
 #'   with [annotate_coverage()].
-#' * Get the coverage of the lines changed relative to a git branch with
-#'   [diff_coverage()].
 #' * Get the execution counts as a named numeric vector with [value()].
 #' * Browse the coverage with [report()] or [file_report()].
 #'

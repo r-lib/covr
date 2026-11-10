@@ -65,8 +65,8 @@ by \code{\link[=annotate_coverage]{annotate_coverage()}} (default \code{200}), t
 argument. \code{Inf} shows everything.
 
 \item \code{covr.print_max_ranges}: The maximum number of missed ranges, and of
-missed branches, listed per file or function by \code{print(x, missing = TRUE)} and the \code{print()} method of \code{\link[=diff_coverage]{diff_coverage()}} results (default
-\code{10}). More are summarised as \verb{... (<k> more)}. \code{Inf} lists them all.
+missed branches, listed per file or function by \code{print(x, missing = TRUE)} (default \code{10}). More are summarised as \verb{... (<k> more)}. \code{Inf}
+lists them all.
 
 \item \code{covr.fix_parallel_mcexit}: Whether to include code run in processes
 forked by \pkg{parallel}'s \code{mclapply()}, \code{mcparallel()} and related

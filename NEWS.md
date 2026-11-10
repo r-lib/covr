@@ -1,9 +1,5 @@
 # covr (development version)
 
-* New `diff_coverage()` reports the coverage of the lines changed relative to
-  a git branch, including uncommitted edits and untracked files, and lists
-  the missed changed lines and, with branch coverage, the missed branches.
-
 * New `annotate_coverage()` shows the source of the missed lines, or any other
   lines, as plain text with their execution counts, so coverage can be read
   without the HTML report, e.g. by coding agents. With branch coverage, lines

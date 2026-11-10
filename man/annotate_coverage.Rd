@@ -17,9 +17,10 @@ annotate_coverage(
 \code{\link[=code_coverage]{code_coverage()}}.}
 
 \item{lines}{A data frame with \code{filename} and \code{line} columns identifying the
-lines to show, e.g. the result of \code{\link[=zero_coverage]{zero_coverage()}} or \code{\link[=diff_coverage]{diff_coverage()}}.
-Other columns are ignored. The default is all missed code lines in \code{x},
-and the lines with a missed branch if branch coverage was measured.}
+lines to show, e.g. the result of \code{\link[=zero_coverage]{zero_coverage()}} or the lines changed in
+a pull request. Other columns are ignored. The default is all missed code
+lines in \code{x}, and the lines with a missed branch if branch coverage was
+measured.}
 
 \item{context}{Number of lines to show before and after each line in
 \code{lines}. Use \code{Inf} to show whole files.}

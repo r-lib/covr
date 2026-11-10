@@ -20,9 +20,10 @@
 #' @param x A coverage object, e.g. from [package_coverage()] or
 #'   [code_coverage()].
 #' @param lines A data frame with `filename` and `line` columns identifying the
-#'   lines to show, e.g. the result of [zero_coverage()] or [diff_coverage()].
-#'   Other columns are ignored. The default is all missed code lines in `x`,
-#'   and the lines with a missed branch if branch coverage was measured.
+#'   lines to show, e.g. the result of [zero_coverage()] or the lines changed in
+#'   a pull request. Other columns are ignored. The default is all missed code
+#'   lines in `x`, and the lines with a missed branch if branch coverage was
+#'   measured.
 #' @param context Number of lines to show before and after each line in
 #'   `lines`. Use `Inf` to show whole files.
 #' @param files Optional character vector of file names (as they appear in the
