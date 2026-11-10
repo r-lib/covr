@@ -206,10 +206,7 @@ trace_environment <- function(env) {
 # symbol, or `base::.Call` if a `.Call` function found from `env` would be
 # called in place of the primitive, e.g. one that a package defines to wrap
 # the calls to its compiled code, as parzer does. Checking this once for each
-# environment is cheaper than looking up `base::.Call` in every count. A
-# `.Call` that `.onLoad()` defines in a package that was instrumented when it
-# was installed is found too late, and masks the counters of the functions
-# that were instrumented then.
+# environment is cheaper than looking up `base::.Call` in every count.
 dot_call <- function(env) {
   fun <- get0(".Call", envir = env, mode = "function")
   if (is.null(fun) || identical(fun, base::.Call)) {
@@ -231,8 +228,10 @@ reset_traces <- function() {
 # temporary prefix intentionally does not match `^covr_trace_`: leftovers from
 # a process killed mid-write are simply ignored.
 #
-# If serializing the counters fails (e.g. with ALTREP vectors, #509) an error
-# marker is written instead, so the main process can report the failed save.
+# If serializing the counters fails (e.g. with ALTREP vectors, #509), or the
+# process can't count the code it runs (`the$trace_error`, see
+# `check_saved_dot_call()`), an error marker is written instead, so the main
+# process can report it.
 save_trace <- function(directory) {
   final_file <- temp_file("covr_trace_", tmpdir = directory)
   tmp_file <- temp_file(".covr_tmp_", tmpdir = directory)
@@ -240,7 +239,12 @@ save_trace <- function(directory) {
 
   sync_counts()
   tryCatch(
-    save_rds(portable_srcfiles(.counters), tmp_file),
+    {
+      if (!is.null(the$trace_error)) {
+        stop(the$trace_error, call. = FALSE)
+      }
+      save_rds(portable_srcfiles(.counters), tmp_file)
+    },
     error = function(e) {
       marker <- structure(
         list(message = conditionMessage(e), pid = Sys.getpid()),

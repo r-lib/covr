@@ -148,7 +148,8 @@ instrument_installed_package <- function(pkg_name, lib, compile = TRUE) {
   )
   register_namespace(pkg_name, ns)
   trace_environment(ns)
-  if (isTRUE(compile) && !isFALSE(package_byte_compile(pkg_name, lib))) {
+  compiled <- isTRUE(compile) && !isFALSE(package_byte_compile(pkg_name, lib))
+  if (compiled) {
     compile_replacements(the$replacements)
   }
 
@@ -166,7 +167,14 @@ instrument_installed_package <- function(pkg_name, lib, compile = TRUE) {
   compress <- readRDS(paste0(base, ".rdx"))$compressed
   make_lazy_load_db <- get("makeLazyLoadDB", envir = asNamespace("tools"))
   make_lazy_load_db(ns, new_base, compress = compress)
-  saveRDS(portable_srcfiles(.counters), counters_file)
+  counters <- portable_srcfiles(.counters)
+  # Whether a `.Call` that `.onLoad()` defines would mask the saved counters,
+  # for `restore_counters()`. Byte-compiled code calls the `.Call` primitive
+  # directly, as the compiler inlines base functions that the namespace
+  # doesn't define.
+  attr(counters, "maskable") <- !compiled &&
+    identical(dot_call(ns), as.symbol(".Call"))
+  saveRDS(counters, counters_file)
   done <- TRUE
   TRUE
 }
@@ -273,18 +281,45 @@ restore_counters <- function(ns, file) {
   if (identical(the$traced_env, ns)) {
     return(invisible())
   }
+  saved <- readRDS(file)
+  check_saved_dot_call(ns, saved)
   if (file %in% the$restored) {
     trace_unforced_environment(ns)
-    add_saved_counters(file)
+    add_saved_counters(saved)
   } else {
     clear_counters()
     the$replacements <- list()
     the$restored <- c(the$restored, file)
-    add_saved_counters(file)
+    add_saved_counters(saved)
     the$traced_env <- ns
     trace_unforced_environment(ns)
   }
   invisible()
+}
+
+# The saved code was instrumented before `.onLoad()` ran, so unless it was
+# byte-compiled or the package's R code defines `.Call` (see `dot_call()`), its
+# counters call `.Call` by name. A `.Call` function that `.onLoad()` defines
+# would be called by them instead, so this is an error. Errors in onLoad hooks
+# are only printed, as `loadNamespace()` runs them in `try()`, so it is also
+# saved in place of the trace of the process (see `save_trace()`), which
+# `package_coverage()` reports.
+check_saved_dot_call <- function(ns, saved) {
+  if (
+    isTRUE(attr(saved, "maskable")) &&
+      identical(dot_call(ns), quote(base::.Call))
+  ) {
+    err <- tryCatch(
+      covr_abort(c(
+        "Can't measure the coverage of {.pkg {environmentName(ns)}}, as its {.code .onLoad()} defines a {.code .Call} function.",
+        i = "The counters that covr added when the package was installed call {.code .Call}, so they would call this function instead of the base one.",
+        i = "Define {.code .Call} in the package's R code instead, or set {.code options(covr.install_instrument = FALSE)}."
+      )),
+      error = identity
+    )
+    the$trace_error <- conditionMessage(err)
+    stop(err)
+  }
 }
 
 # `trace_environment()` without reading the bindings that are still promises to
@@ -307,11 +342,11 @@ is_lazy_load_promise <- function(env, name) {
     }
 }
 
-# Add the counters in `file` that don't exist yet. The decisions of branch
+# Add the `saved` counters that don't exist yet. The decisions of branch
 # coverage are in an environment that can already exist, if functions were
 # instrumented since the counters were cleared.
-add_saved_counters <- function(file) {
-  counters <- as.list(readRDS(file), all.names = TRUE)
+add_saved_counters <- function(saved) {
+  counters <- as.list(saved, all.names = TRUE)
   saved_branches <- counters$branches
   counters <- counters[setdiff(
     names(counters),

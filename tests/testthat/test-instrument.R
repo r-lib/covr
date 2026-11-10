@@ -185,6 +185,34 @@ test_that("restore_counters() instruments a package that is loaded again", {
   expect_gt(length(grep("^b.R", ls(.counters))), 0L)
 })
 
+test_that("restore_counters() errors if `.onLoad()` defined a `.Call` that masks the saved counters", {
+  clear_counters()
+  withr::defer(clear_counters())
+  withr::defer(the$traced_env <- NULL)
+  withr::defer(the$trace_error <- NULL)
+  file <- withr::local_tempfile()
+  counters <- new.env()
+  counters[["a.R:1:1"]] <- list(value = 0, functions = "a")
+  attr(counters, "maskable") <- TRUE
+  saveRDS(counters, file)
+  ns <- new.env()
+  attr(ns, "name") <- "pkg"
+  ns$.Call <- function(...) base::.Call(...)
+
+  expect_snapshot(restore_counters(ns, file), error = TRUE)
+  # The error replaces the trace that the process saves
+  marker <- readRDS(save_trace(withr::local_tempdir()))
+  expect_s3_class(marker, "covr_trace_error")
+  expect_match(marker$message, ".onLoad()", fixed = TRUE)
+
+  # Saved counters that are compiled or call `base::.Call` can't be masked
+  the$trace_error <- NULL
+  attr(counters, "maskable") <- FALSE
+  saveRDS(counters, file)
+  restore_counters(ns, file)
+  expect_contains(ls(.counters), "a.R:1:1")
+})
+
 test_that("package_byte_compile() reads the ByteCompile field like R CMD INSTALL", {
   lib <- withr::local_tempdir()
   dir.create(file.path(lib, "p", "Meta"), recursive = TRUE)
