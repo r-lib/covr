@@ -243,7 +243,7 @@ save_trace <- function(directory) {
       if (!is.null(the$trace_error)) {
         stop(the$trace_error, call. = FALSE)
       }
-      save_rds(portable_srcfiles(.counters), tmp_file)
+      save_rds(process_trace(), tmp_file)
     },
     error = function(e) {
       marker <- structure(
@@ -257,6 +257,46 @@ save_trace <- function(directory) {
     covr_abort("Can't write trace file {.path {final_file}}.")
   }
   invisible(final_file)
+}
+
+# The trace of this process. A process that restored the counters of a package
+# instrumented after it was installed (see `restore_counters()`) only saves the
+# non-zero counts of these, by key, with the file it restored them from, from
+# which `merge_coverage()` reads their source references. Saving them all
+# took 0.4 s and 1 MB per process for a large package, whose tests can start
+# hundreds of processes (#744). Other counters, e.g. of functions instrumented
+# when the package was loaded, are saved as they are, as are all counters
+# when recording tests or measuring branch coverage, which record more than
+# the values of the counters.
+process_trace <- function() {
+  keys <- the$counters_keys
+  if (
+    is.null(keys) ||
+      isTRUE(getOption("covr.record_tests", FALSE)) ||
+      !is.null(.counters[["tests"]]) ||
+      !is.null(.counters[["branches"]])
+  ) {
+    return(portable_srcfiles(.counters))
+  }
+  # A numeric vector named by key, without the counters that have no value
+  counts <- c(
+    numeric(),
+    unlist(lapply(
+      mget(keys, envir = .counters, ifnotfound = list(NULL)),
+      .subset2,
+      "value"
+    ))
+  )
+  # Unsorted, as sorting the keys of a large package takes longer than the rest
+  others <- setdiff(ls(.counters, all.names = TRUE, sorted = FALSE), keys)
+  structure(
+    list(
+      counters_file = the$counters_file,
+      counts = counts[counts != 0],
+      counters = portable_srcfiles(mget(others, envir = .counters))
+    ),
+    class = "covr_counts"
+  )
 }
 
 save_rds <- function(object, file) {
@@ -1508,8 +1548,62 @@ merge_coverage <- function(x) {
 
 #' @export
 merge_coverage.character <- function(x) {
-  coverage_objs <- lapply(x, read_trace)
-  merge_coverage(Filter(Negate(is.null), coverage_objs))
+  # Each trace is added to the result as it is read, rather than reading them
+  # all first, as tests can start hundreds of processes that load the package
+  # (#744). The counts of the traces that only have counts (see
+  # `process_trace()`) are summed by the file of the counters they belong to,
+  # which is read once at the end.
+  merged <- NULL
+  counts <- list()
+  for (file in x) {
+    trace <- read_trace(file)
+    if (inherits(trace, "covr_counts")) {
+      counters_file <- trace$counters_file
+      counts[[counters_file]] <- add_counts(
+        counts[[counters_file]],
+        trace$counts
+      )
+      trace <- if (length(trace$counters) > 0) trace$counters
+    }
+    if (is.null(trace)) {
+      next
+    }
+    merged <- if (is.null(merged)) {
+      merge_coverage(list(trace))
+    } else {
+      merge_coverage_pair(merged, trace)
+    }
+  }
+  for (counters_file in names(counts)) {
+    counters <- read_trace(counters_file)
+    if (!is.null(counters)) {
+      counters <- add_counter_values(counters, counts[[counters_file]])
+      merged <- merge_coverage(compact(list(counters, merged)))
+    }
+  }
+  merged
+}
+
+# Add the named numeric `counts` to `into`, a named numeric too.
+add_counts <- function(into, counts) {
+  if (is.null(into)) {
+    return(counts)
+  }
+  idx <- match(names(counts), names(into))
+  shared <- !is.na(idx)
+  into[idx[shared]] <- into[idx[shared]] + counts[shared]
+  c(into, counts[!shared])
+}
+
+# Add the named numeric `counts` to the values of the `counters` of the same
+# name.
+add_counter_values <- function(counters, counts) {
+  idx <- match(names(counts), names(counters))
+  for (i in which(!is.na(idx))) {
+    j <- idx[[i]]
+    counters[[j]]$value <- counters[[j]]$value + counts[[i]]
+  }
+  counters
 }
 
 # Read one trace file. Returns NULL (after signaling a `covr_error` that can be
@@ -1543,6 +1637,9 @@ read_trace <- function(file) {
       trace$pid,
       trace$message
     )))
+  }
+  if (inherits(trace, "covr_counts")) {
+    return(trace)
   }
   as.list(trace)
 }
