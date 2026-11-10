@@ -2,6 +2,9 @@
 
 ## All functions
 
+- [`annotate_coverage()`](https://covr.r-lib.org/dev/reference/annotate_coverage.md)
+  : Annotate source code with line and branch coverage
+
 - [`as.data.frame(`*`<coverage>`*`)`](https://covr.r-lib.org/dev/reference/as.data.frame.coverage.md)
   : Convert a coverage object to a data frame
 

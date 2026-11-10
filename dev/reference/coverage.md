@@ -25,7 +25,10 @@ Rather than using the list directly, you will usually want to:
   [`coverage_to_list()`](https://covr.r-lib.org/dev/reference/coverage_to_list.md).
 
 - Find the lines or functions which were never run with
-  [`zero_coverage()`](https://covr.r-lib.org/dev/reference/zero_coverage.md).
+  [`zero_coverage()`](https://covr.r-lib.org/dev/reference/zero_coverage.md),
+  list them as ranges with `print(x, missing = TRUE)`, or show their
+  source with
+  [`annotate_coverage()`](https://covr.r-lib.org/dev/reference/annotate_coverage.md).
 
 - Get the execution counts as a named numeric vector with
   [`value()`](https://covr.r-lib.org/dev/reference/value.md).
@@ -84,14 +87,14 @@ a `branches` attribute with the branches of each `if` and
 cov <- code_coverage("add <- function(x, y) { x + y }", "add(1, 2)")
 cov
 #> Coverage: 100.00%
-#> /tmp/RtmpTVpfCO/source.R1a6c2e0104d2: 100.00%
+#> /tmp/RtmplTR4w4/source.R191962ff2a64: 100.00%
 as.data.frame(cov)
 #>                               filename functions first_line first_byte
-#> 1 /tmp/RtmpTVpfCO/source.R1a6c2e0104d2       add          1         25
+#> 1 /tmp/RtmplTR4w4/source.R191962ff2a64       add          1         25
 #>   last_line last_byte first_column last_column first_parsed last_parsed value
 #> 1         1        29           25          29            1           1     1
 names(cov)
-#> [1] "source.R1a6c2e0104d2:1:25:1:29:25:29:1:1"
+#> [1] "source.R191962ff2a64:1:25:1:29:25:29:1:1"
 cov[[1]]$value
 #> [1] 1
 ```

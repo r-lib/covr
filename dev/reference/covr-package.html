@@ -104,6 +104,12 @@ of files outside the target package are filtered from coverage output.</p></li>
 shown in the message and <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> method of a <code>covr_error</code> when tests,
 vignettes, examples or <code>code</code> fail (default <code>50</code>). The full output is
 always available in the condition's <code>$output</code> field.</p></li>
+<li><p><code>covr.annotate_max_lines</code>: The maximum number of source lines shown
+by <code><a href="annotate_coverage.html">annotate_coverage()</a></code> (default <code>200</code>), the default of its <code>max_lines</code>
+argument. <code>Inf</code> shows everything.</p></li>
+<li><p><code>covr.print_max_ranges</code>: The maximum number of missed ranges, and of
+missed branches, listed per file or function by <code>print(x, missing = TRUE)</code> (default <code>10</code>). More are summarised as <code>... (&lt;k&gt; more)</code>. <code>Inf</code>
+lists them all.</p></li>
 <li><p><code>covr.fix_parallel_mcexit</code>: Whether to include code run in processes
 forked by <span class="pkg">parallel</span>'s <code>mclapply()</code>, <code>mcparallel()</code> and related
 functions, by patching <code>parallel:::mcexit</code>. By default

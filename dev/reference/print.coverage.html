@@ -50,7 +50,14 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'coverage'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span>, group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"filename"</span>, <span class="st">"functions"</span><span class="op">)</span>, by <span class="op">=</span> <span class="st">"line"</span>, n <span class="op">=</span> <span class="cn">Inf</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"filename"</span>, <span class="st">"functions"</span><span class="op">)</span>,</span>
+<span>  by <span class="op">=</span> <span class="st">"line"</span>,</span>
+<span>  n <span class="op">=</span> <span class="cn">Inf</span>,</span>
+<span>  missing <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -74,6 +81,19 @@
 sorted from least to most covered, so the least covered are shown first.</p></dd>
 
 
+<dt id="arg-missing">missing<a class="anchor" aria-label="anchor" href="#arg-missing"></a></dt>
+<dd><p>whether to list the lines that were not run after each file
+or function that has any, as ranges such as <code>missed 41-48, 112</code>. Lines
+are joined into a range when only blank lines, comments and lines with
+only punctuation, such as closing braces, are between them. Code that was
+run, or that has no coverage data, such as the line a function is defined
+on, ends the range. Only used with <code>by = "line"</code>, and ignored otherwise.</p>
+<p>If branch coverage was measured (see <a href="covr.branch_coverage.html">covr.branch_coverage</a>), the missed
+branches of each file or function are also listed, as <code>missed branches 12 FALSE, 30 b</code>: the line of the <code>if</code> or <code><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch()</a></code> and the label of the
+branch that was not taken. Only <code>if</code> and <code><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch()</a></code> calls that were
+evaluated are listed; the others are covered by the missed lines.</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>additional arguments ignored</p></dd>
 
@@ -81,6 +101,14 @@ sorted from least to most covered, so the least covered are shown first.</p></dd
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>The coverage object (invisibly).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="branches">Branches<a class="anchor" aria-label="anchor" href="#branches"></a></h2>
+
+
+<p>If branch coverage was measured (see <a href="covr.branch_coverage.html">covr.branch_coverage</a>), the
+percentage of branches taken is also shown after the overall coverage, e.g.
+<code>Coverage: 87.40% (branches 72.00%)</code>.</p>
     </div>
 
     <div class="section level2">
@@ -94,6 +122,14 @@ sorted from least to most covered, so the least covered are shown first.</p></dd
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">g: </span><span style="color: #BB0000;">0.00%</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">h: </span><span style="color: #BB0000;">0.00%</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ... and 1 more function; use `print(x, n = Inf)` to show all</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="code_coverage.html">code_coverage</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="st">"f &lt;- function(x) {\n  if (x) {\n    1\n\n    # no\n    2\n  }\n}"</span>,</span></span>
+<span class="r-in"><span>  <span class="st">"f(FALSE)"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">cov</span>, missing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Coverage: </span><span style="color: #BB0000;">33.33%</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">/tmp/RtmplTR4w4/source.R19194c82165d: </span><span style="color: #BB0000;">33.33%</span>  missed 3-6</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

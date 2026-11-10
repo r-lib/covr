@@ -65,6 +65,16 @@ behaviour:
   `50`). The full output is always available in the condition's
   `$output` field.
 
+- `covr.annotate_max_lines`: The maximum number of source lines shown by
+  [`annotate_coverage()`](https://covr.r-lib.org/dev/reference/annotate_coverage.md)
+  (default `200`), the default of its `max_lines` argument. `Inf` shows
+  everything.
+
+- `covr.print_max_ranges`: The maximum number of missed ranges, and of
+  missed branches, listed per file or function by
+  `print(x, missing = TRUE)` (default `10`). More are summarised as
+  `... (<k> more)`. `Inf` lists them all.
+
 - `covr.fix_parallel_mcexit`: Whether to include code run in processes
   forked by parallel's `mclapply()`, `mcparallel()` and related
   functions, by patching `parallel:::mcexit`. By default
