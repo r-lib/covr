@@ -126,11 +126,15 @@ tally_lines <- function(df, x) {
 
   # The smallest count of each function on each line, sorted by file, line and
   # function, with compiled code (`NA` functions) last.
-  file <- collation_rank(res$filename)
-  functions <- collation_rank(res$functions)
-  ord <- order(file, res$line, functions, !is.na(res$value), res$value)
-  first <- run_starts(list(file[ord], res$line[ord], functions[ord]))
-  res <- res[ord[first], c("filename", "functions", "line", "value")]
+  rows <- smallest_in_groups(
+    list(
+      collation_rank(res$filename),
+      res$line,
+      collation_rank(res$functions)
+    ),
+    res$value
+  )
+  res <- res[rows, c("filename", "functions", "line", "value")]
   res$functions <- as.character(res$functions)
 
   if (inherits(x, "coverage")) {
@@ -155,17 +159,25 @@ run_starts <- function(keys) {
   if (n < 2) {
     return(starts)
   }
-  same <- rep(TRUE, n - 1)
+  same_as_previous <- rep(TRUE, n - 1)
   for (key in keys) {
-    prev <- key[-n]
-    cur <- key[-1]
-    eq <- prev == cur
-    na <- is.na(eq)
-    eq[na] <- is.na(prev[na]) & is.na(cur[na])
-    same <- same & eq
+    previous <- key[-n]
+    current <- key[-1]
+    equal <- previous == current
+    na <- is.na(equal)
+    equal[na] <- is.na(previous[na]) & is.na(current[na])
+    same_as_previous <- same_as_previous & equal
   }
-  starts[-1] <- !same
+  starts[-1] <- !same_as_previous
   starts
+}
+
+# The row with the smallest `value` in each group of rows with equal `keys`, a
+# list of vectors, with the groups sorted by `keys`. As with `min()`, a group
+# with an `NA` value gets `NA`, so `NA`s are sorted first within each group.
+smallest_in_groups <- function(keys, value) {
+  ord <- do.call(order, c(keys, list(!is.na(value), value)))
+  ord[run_starts(lapply(keys, function(key) key[ord]))]
 }
 
 # Expands each expression to the lines it spans, keeping on each line only the
@@ -187,6 +199,7 @@ innermost_lines <- function(df) {
   file <- match(df$filename, unique(df$filename))
   ord <- order(file, start, end)
   new_node <- run_starts(list(file[ord], start[ord], end[ord]))
+  # The node of each expression, and the first expression of each node.
   id <- integer(length(ord))
   id[ord] <- cumsum(new_node)
   first <- ord[new_node]
@@ -267,10 +280,11 @@ collapse_lines <- function(lines) {
       stringsAsFactors = FALSE
     ))
   }
-  file <- collation_rank(lines$filename)
-  ord <- order(file, lines$line, !is.na(lines$value), lines$value)
-  first <- run_starts(list(file[ord], lines$line[ord]))
-  res <- lines[ord[first], c("filename", "line", "value")]
+  rows <- smallest_in_groups(
+    list(collation_rank(lines$filename), lines$line),
+    lines$value
+  )
+  res <- lines[rows, c("filename", "line", "value")]
   rownames(res) <- NULL
   res
 }
@@ -282,12 +296,16 @@ drop_lines <- function(res, lines) {
     return(res)
   }
 
+  # A number for each file and line.
   files <- unique(names(lines))
   max_line <- max(res$line, unlist(lines)) + 1
-  drop <- rep(match(names(lines), files), lengths(lines)) *
-    max_line +
+  line_key <- function(file, line) match(file, files) * max_line + line
+
+  drop <- line_key(
+    rep(names(lines), lengths(lines)),
     unlist(lines, use.names = FALSE)
-  keep <- !(match(res$filename, files) * max_line + res$line) %in% drop
+  )
+  keep <- !line_key(res$filename, res$line) %in% drop
   res[keep, , drop = FALSE]
 }
 
