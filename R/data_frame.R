@@ -88,6 +88,8 @@ as.data.frame.coverage <- function(
 # sorts them by file and position. The remaining keys order rows at the same
 # position as earlier versions of covr did.
 merge_values <- function(x) {
+  # Expressions without a count are left out, as `aggregate()` did.
+  x <- x[!is.na(x$value), , drop = FALSE]
   if (NROW(x) == 0) {
     return(x)
   }

@@ -131,6 +131,7 @@ tally_lines <- function(df, x) {
   ord <- order(file, res$line, functions, !is.na(res$value), res$value)
   first <- run_starts(list(file[ord], res$line[ord], functions[ord]))
   res <- res[ord[first], c("filename", "functions", "line", "value")]
+  res$functions <- as.character(res$functions)
 
   if (inherits(x, "coverage")) {
     res <- drop_lines(res, non_code_lines(x))
