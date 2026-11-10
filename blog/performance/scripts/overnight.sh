@@ -44,10 +44,15 @@ echo "covr main: $sha"
 # Packages whose tests can't share one process, or that use tinytest, run with
 # type = "tests" in release-tests.
 pkgs="forcats purrr checkmate roxygen2 tidyr testthat devtools dplyr cli lintr targets recipes data.table ggplot2 Luminescence mlr3 insight posterior igraph sf quanteda distributional collapse ggdist"
+# languageserver: covr 3.6.5 needs over an hour and then runs out of memory
+# merging (#744), so it gets one 3.6.5 run (recorded as failing) and three
+# 4.0.0 runs.
 tests_mode="future digest"
 run env VERSIONS="3.6.5 $sha" OUT_DIR="$final/release" sh "$here/run-release.sh" "$bench" 3 $(tarballs $pkgs)
 run env COVR_BENCH_TYPE=tests OUT_DIR="$final/release-tests" VERSIONS="3.6.5 $sha" \
   sh "$here/run-release.sh" "$bench" 3 $(tarballs $tests_mode)
+run env VERSIONS="$sha" OUT_DIR="$final/release" sh "$here/run-release.sh" "$bench" 3 $(tarballs languageserver)
+run env VERSIONS="3.6.5" RUN_TIMEOUT=7200 MEMCAP=10G OUT_DIR="$final/release" sh "$here/run-release.sh" "$bench" 1 $(tarballs languageserver)
 
 # 3. Overhead per counted expression.
 run mkdir -p "$final/counter"

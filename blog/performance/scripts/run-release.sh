@@ -54,7 +54,7 @@ for rep in $(seq "$reps"); do
       report=true
       [ "$rep" -gt 1 ] && report=false
       COVR_BENCH_REPORT=$report R_LIBS=$lib/covr-$v:$lib/deps \
-        timeout 3600 memcap 6G \
+        timeout "${RUN_TIMEOUT:-3600}" memcap "${MEMCAP:-6G}" \
         /usr/bin/time -f 'maxrss_kb=%M wall=%e' -o "$out.time" \
         /opt/R/4.6.2/bin/Rscript --no-init-file "$here/bench-release.R" "$tarball" "$v" "$out.rds" \
         >"$out.log" 2>&1 || echo "  failed: $v $pkg rep $rep (see $out.log)"

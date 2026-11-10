@@ -23,7 +23,7 @@ COVR_BENCH=$bench memcap 6G "$rscript" --no-init-file "$here/deps-extra.R" \
   dplyr data.table devtools lintr \
   purrr tidyr cli roxygen2 testthat ggplot2 future mlr3 recipes targets \
   insight posterior igraph sf quanteda digest \
-  distributional collapse ggdist \
+  distributional languageserver collapse ggdist \
   >"$bench/setup-extra.log" 2>&1
 grep -E '^(tarballs|missing)' "$bench/setup-extra.log"
 ls "$bench/src"/*.tar.gz | sed 's#.*/##' | tr '\n' ' '
