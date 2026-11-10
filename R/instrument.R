@@ -22,8 +22,7 @@ instrument_package <- function(
   install_path,
   record_tests = isTRUE(getOption("covr.record_tests", FALSE)),
   full_traversal = FALSE,
-  branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE)),
-  compile = install_compile()
+  branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE))
 ) {
   args <- c(
     "--vanilla",
@@ -36,8 +35,7 @@ instrument_package <- function(
       install_path,
       record_tests,
       isTRUE(full_traversal),
-      branch_coverage,
-      isTRUE(compile)
+      branch_coverage
     ))
   )
   name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
@@ -70,14 +68,6 @@ instrument_package <- function(
     )
   }
   NULL
-}
-
-# Whether the instrumented functions are byte-compiled ahead of time:
-# `options(covr.install_compile = FALSE)`, or the environment variable
-# `COVR_INSTALL_COMPILE=false`, leaves them to be compiled by the JIT in each
-# process that runs them.
-install_compile <- function() {
-  install_setting("covr.install_compile", "COVR_INSTALL_COMPILE")
 }
 
 # Whether a package is instrumented after it is installed, rather than when it
@@ -120,8 +110,7 @@ instrument_main <- function() {
   if (
     !instrument_installed_package(
       args[[1]],
-      args[[2]],
-      compile = as.logical(args[[6]])
+      args[[2]]
     )
   ) {
     quit(save = "no", status = instrument_skipped)
@@ -133,7 +122,7 @@ instrument_main <- function() {
 # `pkg_name` in the library `lib`, rewrite its lazy-load database with them
 # and save the counters. Returns `FALSE`, leaving the package as installed, if
 # its namespace is not just what is in the database.
-instrument_installed_package <- function(pkg_name, lib, compile = TRUE) {
+instrument_installed_package <- function(pkg_name, lib) {
   base <- file.path(lib, pkg_name, "R", pkg_name)
   if (
     !file.exists(paste0(base, ".rdb")) || has_sysdata_functions(pkg_name, lib)
@@ -148,7 +137,7 @@ instrument_installed_package <- function(pkg_name, lib, compile = TRUE) {
   )
   register_namespace(pkg_name, ns)
   trace_environment(ns)
-  compiled <- isTRUE(compile) && !isFALSE(package_byte_compile(pkg_name, lib))
+  compiled <- !isFALSE(package_byte_compile(pkg_name, lib))
   if (compiled) {
     compile_replacements(the$replacements)
   }

@@ -128,12 +128,6 @@
 #'     `package_coverage()` installs a package as usual and instruments it each
 #'     time a process loads it, rather than once after installing it.
 #'
-#'   \item `covr.install_compile`: If `FALSE` (default `TRUE`, or the value of
-#'     the environment variable `COVR_INSTALL_COMPILE`), `package_coverage()`
-#'     doesn't byte-compile the instrumented functions of a package after
-#'     installing it, so each process that runs them compiles them with the
-#'     JIT instead.
-#'
 #'   \item `covr.showCfunctions`:
 #' }
 #'

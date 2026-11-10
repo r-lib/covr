@@ -231,49 +231,19 @@ test_that("package_byte_compile() reads the ByteCompile field like R CMD INSTALL
   expect_equal(field(NA_character_), NA)
 })
 
-test_that("covr.install_compile = FALSE leaves the stored functions uncompiled", {
+test_that("package_coverage() stores the instrumented functions compiled", {
   skip_on_cran()
   local_install_defaults()
-  run <- function(is_compiled) {
-    package_coverage(
-      test_path("TestInstrument"),
-      type = "none",
-      code = c(
-        sprintf(
-          "stopifnot(%s(TestInstrument::is_compiled(TestInstrument::f)))",
-          if (is_compiled) "" else "!"
-        ),
-        "TestInstrument::f(1)",
-        "TestInstrument::f(2)"
-      )
-    )
-  }
-  compiled <- run(TRUE)
-  uncompiled <- withr::with_options(
-    list(covr.install_compile = FALSE),
-    run(FALSE)
-  )
-
-  expect_equal(
-    as.data.frame(uncompiled)[c("first_line", "value")],
-    as.data.frame(compiled)[c("first_line", "value")]
-  )
-})
-
-test_that("install_compile() reads the option and COVR_INSTALL_COMPILE", {
-  expect_true(withr::with_envvar(
-    c(COVR_INSTALL_COMPILE = NA),
-    install_compile()
-  ))
-  expect_false(
-    withr::with_envvar(c(COVR_INSTALL_COMPILE = "false"), install_compile())
-  )
-  expect_true(
-    withr::with_options(
-      list(covr.install_compile = TRUE),
-      withr::with_envvar(c(COVR_INSTALL_COMPILE = "false"), install_compile())
+  cov <- package_coverage(
+    test_path("TestInstrument"),
+    type = "none",
+    code = c(
+      "stopifnot(TestInstrument::is_compiled(TestInstrument::f))",
+      "TestInstrument::f(1)"
     )
   )
+  df <- as.data.frame(cov)
+  expect_equal(df$value[df$first_line == 16L], 1)
 })
 
 test_that("covr.install_instrument = FALSE instruments when the package is loaded", {
