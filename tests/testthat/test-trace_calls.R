@@ -310,8 +310,7 @@ test_that("the C counter grows to many keys of different encodings", {
   expect_equal(take(), setNames(1, ascii[1]))
 })
 
-test_that("a `.Call` where the traced function lives doesn't mask the counter", {
-  skip_on_cran()
+test_that("a `.Call` where the traced functions live doesn't mask the counter", {
   clear_counters()
   withr::defer(clear_counters())
   env <- new.env()
@@ -320,10 +319,72 @@ test_that("a `.Call` where the traced function lives doesn't mask the counter", 
     parse(text = "function(x) {\n  x + 1\n}", keep.source = TRUE)[[1]],
     env
   )
-  f <- trace_calls(env$f)
-  expect_equal(f(1), 2)
+  trace_environment(env)
+  withr::defer(reset_traces())
+  expect_equal(env$f(1), 2)
+  # Tracing again doesn't instrument the traced function again
+  trace_environment(env)
+  expect_equal(env$f(1), 2)
   sync_counts()
-  expect_equal(unname(unlist(eapply(.counters, `[[`, "value"))), 1)
+  # The local `.Call` is traced too, but never called
+  expect_equal(sort(unname(unlist(eapply(.counters, `[[`, "value")))), c(0, 2))
+})
+
+test_that("a `.Call` where a function lives doesn't mask the counters of function_coverage()", {
+  env <- new.env()
+  env$.Call <- function(...) stop("the local `.Call` was called")
+  env$f <- eval(
+    parse(text = "function(x) {\n  x + 1\n}", keep.source = TRUE)[[1]],
+    env
+  )
+  cov <- function_coverage("f", env$f(1), env = env)
+  expect_equal(as.data.frame(cov)$value, 1)
+})
+
+test_that("counters only call `base::.Call` where `.Call` is masked", {
+  env <- new.env(parent = baseenv())
+  expect_identical(dot_call(env), as.symbol(".Call"))
+  # Calls only find functions
+  env$.Call <- 1
+  expect_identical(dot_call(env), as.symbol(".Call"))
+  env$.Call <- function(...) base::.Call(...)
+  expect_identical(dot_call(env), quote(base::.Call))
+  expect_identical(dot_call(new.env(parent = env)), quote(base::.Call))
+})
+
+test_that("instrumented code has no function objects in it", {
+  # Code that walks the calls of a function and expects each function in them
+  # to have a body and an environment fails on primitives. callr does, to remove
+  # the source references of a function it sends to another process.
+  clear_counters()
+  withr::defer(clear_counters())
+  has_function <- function(x) {
+    if (is.function(x)) {
+      return(TRUE)
+    }
+    if (!is.call(x)) {
+      return(FALSE)
+    }
+    for (i in seq_along(x)) {
+      if (!identical(x[[i]], quote(expr = )) && has_function(x[[i]])) {
+        return(TRUE)
+      }
+    }
+    FALSE
+  }
+  src <- paste(
+    "function(x) {",
+    "  lapply(x, function(y) {",
+    "    if (y) 1 else 2",
+    "  })",
+    "}",
+    sep = "\n"
+  )
+  f <- eval(parse(text = src, keep.source = TRUE)[[1]], new.env())
+  traced <- trace_calls(f)
+  expect_true(is_traced(traced))
+  expect_false(has_function(body(traced)))
+  expect_equal(traced(c(TRUE, FALSE)), list(1, 2))
 })
 
 test_that("primitive functions are not traced", {

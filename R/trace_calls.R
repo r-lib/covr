@@ -27,14 +27,18 @@ trace_calls <- function(
         key
       ))
     } else {
-      # The `.Call` primitive itself rather than the symbol, so a `.Call`
-      # defined where the traced function lives can't mask it. Primitives are
-      # serialized by name, and keys are strings, so traced functions can be
-      # saved, e.g. in the lazy-load database of an instrumented package. In
-      # a process where the key isn't registered, e.g. one that a traced
+      # The `.Call` symbol rather than the `.Call` primitive itself: code that
+      # walks the calls of a function and treats each function it finds as
+      # having a body and an environment, as callr does to remove the source
+      # references of a function it sends to another process, fails on a
+      # primitive. `base::.Call` is slower to look up in every count, so it is
+      # only used where a `.Call` function would mask the primitive (see
+      # `dot_call()`). Keys are strings, so traced functions can be saved,
+      # e.g. in the lazy-load database of an instrumented package. In a
+      # process where the key isn't registered, e.g. one that a traced
       # function was sent to, the call runs but doesn't count.
       as.call(list(
-        .Call,
+        the$dot_call %||% as.symbol(".Call"),
         call(":::", as.symbol("covr"), as.symbol("covr_count")),
         key
       ))

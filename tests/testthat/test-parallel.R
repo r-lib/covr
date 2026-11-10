@@ -166,3 +166,24 @@ test_that("should_enable_parallel_mcexit_fix", {
 
   expect_identical(res, grid$res)
 })
+
+
+test_that("package_coverage() works with functions that send their code to other processes with callr", {
+  skip_on_cran()
+  skip_if_not_installed("callr")
+
+  # callr removes the source references of the function it sends to the other
+  # process, which fails if there is a function object in the function's code
+  cov <- package_coverage(
+    test_path("TestCallr"),
+    type = "none",
+    code = "stopifnot(identical(TestCallr::add_in_subprocess(1, 2), 3))"
+  )
+
+  df <- as.data.frame(cov)
+  expect_equal(unique(df$functions), c("add_in_subprocess", "never_called"))
+  # the call to callr::r() is counted, but the function sent to the other
+  # process isn't, as the other process doesn't load the package
+  expect_equal(df$value[df$functions == "add_in_subprocess"][[1]], 1)
+  expect_equal(df$value[df$functions == "never_called"], 0)
+})

@@ -24,7 +24,7 @@ as_r_count <- function(x) {
     return(x)
   }
   if (
-    identical(x[[1]], .Call) &&
+    identical(x[[1]], as.symbol(".Call")) &&
       is.call(x[[2]]) &&
       identical(x[[2]][[1]], as.symbol(":::")) &&
       identical(x[[2]][[3]], as.symbol("covr_count"))

@@ -79,12 +79,10 @@ local_installed_package <- function(name, args, frame = parent.frame()) {
 # `package_coverage()` instruments packages.
 local_install_defaults <- function(env = parent.frame()) {
   withr::local_envvar(
-    COVR_INSTALL_COMPILE = NA,
     COVR_INSTALL_INSTRUMENT = NA,
     .local_envir = env
   )
   withr::local_options(
-    covr.install_compile = NULL,
     covr.install_instrument = NULL,
     .local_envir = env
   )

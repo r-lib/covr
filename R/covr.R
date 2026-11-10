@@ -128,12 +128,6 @@
 #'     `package_coverage()` installs a package as usual and instruments it each
 #'     time a process loads it, rather than once after installing it.
 #'
-#'   \item `covr.install_compile`: If `FALSE` (default `TRUE`, or the value of
-#'     the environment variable `COVR_INSTALL_COMPILE`), `package_coverage()`
-#'     doesn't byte-compile the instrumented functions of a package after
-#'     installing it, so each process that runs them compiles them with the
-#'     JIT instead.
-#'
 #'   \item `covr.showCfunctions`:
 #' }
 #'
@@ -198,6 +192,21 @@ trace_environment <- function(env) {
   invisible(lapply(replacements, replace))
 }
 
+# The function that the counters added by `trace_calls()` call: the `.Call`
+# symbol, or `base::.Call` if a `.Call` function found from `env` would be
+# called in place of the primitive, e.g. one that a package defines to wrap
+# the calls to its compiled code, as parzer does. `replacement()` checks this
+# once for each traced function, from its enclosing environment, which is
+# cheaper than looking up `base::.Call` in every count.
+dot_call <- function(env) {
+  fun <- get0(".Call", envir = env, mode = "function")
+  if (is.null(fun) || identical(fun, base::.Call)) {
+    as.symbol(".Call")
+  } else {
+    quote(base::.Call)
+  }
+}
+
 reset_traces <- function() {
   the$traced_env <- NULL
   # Undo in reverse order, so a function replaced more than once ends up with
@@ -210,8 +219,10 @@ reset_traces <- function() {
 # temporary prefix intentionally does not match `^covr_trace_`: leftovers from
 # a process killed mid-write are simply ignored.
 #
-# If serializing the counters fails (e.g. with ALTREP vectors, #509) an error
-# marker is written instead, so the main process can report the failed save.
+# If serializing the counters fails (e.g. with ALTREP vectors, #509), or the
+# process can't count the code it runs (`the$trace_error`, see
+# `check_saved_dot_call()`), an error marker is written instead, so the main
+# process can report it.
 save_trace <- function(directory) {
   final_file <- temp_file("covr_trace_", tmpdir = directory)
   tmp_file <- temp_file(".covr_tmp_", tmpdir = directory)
@@ -219,7 +230,12 @@ save_trace <- function(directory) {
 
   sync_counts()
   tryCatch(
-    save_rds(portable_srcfiles(.counters), tmp_file),
+    {
+      if (!is.null(the$trace_error)) {
+        stop(the$trace_error, call. = FALSE)
+      }
+      save_rds(portable_srcfiles(.counters), tmp_file)
+    },
     error = function(e) {
       marker <- structure(
         list(message = conditionMessage(e), pid = Sys.getpid()),
