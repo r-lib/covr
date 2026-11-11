@@ -1,4 +1,4 @@
-test_that("azure_pipelines calls package_coverage and to_cobertura", {
+test_that("azure_pipelines calls package_coverage and cobertura", {
   tf <- tempfile()
   on.exit(unlink(tf))
 

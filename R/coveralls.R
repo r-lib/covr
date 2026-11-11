@@ -2,14 +2,14 @@
 #'
 #' On GitHub Actions, use the official
 #' [Coveralls action](https://github.com/coverallsapp/github-action) instead of
-#' this function: write the coverage with [to_cobertura()] and upload
+#' this function: write the coverage with [cobertura()] and upload
 #' `cobertura.xml` with `coverallsapp/github-action@v2`. See the README for an
 #' example workflow. With branch coverage, upload the LCOV file written by
-#' [to_lcov()] instead, as the action reads which branches were taken from it.
+#' [lcov()] instead, as the action reads which branches were taken from it.
 #'
 #' With branch coverage (see [covr.branch_coverage]), each source file sent to
 #' Coveralls also has its `branches`: the line, block, branch and count of
-#' each branch, as in [to_lcov()]. A branch that was never taken has a count of
+#' each branch, as in [lcov()]. A branch that was never taken has a count of
 #' zero.
 #'
 #' The CI service, job, pull request, branch and commit are detected from the
@@ -129,7 +129,7 @@ to_coveralls <- function(x, repo_token = "", service_name = NULL) {
 # The `branches` of a Coveralls source file, a flat array with the line, block,
 # branch and count of each branch, from the branches of the file from
 # `tally_coverage(by = "branch")`. Blocks and branches are numbered from zero
-# as in `to_lcov()`.
+# as in `lcov()`.
 coveralls_branches <- function(df) {
   as.vector(rbind(df$line, branch_blocks(df), df$branch - 1L, df$value))
 }
