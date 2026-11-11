@@ -19,29 +19,33 @@ sonarqube <- function(cov, filename = "sonarqube.xml", path_prefix = NULL) {
   df <- tally_coverage(cov, by = "line")
   lines <- collapse_lines(df[!is.na(df$functions), , drop = FALSE])
 
-  d <- xml2::xml_new_document()
-
-  top <- xml2::xml_add_child(d, "coverage", version = "1")
-
   files <- unique(lines$filename)
-
-  for (f in files) {
-    path <- as.character(f)
-    if (!is.null(path_prefix)) {
-      path <- file.path(path_prefix, path)
-    }
-    file <- xml2::xml_add_child(top, "file", path = path)
-
-    for (i in which(lines$filename == f)) {
-      line <- lines[i, ]
-      xml2::xml_add_child(
-        file,
-        "lineToCover",
-        lineNumber = as.character(line$line),
-        covered = tolower(as.character(line$value > 0))
-      )
-    }
+  paths <- as.character(files)
+  if (!is.null(path_prefix)) {
+    paths <- file.path(path_prefix, paths)
   }
+
+  # Packages can have thousands of lines, so the document is written as text
+  # and parsed once, which is much faster than adding each line with xml2.
+  line_elements <- sprintf(
+    '<lineToCover lineNumber="%s" covered="%s"/>',
+    as.character(lines$line),
+    tolower(as.character(lines$value > 0))
+  )
+  file_lines <- vapply(
+    split(line_elements, factor(lines$filename, levels = files)),
+    paste,
+    character(1),
+    collapse = ""
+  )
+  d <- xml2::read_xml(paste0(
+    '<coverage version="1">',
+    paste(
+      sprintf('<file path="%s">%s</file>', xml_escape(paths), file_lines),
+      collapse = ""
+    ),
+    "</coverage>"
+  ))
 
   xml2::write_xml(d, file = filename)
 

@@ -66,6 +66,28 @@ test_that("methods only list the lines of their own file (#629)", {
   expect_equal(xml2::xml_attr(method(b), "line-rate"), "0")
 })
 
+test_that("names with XML special characters are escaped", {
+  file <- file.path(withr::local_tempdir(), "a&b.R")
+  writeLines(
+    c("`[<-.foo` <- function(x, i, value) x", "`%&%` <- function(x, y) x"),
+    file
+  )
+  cov <- file_coverage(file, local_r_file("1 %&% 2"))
+
+  tmp <- withr::local_tempfile(fileext = ".xml")
+  cobertura(cov, filename = tmp)
+  doc <- xml2::read_xml(tmp)
+
+  expect_equal(
+    xml2::xml_attr(xml2::xml_find_all(doc, "//class"), "name"),
+    "a&b.R"
+  )
+  expect_equal(
+    xml2::xml_attr(xml2::xml_find_all(doc, "//method"), "name"),
+    c("[<-.foo", "%&%")
+  )
+})
+
 test_that("lines with branches have their condition coverage", {
   tmp <- tempfile()
   cov <- branch_coverage(
