@@ -281,7 +281,22 @@ Yes.
 measures the coverage of the Rust code in `src/`, e.g. of packages using
 [extendr](https://extendr.github.io/) or
 [savvy](https://yutannihilation.github.io/savvy/guide/), with LLVM’s
-source-based coverage. This needs the llvm tools of your Rust toolchain:
+source-based coverage.
+[`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md),
+[`environment_coverage()`](https://covr.r-lib.org/dev/reference/environment_coverage.md)
+and
+[`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md)
+also measure it in the current session for packages loaded with
+[`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html),
+which is much faster, and only recompile the Rust code that changed on
+later runs:
+
+``` r
+
+file_coverage("src/rust/src/lib.rs", "tests/testthat/test-foo.R")
+```
+
+This needs the llvm tools of your Rust toolchain:
 
 ``` sh
 rustup component add llvm-tools

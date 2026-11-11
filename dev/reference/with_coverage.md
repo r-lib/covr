@@ -89,18 +89,25 @@ loads their package with
 and reports the coverage of those files, without needing devtools:
 
     file_coverage("src/foo.c", "tests/testthat/test-foo.R")
+    file_coverage("src/rust/src/lib.rs", "tests/testthat/test-foo.R")
 
-The compiled code is measured with gcov in the current session, which is
-much faster than
+The compiled code is measured in the current session, which is much
+faster than
+[`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md):
+C, C++, Fortran and Objective-C code with gcov, and Rust code (e.g. of
+packages using extendr or savvy) with LLVM's source-based coverage,
+which needs the llvm tools described in
 [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md).
 An instrumented copy of the package is built in the session's temporary
 directory, leaving the package's own build untouched, and later runs
-only recompile the files that changed. While the code runs, the
-namespace's native routines use the instrumented DLL instead of the
+only recompile the files that changed, with cargo's incremental build in
+the copy's own `target` directory for Rust code. While the code runs,
+the namespace's native routines use the instrumented DLL instead of the
 package's own. Routines that were looked up some other way, e.g. stored
 by `.onLoad()` or found by other packages with `R_GetCCallable()`, keep
 using the package's DLL, so their code isn't counted. Set
-`options(covr.gcov = "")` to leave out compiled code.
+`options(covr.gcov = "")` to leave out C, C++, Fortran and Objective-C
+code, and `options(covr.llvm_cov = "")` to leave out Rust code.
 
 ## See also
 

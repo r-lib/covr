@@ -283,6 +283,19 @@ see “Changes to reported coverage” below.
   so `devtools::test_coverage_active_file()` now works for files in
   `src/`.
 
+- [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md),
+  [`environment_coverage()`](https://covr.r-lib.org/dev/reference/environment_coverage.md)
+  and
+  [`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md)
+  also measure the Rust code of packages loaded with
+  [`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html),
+  e.g. `file_coverage("src/rust/src/lib.rs", "tests/foo.R")`, like
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  does. cargo only recompiles the crates that changed in the
+  instrumented copy. Without the llvm tools covr warns and skips the
+  Rust code, and `options(covr.llvm_cov = "")` turns this off
+  ([\#749](https://github.com/r-lib/covr/issues/749)).
+
 - New
   [`shiny_app_coverage()`](https://covr.r-lib.org/dev/reference/shiny_app_coverage.md)
   measures the coverage of a Shiny app that isn’t part of a package
