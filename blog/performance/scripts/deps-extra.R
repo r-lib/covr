@@ -34,8 +34,24 @@ deps <- unique(unlist(lapply(tarballs, function(t) {
 deps <- setdiff(deps, c("R", "covr", rownames(installed.packages(priority = "base"))))
 deps <- setdiff(deps, rownames(installed.packages(lib.loc = lib)))
 cat("installing:", deps, "\n")
+# Install with pak. pak fails a whole batch when one package is unavailable
+# (e.g. mixOmics), so on failure install one at a time.
 if (length(deps)) {
-  install.packages(deps, lib = lib, dependencies = c("Depends", "Imports", "LinkingTo"))
+  if (!requireNamespace("pak", lib.loc = lib, quietly = TRUE)) {
+    utils::install.packages("pak", lib = lib)
+  }
+  ok <- tryCatch({
+    pak::pkg_install(deps, lib = lib, upgrade = FALSE, ask = FALSE, dependencies = NA)
+    TRUE
+  }, error = function(e) FALSE)
+  if (!ok) {
+    for (p in deps) {
+      tryCatch(
+        pak::pkg_install(p, lib = lib, upgrade = FALSE, ask = FALSE, dependencies = NA),
+        error = function(e) message("Can't install ", p, ": ", conditionMessage(e))
+      )
+    }
+  }
 }
 unlink(file.path(lib, "covr"), recursive = TRUE)
 cat("tarballs:", basename(tarballs), "\n")

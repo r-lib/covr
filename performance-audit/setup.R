@@ -133,12 +133,28 @@ needed <- unique(c(
 
 .libPaths(deps_lib)
 missing <- setdiff(needed, rownames(installed.packages(lib.loc = deps_lib)))
+# Install with pak into deps_lib. pak fails a whole batch when one package is
+# unavailable (e.g. mixOmics), so on failure install one at a time and report
+# what couldn't be installed below.
+pak_install <- function(pkgs, lib) {
+  if (!requireNamespace("pak", lib.loc = lib, quietly = TRUE)) {
+    utils::install.packages("pak", lib = lib)
+  }
+  ok <- tryCatch({
+    pak::pkg_install(pkgs, lib = lib, upgrade = FALSE, ask = FALSE, dependencies = NA)
+    TRUE
+  }, error = function(e) FALSE)
+  if (!ok) {
+    for (p in pkgs) {
+      tryCatch(
+        pak::pkg_install(p, lib = lib, upgrade = FALSE, ask = FALSE, dependencies = NA),
+        error = function(e) message("Can't install ", p, ": ", conditionMessage(e))
+      )
+    }
+  }
+}
 if (length(missing) > 0) {
-  install.packages(
-    missing,
-    lib = deps_lib,
-    dependencies = c("Depends", "Imports", "LinkingTo")
-  )
+  pak_install(missing, deps_lib)
 }
 # Packages such as devtools depend on covr, so the deps library gets the CRAN
 # covr too. Remove it, so covr only comes from the per-version libraries and
