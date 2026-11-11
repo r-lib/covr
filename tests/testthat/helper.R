@@ -87,3 +87,17 @@ local_install_defaults <- function(env = parent.frame()) {
     .local_envir = env
   )
 }
+
+# Start with no deprecated function having warned, and restore the previous
+# state afterwards, so each deprecated function warns on its first call.
+local_deprecation_warnings <- function(env = parent.frame()) {
+  warned <- as.list(deprecation_warned)
+  rm(list = names(warned), envir = deprecation_warned)
+  withr::defer(
+    {
+      rm(list = ls(deprecation_warned), envir = deprecation_warned)
+      list2env(warned, deprecation_warned)
+    },
+    envir = env
+  )
+}

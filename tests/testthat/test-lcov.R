@@ -1,14 +1,14 @@
 test_that("it works with coverage objects", {
   tmp <- tempfile(fileext = ".info")
   cov <- package_coverage(test_path("TestSummary"))
-  to_lcov(cov, filename = tmp)
+  lcov(cov, filename = tmp)
   expect_snapshot(writeLines(readLines(tmp)))
 })
 
 test_that("large counts are not written in scientific notation", {
   cov <- code_coverage("f <- function() 1", "f()")
   cov[[1]]$value <- 1e5
-  out <- to_lcov(cov, tempfile())
+  out <- lcov(cov, tempfile())
   expect_equal(
     grep("^(FNDA|DA):", out, value = TRUE),
     c("FNDA:100000,f", "DA:1,100000")
@@ -17,7 +17,7 @@ test_that("large counts are not written in scientific notation", {
 
 test_that("functions sharing a line give a single line record", {
   cov <- code_coverage("f <- function() 1; g <- function() 2", "f()")
-  out <- to_lcov(cov, tempfile())
+  out <- lcov(cov, tempfile())
   expect_equal(
     grep("^(DA|LF|LH):", out, value = TRUE),
     c("DA:1,0", "LF:1", "LH:0")
@@ -30,7 +30,7 @@ test_that("line totals match the line coverage of reports", {
     "f <- function() 1; g <- function() 2\nh <- function() {\n  3\n}\nk <- function() 4",
     "f(); h()"
   )
-  out <- to_lcov(cov, tempfile())
+  out <- lcov(cov, tempfile())
   lines <- unlist(lapply(per_line(cov), function(x) x$coverage))
   expect_equal(
     grep("^LF:", out, value = TRUE),
@@ -43,7 +43,7 @@ test_that("line totals match the line coverage of reports", {
 })
 
 test_that("a line is only covered if all its expressions ran (#620)", {
-  out <- to_lcov(shared_line_coverage(), tempfile())
+  out <- lcov(shared_line_coverage(), tempfile())
   expect_equal(
     grep("^(DA|LF|LH):", out, value = TRUE),
     c("DA:2,1", "DA:3,0", "DA:6,0", "LF:3", "LH:1")
@@ -61,7 +61,7 @@ test_that("branches are written as BRDA records", {
     ),
     "f(TRUE); f(TRUE)"
   )
-  out <- to_lcov(cov, tempfile())
+  out <- lcov(cov, tempfile())
   expect_equal(
     grep("^BR", out, value = TRUE),
     c(
@@ -84,13 +84,13 @@ test_that("branches are written as BRDA records", {
 
 test_that("branches aren't written without branch coverage", {
   cov <- code_coverage("f <- function(x) if (x) 1", "f(TRUE)")
-  expect_length(grep("^BR", to_lcov(cov, tempfile())), 0)
+  expect_length(grep("^BR", lcov(cov, tempfile())), 0)
 })
 
 test_that("code without function names has no function records", {
   cov <- code_coverage("f <- function() 1", "f()")
   cov[[1]]$functions <- NA_character_
-  out <- to_lcov(cov, tempfile())
+  out <- lcov(cov, tempfile())
   expect_equal(
     grep("^(FN|FNDA|FNF|FNH|DA|LF|LH):", out, value = TRUE),
     c("FNF:0", "FNH:0", "DA:1,1", "LF:1", "LH:1")

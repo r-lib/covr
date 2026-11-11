@@ -213,9 +213,9 @@ for (rep in seq_len(reps)) {
   )
   add(
     rep,
-    "post: to_cobertura()",
+    "post: cobertura()",
     timed(
-      covr::to_cobertura(cov, filename = tempfile(fileext = ".xml"))
+      covr::cobertura(cov, filename = tempfile(fileext = ".xml"))
     )
   )
   add(rep, "post: coverage_to_list()", timed(covr::coverage_to_list(cov)))

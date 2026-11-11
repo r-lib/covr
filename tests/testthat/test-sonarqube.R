@@ -1,10 +1,10 @@
 test_that("it works with coverage objects", {
   tmp <- tempfile()
   cov <- package_coverage(test_path("TestSummary"))
-  to_sonarqube(cov, filename = tmp)
+  sonarqube(cov, filename = tmp)
   expect_equal(readLines(tmp), readLines(test_path("sonarqube.xml")))
 
-  to_sonarqube(cov, filename = tmp, path_prefix = "TestSummary")
+  sonarqube(cov, filename = tmp, path_prefix = "TestSummary")
   expect_match(
     readLines(tmp),
     '<file path="TestSummary/R/TestSummary.R">',
@@ -15,7 +15,7 @@ test_that("it works with coverage objects", {
 
 test_that("each line is covered once, as uncovered if any of its code didn't run (#620)", {
   tmp <- tempfile()
-  to_sonarqube(shared_line_coverage(), filename = tmp)
+  sonarqube(shared_line_coverage(), filename = tmp)
   doc <- xml2::read_xml(tmp)
 
   lines <- xml2::xml_find_all(doc, "//lineToCover")

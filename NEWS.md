@@ -8,7 +8,7 @@ reported coverage" below.
 
 * Line coverage is now computed the same way everywhere, so `print()`,
   `percent_coverage()`, `tally_coverage()`, `report()`, `codecov()`,
-  `coveralls()`, `to_cobertura()`, `to_sonarqube()` and `to_lcov()` agree. A
+  `coveralls()`, `cobertura()`, `sonarqube()` and `lcov()` agree. A
   line only counts as covered if all its expressions ran, e.g. `if (x) a else
   b` on one line where `a` never ran is now uncovered in `report()`, `codecov()`
   and `coveralls()`. Lines shared by several functions, such as
@@ -55,6 +55,11 @@ reported coverage" below.
 
 * covr now requires R 4.0.0 or later.
 
+* `to_cobertura()` and `to_sonarqube()` are deprecated in favor of
+  `cobertura()` and `sonarqube()`, matching the names of `report()`,
+  `codecov()` and `coveralls()`. The old names still work, and warn once per
+  session (#750).
+
 * S4 methods are now named after their generic and signature, as in their Rd
   aliases, e.g. `show,MyClass-method`, so `print(x, group = "functions")`,
   `tally_coverage(by = "function")` and the other outputs show which generic
@@ -62,7 +67,7 @@ reported coverage" below.
   e.g. `numeric#character` (#417). `function_exclusions` patterns that matched
   the old names need to be updated.
 
-* `to_sonarqube()` now writes file paths relative to the package root (e.g.
+* `sonarqube()` now writes file paths relative to the package root (e.g.
   `R/foo.R`) instead of prefixing them with the package name, so the report
   works when the package is the root of the SonarQube project. Use the new
   `path_prefix` argument if the package is in a subdirectory of the project,
@@ -88,7 +93,7 @@ reported coverage" below.
 * `package_coverage(pre_clean =)` is deprecated and ignored; compiled objects
   in `src/` are always removed before the package is installed.
 
-* `azure()` is deprecated. Use `to_cobertura()`, which it calls, instead.
+* `azure()` is deprecated. Use `cobertura()`, which it calls, instead.
 
 * covr no longer supports code coverage with Intel's classic `icc` compiler,
   which Intel discontinued in 2024, and the `covr.icov`, `covr.icov_args`,
@@ -159,7 +164,7 @@ reported coverage" below.
   each `if` (including an `if` without an `else`) and `switch()` were taken,
   in the `branches` attribute of the coverage object. `tally_coverage(by =
   "branch")` and `percent_coverage(by = "branch")` summarize them, and
-  `to_lcov()`, `to_cobertura()`, `codecov()` and `coveralls()` include them.
+  `lcov()`, `cobertura()`, `codecov()` and `coveralls()` include them.
   Line coverage is unchanged, and without the option the code is instrumented
   as before, so there is no cost. See `?covr.branch_coverage` (#279).
 
@@ -278,11 +283,11 @@ reported coverage" below.
   branch and remote on every service, or from the local git repository
   outside CI, so the Coveralls badge is updated for the right branch (#535).
 
-* New `to_badge()` writes an SVG badge with the percent coverage, so a README
+* New `badge()` writes an SVG badge with the percent coverage, so a README
   can show coverage without uploading it to Codecov or Coveralls. The README
   has an example GitHub Actions workflow that publishes the badge (#634).
 
-* New `to_lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
+* New `lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
   `genhtml` and other tools that read the LCOV format (#442, thanks to
   @MichaelChirico for the initial implementation in #637).
 
@@ -290,7 +295,7 @@ reported coverage" below.
   compared against a baseline, for GitHub Actions job summaries or pull
   request comments (#519).
 
-* `to_cobertura()` now only lists the lines of a method from the file it is
+* `cobertura()` now only lists the lines of a method from the file it is
   defined in. Previously methods sharing a name across files, such as the
   `initialize()` methods of R6 classes, listed each other's lines, so Codecov
   showed line numbers past the end of the file and a different coverage than

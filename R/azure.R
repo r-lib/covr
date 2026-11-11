@@ -1,8 +1,8 @@
 #' Run covr on a package and output the result so it is available on Azure Pipelines
 #'
-#' Deprecated. Use [to_cobertura()], which this function calls, instead.
+#' Deprecated. Use [cobertura()], which this function calls, instead.
 #' @inheritParams codecov
-#' @inheritParams to_cobertura
+#' @inheritParams cobertura
 #' @export
 azure <- function(
   ...,
@@ -12,7 +12,7 @@ azure <- function(
 ) {
   covr_warn(c(
     "{.fn azure} is deprecated.",
-    i = "Use {.fn to_cobertura} instead."
+    i = "Use {.fn cobertura} instead."
   ))
-  to_cobertura(coverage, filename = filename)
+  cobertura(coverage, filename = filename)
 }

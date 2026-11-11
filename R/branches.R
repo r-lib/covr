@@ -40,11 +40,11 @@
 #' branch, and `percent_coverage(by = "branch")` for the percentage of
 #' branches taken.
 #'
-#' [to_lcov()], [to_cobertura()], [codecov()] and [coveralls()] include the
+#' [lcov()], [cobertura()], [codecov()] and [coveralls()] include the
 #' branches. Codecov shows a line with branches that weren't all taken as
 #' partly covered, and counts it as not covered in the coverage percentage, so
 #' the percentage on Codecov is lower with branch coverage. [report()],
-#' [file_report()] and [to_sonarqube()] don't include the branches yet.
+#' [file_report()] and [sonarqube()] don't include the branches yet.
 #'
 #' @examples
 #' withr::with_options(list(covr.branch_coverage = TRUE), {

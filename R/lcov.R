@@ -33,10 +33,10 @@
 #'   "f(1)"
 #' )
 #' tmp <- tempfile(fileext = ".info")
-#' to_lcov(cov, tmp)
+#' lcov(cov, tmp)
 #' cat(readLines(tmp), sep = "\n")
 #' @export
-to_lcov <- function(cov, filename = "lcov.info") {
+lcov <- function(cov, filename = "lcov.info") {
   lines <- collapse_lines(tally_coverage(cov, by = "line"))
   funs <- tally_coverage(cov, by = "function")
   branches <- if (!is.null(attr(cov, "branches"))) {

@@ -175,6 +175,21 @@ covr_warn <- function(
   ))
 }
 
+# The deprecated functions that have warned in this session.
+deprecation_warned <- new.env(parent = emptyenv())
+
+# Warn that `old()` is deprecated in favor of `new()`, once per session.
+warn_deprecated <- function(old, new) {
+  if (isTRUE(deprecation_warned[[old]])) {
+    return(invisible())
+  }
+  deprecation_warned[[old]] <- TRUE
+  covr_warn(c(
+    "{.fn {old}} is deprecated.",
+    i = "Use {.fn {new}} instead."
+  ))
+}
+
 cnd_message <- function(format, message, output, .envir) {
   paste(c(format(message, .envir = .envir), output), collapse = "\n")
 }

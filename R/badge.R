@@ -28,10 +28,10 @@
 #'   "f(1)"
 #' )
 #' tmp <- tempfile(fileext = ".svg")
-#' to_badge(cov, tmp)
+#' badge(cov, tmp)
 #' cat(readLines(tmp), sep = "\n")
 #' @export
-to_badge <- function(cov, filename = "coverage.svg", label = "coverage") {
+badge <- function(cov, filename = "coverage.svg", label = "coverage") {
   if (!is.character(label) || length(label) != 1 || is.na(label)) {
     covr_abort("{.arg label} must be a single string.")
   }
