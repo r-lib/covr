@@ -117,9 +117,10 @@ are easier to tell apart than the default green and red with color
 vision deficiency. Either element can be left out to keep its default.
 An optional \code{partial} element sets the color of partial coverage (at
 least 75\% but less than 90\%), which otherwise follows \code{covered}, or is
-yellow in the console if \code{covered} isn't set either. Transparency is
-ignored. In terminals with only 8 colors, the console uses the closest
-of those colors.
+yellow in the console if \code{covered} isn't set either, and of lines with
+a branch that wasn't taken in reports with branch coverage, which are
+otherwise yellow. Transparency is ignored. In terminals with only 8
+colors, the console uses the closest of those colors.
 
 \item \code{covr.rstudio_source_markers}: A logical value. If \code{TRUE} (the
 default behavior), source markers are displayed within the RStudio IDE

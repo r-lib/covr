@@ -31,6 +31,54 @@
   border-right: 1px solid rgba(0,0,0,0.1);
   font-weight: bold;
   text-align: center;
+  white-space: nowrap;
+}
+
+/* The number of branches taken on a line, with the label and count of each
+   branch shown when it is hovered or focused */
+.covr-report span.covr-branches {
+  position: relative;
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 3px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  font-weight: normal;
+  line-height: 1.2;
+  cursor: default;
+}
+
+.covr-report span.covr-branch-detail {
+  display: none;
+  position: absolute;
+  top: -1px;
+  left: 100%;
+  z-index: 2;
+  margin-left: 4px;
+  padding: 2px 0;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  text-align: left;
+  white-space: pre;
+}
+
+.covr-report span.covr-branches:hover > span.covr-branch-detail,
+.covr-report span.covr-branches:focus > span.covr-branch-detail {
+  display: block;
+}
+
+.covr-report span.covr-branch {
+  display: block;
+  padding: 0 6px;
+}
+
+/* The branches of the second and later `if` or `switch()` on a line */
+.covr-report span.covr-branch-next {
+  margin-top: 2px;
+  padding-top: 2px;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
 }
 
 /* The list of files, styled like DataTables' tables with borders between the
@@ -339,6 +387,20 @@ html.covr-dark .covr-report table tbody,
 html.covr-dark .covr-report table .num,
 html.covr-dark .covr-report table td.coverage {
   border-color: rgba(255, 255, 255, 0.15);
+}
+
+html.covr-dark .covr-report span.covr-branches,
+html.covr-dark .covr-report span.covr-branch-detail {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+html.covr-dark .covr-report span.covr-branch-detail {
+  background-color: #2b3035;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+html.covr-dark .covr-report span.covr-branch-next {
+  border-top-color: rgba(255, 255, 255, 0.15);
 }
 
 html.covr-dark .covr-report table.covr-file-table,

@@ -7,6 +7,16 @@
 #' @param x a coverage dataset, defaults to running `package_coverage()`.
 #' @param file The report filename.
 #' @param browse whether to open a browser to view the report.
+#' @section Branches:
+#' If branch coverage was measured with `options(covr.branch_coverage = TRUE)`
+#' (see [covr.branch_coverage]), the report also shows the branches of each
+#' `if` and `switch()`. The title has the percentage of branches taken after
+#' the line coverage, and the list of files has a "Branches" column with the
+#' percentage of the branches of each file that were taken. In the source, a
+#' line with branches has the number of its branches taken out of the total,
+#' e.g. `1/2`; hovering over it or focusing it shows the label and count of
+#' each branch. A line with a branch that wasn't taken is shown as partly
+#' covered, unless its `if` or `switch()` never ran, which leaves it missed.
 #' @section Colors:
 #' Covered lines are shown in green and missed lines in red. To use other
 #' colors, e.g. a pair that is easier to tell apart with color vision
@@ -15,7 +25,8 @@
 #' ignored) with elements `covered`, `missed` and/or `partial`. The colors are
 #' used for the highlighted lines and the coverage bars in the file list;
 #' `partial` is used for the bars of files with at least 75% but less than 90%
-#' coverage, which otherwise follow `covered`.
+#' coverage, which otherwise follow `covered`, and for the partly covered lines
+#' of reports with branches, which are otherwise yellow.
 #'
 #' ```r
 #' options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))
@@ -110,6 +121,12 @@ report_html <- function(x = package_coverage()) {
 
   package_name <- attr(x, "package")$package
   percentage <- sprintf("%02.2f%%", data$overall)
+  if (!is.null(data$branches_overall)) {
+    percentage <- with_branch_percentage(
+      percentage,
+      sprintf("%02.2f%%", data$branches_overall)
+    )
+  }
 
   # The tabs, the sorting of the file list and the links to the files are
   # handled by `report.js`, which is in `report_head()`
@@ -121,7 +138,8 @@ report_html <- function(x = package_coverage()) {
       tabset_panel(
         tab_panel("Files", file_table(data$file_stats)),
         tab_panel("Source", addHighlight(renderSourceTable(data$full)))
-      )
+      ),
+      branches = !is.null(data$branches_overall)
     )
   ))
 }
@@ -131,6 +149,9 @@ report_html <- function(x = package_coverage()) {
 #' `file_report()` saves the coverage of one file as a standalone HTML file and
 #' opens it. `file_report_html()` creates the same report as HTML that can be
 #' included in a larger document, like [report_html()].
+#'
+#' With branch coverage, the report shows the branches of the file as described
+#' in the "Branches" section of [report()].
 #'
 #' @inheritParams report
 #' @param file The file to report on, if `NULL`, use the first file in the
@@ -177,6 +198,9 @@ file_report_html <- function(x = package_coverage(), file = NULL) {
   data <- to_report_data(x)
 
   percentage <- data$file_stats$Coverage
+  if (!is.null(data$branches_overall)) {
+    percentage <- with_branch_percentage(percentage, data$file_stats$Branches)
+  }
 
   htmltools::browsable(htmltools::tagList(
     report_head(),
@@ -185,9 +209,16 @@ file_report_html <- function(x = package_coverage(), file = NULL) {
       report_header(paste0(file, " - ", percentage)),
       addHighlight(
         renderSourceTable(data$full, "")
-      )
+      ),
+      branches = !is.null(data$branches_overall)
     )
   ))
+}
+
+# The coverage in the title of a report with branches, followed by the
+# percentage of branches taken, as in `print()`
+with_branch_percentage <- function(percentage, branches) {
+  paste0(percentage, " (branches ", branches, ")")
 }
 
 check_report_installed <- function() {
@@ -375,12 +406,24 @@ report_colors_class <- function(colors) {
   paste0("covr-colors-", digest::digest(colors, algo = "crc32"))
 }
 
-report_colors_css <- function(colors) {
+# The styles of the lines with `colors`. Reports with branches also style the
+# partly covered lines, in the `partial` color if it is set, otherwise
+# `default_partial_line_color`, and the branches that weren't taken.
+report_colors_css <- function(colors, branches = FALSE) {
   selector <- paste0(".covr-report.", report_colors_class(colors))
+  line_colors <- colors[, c("covered", "missed"), drop = FALSE]
+  if (branches) {
+    partial <- if ("partial" %in% colnames(colors)) {
+      colors[, "partial"]
+    } else {
+      grDevices::col2rgb(default_partial_line_color)[, 1]
+    }
+    line_colors <- cbind(line_colors, partial = partial)
+  }
   rules <- vapply(
-    c("covered", "missed"),
+    colnames(line_colors),
     function(type) {
-      rgb <- colors[, type]
+      rgb <- line_colors[, type]
       hex <- rgb_hex(rgb)
       paste0(
         selector,
@@ -412,18 +455,33 @@ report_colors_css <- function(colors) {
     },
     character(1)
   )
+  if (branches) {
+    rules <- c(
+      rules,
+      paste0(
+        selector,
+        " .covr-branch-missed{\n  background-color:",
+        rgb_alpha(colors[, "missed"], 0.3),
+        "\n}\n"
+      )
+    )
+  }
   htmltools::tags$style(htmltools::HTML(paste0(
     paste(rules, collapse = ""),
     coverage_tints_css(colors, selector)
   )))
 }
 
+# The color of partly covered lines if `covr.report_colors` has no `partial`
+# color, yellow like partial coverage in the console
+default_partial_line_color <- "#d4a72c"
+
 # The element of a report, with the styles of its colors, which only apply to
 # it, as the colors of other reports in the same document can differ
-report_container <- function(colors, ...) {
+report_container <- function(colors, ..., branches = FALSE) {
   htmltools::div(
     class = paste("covr-report", report_colors_class(colors)),
-    report_colors_css(colors),
+    report_colors_css(colors, branches),
     ...
   )
 }
@@ -499,6 +557,14 @@ to_report_data <- function(x) {
 
   names(res$full) <- nms
 
+  branches <- tally_coverage(x, by = "branch")
+  if (NROW(branches)) {
+    res$branches_overall <- sum(branches$value > 0, na.rm = TRUE) /
+      NROW(branches) *
+      100
+    res$full <- add_branch_lines(res$full, report_branch_lines(branches))
+  }
+
   res$file_stats <- compute_file_stats(res$full)
 
   res$file_stats$File <- names(res$full)
@@ -506,6 +572,75 @@ to_report_data <- function(x) {
   res$file_stats <- sort_file_stats(res$file_stats)
 
   res
+}
+
+# The branches on each line with branches, from the branch tally `df` (sorted
+# by file, line, column and branch): the number of branches `taken`, the
+# `total` number of branches, and `html`, the marker shown in the hits column
+# of the report, e.g. `1/2`, with the label and count of each branch, which
+# are shown when it is hovered or focused. The `if` and `switch()` calls after
+# the first on a line start with a `covr-branch-next` class.
+report_branch_lines <- function(df) {
+  taken <- !is.na(df$value) & df$value > 0
+  next_decision <- branch_blocks(df) > 0 & df$branch == 1L
+  items <- paste0(
+    "<span class=\"covr-branch",
+    ifelse(next_decision, " covr-branch-next", ""),
+    ifelse(taken, "", " covr-branch-missed"),
+    "\">",
+    htmltools::htmlEscape(df$label),
+    ": ",
+    sprintf("%.0f", df$value),
+    "</span>"
+  )
+  key <- paste(df$filename, df$line, sep = "\r")
+  lines <- unique(key)
+  idx <- match(key, lines)
+  first <- match(seq_along(lines), idx)
+  n_taken <- tabulate(idx[taken], length(lines))
+  n_total <- tabulate(idx, length(lines))
+  details <- vapply(
+    split(items, factor(idx, levels = seq_along(lines))),
+    paste,
+    character(1),
+    collapse = ""
+  )
+  data.frame(
+    filename = df$filename[first],
+    line = df$line[first],
+    taken = n_taken,
+    total = n_total,
+    html = paste0(
+      "<span class=\"covr-branches\" tabindex=\"0\">",
+      n_taken,
+      "/",
+      n_total,
+      "<span class=\"covr-branch-detail\">",
+      unname(details),
+      "</span></span>"
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
+# Adds the columns `taken`, `total` and `branches` (the marker of the branches
+# of the line, or "") from `report_branch_lines()` to the lines of each file.
+add_branch_lines <- function(full, branch_lines) {
+  Map(
+    function(lines, file) {
+      rows <- branch_lines[branch_lines$filename == file, , drop = FALSE]
+      rows <- rows[rows$line <= NROW(lines), , drop = FALSE]
+      lines$taken <- rep(NA_integer_, NROW(lines))
+      lines$total <- rep(NA_integer_, NROW(lines))
+      lines$branches <- rep("", NROW(lines))
+      lines$taken[rows$line] <- rows$taken
+      lines$total[rows$line] <- rows$total
+      lines$branches[rows$line] <- rows$html
+      lines
+    },
+    full,
+    names(full)
+  )
 }
 
 compute_file_stats <- function(files) {
@@ -524,7 +659,7 @@ compute_file_stats <- function(files) {
   do.call(
     "rbind",
     lapply(files, function(file) {
-      data.frame(
+      stats <- data.frame(
         Coverage = sprintf(
           "%.2f%%",
           sum(file$coverage > 0) / sum(file$coverage != "") * 100
@@ -541,6 +676,17 @@ compute_file_stats <- function(files) {
         stringsAsFactors = FALSE,
         check.names = FALSE
       )
+      # The percentage of branches taken, or nothing for a file without
+      # branches in a report with branches
+      if (!is.null(file$total)) {
+        total <- sum(file$total, na.rm = TRUE)
+        stats$Branches <- if (total > 0) {
+          sprintf("%.2f%%", sum(file$taken, na.rm = TRUE) / total * 100)
+        } else {
+          ""
+        }
+      }
+      stats
     })
   )
 }
@@ -555,6 +701,7 @@ sort_file_stats <- function(stats) {
       "Covered",
       "Missed",
       "Hits / Line",
+      if (!is.null(stats$Branches)) "Branches",
       "Coverage"
     )
   ]
@@ -575,6 +722,10 @@ renderSourceTable <- function(data, class = "covr-hidden") {
         "",
         ifelse(cov == "0", "!", paste0(cov, "<em>x</em>"))
       )
+      if (!is.null(lines$total)) {
+        type <- branch_line_type(type, lines$taken, lines$total)
+        value <- paste0(value, lines$branches)
+      }
       # `paste0()` would make one empty row from zero-length columns
       rows <- if (NROW(lines) == 0) {
         ""
@@ -617,6 +768,23 @@ renderSourceTable <- function(data, class = "covr-hidden") {
 })(document.currentScript);",
     "</script></div>"
   ))
+}
+
+# The type of each line of a report with branches, from its `type` from line
+# coverage and the number of its branches `taken` out of `total` (`NA` for
+# lines without branches). A line with a branch that wasn't taken is partly
+# covered, like on Codecov, unless none of its branches were taken and it
+# wasn't run, as an `if` or `switch()` that never ran is a missed line. Lines
+# with branches but no line coverage get their type from the branches.
+branch_line_type <- function(type, taken, total) {
+  has_branches <- !is.na(total)
+  partial <- has_branches &
+    taken < total &
+    (taken > 0 | type == "covered")
+  never <- has_branches & !partial & type == "never"
+  type[never] <- ifelse(taken[never] > 0, "covered", "missed")
+  type[partial] <- "partial"
+  type
 }
 
 # covr's copy of highlight.js sets `covrHljs` rather than `hljs`, so it doesn't

@@ -49,11 +49,13 @@ the \code{if} or \code{switch()}, its \code{functions}, the \code{labels} of its
 branch, and \code{percent_coverage(by = "branch")} for the percentage of
 branches taken.
 
-\code{\link[=to_lcov]{to_lcov()}}, \code{\link[=to_cobertura]{to_cobertura()}}, \code{\link[=codecov]{codecov()}} and \code{\link[=coveralls]{coveralls()}} include the
-branches. Codecov shows a line with branches that weren't all taken as
-partly covered, and counts it as not covered in the coverage percentage, so
-the percentage on Codecov is lower with branch coverage. \code{\link[=report]{report()}},
-\code{\link[=file_report]{file_report()}} and \code{\link[=to_sonarqube]{to_sonarqube()}} don't include the branches yet.
+\code{\link[=report]{report()}}, \code{\link[=file_report]{file_report()}}, \code{\link[=to_lcov]{to_lcov()}}, \code{\link[=to_cobertura]{to_cobertura()}}, \code{\link[=codecov]{codecov()}} and
+\code{\link[=coveralls]{coveralls()}} include the branches. The reports show the number of branches
+taken on each line and the percentage of branches taken in each file, and
+show a line with branches that weren't all taken as partly covered. Codecov
+shows such lines as partly covered too, and counts them as not covered in
+the coverage percentage, so the percentage on Codecov is lower with branch
+coverage. \code{\link[=to_sonarqube]{to_sonarqube()}} doesn't include the branches yet.
 }
 
 \examples{

@@ -159,9 +159,10 @@ reported coverage" below.
   each `if` (including an `if` without an `else`) and `switch()` were taken,
   in the `branches` attribute of the coverage object. `tally_coverage(by =
   "branch")` and `percent_coverage(by = "branch")` summarize them, and
-  `to_lcov()`, `to_cobertura()`, `codecov()` and `coveralls()` include them.
-  Line coverage is unchanged, and without the option the code is instrumented
-  as before, so there is no cost. See `?covr.branch_coverage` (#279).
+  `report()`, `file_report()`, `to_lcov()`, `to_cobertura()`, `codecov()` and
+  `coveralls()` include them. Line coverage is unchanged, and without the
+  option the code is instrumented as before, so there is no cost. See
+  `?covr.branch_coverage` (#279).
 
 ## Measuring more code
 
@@ -216,6 +217,14 @@ reported coverage" below.
   for functions to trace in packages, R6 classes, S7 objects and box modules.
 
 ## Reports
+
+* `report()`, `file_report()` and their `_html()` versions show branch
+  coverage when it was measured: lines with branches show how many were taken
+  (e.g. `1/2`, with each branch's label and count on hover), lines with an
+  untaken branch are shown as partly covered in the `partial` color of
+  `covr.report_colors` (yellow by default), and the file list has a "Branches"
+  column, with the overall percentage of branches taken in the title. Reports
+  without branch coverage are unchanged (#751).
 
 * New `report_html()` and `file_report_html()` return the coverage reports of
   `report()` and `file_report()` as HTML that can be included in a larger
