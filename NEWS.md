@@ -226,6 +226,11 @@ reported coverage" below.
 
 ## Reports
 
+* `report()`'s file list is easier to read: the column headers no longer wrap,
+  `Hits / Line` is renamed to `Hits/line` and shows one decimal place (or
+  `<0.1`) with a tooltip explaining it, numbers line up, and a row with the
+  totals follows the files when there are several.
+
 * `report()`, `file_report()` and their `_html()` versions show branch
   coverage when it was measured: lines with branches show how many were taken
   (e.g. `1/2`, with each branch's label and count on hover), lines with an

@@ -7,7 +7,7 @@ test_that("report_html() lists the files in a sortable table (#316)", {
     Relevant = c(4L, 2L, 0L),
     Covered = c(1L, 2L, 0L),
     Missed = c(3L, 0L, 0L),
-    `Hits / Line` = c("1", "3", "NaN"),
+    `Hits/line` = c("1", "3", "NaN"),
     Coverage = c("33.33%", "100.00%", "NaN%"),
     check.names = FALSE,
     stringsAsFactors = FALSE
@@ -52,6 +52,51 @@ test_that("report_html() lists the files in a sortable table (#316)", {
   expect_match(html, '<a href="#" class="covr-file-link">b.R</a>', fixed = TRUE)
 })
 
+test_that("hits per line show a decimal place and `<0.1` below it", {
+  expect_equal(
+    vapply(c(0, 0.01, 0.09, 0.1, 2.24, NaN), format_hits_per_line, ""),
+    c("0.0", "<0.1", "<0.1", "0.1", "2.2", "NaN")
+  )
+  html <- as.character(file_table(data.frame(
+    File = c("a.R", "b.R"),
+    `Hits/line` = c("<0.1", "0.0"),
+    check.names = FALSE
+  )))
+  expect_match(html, 'data-sort="0.1">&lt;0.1</td>', fixed = TRUE)
+})
+
+test_that("report_html() has a row with the totals of several files", {
+  skip_if_not_installed("htmltools")
+  dir <- withr::local_tempdir()
+  writeLines("f <- function(x) {\n  x + 1\n}", file.path(dir, "f.R"))
+  writeLines("g <- function() {\n  2\n}", file.path(dir, "g.R"))
+  writeLines("f(1); f(2); f(3)", file.path(dir, "test.R"))
+  cov <- file_coverage(
+    file.path(dir, c("f.R", "g.R")),
+    file.path(dir, "test.R")
+  )
+  expect_null(to_report_data(cov[1])$file_totals)
+
+  data <- to_report_data(cov)
+  expect_equal(
+    data$file_totals[c("File", "Relevant", "Covered", "Missed", "Hits/line")],
+    data.frame(
+      File = "Total",
+      Relevant = 2L,
+      Covered = 1L,
+      Missed = 1L,
+      `Hits/line` = "1.5",
+      check.names = FALSE
+    ),
+    ignore_attr = TRUE
+  )
+  html <- as.character(file_table(data$file_stats, data$file_totals))
+  expect_match(
+    html,
+    "<tfoot>\\s*<tr>\\s*<td class=\"covr-file\" data-sort=\"Total\">Total</td>"
+  )
+})
+
 test_that("report() works with empty coverage (#540)", {
   x <- structure(list(), class = "coverage", package = list(package = "p"))
   data <- to_report_data(x)
@@ -64,7 +109,7 @@ test_that("report() works with empty coverage (#540)", {
       "Relevant",
       "Covered",
       "Missed",
-      "Hits / Line",
+      "Hits/line",
       "Coverage"
     )
   )
@@ -468,7 +513,7 @@ test_that("the file list has the percentage of branches taken (#751)", {
       "Relevant",
       "Covered",
       "Missed",
-      "Hits / Line",
+      "Hits/line",
       "Branches",
       "Coverage"
     )
