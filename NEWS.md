@@ -182,6 +182,13 @@ reported coverage" below.
   the compiled code of packages loaded with `pkgload::load_all()`, so
   `devtools::test_coverage_active_file()` now works for files in `src/`.
 
+* `file_coverage()`, `environment_coverage()` and `with_coverage()` also
+  measure the Rust code of packages loaded with `pkgload::load_all()`, e.g.
+  `file_coverage("src/rust/src/lib.rs", "tests/foo.R")`, like
+  `package_coverage()` does. cargo only recompiles the crates that changed in
+  the instrumented copy. Without the llvm tools covr warns and skips the Rust
+  code, and `options(covr.llvm_cov = "")` turns this off (#749).
+
 * New `shiny_app_coverage()` measures the coverage of a Shiny app that isn't
   part of a package while its tests run, by default with
   `shinytest2::test_app()`, including the code run by the app in the R

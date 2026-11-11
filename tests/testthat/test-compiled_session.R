@@ -145,6 +145,116 @@ test_that("file_coverage() measures compiled files of a package (#605)", {
   expect_equal(compiled_counts(cov, "simple.cc")[["16"]], 3)
 })
 
+test_that("environment_coverage() measures Rust code of load_all()ed packages (#749)", {
+  skip_on_cran()
+  skip_if_no_rust_coverage()
+  skip_if_not_installed("pkgload")
+  path <- local_rust_package()
+  script <- local_rust_test_script()
+
+  cov <- environment_coverage(asNamespace("TestRust"), script)
+
+  expect_setequal(
+    unique(as.data.frame(cov)$filename),
+    file.path(path, c("R/TestRust.R", "src/wrapper.c", "src/rust/src/lib.rs"))
+  )
+  expect_equal(
+    compiled_counts(cov, "lib.rs"),
+    c(`2` = 3, `3` = 3, `4` = 2, `5` = 1, `6` = 1, `8` = 0)
+  )
+
+  lib_rs <- file.path(path, "src", "rust", "src", "lib.rs")
+  writeLines(c("// A new first line", readLines(lib_rs)), lib_rs)
+  ns <- pkgload::load_all(path, quiet = TRUE)$env
+  edited <- environment_coverage(ns, script)
+
+  expect_equal(
+    compiled_counts(edited, "lib.rs"),
+    c(`3` = 3, `4` = 3, `5` = 2, `6` = 1, `7` = 1, `9` = 0)
+  )
+})
+
+test_that("file_coverage() measures Rust files of a package (#749)", {
+  skip_on_cran()
+  skip_if_no_rust_coverage()
+  skip_if_not_installed("pkgload")
+  path <- local_rust_package()
+  pkgload::unload("TestRust")
+  lib_rs <- file.path(path, "src", "rust", "src", "lib.rs")
+
+  cov <- file_coverage(lib_rs, local_rust_test_script())
+
+  expect_equal(unique(as.data.frame(cov)$filename), lib_rs)
+  expect_equal(compiled_counts(cov, "lib.rs")[["8"]], 0)
+})
+
+test_that("Rust code is measured when its DLL can't be unloaded (#749)", {
+  skip_on_cran()
+  skip_if_no_rust_coverage()
+  skip_if_not_installed("pkgload")
+  # A thread-local variable with a destructor keeps the DLL loaded on Linux,
+  # as Rust code always does on macOS
+  local_rust_package(
+    lib_rs = c(
+      "use std::cell::RefCell;",
+      "",
+      "thread_local! {",
+      "    static CALLS: RefCell<Vec<i32>> = RefCell::new(Vec::new());",
+      "}",
+      "",
+      "#[no_mangle]",
+      "pub extern \"C\" fn rust_sign(x: i32) -> i32 {",
+      "    CALLS.with(|calls| calls.borrow_mut().push(x));",
+      "    if x > 0 {",
+      "        1",
+      "    } else {",
+      "        -1",
+      "    }",
+      "}"
+    )
+  )
+  ns <- asNamespace("TestRust")
+  script <- local_rust_test_script()
+
+  first <- environment_coverage(ns, script)
+  second <- environment_coverage(ns, script)
+
+  expect_equal(
+    compiled_counts(first, "lib.rs")[c("11", "13")],
+    c(2, 1),
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    compiled_counts(second, "lib.rs"),
+    compiled_counts(first, "lib.rs")
+  )
+})
+
+test_that("Rust code in the session is skipped with a warning without the tools (#749)", {
+  skip_on_cran()
+  skip_if_no_rust_coverage()
+  skip_if_not_installed("pkgload")
+  local_rust_package()
+  ns <- asNamespace("TestRust")
+  script <- local_rust_test_script()
+  local_mocked_bindings(
+    rust_toolchain = function(dir) list(rustc = "rustc", llvm_version = "18")
+  )
+
+  expect_snapshot(cov <- environment_coverage(ns, script))
+  expect_setequal(
+    unique(basename(as.data.frame(cov)$filename)),
+    c("TestRust.R", "wrapper.c")
+  )
+
+  withr::local_options(covr.llvm_cov = "")
+  expect_no_warning(cov <- environment_coverage(ns, script))
+  expect_setequal(
+    unique(basename(as.data.frame(cov)$filename)),
+    c("TestRust.R", "wrapper.c")
+  )
+})
+
 test_that("covr.gcov = '' turns off compiled code coverage in the session", {
   skip_on_cran()
   skip_if_not_installed("pkgload")
@@ -182,7 +292,7 @@ test_that("compiled coverage handles a build without the package's DLLs", {
   ns <- asNamespace("TestCompiled")
   dll_dir <- NULL
   local_mocked_bindings(
-    build_instrumented_copy = function(path, build) {
+    build_instrumented_copy = function(path, build, rust) {
       dll_dir <<- temp_dir_create("covr_dll")
       dll_dir
     }
@@ -219,6 +329,34 @@ test_that("read_rbuildignore() drops blank lines and comments", {
     file.path(path, ".Rbuildignore")
   )
   expect_equal(read_rbuildignore(path), c("^docs$", "^[.]github"))
+})
+
+test_that("the copy of a package with Rust code leaves cargo's files alone (#749)", {
+  pkg <- withr::local_tempdir()
+  files <- c(
+    "DESCRIPTION",
+    "src/init.o",
+    "src/rust/Cargo.toml",
+    "src/rust/target/CACHEDIR.TAG",
+    "src/rust/target/release/libpkg.a",
+    "src/rust/vendor/windows/lib/libwindows.a",
+    "src/rust/vendor/cc/src/target/apple.rs"
+  )
+  for (file in file.path(pkg, files)) {
+    dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+    file.create(file)
+  }
+
+  expect_setequal(
+    package_copy_files(pkg),
+    c(
+      "DESCRIPTION",
+      "src/rust/Cargo.toml",
+      "src/rust/vendor/windows/lib/libwindows.a",
+      "src/rust/vendor/cc/src/target/apple.rs"
+    )
+  )
+  expect_equal(build_outputs(pkg), file.path(pkg, "src/init.o"))
 })
 
 test_that("dll_bindings() finds the bindings that refer to the DLL", {

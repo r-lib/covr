@@ -1,3 +1,15 @@
+# Rust code in the session is skipped with a warning without the tools (#749)
+
+    Code
+      cov <- environment_coverage(ns, script)
+    Condition
+      Warning:
+      Can't measure the coverage of Rust code.
+      x Can't find the Rust profiler runtime, llvm-cov, and llvm-profdata.
+      i Install the llvm tools with `rustup component add llvm-tools`.
+      i If Rust isn't installed with rustup, install those of LLVM 18.
+      i Use `options(covr.llvm_cov = "")` to turn this off.
+
 # compiled coverage requires the package to have compiled code
 
     Code

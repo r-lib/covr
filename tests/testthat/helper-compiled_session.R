@@ -63,6 +63,32 @@ local_compiled_test_script <- function(frame = parent.frame()) {
   file
 }
 
+# TestRust loaded with pkgload::load_all(), with a Makevars that keeps cargo's
+# `target` directory like savvy's, so later builds only recompile the crates
+# that changed. `lib_rs` replaces its Rust code.
+local_rust_package <- function(frame = parent.frame(), lib_rs = NULL) {
+  edit <- function(path) {
+    makevars <- file.path(path, "src", "Makevars")
+    writeLines(
+      sub("rm -Rf rust/target", "rm -f $(STATLIB)", readLines(makevars)),
+      makevars
+    )
+    if (!is.null(lib_rs)) {
+      writeLines(lib_rs, file.path(path, "src", "rust", "src", "lib.rs"))
+    }
+  }
+  local_compiled_package("TestRust", frame = frame, edit = edit)
+}
+
+# Makes the same calls as TestRust's tests
+local_rust_test_script <- function(frame = parent.frame()) {
+  withr::local_tempfile(
+    lines = "rust_sign(2); rust_sign(5); rust_sign(-3)",
+    fileext = ".R",
+    .local_envir = frame
+  )
+}
+
 compiled_counts <- function(coverage, file) {
   tally <- tally_coverage(coverage)
   tally <- tally[basename(tally$filename) == file, ]

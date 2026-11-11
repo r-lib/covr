@@ -230,7 +230,16 @@ options(covr.gcov = "path/to/gcov")
 Yes. `package_coverage()` measures the coverage of the Rust code in `src/`,
 e.g. of packages using [extendr](https://extendr.github.io/) or
 [savvy](https://yutannihilation.github.io/savvy/guide/), with LLVM's
-source-based coverage. This needs the llvm tools of your Rust toolchain:
+source-based coverage. `file_coverage()`, `environment_coverage()` and
+`with_coverage()` also measure it in the current session for packages loaded
+with `pkgload::load_all()`, which is much faster, and only recompile the Rust
+code that changed on later runs:
+
+```r
+file_coverage("src/rust/src/lib.rs", "tests/testthat/test-foo.R")
+```
+
+This needs the llvm tools of your Rust toolchain:
 
 ```sh
 rustup component add llvm-tools
