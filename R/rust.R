@@ -36,10 +36,10 @@ drop_rust_dependencies <- function(coverage, roots) {
 }
 
 # Find the tools needed to measure the coverage of the package's Rust code, and
-# the build options and environment for it. Returns `NULL` if
-# `options(covr.llvm_cov = "")` turns this off, or the tools can't be found,
-# which gives a warning.
-rust_coverage_setup <- function(path, install_path) {
+# the build options and environment for it, which keep their files in `dir`.
+# Returns `NULL` if `options(covr.llvm_cov = "")` turns this off, or the tools
+# can't be found, which gives a warning.
+rust_coverage_setup <- function(path, dir) {
   if (identical(getOption("covr.llvm_cov"), "")) {
     return(NULL)
   }
@@ -93,26 +93,24 @@ rust_coverage_setup <- function(path, install_path) {
     libs <- c("-Wl,-u,__llvm_profile_runtime", libs)
   }
 
-  # The wrapper and the counts written while the package is installed, by
-  # instrumented build scripts and proc macros and the loading test of
-  # `R CMD INSTALL`, which aren't wanted.
-  build_dir <- temp_file("rust_build")
-  profiles <- file.path(install_path, "rust_profiles")
-  dir.create(build_dir)
-  dir.create(profiles)
+  # The wrapper is kept in `dir`, which must stay the same for cargo to reuse
+  # the crates it compiled with it, as the wrapper's path is part of the hash
+  # in their file names.
+  profiles <- file.path(dir, "profiles")
+  dir.create(profiles, recursive = TRUE, showWarnings = FALSE)
 
   list(
     sysroot = toolchain$sysroot,
     llvm_cov = llvm_cov,
     llvm_profdata = llvm_profdata,
     libs = paste(libs, collapse = " "),
-    build_dir = build_dir,
+    build_dir = dir,
     build_env = c(
-      RUSTC_WORKSPACE_WRAPPER = rust_coverage_wrapper(
-        build_dir,
-        toolchain$sysroot
-      ),
-      LLVM_PROFILE_FILE = file.path(build_dir, "profiles", "%p-%m.profraw")
+      RUSTC_WORKSPACE_WRAPPER = rust_coverage_wrapper(dir, toolchain$sysroot),
+      # The counts written while the package is built, by instrumented build
+      # scripts and proc macros and the loading test of `R CMD INSTALL`, which
+      # aren't wanted
+      LLVM_PROFILE_FILE = file.path(dir, "build_profiles", "%p-%m.profraw")
     ),
     profiles = profiles,
     env = c(LLVM_PROFILE_FILE = file.path(profiles, "%p-%m.profraw"))
@@ -157,20 +155,25 @@ rust_coverage_wrapper <- function(dir, sysroot) {
   wrapper
 }
 
-# After the package is installed, check that cargo compiled its crates with
-# the instrumentation. Returns `rust`, or `NULL` with a warning if it didn't.
+# After the package is built, check that cargo compiled its crates with the
+# instrumentation, and discard the counts written while building. Returns
+# `rust`, or `NULL` with a warning if it didn't. The log is kept between the
+# builds of the instrumented copy of a package loaded with
+# pkgload::load_all(), where cargo only compiles the crates that changed, so
+# the crate compiled last tells how they were built.
 rust_check_build <- function(rust) {
-  on.exit(unlink(rust$build_dir, recursive = TRUE))
+  unlink(file.path(rust$build_dir, "build_profiles"), recursive = TRUE)
   log <- file.path(rust$build_dir, "rustc.log")
   compiled <- if (file.exists(log)) readLines(log) else character()
-  if (any(startsWith(compiled, "instrumented "))) {
+  last <- c("", compiled)[[length(compiled) + 1]]
+  if (startsWith(last, "instrumented ")) {
     return(rust)
   }
-  skipped <- sub("^skipped ", "", compiled[startsWith(compiled, "skipped ")])
+  rustc <- sub("^skipped ", "", last)
   covr_warn(c(
     "Can't measure the coverage of Rust code.",
-    x = if (length(skipped)) {
-      "It was compiled by {.file {skipped[[1]]}}, from another toolchain than
+    x = if (rustc != last) {
+      "It was compiled by {.file {rustc}}, from another toolchain than
       {.path {rust$sysroot}}."
     } else {
       "cargo didn't compile it, e.g. because the package used a prebuilt
@@ -190,6 +193,45 @@ add_rust_flags <- function(flags, rust) {
     flags[!libs],
     PKG_LIBS = paste(c(flags[libs], rust$libs), collapse = " ")
   )
+}
+
+# The counts of Rust code are written when the process exits, or when its DLL
+# is unloaded, which doesn't happen on macOS, as Rust's thread-local variables
+# keep the DLL loaded, nor on Linux once the code used thread-local variables
+# with destructors. To measure the coverage of Rust code in the current
+# session, this compiles an object to link into the DLL, which exports a
+# function that writes them (see `write_llvm_profile()`). Returns `rust` with
+# the object added to its libraries.
+add_llvm_profile_writer <- function(rust) {
+  object <- file.path(rust$build_dir, "covr_llvm_profile_write.o")
+  if (!file.exists(object)) {
+    source <- sub("[.]o$", ".c", object)
+    writeLines(
+      c(
+        "int __llvm_profile_write_file(void);",
+        "void __llvm_profile_set_filename(const char *);",
+        "int covr_llvm_profile_write(void) {",
+        "  int status = __llvm_profile_write_file();",
+        # The runtime writes the counts again when the DLL is unloaded or the
+        # process exits, which then go nowhere. After `__llvm_profile_dump()`
+        # it would print a note instead.
+        "  __llvm_profile_set_filename(\"/dev/null\");",
+        "  return status;",
+        "}"
+      ),
+      source
+    )
+    system_output(r_binary(), c("CMD", "COMPILE", source), quiet = TRUE)
+  }
+  # Before the profiler runtime, which defines the functions it calls
+  rust$libs <- paste(shQuote(object), rust$libs)
+  rust
+}
+
+# Writes the counts of the Rust code in the loaded DLL at `path`, if it was
+# linked with the object of `add_llvm_profile_writer()`.
+write_llvm_profile <- function(path) {
+  invisible(.Call(covr_write_llvm_profile, path))
 }
 
 find_rustc <- function() {
@@ -329,8 +371,8 @@ llvm_tool_run <- function(tool, args, quiet = TRUE, empty = NULL) {
 }
 
 # Merge the counts written by the processes that ran the package's code, and
-# read the coverage of its Rust code from its shared objects.
-run_llvm_cov <- function(rust, path, install_path, package, quiet = TRUE) {
+# read the coverage of its Rust code from its shared `objects`.
+run_llvm_cov <- function(rust, path, objects, quiet = TRUE) {
   profiles <- list.files(
     rust$profiles,
     pattern = "[.]profraw$",
@@ -353,12 +395,6 @@ run_llvm_cov <- function(rust, path, install_path, package, quiet = TRUE) {
     return()
   }
 
-  objects <- list.files(
-    file.path(install_path, package, "libs"),
-    pattern = "[.](so|dll|dylib)$",
-    recursive = TRUE,
-    full.names = TRUE
-  )
   lcov <- llvm_tool_run(
     rust$llvm_cov,
     c(

@@ -207,6 +207,7 @@ extern SEXP covr_counter_add(SEXP);
 extern SEXP covr_count(SEXP);
 extern SEXP covr_counter_take(void);
 extern SEXP covr_counter_reset(void);
+extern SEXP covr_write_llvm_profile(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"covr_duplicate_", (DL_FUNC)&covr_duplicate_, 1},
@@ -220,6 +221,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"covr_count", (DL_FUNC)&covr_count, 1},
     {"covr_counter_take", (DL_FUNC)&covr_counter_take, 0},
     {"covr_counter_reset", (DL_FUNC)&covr_counter_reset, 0},
+    {"covr_write_llvm_profile", (DL_FUNC)&covr_write_llvm_profile, 1},
     {NULL, NULL, 0}};
 
 void R_init_covr(DllInfo *dll) {

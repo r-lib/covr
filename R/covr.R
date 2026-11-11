@@ -644,17 +644,23 @@ function_coverage <- function(
 #'
 #' ```r
 #' file_coverage("src/foo.c", "tests/testthat/test-foo.R")
+#' file_coverage("src/rust/src/lib.rs", "tests/testthat/test-foo.R")
 #' ```
 #'
-#' The compiled code is measured with gcov in the current session, which is
-#' much faster than [package_coverage()]. An instrumented copy of the package
-#' is built in the session's temporary directory, leaving the package's own
-#' build untouched, and later runs only recompile the files that changed.
+#' The compiled code is measured in the current session, which is much faster
+#' than [package_coverage()]: C, C++, Fortran and Objective-C code with gcov,
+#' and Rust code (e.g. of packages using extendr or savvy) with LLVM's
+#' source-based coverage, which needs the llvm tools described in
+#' [package_coverage()]. An instrumented copy of the package is built in the
+#' session's temporary directory, leaving the package's own build untouched,
+#' and later runs only recompile the files that changed, with cargo's
+#' incremental build in the copy's own `target` directory for Rust code.
 #' While the code runs, the namespace's native routines use the instrumented
 #' DLL instead of the package's own. Routines that were looked up some other
 #' way, e.g. stored by `.onLoad()` or found by other packages with
 #' `R_GetCCallable()`, keep using the package's DLL, so their code isn't
-#' counted. Set `options(covr.gcov = "")` to leave out compiled code.
+#' counted. Set `options(covr.gcov = "")` to leave out C, C++, Fortran and
+#' Objective-C code, and `options(covr.llvm_cov = "")` to leave out Rust code.
 #' @return A [coverage] object.
 #' @examples
 #' # For the purpose of this example, save code containing code and tests to files
@@ -695,7 +701,15 @@ file_coverage <- function(
   })
 
   if (any(compiled)) {
-    state <- start_compiled_coverage(ns, required = TRUE)
+    state <- start_compiled_coverage(
+      ns,
+      required = TRUE,
+      gcov_required = !all(grepl(
+        "[.]rs$",
+        source_files[compiled],
+        ignore.case = TRUE
+      ))
+    )
     on.exit(stop_compiled_coverage(state), add = TRUE)
   }
 
@@ -1089,7 +1103,7 @@ package_coverage <- function(
   # Measure the coverage of Rust code, if the package has any
   manifests <- if (!installed) rust_manifests(pkg$path)
   rust <- if (length(manifests)) {
-    rust_coverage_setup(pkg$path, install_path)
+    rust_coverage_setup(pkg$path, file.path(install_path, "rust_coverage"))
   }
 
   full_traversal <- getOption(
@@ -1282,10 +1296,13 @@ package_coverage <- function(
   }
 
   if (!is.null(rust)) {
-    res <- c(
-      res,
-      run_llvm_cov(rust, pkg$path, install_path, pkg$package, quiet = quiet)
+    objects <- list.files(
+      file.path(install_path, pkg$package, "libs"),
+      pattern = "[.](so|dll|dylib)$",
+      recursive = TRUE,
+      full.names = TRUE
     )
+    res <- c(res, run_llvm_cov(rust, pkg$path, objects, quiet = quiet))
   }
   if (length(manifests)) {
     res <- drop_rust_dependencies(
