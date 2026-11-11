@@ -11,9 +11,11 @@ local_compiled_package <- function(
   if (!is.null(edit)) {
     edit(path)
   }
-  # Other tests build the fixture in place, possibly at the same time
+  # Other tests build the fixture in place, possibly at the same time, which
+  # for TestRust includes cargo's `target` directory
   clean_objects(path)
   clean_gcov(path)
+  unlink(file.path(path, "src", "rust", "target"), recursive = TRUE)
   pkgload::load_all(path, quiet = TRUE)
   withr::defer(pkgload::unload(pkg), envir = frame)
   path

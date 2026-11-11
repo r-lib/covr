@@ -699,7 +699,15 @@ file_coverage <- function(
   })
 
   if (any(compiled)) {
-    state <- start_compiled_coverage(ns, required = TRUE)
+    state <- start_compiled_coverage(
+      ns,
+      required = TRUE,
+      gcov_required = !all(grepl(
+        "[.]rs$",
+        source_files[compiled],
+        ignore.case = TRUE
+      ))
+    )
     on.exit(stop_compiled_coverage(state), add = TRUE)
   }
 

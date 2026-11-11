@@ -255,6 +255,38 @@ test_that("Rust code in the session is skipped with a warning without the tools 
   )
 })
 
+test_that("Rust code in the session is skipped with a warning if llvm-cov fails (#749)", {
+  skip_on_cran()
+  skip_if_no_rust_coverage()
+  skip_if_not_installed("pkgload")
+  false <- unname(Sys.which("false"))
+  skip_if(!nzchar(false))
+  local_rust_package()
+  # Nothing else is measured in the DLL
+  withr::local_options(covr.gcov = "", covr.llvm_cov = false)
+
+  expect_snapshot(
+    cov <- environment_coverage(
+      asNamespace("TestRust"),
+      local_rust_test_script()
+    )
+  )
+  expect_equal(unique(basename(as.data.frame(cov)$filename)), "TestRust.R")
+})
+
+test_that("file_coverage() requires gcov for C files of a package with Rust code (#749)", {
+  skip_on_cran()
+  skip_if_no_rust_coverage()
+  skip_if_not_installed("pkgload")
+  path <- local_rust_package()
+  withr::local_options(covr.gcov = NA_character_)
+
+  expect_snapshot(
+    file_coverage(file.path(path, "src", "wrapper.c"), character()),
+    error = TRUE
+  )
+})
+
 test_that("covr.gcov = '' turns off compiled code coverage in the session", {
   skip_on_cran()
   skip_if_not_installed("pkgload")
@@ -340,7 +372,10 @@ test_that("the copy of a package with Rust code leaves cargo's files alone (#749
     "src/rust/target/CACHEDIR.TAG",
     "src/rust/target/release/libpkg.a",
     "src/rust/vendor/windows/lib/libwindows.a",
-    "src/rust/vendor/cc/src/target/apple.rs"
+    "src/rust/vendor/cc/src/target/apple.rs",
+    # A `target` directory by another name, e.g. with `--target-dir`
+    "src/rust/cargo-build/CACHEDIR.TAG",
+    "src/rust/cargo-build/release/build/dep/out/libdep.a"
   )
   for (file in file.path(pkg, files)) {
     dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)

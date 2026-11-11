@@ -13,10 +13,16 @@
 # are then mapped back to the package.
 
 # Starts measuring the compiled code of `env`, or returns `NULL` if `env`
-# isn't the namespace of a package loaded by load_all() with compiled code. If
-# gcov is missing or turned off, and the package has no Rust code that can be
-# measured, this returns `NULL` unless `required`.
-start_compiled_coverage <- function(env, required = FALSE) {
+# isn't the namespace of a package loaded by load_all() with compiled code, or
+# none of it can be measured: gcov is missing or turned off, and the package
+# has no Rust code that can be measured. If `required`, it errors instead when
+# the package has no compiled code or its DLLs aren't built, and if
+# `gcov_required` (non-Rust files were asked for), when gcov is missing.
+start_compiled_coverage <- function(
+  env,
+  required = FALSE,
+  gcov_required = required
+) {
   if (!is.environment(env) || !isNamespace(env)) {
     return(NULL)
   }
@@ -51,7 +57,7 @@ start_compiled_coverage <- function(env, required = FALSE) {
   if (!is.null(rust)) {
     build <- paste0(build, "-rust")
   }
-  gcov <- has_gcov(required && is.null(rust))
+  gcov <- has_gcov(gcov_required)
   if (!gcov && is.null(rust)) {
     return(NULL)
   }
@@ -124,7 +130,7 @@ start_compiled_coverage <- function(env, required = FALSE) {
 # gcov is looked up with the build tools on the `PATH`, as Rtools' gcov isn't
 # on it by default on Windows. `options(covr.gcov = "")` turns it off.
 has_gcov <- function(required) {
-  gcov_path <- getOption("covr.gcov", find_gcov())
+  gcov_path <- getOption("covr.gcov", with_build_tools(find_gcov()))
   if (!is.na(gcov_path)) {
     return(nzchar(gcov_path))
   }
@@ -212,12 +218,17 @@ gcov_counts <- function(path) {
 build_instrumented_copy <- function(path, build, rust = NULL) {
   changed <- sync_package_copy(path, build)
 
-  # Objects aren't rebuilt when a header they include changes, so rebuild
-  # everything if anything other than a source file changed. cargo rebuilds
-  # the Rust code it needs to itself.
+  # Objects aren't rebuilt when a header they include changes, or the flags
+  # they're compiled with, so rebuild everything if anything other than a
+  # source file changed, or the flags or Rust toolchain. cargo rebuilds the
+  # Rust code it needs to itself.
+  flags <- add_rust_flags(getOption("covr.flags"), rust)
+  config <- digest::digest(list(flags, rust$sysroot))
+  built <- paste0(build, ".built")
+  same_config <- file.exists(built) && identical(readLines(built), config)
   build_inputs <- grepl("^(src|inst/include)/", changed) |
     changed == "DESCRIPTION"
-  if (any(build_inputs & !is_compiled_source(changed))) {
+  if (!same_config || any(build_inputs & !is_compiled_source(changed))) {
     unlink(build_outputs(build))
   }
   unlink(gcov_counts(build))
@@ -225,21 +236,20 @@ build_instrumented_copy <- function(path, build, rust = NULL) {
   # Checking that the DLL is up to date takes a while for some packages, so
   # skip it if the last build succeeded and only files that can't affect it
   # changed since.
-  built <- paste0(build, ".built")
   affects_dll <- !grepl("^(R|tests|man|vignettes)/", changed)
-  if (file.exists(built) && !any(affects_dll)) {
+  if (same_config && !any(affects_dll)) {
     return(temp_dir_create("covr_dll"))
   }
   unlink(built)
   withr::with_makevars(
-    add_rust_flags(getOption("covr.flags"), rust),
+    flags,
     assignment = "+=",
     withr::with_envvar(
       rust$build_env,
       pkgbuild::compile_dll(build, quiet = TRUE)
     )
   )
-  file.create(built)
+  writeLines(config, built)
 
   temp_dir_create("covr_dll")
 }
@@ -287,7 +297,14 @@ build_outputs <- function(build) {
     list.files(file.path(build, "src"), all.files = TRUE, recursive = TRUE)
   )
   rust <- length(rust_manifests(build)) > 0
-  file.path(build, files[is_build_output(files, rust)])
+  outputs <- files[is_build_output(files, rust)]
+  # Cache directories, e.g. cargo's `target` directories by any name, are
+  # left alone too
+  caches <- paste0(dirname(files[basename(files) == "CACHEDIR.TAG"]), "/")
+  for (cache in caches) {
+    outputs <- outputs[!startsWith(outputs, cache)]
+  }
+  file.path(build, outputs)
 }
 
 # The files of the package at `path` that would be in its source tarball,
@@ -470,6 +487,10 @@ native_routine <- function(old, dll, routines) {
 # Maps the source files of compiled code coverage measured in the copy `from`
 # to the package at `to`.
 relocate_line_coverages <- function(x, from, to) {
+  # e.g. if gcov is turned off and llvm-cov failed
+  if (!length(x)) {
+    return(list())
+  }
   prefix <- paste0(from, "/")
   for (i in seq_along(x)) {
     srcfile <- attr(x[[i]]$srcref, "srcfile")
