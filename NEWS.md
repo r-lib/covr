@@ -55,10 +55,36 @@ reported coverage" below.
 
 * covr now requires R 4.0.0 or later.
 
+* `azure()` is removed. Use `cobertura(x, file = "coverage.xml")` to write the
+  Cobertura file Azure Pipelines reads.
+
+* `package_coverage()` no longer has a `pre_clean` argument. Objects in `src/`
+  are always removed before the package is installed.
+
+* `display_name()` is no longer exported. It was only meant for covr's own
+  use.
+
 * `to_cobertura()` and `to_sonarqube()` are deprecated in favor of
   `cobertura()` and `sonarqube()`, matching the names of `report()`,
-  `codecov()` and `coveralls()`. The old names still work, and warn once per
-  session (#750).
+  `codecov()` and `coveralls()`. Like `report()`, the new functions take the
+  coverage as `x` and the output path as `file`. The old names still work,
+  with their `cov` and `filename` arguments, and warn once per session (#750).
+
+* The option `covr.fix_parallel_mcexit` now takes precedence over the
+  environment variable `COVR_FIX_PARALLEL_MCEXIT`, which was used first before,
+  so options always win over the `COVR_*` environment variables. The
+  environment variables accept `true`, `t`, `yes`, `1`, `false`, `f`, `no` and
+  `0` in any case, and warn about other values.
+
+* The `covr.gcov` option is no longer set when covr is loaded. gcov is looked
+  up when it is needed, with the build tools on the `PATH`, so the gcov of
+  Rtools is found on Windows. `getOption("covr.gcov")` is now `NULL` unless you
+  set it.
+
+* `coveralls()` now returns the response of Coveralls invisibly, like
+  `codecov()`, and signals an error of class `covr_coveralls_error` for any
+  response that is not HTTP 200 with a JSON body, with the status and the
+  response in its message.
 
 * S4 methods are now named after their generic and signature, as in their Rd
   aliases, e.g. `show,MyClass-method`, so `print(x, group = "functions")`,
@@ -90,11 +116,6 @@ reported coverage" below.
 * `package_coverage()` no longer accepts the `exclusions` argument, deprecated
   in favor of `line_exclusions`.
 
-* `package_coverage(pre_clean =)` is deprecated and ignored; compiled objects
-  in `src/` are always removed before the package is installed.
-
-* `azure()` is deprecated. Use `cobertura()`, which it calls, instead.
-
 * covr no longer supports code coverage with Intel's classic `icc` compiler,
   which Intel discontinued in 2024, and the `covr.icov`, `covr.icov_args`,
   `covr.icov_flags` and `covr.icov_prof` options have been removed.
@@ -122,10 +143,7 @@ reported coverage" below.
   Set `options(covr.install_instrument = FALSE)` (or the environment variable
   `COVR_INSTALL_INSTRUMENT=false`) to always do that.
   Functions of the package that are sent to other R processes, e.g. parallel
-  workers, are now counted there if the process loads the package. Set
-  `options(covr.install_compile = FALSE)` (or the environment variable
-  `COVR_INSTALL_COMPILE=false`) to leave compiling the functions to the JIT in
-  each process instead (#740).
+  workers, are now counted there if the process loads the package (#740).
 
 * `package_coverage()` is faster and uses much less memory when the code
   starts many R processes that load the package. Each process now saves only
@@ -226,6 +244,12 @@ reported coverage" below.
 
 ## Reports
 
+* The code in `report()` is highlighted with highlight.js 11, which supports
+  light and dark themes.
+
+* `file_report()` now creates the directory of `out_file` if needed and
+  returns its absolute path, like `report()`.
+
 * `report()`, `file_report()` and their `_html()` versions show branch
   coverage when it was measured: lines with branches show how many were taken
   (e.g. `1/2`, with each branch's label and count on hover), lines with an
@@ -273,6 +297,21 @@ reported coverage" below.
   the coverage object has no traces (#540).
 
 ## CI services and output formats
+
+* covr uses httr2 instead of httr to upload coverage to Codecov and Coveralls.
+
+* `coveralls()` uses the environment variable `COVERALLS_REPO_TOKEN` if
+  `COVERALLS_TOKEN` is not set, deletes the temporary file with the coverage
+  it uploaded, and its documentation no longer promises uploads without a
+  token.
+
+* `codecov()` and `coveralls()` use the current Drone variables
+  `DRONE_COMMIT_BRANCH`, `DRONE_COMMIT_SHA` and `DRONE_BUILD_LINK`, and fall
+  back to the old ones.
+
+* `sonarqube()` now reports the lines of compiled code, and with branch
+  coverage (`options(covr.branch_coverage = TRUE)`) the `branchesToCover` and
+  `coveredBranches` of each line.
 
 * `codecov()` now uploads with Codecov's current upload protocol, a request to
   `https://ingest.codecov.io` for an upload followed by sending the coverage to
@@ -428,6 +467,16 @@ reported coverage" below.
 
 ## Compiled code
 
+* Compiled code in packages that set `CXX_STD = CXX23` is now instrumented.
+
+* Compiled code coverage only reads the gcov reports written by each gcov
+  run, so stale `.gcov` files in `src/` are no longer parsed or deleted.
+
+* Source files are now matched against the package directory and
+  `covr.gcov_additional_paths` by whole path components, not by a prefix
+  anywhere in the path. Native files in `covr.gcov_additional_paths` are no
+  longer removed from the result by `covr.filter_non_package`.
+
 * Compiled code coverage now reads gcov's structured JSON output
   (`gcov --json-format`) when gcov supports it (gcc >= 9), instead of parsing
   its text output with regular expressions. covr still parses the text output
@@ -447,6 +496,25 @@ reported coverage" below.
   excluded with `relative_path = FALSE` or a custom `relative_path` (#531).
 
 ## Bug fixes
+
+* Coverage of a file whose name starts with `tests` or `branches` is no longer
+  mistaken for recorded tests or branches, which made `tally_tests()` return
+  an empty result instead of an error, and corrupted `c()` and merged coverage.
+
+* `with_coverage()`, `function_coverage()` and the other functions that
+  measure coverage now restore the functions wrapped by `Vectorize()` and
+  `memoise::memoise()`, so later measurements of them are no longer lost.
+  Functions are only treated as `Vectorize()` wrappers if they have the
+  wrapper's own bindings.
+
+* `print()` of a coverage object no longer fails or prints the wrong text for
+  file or function names that contain braces.
+
+* `relative_path = "/"` and other filesystem roots, such as `C:/`, are no
+  longer changed when trailing slashes are removed.
+
+* The `COVR_COVRIGNORE` environment variable is now read each time it is
+  needed, rather than only when covr is loaded.
 
 * `package_coverage()` no longer crashes R when a package stores data read
   with arrow in an environment of its namespace, e.g. in a fastmap. The

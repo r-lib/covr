@@ -18,13 +18,15 @@
 #'
 #' *Note*: This functionality requires the xml2 package be installed.
 #'
-#' @param cov the coverage object returned from [package_coverage()]
-#' @param filename the name of the Cobertura XML file
+#' @param x the coverage object returned from [package_coverage()]
+#' @param file the name of the Cobertura XML file
+#' @returns The XML document (an `xml2` document), invisibly, after
+#'   writing it to `file`.
 #' @export
-cobertura <- function(cov, filename = "cobertura.xml") {
+cobertura <- function(x, file = "cobertura.xml") {
   loadNamespace("xml2")
 
-  df <- tally_coverage(cov, by = "line")
+  df <- tally_coverage(x, by = "line")
   # Methods list the lines of each function, while the totals and the lines of
   # each file count every line once.
   file_lines <- collapse_lines(df)
@@ -40,8 +42,8 @@ cobertura <- function(cov, filename = "cobertura.xml") {
   lines_covered <- sum(file_lines$value > 0)
 
   # Without branch coverage, `branch_rate()` is always zero.
-  has_branches <- !is.null(attr(cov, "branches"))
-  branches <- tally_coverage(cov, by = "branch")
+  has_branches <- !is.null(attr(x, "branches"))
+  branches <- tally_coverage(x, by = "branch")
   branch_rate <- function(x) {
     if (!has_branches) {
       return("0")
@@ -95,7 +97,7 @@ cobertura <- function(cov, filename = "cobertura.xml") {
 
   # Add sources
   sources <- xml2::xml_add_child(top, "sources")
-  source_pth <- attr(cov, "package")$path %||% attr(cov, "root")
+  source_pth <- attr(x, "package")$path %||% attr(x, "root")
   if (!is.null(source_pth)) {
     xml2::xml_add_child(sources, "source", xml2::xml_cdata(source_pth))
   }
@@ -107,7 +109,7 @@ cobertura <- function(cov, filename = "cobertura.xml") {
   package <- xml2::xml_add_child(
     packages,
     "package",
-    name = attr(cov, "package")$package,
+    name = attr(x, "package")$package,
     "line-rate" = as.character(percent_overall),
     "branch-rate" = branch_rate(branches),
     complexity = "0"
@@ -192,7 +194,7 @@ cobertura <- function(cov, filename = "cobertura.xml") {
     }
   }
 
-  xml2::write_xml(d, file = filename)
+  xml2::write_xml(d, file = file)
 
   invisible(d)
 }

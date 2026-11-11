@@ -4,15 +4,16 @@
 \alias{lcov}
 \title{Create an LCOV tracefile}
 \usage{
-lcov(cov, filename = "lcov.info")
+lcov(x, file = "lcov.info")
 }
 \arguments{
-\item{cov}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
+\item{x}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
 
-\item{filename}{the name of the LCOV file}
+\item{file}{the name of the LCOV file}
 }
 \value{
-The lines of the LCOV file, invisibly.
+The lines of the LCOV file, invisibly, after writing them to
+\code{file}.
 }
 \description{
 Write coverage in the LCOV tracefile format described in

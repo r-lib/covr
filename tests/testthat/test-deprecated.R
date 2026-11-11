@@ -7,7 +7,7 @@ test_that("to_cobertura() warns once and writes the same file as cobertura()", {
   new <- withr::local_tempfile(fileext = ".xml")
   old <- withr::local_tempfile(fileext = ".xml")
 
-  cobertura(cov, filename = new)
+  cobertura(cov, file = new)
   expect_snapshot(to_cobertura(cov, filename = old))
   expect_equal(without_timestamp(old), without_timestamp(new))
 
@@ -20,7 +20,7 @@ test_that("to_sonarqube() warns once and writes the same file as sonarqube()", {
   new <- withr::local_tempfile(fileext = ".xml")
   old <- withr::local_tempfile(fileext = ".xml")
 
-  sonarqube(cov, filename = new, path_prefix = "pkg")
+  sonarqube(cov, file = new, path_prefix = "pkg")
   expect_snapshot(to_sonarqube(cov, filename = old, path_prefix = "pkg"))
   expect_equal(readLines(old), readLines(new))
 

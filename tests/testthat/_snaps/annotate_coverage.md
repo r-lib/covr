@@ -117,3 +117,16 @@
          9 |  !!0 |     'never'
       ... 3 more lines in 1 file not shown; narrow with `files` or `lines`, or raise `max_lines`.
 
+# annotate_coverage checks max_lines and context
+
+    Code
+      annotate_coverage(cov, max_lines = "a")
+    Condition
+      Error:
+      ! `max_lines` must be a single number.
+    Code
+      annotate_coverage(cov, context = NA)
+    Condition
+      Error:
+      ! `context` must be a single number.
+

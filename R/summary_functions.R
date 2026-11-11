@@ -5,7 +5,7 @@
 #' @param ... additional arguments passed to [tally_coverage()], such as `by
 #'   = "branch"` for the percentage of branches taken (see
 #'   [covr.branch_coverage]).
-#' @return The total percentage as a `numeric(1)`.
+#' @returns The total percentage as a `numeric(1)`.
 #' @export
 percent_coverage <- function(x, ...) {
   res <- tally_coverage(x, ...)
@@ -39,7 +39,7 @@ coverage_level <- function(percent) {
 #' @inheritParams percent_coverage
 #' @param by whether to tally coverage by line, expression, function or
 #'   branch
-#' @return A `data.frame`. With `by = "expression"` it is the same as
+#' @returns A `data.frame`. With `by = "expression"` it is the same as
 #'   [as.data.frame.coverage()]. With `by = "line"` it has one row for each
 #'   function on each line of code (excluding blank lines, comments and lines
 #'   with only punctuation such as `}`) and the columns `filename`,
@@ -343,7 +343,7 @@ tally_functions <- function(df) {
 #' @param ... additional arguments passed to
 #' [tally_coverage()], such as `by = "function"` to list the functions that
 #' were never run.
-#' @return A `data.frame` with coverage data where the coverage is 0.
+#' @returns A `data.frame` with coverage data where the coverage is 0.
 #' @details if used within RStudio this function outputs the results using the
 #' Marker API.
 #' @examples
@@ -415,7 +415,7 @@ zero_coverage <- function(x, ...) {
 #' `Coverage: 87.40% (branches 72.00%)`.
 #'
 #' @param ... additional arguments ignored
-#' @return The coverage object (invisibly).
+#' @returns The coverage object (invisibly).
 #' @examples
 #' cov <- code_coverage(
 #'   "f <- function(x) x + 1; g <- function(x) x - 1; h <- function(x) 0",
@@ -497,7 +497,7 @@ print.coverage <- function(
   shown <- by_coverage[seq_len(min(n, length(by_coverage)))]
   msgs <- format_messages(
     paste0(
-      cli::style_bold(names(shown), ": "),
+      cli::style_bold(cli_escape(names(shown)), ": "),
       vcapply(shown, format_percentage, styles = styles)
     )
   )
@@ -526,6 +526,12 @@ print.coverage <- function(
     )
   }
   invisible(x)
+}
+
+# The names of files and functions are text, not cli templates, so their braces
+# are doubled to print as they are.
+cli_escape <- function(x) {
+  gsub("}", "}}", gsub("{", "{{", x, fixed = TRUE), fixed = TRUE)
 }
 
 # `cli::format_message()` of each element of `lines`. Formatting them as one
@@ -579,9 +585,8 @@ missed_ranges_by <- function(df, group, non_code) {
 print_max_ranges <- function() {
   max <- getOption("covr.print_max_ranges", 10)
   if (!is.numeric(max) || length(max) != 1 || is.na(max) || max < 0) {
-    stop(
-      "`covr.print_max_ranges` must be a single non-negative number.",
-      call. = FALSE
+    covr_abort(
+      "{.code covr.print_max_ranges} must be a single non-negative number."
     )
   }
   max
@@ -628,12 +633,6 @@ branch_pieces <- function(df) {
   paste(df$line, df$label)
 }
 
-# Formats the missed branches in `df` joined by commas, e.g. "12 FALSE, 30 b",
-# with at most `max` of them (see `cap_items()`).
-format_branches <- function(df, max = Inf) {
-  cap_items(branch_pieces(df), max)
-}
-
 # The missed `lines` of a file as ranges, e.g. c("41-48", "112"). Two missed
 # lines are in the same range only if every line between them is in `non_code`
 # (blank lines, comments and punctuation); covered code, and code without
@@ -658,12 +657,6 @@ range_pieces <- function(lines, non_code = integer()) {
   as.character(ifelse(starts == ends, starts, paste0(starts, "-", ends)))
 }
 
-# Formats the missed `lines` of a file as ranges, e.g. "41-48, 112", with at
-# most `max` of them (see `cap_items()`).
-missed_ranges <- function(lines, non_code = integer(), max = Inf) {
-  cap_items(range_pieces(lines, non_code), max)
-}
-
 #' @export
 print.coverages <- function(x, ...) {
   for (i in seq_along(x)) {
@@ -681,12 +674,8 @@ print.coverages <- function(x, ...) {
 # `partial`, or `covered` if only that is set) and red. An invalid option only
 # warns, so it doesn't stop coverage objects from printing.
 console_styles <- function() {
-  colors <- tryCatch(report_colors(), error = function(e) {
-    note <- cli::format_message(c(i = "Using the default colors."))
-    warning(structure(
-      list(message = paste0(conditionMessage(e), "\n", note), call = NULL),
-      class = c("warning", "condition")
-    ))
+  colors <- report_colors(invalid = function(message, .envir) {
+    covr_warn(c(message, i = "Using the default colors."), .envir = .envir)
     NULL
   })
   custom <- if (is.null(colors)) character() else colnames(colors)
@@ -746,4 +735,107 @@ source_markers <- function(x, type = "test") {
     x$first_column %||% rep(list(NULL), NROW(x)),
     USE.NAMES = FALSE
   )
+}
+
+#' Convert a coverage dataset to a list
+#'
+#' @param x a coverage dataset, defaults to running `package_coverage()`.
+#' @return A list with two components: `filecoverage`, a named numeric vector
+#'   with the percentage of lines covered in each file, and `totalcoverage`,
+#'   the percentage of lines covered in the whole package. Both are rounded to
+#'   two decimal places.
+#' @export
+coverage_to_list <- function(x = package_coverage()) {
+  covr_df <- collapse_lines(tally_coverage(x))
+  file_result <- tapply(covr_df$value, covr_df$filename, FUN = function(x) {
+    round(sum(x > 0) / length(x) * 100, digits = 2)
+  })
+  total_result <- round(
+    sum(covr_df$value > 0) / nrow(covr_df) * 100,
+    digits = 2
+  )
+  return(list(filecoverage = file_result, totalcoverage = total_result))
+}
+
+#' Convert a coverage dataset to a markdown table
+#'
+#' Creates a markdown table with the total coverage and the coverage of each
+#' file, suitable for a GitHub Actions job summary or a pull request comment.
+#' If `base` is given, the table also includes the coverage of `base` and the
+#' change from it.
+#'
+#' @param x a coverage dataset, defaults to running `package_coverage()`.
+#' @param base an optional coverage dataset to compare against, e.g. the
+#'   coverage of the main branch.
+#' @return A character vector of markdown lines, with class `"covr_markdown"`.
+#' @examples
+#' cov <- code_coverage(
+#'   "add <- function(x, y) { x + y }",
+#'   "add(1, 2)"
+#' )
+#' coverage_to_markdown(cov)
+#'
+#' \dontrun{
+#' # In a GitHub Actions step
+#' md <- coverage_to_markdown(package_coverage())
+#' cat(md, file = Sys.getenv("GITHUB_STEP_SUMMARY"), sep = "\n", append = TRUE)
+#' }
+#' @export
+coverage_to_markdown <- function(x = package_coverage(), base = NULL) {
+  head <- coverage_to_list(x)
+  files <- names(head$filecoverage)
+  head_pct <- c(head$totalcoverage, unname(head$filecoverage))
+  rows <- c("Total", markdown_escape(files))
+  fmt <- function(p) ifelse(is.na(p), "", sprintf("%.2f%%", p))
+
+  if (is.null(base)) {
+    lines <- c(
+      "| File | Coverage |",
+      "| :--- | ---: |",
+      paste0("| ", rows, " | ", fmt(head_pct), " |")
+    )
+  } else {
+    base <- coverage_to_list(base)
+    base_pct <- c(
+      base$totalcoverage,
+      unname(base$filecoverage[match(files, names(base$filecoverage))])
+    )
+    diff <- head_pct - base_pct
+    diff_str <- ifelse(
+      is.na(diff),
+      "",
+      sprintf("%+.2f%%", diff)
+    )
+    lines <- c(
+      "| File | Coverage | Base | Change |",
+      "| :--- | ---: | ---: | ---: |",
+      paste0(
+        "| ",
+        rows,
+        " | ",
+        fmt(head_pct),
+        " | ",
+        fmt(base_pct),
+        " | ",
+        diff_str,
+        " |"
+      )
+    )
+  }
+  structure(lines, class = "covr_markdown")
+}
+
+# Escape text for use in a GitHub markdown table cell
+markdown_escape <- function(x) {
+  x <- gsub("&", "&amp;", x, fixed = TRUE)
+  x <- gsub("<", "&lt;", x, fixed = TRUE)
+  x <- gsub(">", "&gt;", x, fixed = TRUE)
+  x <- gsub("\\", "\\\\", x, fixed = TRUE)
+  gsub("|", "\\|", x, fixed = TRUE)
+}
+
+#' @export
+print.covr_markdown <- function(x, ...) {
+  writeLines(unclass(x))
+  invisible(x)
 }

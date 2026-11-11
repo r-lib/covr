@@ -293,6 +293,21 @@ test_that("install_instrument() reads the option and COVR_INSTALL_INSTRUMENT", {
       )
     )
   )
+  expect_false(
+    withr::with_options(
+      list(covr.install_instrument = FALSE),
+      withr::with_envvar(
+        c(COVR_INSTALL_INSTRUMENT = "true"),
+        install_instrument()
+      )
+    )
+  )
+  expect_false(
+    withr::with_envvar(
+      c(COVR_INSTALL_INSTRUMENT = "No"),
+      install_instrument()
+    )
+  )
 })
 
 test_that("COVR_INSTALL_INSTRUMENT=false instruments when the package is loaded", {

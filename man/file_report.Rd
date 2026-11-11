@@ -25,6 +25,9 @@ coverage output.}
 \item{browse}{whether to open a browser to view the report.}
 }
 \value{
+\code{file_report()} returns the absolute path of the report file,
+invisibly.
+
 \code{file_report_html()} returns an \code{\link[htmltools:tagList]{htmltools::tagList()}}, with the
 dependencies of the report attached.
 }

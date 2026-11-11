@@ -1,15 +1,15 @@
 #' Deprecated functions
 #'
 #' @description
-#' These functions are deprecated and warn once per session. They take the
-#' same arguments and return the same value as the functions that replace
-#' them:
+#' These functions are deprecated and warn once per session. They return the
+#' same value as the functions that replace them, and `cov` and `filename`
+#' are the `x` and `file` arguments of those functions:
 #'
 #' * `to_cobertura()` is now [cobertura()].
 #' * `to_sonarqube()` is now [sonarqube()].
 #'
-#' @inheritParams cobertura
 #' @inheritParams sonarqube
+#' @param cov the coverage object returned from [package_coverage()]
 #' @param filename the name of the output file
 #' @name covr-deprecated
 #' @keywords internal
@@ -19,12 +19,12 @@ NULL
 #' @export
 to_cobertura <- function(cov, filename = "cobertura.xml") {
   warn_deprecated("to_cobertura", "cobertura")
-  cobertura(cov, filename = filename)
+  cobertura(cov, file = filename)
 }
 
 #' @rdname covr-deprecated
 #' @export
 to_sonarqube <- function(cov, filename = "sonarqube.xml", path_prefix = NULL) {
   warn_deprecated("to_sonarqube", "sonarqube")
-  sonarqube(cov, filename = filename, path_prefix = path_prefix)
+  sonarqube(cov, file = filename, path_prefix = path_prefix)
 }

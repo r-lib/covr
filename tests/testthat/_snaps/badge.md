@@ -28,7 +28,7 @@
 # label must be a single string
 
     Code
-      badge(cov, tempfile(), label = c("a", "b"))
+      badge(cov, tmp, label = c("a", "b"))
     Condition
       Error:
       ! `label` must be a single string.
@@ -36,7 +36,7 @@
 ---
 
     Code
-      badge(cov, tempfile(), label = NA)
+      badge(cov, tmp, label = NA)
     Condition
       Error:
       ! `label` must be a single string.

@@ -175,50 +175,38 @@
   font-size: 11px;
 }
 
-/* The colors of the code highlighted by highlight.js, based on RStudio's */
-.covr-report pre .operator,
-.covr-report pre .paren {
+/* The colors of the code highlighted by highlight.js (its `hljs-*` classes),
+   based on RStudio's */
+.covr-report pre .hljs-operator,
+.covr-report pre .hljs-punctuation {
   color: rgb(104, 118, 135);
 }
 
-.covr-report pre .literal {
+.covr-report pre .hljs-literal {
   color: rgb(88, 72, 246);
 }
 
-.covr-report pre .number {
+.covr-report pre .hljs-number {
   color: rgb(0, 0, 205);
 }
 
-.covr-report pre .comment {
+.covr-report pre .hljs-comment {
   color: rgb(76, 136, 107);
   font-style: italic;
 }
 
-.covr-report pre .keyword,
-.covr-report pre .id {
+.covr-report pre .hljs-keyword {
   color: rgb(0, 0, 255);
 }
 
-.covr-report pre .identifier {
-  color: rgb(0, 0, 0);
-}
-
-.covr-report pre .string,
-.covr-report pre .attribute {
+.covr-report pre .hljs-string {
   color: rgb(3, 106, 7);
 }
 
-.covr-report pre .doctype {
-  color: rgb(104, 104, 92);
-}
-
-.covr-report pre .tag,
-.covr-report pre .title {
+/* The tags and parameter names in the roxygen comments */
+.covr-report pre .hljs-doctag,
+.covr-report pre .hljs-variable {
   color: rgb(4, 29, 140);
-}
-
-.covr-report pre .value {
-  color: rgb(13, 105, 18);
 }
 
 .covr-report td.covr-source {
@@ -413,34 +401,29 @@ html.covr-dark .covr-report table.covr-file-table > tbody > tr > td {
 }
 
 /* Based on the Tomorrow Night theme */
-html.covr-dark .covr-report pre .operator,
-html.covr-dark .covr-report pre .paren,
-html.covr-dark .covr-report pre .identifier {
+html.covr-dark .covr-report pre .hljs-operator,
+html.covr-dark .covr-report pre .hljs-punctuation {
   color: #c5c8c6;
 }
 
-html.covr-dark .covr-report pre .literal,
-html.covr-dark .covr-report pre .number {
+html.covr-dark .covr-report pre .hljs-literal,
+html.covr-dark .covr-report pre .hljs-number {
   color: #de935f;
 }
 
-html.covr-dark .covr-report pre .comment,
-html.covr-dark .covr-report pre .doctype {
+html.covr-dark .covr-report pre .hljs-comment {
   color: #969896;
 }
 
-html.covr-dark .covr-report pre .keyword,
-html.covr-dark .covr-report pre .id {
+html.covr-dark .covr-report pre .hljs-keyword {
   color: #b294bb;
 }
 
-html.covr-dark .covr-report pre .string,
-html.covr-dark .covr-report pre .attribute,
-html.covr-dark .covr-report pre .value {
+html.covr-dark .covr-report pre .hljs-string {
   color: #b5bd68;
 }
 
-html.covr-dark .covr-report pre .tag,
-html.covr-dark .covr-report pre .title {
+html.covr-dark .covr-report pre .hljs-doctag,
+html.covr-dark .covr-report pre .hljs-variable {
   color: #81a2be;
 }

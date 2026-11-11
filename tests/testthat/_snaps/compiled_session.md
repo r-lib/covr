@@ -1,3 +1,14 @@
+# with_coverage() measures compiled code and restores the DLL on error
+
+    Code
+      with_coverage({
+        ns$simple(1)
+        stop("boom")
+      }, env = ns)
+    Condition
+      Error in `force()`:
+      ! boom
+
 # compiled coverage requires the package to have compiled code
 
     Code
@@ -39,4 +50,20 @@
       Error:
       ! Compiled `source_files` must be in a single package.
       i Can't find one package for 'foo.c'.
+
+# a failed build is compiled again
+
+    Code
+      build_instrumented_copy(path, build)
+    Condition
+      Error in `compile_instrumented()`:
+      ! compile error
+
+---
+
+    Code
+      build_instrumented_copy(path, build)
+    Condition
+      Error in `compile_instrumented()`:
+      ! compile error
 

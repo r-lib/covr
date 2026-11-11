@@ -7,7 +7,7 @@
 coveralls(
   ...,
   coverage = NULL,
-  repo_token = Sys.getenv("COVERALLS_TOKEN"),
+  repo_token = env_var("COVERALLS_TOKEN", "COVERALLS_REPO_TOKEN"),
   service_name = NULL,
   quiet = TRUE
 )
@@ -20,10 +20,13 @@ coveralls(
 \code{...}}
 
 \item{repo_token}{The secret repo token for your repository, found on your
-repository's page on Coveralls. Without a token (\code{""} or \code{NULL}), only the
-CI service and job are submitted, which Coveralls only accepts from Travis
-CI. With a token, information about the git commit, branch and remote is
-also submitted.}
+repository's page on Coveralls. The default is the environment variable
+\code{COVERALLS_TOKEN}, or if it is not set, \code{COVERALLS_REPO_TOKEN}, the name
+Coveralls uses for it. Coveralls requires a token (see
+\url{https://docs.coveralls.io/api-jobs-endpoint}). Without one (\code{""} or
+\code{NULL}), only the CI service and job are submitted, which Coveralls rejects
+unless the CI service identifies the repository by itself. With a token,
+information about the git commit, branch and remote is also submitted.}
 
 \item{service_name}{The name of the CI service. If \code{NULL}, the environment
 variable \code{CI_NAME} is used if it is set, otherwise the CI service is
@@ -31,7 +34,15 @@ detected from the environment, e.g. \sQuote{github} on GitHub Actions and
 \sQuote{travis-ci} on Travis CI. Outside a supported CI service it is
 \sQuote{local}.}
 
-\item{quiet}{if \code{FALSE}, print the coverage before submission.}
+\item{quiet}{if \code{FALSE}, print the output of running the tests (see
+\code{\link[=package_coverage]{package_coverage()}}, which is called when \code{coverage} is \code{NULL}) and the
+coverage before submission.}
+}
+\value{
+The response of Coveralls, parsed from JSON, invisibly. If Coveralls
+doesn't accept the upload, \code{coveralls()} throws an error of class
+\code{covr_coveralls_error} with the HTTP status and the response of Coveralls
+in its message.
 }
 \description{
 On GitHub Actions, use the official

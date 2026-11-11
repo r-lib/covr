@@ -33,7 +33,7 @@
 #'   the next one would go over the limit, but the first chunk is always shown.
 #'   If anything is left out, the last line says how many of the missed or
 #'   requested lines in how many files are not shown. Use `Inf` for no limit.
-#' @return A character vector of class `covr_annotation`, with one element per
+#' @returns A character vector of class `covr_annotation`, with one element per
 #'   output line. If there is nothing to show it is `"No missed lines."`.
 #' @examples
 #' source <- "
@@ -56,12 +56,12 @@ annotate_coverage <- function(
   files = NULL,
   max_lines = getOption("covr.annotate_max_lines", 200)
 ) {
-  stopifnot(
-    is.numeric(max_lines),
-    length(max_lines) == 1,
-    !is.na(max_lines)
-  )
-  stopifnot(is.numeric(context), length(context) == 1, !is.na(context))
+  if (!is.numeric(max_lines) || length(max_lines) != 1 || is.na(max_lines)) {
+    covr_abort("{.arg max_lines} must be a single number.")
+  }
+  if (!is.numeric(context) || length(context) != 1 || is.na(context)) {
+    covr_abort("{.arg context} must be a single number.")
+  }
   context <- max(context, 0)
 
   values <- collapse_lines(tally_coverage(x))
@@ -95,7 +95,7 @@ annotate_coverage <- function(
       }
     }
     if (is.null(src)) {
-      stop("Cannot find source for ", filename, call. = FALSE)
+      covr_abort("Can't find the source of {.file {filename}}.")
     }
     n <- length(src)
 

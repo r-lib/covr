@@ -68,3 +68,38 @@ compiled_counts <- function(coverage, file) {
   tally <- tally[basename(tally$filename) == file, ]
   stats::setNames(tally$value, tally$line)
 }
+
+# A package directory with native code, which is never compiled
+local_native_package <- function(frame = parent.frame()) {
+  path <- withr::local_tempdir(.local_envir = frame)
+  dir.create(file.path(path, "R"))
+  dir.create(file.path(path, "src"))
+  writeLines(c("Package: pkg", "Version: 1.0"), file.path(path, "DESCRIPTION"))
+  writeLines("f <- function() 1", file.path(path, "R", "pkg.R"))
+  writeLines("int a() { return 1; }", file.path(path, "src", "a.c"))
+  writeLines("int b() { return 2; }", file.path(path, "src", "b.c"))
+  writeLines("#define X 1", file.path(path, "src", "util.h"))
+  path
+}
+
+# Replaces compiling the instrumented copy with creating an object for each
+# source and a DLL, recording whether it was forced and which build outputs
+# existed when it was called.
+mock_compile_instrumented <- function(frame = parent.frame()) {
+  state <- new.env()
+  state$calls <- list()
+  local_mocked_bindings(
+    compile_instrumented = function(build, force = FALSE) {
+      state$calls[[length(state$calls) + 1]] <- list(
+        force = force,
+        outputs = basename(build_outputs(build))
+      )
+      src <- file.path(build, "src")
+      sources <- list.files(src, "[.]c$")
+      file.create(file.path(src, c(sub("[.]c$", ".o", sources), "pkg.so")))
+      invisible()
+    },
+    .env = frame
+  )
+  state
+}

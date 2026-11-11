@@ -132,9 +132,9 @@ test_that("should_enable_parallel_mcexit_fix", {
   grid$res <- with(
     grid,
     ifelse(
-      !is.na(var),
-      var,
-      ifelse(!is.na(option), option, pkg == "TestParallel")
+      !is.na(option),
+      option,
+      ifelse(!is.na(var), var, pkg == "TestParallel")
     )
   )
 
@@ -165,6 +165,23 @@ test_that("should_enable_parallel_mcexit_fix", {
   )
 
   expect_identical(res, grid$res)
+})
+
+test_that("should_enable_parallel_mcexit_fix accepts the spellings of logicals", {
+  skip_on_os("windows")
+  withr::local_options(covr.fix_parallel_mcexit = NULL)
+  pkg <- as_package(test_path("TestSummary"))
+  for (value in c("true", "T", "yes", "1")) {
+    withr::local_envvar(COVR_FIX_PARALLEL_MCEXIT = value)
+    expect_true(should_enable_parallel_mcexit_fix(pkg))
+  }
+  for (value in c("false", "F", "No", "0")) {
+    withr::local_envvar(COVR_FIX_PARALLEL_MCEXIT = value)
+    expect_false(should_enable_parallel_mcexit_fix())
+  }
+
+  withr::local_envvar(COVR_FIX_PARALLEL_MCEXIT = "maybe")
+  expect_snapshot(expect_true(should_enable_parallel_mcexit_fix()))
 })
 
 

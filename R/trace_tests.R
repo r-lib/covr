@@ -18,12 +18,12 @@
 #'     execution.
 #'
 #'   \item `$<srcref>$tests`: For each srcref count in the coverage object, a
-#'     `$tests` field is now included which contains a matrix with three columns,
-#'     "test", "call", "depth" and "i" which specify the test number
-#'     (corresponding to the index of the test in `attr(,"tests")`, the number
-#'     of times the test expression was evaluated to produce the trace hit, the
-#'     stack depth into the target code where the trace was executed, and the
-#'     order of execution for each test.
+#'     `$tests` field is now included which contains a matrix with four columns,
+#'     "test", "call", "depth" and "i". "test" is the test number
+#'     (corresponding to the index of the test in `attr(,"tests")`), "call" is
+#'     the number of times the test expression was evaluated to produce the
+#'     trace hit, "depth" is the stack depth into the target code where the
+#'     trace was executed, and "i" is the order of execution for each test.
 #' }
 #'
 #' @section Test traces:
@@ -51,6 +51,8 @@
 #' with [emptyenv()], so that the objects they enclose aren't saved with the
 #' coverage.
 #'
+#' To find which tests ran each line of code, use [tally_tests()].
+#'
 #' @examples
 #' fcode <- '
 #' f <- function(x) {
@@ -60,8 +62,10 @@
 #'     FALSE
 #' }'
 #'
-#' options(covr.record_tests = TRUE)
-#' cov <- code_coverage(fcode, "f(TRUE)")
+#' cov <- withr::with_options(
+#'   list(covr.record_tests = TRUE),
+#'   code_coverage(fcode, "f(TRUE)")
+#' )
 #'
 #' # extract executed test code for the first test
 #' tail(attr(cov, "tests")[[1L]], 1L)
@@ -258,11 +262,9 @@ test_info <- function(tests, x) {
   list(file = file, line = line, description = unname(description))
 }
 
-#' Append a test trace to a counter, updating global current test
-#'
-#' @param key generated with [key()]
-#' @keywords internal
-#'
+# Append a test trace to a counter, updating global current test
+#
+# @param key generated with `key()`
 count_test <- function(key) {
   n_calls_into_covr <- 2L
 
@@ -308,20 +310,20 @@ count_test <- function(key) {
   with(tests, tally[.value, ] <- .data)
 }
 
-#' Initialize a new test counter for a coverage trace
-#'
-#' Initialize a test counter, a matrix used to tally tests, their stack depth
-#' and the execution order as the trace associated with \code{key} is hit. Each
-#' test trace is an environment, which allows assignment into a pre-allocated
-#' \code{tests} matrix with minimall reallocation.
-#'
-#' The \code{tests} matrix has columns \code{tests}, \code{depth} and \code{i},
-#' corresponding to the test index (the index of the associated test in
-#' \code{.counters$tests}), the stack depth when the trace is evaluated and the
-#' number of traces that have been hit so far during test evaluation.
-#'
-#' @inheritParams count
-#'
+# Initialize a new test counter for a coverage trace
+#
+# Initialize a test counter, a matrix used to tally tests, their stack depth
+# and the execution order as the trace associated with `key` is hit. Each test
+# trace is an environment, which allows assignment into a pre-allocated `tests`
+# matrix with minimal reallocation.
+#
+# The `tests` matrix has columns `test`, `call`, `depth` and `i`, corresponding
+# to the test index (the index of the associated test in `.counters$tests`),
+# the number of times the test expression was evaluated, the stack depth when
+# the trace is evaluated and the number of traces that have been hit so far
+# during test evaluation.
+#
+# @param key generated with `key()`
 new_test_counter <- function(key) {
   .counters[[key]]$tests <- new.env(parent = baseenv())
   .counters[[key]]$tests$.data <- vector("integer", 4L)
@@ -336,33 +338,25 @@ new_test_counter <- function(key) {
   )
 }
 
-#' Update current test if unit test expression has progressed
-#'
-#' Updating a test logs some metadata regarding the current call stack, noteably
-#' trying to capture information about the call stack prior to the covr::count
-#' call being traced.
-#'
-#' There are a couple patterns of behavior, which try to accommodate a variety
-#' of testing suites:
-#'
-#' \itemize{
-#'   \item `testthat`: During execution of `testthat`'s `test_*` functions,
-#'     files are sourced and the working directory is temporarily changed to the
-#'     package `/tests` directory. Knowing this, calls in the call stack which
-#'     are relative to this directory are extracted and recorded.
-#'   \item `RUnit`:
-#'   \item `custom`: Any other custom test suites may not have source kept with
-#'     their execution, in which case the entire test call stack is kept.
-#' }
-#'
-#' checks to see if the current call stack has the same
-#' `srcref` (or expression, if no source is available) at the same frame prior
-#' to entering into a package where `covr:::count` is called.
-#'
-#' @keywords internal
-#'
-#' @importFrom utils getSrcDirectory
-#'
+# Update current test if unit test expression has progressed
+#
+# Updating a test logs some metadata regarding the current call stack, noteably
+# trying to capture information about the call stack prior to the covr::count
+# call being traced.
+#
+# There are a couple patterns of behavior, which try to accommodate a variety
+# of testing suites:
+#
+# - `testthat`: During execution of `testthat`'s `test_*` functions, files are
+#   sourced and the working directory is temporarily changed to the package
+#   `/tests` directory. Knowing this, calls in the call stack which are
+#   relative to this directory are extracted and recorded.
+# - `custom`: Any other custom test suites may not have source kept with their
+#   execution, in which case the entire test call stack is kept.
+#
+# Checks to see if the current call stack has the same `srcref` (or expression,
+# if no source is available) at the same frame prior to entering into a package
+# where `covr:::count` is called.
 update_current_test <- function() {
   syscalls <- sys.calls()
   syscall_first_count <- Position(is_covr_count_call, syscalls, nomatch = -1L)
@@ -450,15 +444,13 @@ update_current_test <- function() {
   names(.counters$tests)[[.current_test$index]] <- .current_test$key
 }
 
-#' Build key for the current test
-#'
-#' If the current test has a srcref, a unique character key is built from its
-#' srcref. Otherwise, an empty string is returned.
-#'
-#' @return A unique character string if the test call has a srcref, or an empty
-#'   string otherwise.
-#'
-#' @keywords internal
+# Build key for the current test
+#
+# If the current test has a srcref, a unique character key is built from its
+# srcref. Otherwise, an empty string is returned.
+#
+# @return A unique character string if the test call has a srcref, or an empty
+#   string otherwise.
 current_test_key <- function() {
   if (!inherits(.current_test$src, "srcref")) {
     return("")
@@ -469,15 +461,13 @@ current_test_key <- function() {
   )
 }
 
-#' Retrieve the index for the test in `.counters$tests`
-#'
-#' If the test was encountered before, the index will be the index of the test
-#' in the logged tests list. Otherwise, the index will be the next index beyond
-#' the length of the tests list.
-#'
-#' @return An integer index for the test call
-#'
-#' @keywords internal
+# Retrieve the index for the test in `.counters$tests`
+#
+# If the test was encountered before, the index will be the index of the test
+# in the logged tests list. Otherwise, the index will be the next index beyond
+# the length of the tests list.
+#
+# @return An integer index for the test call
 current_test_index <- function() {
   # check if test has already been encountered and reuse test index
   if (inherits(.current_test$src, "srcref")) {
@@ -502,14 +492,13 @@ current_test_index <- function() {
   }
 }
 
-#' Retrieve the number of times the test call was called
-#'
-#' A single test expression might be evaluated many times. Each time the same
-#' expression is called, the call count is incremented.
-#'
-#' @return An integer value representing the number of calls of the current
-#'   call into the package from the testing suite.
-#'
+# Retrieve the number of times the test call was called
+#
+# A single test expression might be evaluated many times. Each time the same
+# expression is called, the call count is incremented.
+#
+# @return An integer value representing the number of calls of the current
+#   call into the package from the testing suite.
 current_test_call_count <- function() {
   if (.current_test$index <= length(.counters$tests)) {
     attr(.counters$tests[[.current_test$index]], "call_count") + 1L
@@ -518,16 +507,15 @@ current_test_call_count <- function() {
   }
 }
 
-#' Truncate call objects to limit the number of arguments
-#'
-#' A helper to circumvent R errors when deserializing large call objects from
-#' Rds. Trims the number of arguments in a call object, and replaces the last
-#' argument with a `<truncated>` symbol.
-#'
-#' @param call_obj A (possibly large) \code{call} object
-#' @param limit A \code{call} length limit to impose
-#' @return The \code{call_obj} with arguments trimmed
-#'
+# Truncate call objects to limit the number of arguments
+#
+# A helper to circumvent R errors when deserializing large call objects from
+# Rds. Trims the number of arguments in a call object, and replaces the last
+# argument with a `<truncated>` symbol.
+#
+# @param call_obj A (possibly large) `call` object
+# @param limit A `call` length limit to impose
+# @return The `call_obj` with arguments trimmed
 truncate_call <- function(call_obj, limit = 1e4) {
   if (length(call_obj) < limit) {
     return(call_obj)
@@ -568,14 +556,13 @@ has_closure <- function(x) {
   .Call(covr_has_closure, x)
 }
 
-#' Returns TRUE if we've moved on from test reflected in .current_test
-#'
-#' Quickly dismiss the need to update the current test if we can. To test if
-#' we're still in the last test, check if the same srcref (or call, if source is
-#' not kept) exists at the last recorded calling frame prior to entering a covr
-#' trace. If this has changed, do a more comprehensive test to see if any of the
-#' test call stack has changed, in which case we are onto a new test.
-#'
+# Returns TRUE if we've moved on from test reflected in .current_test
+#
+# Quickly dismiss the need to update the current test if we can. To test if
+# we're still in the last test, check if the same srcref (or call, if source is
+# not kept) exists at the last recorded calling frame prior to entering a covr
+# trace. If this has changed, do a more comprehensive test to see if any of the
+# test call stack has changed, in which case we are onto a new test.
 is_current_test_finished <- function() {
   is.null(.current_test$src) ||
     .current_test$last_frame > sys.nframe() ||
@@ -600,11 +587,10 @@ weakref_key <- function(ref) {
   .Call(covr_weakref_key, ref)
 }
 
-#' Is the source bound to the expression
-#'
-#' @param expr A language object which may have a `srcref` attribute
-#' @return A logical value indicating whether the language object has source
-#'
+# Is the source bound to the expression
+#
+# @param expr A language object which may have a `srcref` attribute
+# @return A logical value indicating whether the language object has source
 has_srcref <- function(expr) {
   !is.null(getSrcref(expr))
 }
@@ -628,12 +614,11 @@ in_caller_body <- function(n, call) {
     call_src[[3L]] <= fn_src[[3L]]
 }
 
-#' Is the expression a call to covr:::count
-#'
-#' @param expr A language object
-#' @return A logical value indicating whether the object is a call to
-#'   `covr:::count` or `covr:::count_and_record`.
-#'
+# Is the expression a call to covr:::count
+#
+# @param expr A language object
+# @return A logical value indicating whether the object is a call to
+#   `covr:::count` or `covr:::count_and_record`.
 is_covr_count_call <- function(expr) {
   if (
     identical(expr[[1]], as.symbol(".Call")) ||

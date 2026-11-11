@@ -38,18 +38,12 @@ instrument_package <- function(
       branch_coverage
     ))
   )
-  name <- if (.Platform$OS.type == "windows") "R.exe" else "R"
   output <- withr::with_envvar(
     c(
       R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
       R_LIBS = env_path(install_path, .libPaths())
     ),
-    suppressWarnings(system2(
-      file.path(R.home("bin"), name),
-      args,
-      stdout = TRUE,
-      stderr = TRUE
-    ))
+    suppressWarnings(system2(r_binary(), args, stdout = TRUE, stderr = TRUE))
   )
   status <- attr(output, "status") %||% 0L
   file <- instrumented_counters_file(pkg$package, install_path)
@@ -74,14 +68,10 @@ instrument_package <- function(
 # is loaded: `options(covr.install_instrument = FALSE)`, or the environment
 # variable `COVR_INSTALL_INSTRUMENT=false`.
 install_instrument <- function() {
-  install_setting("covr.install_instrument", "COVR_INSTALL_INSTRUMENT")
-}
-
-# A logical option, which is `TRUE` unless the environment variable is false.
-install_setting <- function(option, envvar) {
-  getOption(
-    option,
-    !tolower(Sys.getenv(envvar, "true")) %in% c("false", "f", "no", "0")
+  logical_setting(
+    "covr.install_instrument",
+    "COVR_INSTALL_INSTRUMENT",
+    default = TRUE
   )
 }
 
@@ -224,15 +214,6 @@ package_byte_compile <- function(pkg_name, lib) {
 compile_replacements <- function(replacements) {
   for (r in replacements) {
     compile_in_place(r$target_value)
-    # The functions of wrappers, see `replacement()`
-    inner <- if (is_vectorized(r$target_value)) {
-      "FUN"
-    } else if (inherits(r$target_value, "memoised")) {
-      "_f"
-    }
-    if (!is.null(inner)) {
-      compile_in_place(environment(r$target_value)[[inner]])
-    }
   }
   invisible()
 }
@@ -343,7 +324,7 @@ is_lazy_load_promise <- function(env, name) {
 # instrumented since the counters were cleared.
 add_saved_counters <- function(saved) {
   counters <- as.list(saved, all.names = TRUE)
-  saved_branches <- counters$branches
+  saved_branches <- counters[["branches"]]
   counters <- counters[setdiff(
     names(counters),
     ls(.counters, all.names = TRUE)

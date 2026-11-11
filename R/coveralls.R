@@ -18,26 +18,29 @@
 #' The environment variables `CI_BRANCH` and `CI_REMOTE` override the detected
 #' branch and remote.
 #'
-#' @param coverage an existing coverage object to submit, if `NULL`,
-#' [package_coverage()] will be called with the arguments from
-#' `...`
-#' @param ... arguments passed to [package_coverage()]
+#' @inheritParams codecov
 #' @param repo_token The secret repo token for your repository, found on your
-#' repository's page on Coveralls. Without a token (`""` or `NULL`), only the
-#' CI service and job are submitted, which Coveralls only accepts from Travis
-#' CI. With a token, information about the git commit, branch and remote is
-#' also submitted.
+#' repository's page on Coveralls. The default is the environment variable
+#' `COVERALLS_TOKEN`, or if it is not set, `COVERALLS_REPO_TOKEN`, the name
+#' Coveralls uses for it. Coveralls requires a token (see
+#' <https://docs.coveralls.io/api-jobs-endpoint>). Without one (`""` or
+#' `NULL`), only the CI service and job are submitted, which Coveralls rejects
+#' unless the CI service identifies the repository by itself. With a token,
+#' information about the git commit, branch and remote is also submitted.
 #' @param service_name The name of the CI service. If `NULL`, the environment
 #' variable `CI_NAME` is used if it is set, otherwise the CI service is
 #' detected from the environment, e.g. \sQuote{github} on GitHub Actions and
 #' \sQuote{travis-ci} on Travis CI. Outside a supported CI service it is
 #' \sQuote{local}.
-#' @param quiet if `FALSE`, print the coverage before submission.
+#' @returns The response of Coveralls, parsed from JSON, invisibly. If Coveralls
+#'   doesn't accept the upload, `coveralls()` throws an error of class
+#'   `covr_coveralls_error` with the HTTP status and the response of Coveralls
+#'   in its message.
 #' @export
 coveralls <- function(
   ...,
   coverage = NULL,
-  repo_token = Sys.getenv("COVERALLS_TOKEN"),
+  repo_token = env_var("COVERALLS_TOKEN", "COVERALLS_REPO_TOKEN"),
   service_name = NULL,
   quiet = TRUE
 ) {
@@ -49,34 +52,48 @@ coveralls <- function(
     print(coverage)
   }
 
-  coveralls_url <- "https://coveralls.io/api/v1/jobs"
   coverage_json <- to_coveralls(
     coverage,
     repo_token = repo_token,
     service_name = service_name
   )
+  json_file <- to_file(coverage_json)
+  # The file has the repo token and the source code, so don't leave it behind
+  on.exit(unlink(json_file), add = TRUE)
 
-  result <- RETRY(
+  res <- http_request(
     "POST",
-    url = coveralls_url,
-    body = list(json_file = upload_file(to_file(coverage_json)))
+    "https://coveralls.io/api/v1/jobs",
+    files = c(json_file = json_file)
   )
+  invisible(coveralls_response(res))
+}
 
-  content <- content(result)
-  if (isTRUE(content$error)) {
-    covr_abort(c(
-      "Can't upload coverage to Coveralls.",
-      x = "{content$message}"
-    ))
+# The parsed response of Coveralls. Coveralls only documents HTTP 200 as
+# success, but also reports some errors as `{"error": true, ...}`.
+coveralls_response <- function(res) {
+  body <- tryCatch(
+    jsonlite::fromJSON(res$body, simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+  if (res$status == 200L && is.list(body) && !isTRUE(body$error)) {
+    return(body)
   }
-  content
+  covr_abort(
+    c(
+      "Can't upload coverage to Coveralls.",
+      x = "{http_status_message(res)}.",
+      i = if (nzchar(res$body)) "Coveralls replied:"
+    ),
+    output = res$body,
+    status = res$status,
+    class = "covr_coveralls_error"
+  )
 }
 
 to_file <- function(x) {
   name <- temp_file()
-  con <- file(name)
-  writeChar(con = con, x, eos = NULL)
-  close(con)
+  writeChar(x, name, eos = NULL)
   name
 }
 

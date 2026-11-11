@@ -114,9 +114,9 @@ test_that("shiny_app_coverage() restores a sourceUTF8() traced before, also on e
   )))
   traced <- shiny:::sourceUTF8
 
-  expect_error(
-    shiny_app_coverage(test_path("TestShinyApp"), stop("boom")),
-    "boom"
+  expect_snapshot(
+    shiny_app_coverage(test_path("TestShinyApp"), stop("boom", call. = FALSE)),
+    error = TRUE
   )
   expect_identical(shiny:::sourceUTF8, traced)
 })

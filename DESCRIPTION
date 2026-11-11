@@ -1,9 +1,8 @@
-Encoding: UTF-8
 Package: covr
 Title: Test Coverage for Packages
 Version: 3.6.5.9002
 Authors@R: c(
-    person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre")),
+    person("Jim", "Hester", , "james.f.hester@gmail.com", role = c("aut", "cre")),
     person("Willem", "Ligtenberg", role = "ctb"),
     person("Kirill", "Müller", role = "ctb"),
     person("Henrik", "Bengtsson", role = "ctb"),
@@ -26,56 +25,60 @@ Authors@R: c(
     person("David", "Hugh-Jones", role = "ctb"),
     person("Qin", "Wang", role = "ctb"),
     person("Doug", "Kelkhoff", role = "ctb"),
-    person("Ivan", "Sagalaev", role = c("ctb", "cph"), comment = "highlight.js library")
-    )
-Description: Track and report code coverage for your package and (optionally)
-    upload the results to a coverage service like 'Codecov' <https://about.codecov.io> or
-    'Coveralls' <https://coveralls.io>. Code coverage is a measure of the amount of
-    code being exercised by a set of tests. It is an indirect measure of test
-    quality and completeness. This package is compatible with any testing
-    methodology or framework and tracks coverage of both R code and compiled
-    C, C++, Fortran and Rust code.
+    person("Ivan", "Sagalaev", role = c("ctb", "cph"),
+           comment = "highlight.js library")
+  )
+Description: Track and report code coverage for your package and
+    (optionally) upload the results to a coverage service like 'Codecov'
+    <https://about.codecov.io> or 'Coveralls' <https://coveralls.io>. Code
+    coverage is a measure of the amount of code being exercised by a set
+    of tests. It is an indirect measure of test quality and completeness.
+    This package is compatible with any testing methodology or framework
+    and tracks coverage of both R code and compiled C, C++, Fortran and
+    Rust code.
+License: MIT + file LICENSE
 URL: https://covr.r-lib.org, https://github.com/r-lib/covr
 BugReports: https://github.com/r-lib/covr/issues
 Depends:
-    R (>= 4.0.0),
-    methods
+    methods,
+    R (>= 4.0.0)
 Imports:
+    cli (>= 2.5.0),
+    curl,
     digest,
     grDevices,
-    stats,
-    utils,
+    httr2 (>= 1.0.4),
     jsonlite,
     rex,
-    httr,
-    cli (>= 2.5.0),
+    stats,
     sys (>= 3.0),
+    utils,
     withr (>= 1.0.2),
     yaml
 Suggests:
-    R6,
-    S7 (>= 0.2.0),
-    compiler,
-    curl,
-    knitr,
-    rmarkdown,
-    htmltools,
-    testthat (>= 3.0.0),
-    rlang,
-    rstudioapi (>= 0.2),
-    xml2 (>= 1.0.0),
-    parallel,
-    memoise,
-    pkgbuild,
-    pkgload,
-    covr,
     box (>= 1.2.0),
     callr,
+    compiler,
+    covr,
+    htmltools,
+    knitr,
+    memoise,
+    parallel,
+    pkgbuild,
+    pkgload,
+    R6,
+    rlang,
+    rmarkdown,
+    rstudioapi (>= 0.2),
+    S7 (>= 0.2.0),
     shiny,
-    shinytest2
-License: MIT + file LICENSE
-VignetteBuilder: knitr
-Roxygen: list(markdown = TRUE)
+    shinytest2,
+    testthat (>= 3.0.0),
+    xml2 (>= 1.0.0)
+VignetteBuilder: 
+    knitr
+Config/roxygen2/version: 8.1.1
 Config/testthat/edition: 3
 Config/testthat/parallel: TRUE
-Config/roxygen2/version: 8.1.1
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)

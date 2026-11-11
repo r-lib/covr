@@ -38,8 +38,13 @@ drop_rust_dependencies <- function(coverage, roots) {
 # Find the tools needed to measure the coverage of the package's Rust code, and
 # the build options and environment for it. Returns `NULL` if
 # `options(covr.llvm_cov = "")` turns this off, or the tools can't be found,
-# which gives a warning.
-rust_coverage_setup <- function(path, install_path) {
+# which gives a warning. The directory of the build wrapper is removed when
+# the `frame` that calls this exits.
+rust_coverage_setup <- function(
+  path,
+  install_path,
+  frame = parent.frame()
+) {
   if (identical(getOption("covr.llvm_cov"), "")) {
     return(NULL)
   }
@@ -99,6 +104,8 @@ rust_coverage_setup <- function(path, install_path) {
   build_dir <- temp_file("rust_build")
   profiles <- file.path(install_path, "rust_profiles")
   dir.create(build_dir)
+  # Remove it with the caller, even if installing the package fails
+  withr::defer(unlink(build_dir, recursive = TRUE), envir = frame)
   dir.create(profiles)
 
   list(
@@ -296,22 +303,16 @@ system_llvm_tool <- function(name, major) {
 # matches `empty`, which returns no output.
 llvm_tool_run <- function(tool, args, quiet = TRUE, empty = NULL) {
   if (!quiet) {
-    message(wrap_command(paste(
-      c(shQuote(tool), shQuote(args)),
-      collapse = " "
-    )))
+    message(wrap_command(command_line(tool, args)))
   }
-  errors_file <- tempfile()
-  on.exit(unlink(errors_file))
-  output <- suppressWarnings(
-    system2(tool, shQuote(args), stdout = TRUE, stderr = errors_file)
-  )
-  errors <- readLines(errors_file)
+  res <- run_command(tool, args)
+  output <- res$stdout
+  errors <- res$stderr
   if (!quiet && length(errors)) {
     message(paste(errors, collapse = "\n"))
   }
-  status <- attr(output, "status")
-  if (!is.null(status) && status != 0) {
+  status <- res$status
+  if (status != 0L) {
     if (!is.null(empty) && any(grepl(empty, errors, ignore.case = TRUE))) {
       return(character())
     }

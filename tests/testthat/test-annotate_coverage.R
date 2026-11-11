@@ -1,33 +1,3 @@
-annotation_coverage <- function() {
-  src <- c(
-    "f <- function(x) {",
-    "  if (x > 0) {",
-    "    'positive'",
-    "  } else {",
-    "    'other'",
-    "  }",
-    "}",
-    "",
-    "# a comment",
-    "g <- function(x) {",
-    "  a <- 1",
-    "  b <- 2",
-    "  c <- 3",
-    "  d <- 4",
-    "  e <- 5",
-    "  if (x) {",
-    "    'never'",
-    "  }",
-    "  a + b",
-    "}"
-  )
-  code_coverage(paste(src, collapse = "\n"), "f(1); g(FALSE)")
-}
-
-scrub_tempfile <- function(x) {
-  gsub("^\\S*source\\.R[0-9a-f]+", "source.R", x)
-}
-
 test_that("annotate_coverage shows missed lines with context", {
   cov <- annotation_coverage()
   expect_s3_class(annotate_coverage(cov), "covr_annotation")
@@ -113,25 +83,6 @@ test_that("annotate_coverage is unchanged without branch coverage", {
   )
 })
 
-many_chunks_coverage <- function(n = 5) {
-  # Each function has one missed line, separated by covered code so that every
-  # missed line is a chunk of its own with context = 0.
-  src <- unlist(lapply(seq_len(n), function(i) {
-    c(
-      sprintf("f%d <- function(x) {", i),
-      "  if (x) {",
-      "    'never'",
-      "  }",
-      "  1",
-      "}"
-    )
-  }))
-  code_coverage(
-    paste(src, collapse = "\n"),
-    paste(sprintf("f%d(FALSE)", seq_len(n)), collapse = "; ")
-  )
-}
-
 test_that("annotate_coverage stops at max_lines with a summary line", {
   cov <- many_chunks_coverage()
   expect_snapshot(
@@ -179,7 +130,7 @@ test_that("annotate_coverage always shows the first chunk", {
 test_that("annotate_coverage max_lines = Inf and the option disable the cap", {
   cov <- many_chunks_coverage()
   full <- annotate_coverage(cov, context = 0, max_lines = Inf)
-  expect_false(any(grepl("not shown", full)))
+  expect_no_match(full, "not shown")
   expect_equal(annotate_coverage(cov, context = 0), full)
 
   withr::local_options(covr.annotate_max_lines = 1)
@@ -188,4 +139,12 @@ test_that("annotate_coverage max_lines = Inf and the option disable the cap", {
     "^  \\.\\.\\.$|not shown"
   )
   expect_equal(annotate_coverage(cov, context = 0, max_lines = Inf), full)
+})
+
+test_that("annotate_coverage checks max_lines and context", {
+  cov <- annotation_coverage()
+  expect_snapshot(error = TRUE, {
+    annotate_coverage(cov, max_lines = "a")
+    annotate_coverage(cov, context = NA)
+  })
 })

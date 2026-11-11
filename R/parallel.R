@@ -69,19 +69,15 @@ uses_parallel <- function(pkg) {
 }
 
 
-# consider in that order: the environment variable COVR_FIX_PARALLEL_MCEXIT,
-# the option covr.fix_parallel_mcexit, or auto-detection of the usage of
+# consider in that order: the option covr.fix_parallel_mcexit, the environment
+# variable COVR_FIX_PARALLEL_MCEXIT, or auto-detection of the usage of
 # parallel by the package (cf uses_parallel()). Without a package, i.e. for
 # coverage measured in the current session, it is enabled by default.
 should_enable_parallel_mcexit_fix <- function(pkg = NULL) {
-  isTRUE(
-    !is_windows() &&
-      as.logical(Sys.getenv(
-        "COVR_FIX_PARALLEL_MCEXIT",
-        getOption(
-          "covr.fix_parallel_mcexit",
-          is.null(pkg) || uses_parallel(pkg)
-        )
-      ))
-  )
+  !is_windows() &&
+    logical_setting(
+      "covr.fix_parallel_mcexit",
+      "COVR_FIX_PARALLEL_MCEXIT",
+      default = is.null(pkg) || uses_parallel(pkg)
+    )
 }

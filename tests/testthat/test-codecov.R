@@ -1,7 +1,5 @@
-cov <- package_coverage(test_path("TestS4"))
-cov_no_token <- code_coverage("f <- function() 1", "f()")
-
 test_that("it generates a properly formatted json file", {
+  cov <- s4_coverage()
   json <- jsonlite::fromJSON(to_codecov(cov))
 
   expect_match(json$files$name, "R/TestS4.R")
@@ -53,6 +51,7 @@ test_that("it generates a properly formatted json file", {
 })
 
 test_that("it requests an upload and sends the coverage to the location it returns", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
   recorded <- local_codecov_mocks()
   res <- codecov(coverage = cov, token = "codecov_test")
@@ -82,6 +81,7 @@ test_that("it requests an upload and sends the coverage to the location it retur
 })
 
 test_that("it prints the url of the upload unless quiet", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
   local_codecov_mocks()
 
@@ -90,6 +90,7 @@ test_that("it prints the url of the upload unless quiet", {
 })
 
 test_that("it describes a local repository in the request", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
   recorded <- local_codecov_mocks()
   codecov(coverage = cov)
@@ -126,6 +127,7 @@ test_that("it describes a local repository in the request", {
 })
 
 test_that("it sends an explicit branch, commit, pr and flags", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
   recorded <- local_codecov_mocks()
   codecov(
@@ -148,6 +150,7 @@ test_that("it sends an explicit branch, commit, pr and flags", {
 })
 
 test_that("the coverage file is covr's JSON, compressed and encoded", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
   recorded <- local_codecov_mocks()
   codecov(coverage = cov)
@@ -171,7 +174,7 @@ test_that("the coverage file is covr's JSON, compressed and encoded", {
   expect_equal(file$filename, "coverage.json")
   expect_equal(file$format, "base64+compressed")
   expect_equal(file$labels, "")
-  expect_false(grepl("[\r\n]", file$data))
+  expect_no_match(file$data, "[\r\n]")
 
   decoded <- rawToChar(
     memDecompress(jsonlite::base64_dec(file$data), type = "gzip")
@@ -181,6 +184,7 @@ test_that("the coverage file is covr's JSON, compressed and encoded", {
 })
 
 test_that("it sends an empty list of network files outside of a git repository", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
   recorded <- local_codecov_mocks()
   local_mocked_bindings(git_files = function(dir) character())
@@ -196,7 +200,7 @@ test_that("it sends an empty list of network files outside of a git repository",
 test_that("it doesn't send a token if there is none", {
   withr::local_envvar(codecov_ci_vars())
   recorded <- local_codecov_mocks()
-  codecov(coverage = cov_no_token, branch = "master")
+  codecov(coverage = simple_coverage(), branch = "master")
 
   expect_equal(
     codecov_post(recorded)$headers,
@@ -205,6 +209,7 @@ test_that("it doesn't send a token if there is none", {
 })
 
 test_that("the token is looked up from the argument, the environment, then codecov.yml", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
   recorded <- local_codecov_mocks()
 
@@ -236,6 +241,7 @@ test_that("the token is looked up from the argument, the environment, then codec
 })
 
 test_that("base_url is where coverage is uploaded to", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
   recorded <- local_codecov_mocks()
 
@@ -262,6 +268,7 @@ test_that("base_url is where coverage is uploaded to", {
 })
 
 test_that("it works with jenkins", {
+  cov <- s4_coverage()
   withr::local_envvar(c(
     codecov_ci_vars(),
     "JENKINS_URL" = "jenkins.com",
@@ -282,6 +289,7 @@ test_that("it works with jenkins", {
 })
 
 test_that("it works with travis normal builds", {
+  cov <- s4_coverage()
   withr::local_envvar(c(
     codecov_ci_vars(),
     "CI" = "true",
@@ -305,6 +313,7 @@ test_that("it works with travis normal builds", {
 })
 
 test_that("it works with travis pull requests", {
+  cov <- s4_coverage()
   withr::local_envvar(c(
     codecov_ci_vars(),
     "CI" = "true",
@@ -324,6 +333,7 @@ test_that("it works with travis pull requests", {
 })
 
 test_that("it works with circleci", {
+  cov <- s4_coverage()
   withr::local_envvar(c(
     codecov_ci_vars(),
     "CI" = "true",
@@ -350,14 +360,15 @@ test_that("it works with circleci", {
 })
 
 test_that("it works with drone", {
+  cov <- s4_coverage()
   withr::local_envvar(c(
     codecov_ci_vars(),
     "CI" = "true",
     "DRONE" = "true",
-    "DRONE_BRANCH" = "master",
+    "DRONE_COMMIT_BRANCH" = "master",
     "DRONE_BUILD_NUMBER" = "5",
-    "DRONE_BUILD_URL" = "http://test.com/tester/test",
-    "DRONE_COMMIT" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+    "DRONE_BUILD_LINK" = "http://test.com/tester/test",
+    "DRONE_COMMIT_SHA" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
   ))
   recorded <- local_codecov_mocks()
   codecov(coverage = cov)
@@ -370,7 +381,42 @@ test_that("it works with drone", {
   expect_equal(body$commitid, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
 })
 
+test_that("it works with the variables of old versions of drone", {
+  cov <- s4_coverage()
+  withr::local_envvar(c(
+    codecov_ci_vars(),
+    "CI" = "true",
+    "DRONE" = "true",
+    "DRONE_BRANCH" = "old-branch",
+    "DRONE_BUILD_NUMBER" = "5",
+    "DRONE_BUILD_URL" = "http://test.com/tester/old",
+    "DRONE_COMMIT" = "0123456789abcdef0123456789abcdef01234567"
+  ))
+  recorded <- local_codecov_mocks()
+  codecov(coverage = cov)
+
+  body <- codecov_post_body(recorded)
+  expect_equal(body$branch, "old-branch")
+  expect_equal(body$ci_url, "http://test.com/tester/old")
+  expect_equal(body$commitid, "0123456789abcdef0123456789abcdef01234567")
+
+  # The current variables take precedence
+  withr::local_envvar(c(
+    "DRONE_COMMIT_BRANCH" = "new-branch",
+    "DRONE_BUILD_LINK" = "http://test.com/tester/new",
+    "DRONE_COMMIT_SHA" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+  ))
+  recorded <- local_codecov_mocks()
+  codecov(coverage = cov)
+
+  body <- codecov_post_body(recorded)
+  expect_equal(body$branch, "new-branch")
+  expect_equal(body$ci_url, "http://test.com/tester/new")
+  expect_equal(body$commitid, "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
+})
+
 test_that("it works with AppVeyor", {
+  cov <- s4_coverage()
   withr::local_envvar(c(
     codecov_ci_vars(),
     "CI" = "True",
@@ -398,6 +444,7 @@ test_that("it works with AppVeyor", {
 })
 
 test_that("it works with Google Cloud Build", {
+  cov <- s4_coverage()
   withr::local_envvar(c(
     codecov_ci_vars(),
     "GCB_PROJECT_ID" = "project",
@@ -423,6 +470,7 @@ test_that("it works with Google Cloud Build", {
 })
 
 test_that("it works with GitLab", {
+  cov <- s4_coverage()
   withr::local_envvar(c(
     codecov_ci_vars(),
     "CI" = "true",
@@ -451,6 +499,7 @@ test_that("it works with GitLab", {
 })
 
 test_that("it works with the variables of older GitLab versions", {
+  cov <- s4_coverage()
   withr::local_envvar(c(
     codecov_ci_vars(),
     "CI" = "true",
@@ -475,6 +524,7 @@ test_that("it works with the variables of older GitLab versions", {
 })
 
 test_that("it works with GitHub Actions pushes", {
+  cov <- s4_coverage()
   withr::local_envvar(c(
     codecov_ci_vars(),
     "GITHUB_ACTION" = "__run",
@@ -501,6 +551,7 @@ test_that("it works with GitHub Actions pushes", {
 })
 
 test_that("it works with GitHub Enterprise", {
+  cov <- s4_coverage()
   withr::local_envvar(c(
     codecov_ci_vars(),
     "GITHUB_ACTION" = "__run",
@@ -523,39 +574,8 @@ test_that("it works with GitHub Enterprise", {
   )
 })
 
-github_pull_request_env <- function(
-  head_repo = "forkowner/actions",
-  label = '"label": "forkowner:feature", ',
-  frame = parent.frame()
-) {
-  event <- withr::local_tempfile(fileext = ".json", .local_envir = frame)
-  writeLines(
-    paste0(
-      '{"number": 7, "pull_request": {"number": 7, "head": {',
-      '"sha": "c94a8fe5ccb19ba61c4c0873d391e987982fbbd3",',
-      label,
-      '"repo": {"full_name": "',
-      head_repo,
-      '"}}}}'
-    ),
-    event
-  )
-  withr::local_envvar(
-    c(
-      codecov_ci_vars(),
-      "GITHUB_ACTION" = "__run",
-      "GITHUB_REPOSITORY" = "tester/actions",
-      "GITHUB_REF" = "refs/pull/7/merge",
-      "GITHUB_HEAD_REF" = "feature",
-      "GITHUB_RUN_ID" = "42",
-      "GITHUB_SHA" = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3",
-      "GITHUB_EVENT_PATH" = event
-    ),
-    .local_envir = frame
-  )
-}
-
 test_that("pull requests on GitHub Actions use the head commit of the event", {
+  cov <- s4_coverage()
   github_pull_request_env()
   recorded <- local_codecov_mocks()
   codecov(coverage = cov, token = "codecov_test")
@@ -573,19 +593,22 @@ test_that("pull requests on GitHub Actions use the head commit of the event", {
 test_that("tokenless pull requests from forks use an unprotected branch", {
   github_pull_request_env()
   recorded <- local_codecov_mocks()
-  codecov(coverage = cov_no_token)
+  codecov(coverage = simple_coverage())
 
   body <- codecov_post_body(recorded)
   expect_equal(body$branch, "forkowner:feature")
   expect_equal(body$pullid, "7")
   expect_equal(body$commitid, "c94a8fe5ccb19ba61c4c0873d391e987982fbbd3")
-  expect_false("Authorization" %in% names(codecov_post(recorded)$headers))
+  expect_length(
+    intersect(names(codecov_post(recorded)$headers), "Authorization"),
+    0
+  )
 })
 
 test_that("tokenless pull requests from forks without a label use the head repository owner", {
   github_pull_request_env(label = "")
   recorded <- local_codecov_mocks()
-  codecov(coverage = cov_no_token)
+  codecov(coverage = simple_coverage())
 
   expect_equal(codecov_post_body(recorded)$branch, "forkowner:feature")
 })
@@ -596,7 +619,7 @@ test_that("tokenless pull requests from the same repository use the branch", {
     label = '"label": "tester:feature", '
   )
   recorded <- local_codecov_mocks()
-  codecov(coverage = cov_no_token)
+  codecov(coverage = simple_coverage())
 
   body <- codecov_post_body(recorded)
   expect_equal(body$branch, "feature")
@@ -607,7 +630,7 @@ test_that("tokenless pull requests without an event use the branch", {
   github_pull_request_env()
   withr::local_envvar(GITHUB_EVENT_PATH = NA)
   recorded <- local_codecov_mocks()
-  codecov(coverage = cov_no_token)
+  codecov(coverage = simple_coverage())
 
   body <- codecov_post_body(recorded)
   expect_equal(body$branch, "feature")
@@ -618,7 +641,7 @@ test_that("tokenless pull requests without an event use the branch", {
 test_that("an explicit branch is not changed for tokenless pull requests", {
   github_pull_request_env()
   recorded <- local_codecov_mocks()
-  codecov(coverage = cov_no_token, branch = "explicit")
+  codecov(coverage = simple_coverage(), branch = "explicit")
 
   expect_equal(codecov_post_body(recorded)$branch, "explicit")
 })
@@ -633,7 +656,7 @@ test_that("tokenless pull requests of other services use the branch", {
     "TRAVIS_BRANCH" = "feature"
   ))
   recorded <- local_codecov_mocks()
-  codecov(coverage = cov_no_token)
+  codecov(coverage = simple_coverage())
 
   expect_equal(codecov_post_body(recorded)$branch, "feature")
 })
@@ -646,12 +669,13 @@ test_that("tokenless uploads that aren't for pull requests use the branch", {
     GITHUB_EVENT_PATH = NA
   ))
   recorded <- local_codecov_mocks()
-  codecov(coverage = cov_no_token)
+  codecov(coverage = simple_coverage())
 
   expect_equal(codecov_post_body(recorded)$branch, "main")
 })
 
 test_that("it errors if the repository can't be determined", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
   recorded <- local_codecov_mocks()
   local_mocked_bindings(git_remote_url = function(dir) NULL)
@@ -661,6 +685,7 @@ test_that("it errors if the repository can't be determined", {
 })
 
 test_that("it errors if the upload can't be requested, but only warns on 429 and 5xx", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
 
   local_codecov_mocks(
@@ -671,7 +696,10 @@ test_that("it errors if the upload can't be requested, but only warns on 429 and
 
   local_codecov_mocks(post = fake_response(429L, "Rate limit reached"))
   expect_snapshot(res <- codecov(coverage = cov))
-  expect_warning(codecov(coverage = cov), class = "covr_codecov_warning")
+  expect_warning(
+    codecov(coverage = cov),
+    class = "covr_codecov_warning"
+  )
   expect_null(res)
 
   local_codecov_mocks(post = fake_response(503L, "Service unavailable"))
@@ -680,6 +708,7 @@ test_that("it errors if the upload can't be requested, but only warns on 429 and
 })
 
 test_that("it only sends coverage if an upload was requested", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
 
   recorded <- local_codecov_mocks(post = fake_response(500L, "Oops"))
@@ -694,6 +723,7 @@ test_that("it only sends coverage if an upload was requested", {
 })
 
 test_that("it errors if the coverage can't be sent, but only warns on 429 and 5xx", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
 
   local_codecov_mocks(
@@ -751,8 +781,11 @@ test_that("slugs are encoded for the upload url", {
   expect_equal(encode_slug("a/b/c/d"), "a:::b:::c::::d")
 })
 
-test_that("httr is not a load time dependency of covr (#623)", {
-  expect_false("httr" %in% names(getNamespaceImports("covr")))
+test_that("httr2 and curl are not load time dependencies of covr (#623)", {
+  expect_length(
+    intersect(c("httr2", "curl"), names(getNamespaceImports("covr"))),
+    0
+  )
 })
 
 test_that("a line is only covered if all its expressions ran (#620)", {
@@ -804,6 +837,7 @@ test_that("git_service_from_host recognises hosted and enterprise services", {
 })
 
 test_that("it works with AppVeyor on GitHub and GitLab", {
+  cov <- s4_coverage()
   appveyor_env <- function(provider) {
     c(
       codecov_ci_vars(),
@@ -830,6 +864,7 @@ test_that("it works with AppVeyor on GitHub and GitLab", {
 })
 
 test_that("it calls package_coverage() if there is no coverage", {
+  cov <- s4_coverage()
   withr::local_envvar(codecov_ci_vars())
   local_codecov_mocks()
   args <- NULL

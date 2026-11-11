@@ -101,3 +101,47 @@ local_deprecation_warnings <- function(env = parent.frame()) {
     envir = env
   )
 }
+
+# A source file defining `add()` and `subtract()`, and two test scripts: one
+# calling only `add()`, one calling both. The files are removed when the
+# caller's frame exits.
+local_add_subtract_files <- function(frame = parent.frame()) {
+  list(
+    src = withr::local_tempfile(
+      lines = c(
+        "add <- function(x, y) {",
+        "  x + y",
+        "}",
+        "subtract <- function(x, y) {",
+        "  x - y",
+        "}"
+      ),
+      fileext = ".R",
+      .local_envir = frame
+    ),
+    test_add = withr::local_tempfile(
+      lines = "add(1, 2)",
+      fileext = ".R",
+      .local_envir = frame
+    ),
+    test_both = withr::local_tempfile(
+      lines = c("add(1, 2)", "subtract(2, 1)"),
+      fileext = ".R",
+      .local_envir = frame
+    )
+  )
+}
+
+# Coverage of the TestFunctional package with the recording of tests on or off.
+functional_coverage <- function(record_tests = TRUE, ...) {
+  withr::with_options(
+    list(covr.record_tests = if (record_tests) TRUE),
+    package_coverage(test_path("TestFunctional"), ...)
+  )
+}
+
+# The trace of `cov` whose source is exactly `text`
+trace_with_source <- function(cov, text) {
+  srcs <- vcapply(cov, function(x) paste(as.character(x$srcref), collapse = ""))
+  cov[[which(srcs == text)]]
+}

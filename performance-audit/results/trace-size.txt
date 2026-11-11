@@ -1,6 +1,0 @@
-d277880: covr 3.6.5.9002, forcats: 1 trace files, 0.05 MB total, largest 0.05 MB
-d277880: covr 3.6.5.9002, checkmate: 1 trace files, 0.12 MB total, largest 0.12 MB
-d277880: covr 3.6.5.9002, Luminescence: 4 trace files, 6.33 MB total, largest 1.66 MB
-9328a71: covr 3.6.5.9002, forcats: 1 trace files, 0.05 MB total, largest 0.05 MB
-9328a71: covr 3.6.5.9002, checkmate: 1 trace files, 0.07 MB total, largest 0.07 MB
-9328a71: covr 3.6.5.9002, Luminescence: 4 trace files, 5.35 MB total, largest 1.36 MB

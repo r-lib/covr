@@ -23,3 +23,11 @@
       Can't instrument the files of the Shiny app.
       i This version of shiny is not supported by covr.
 
+# shiny_app_coverage() restores a sourceUTF8() traced before, also on error
+
+    Code
+      shiny_app_coverage(test_path("TestShinyApp"), stop("boom", call. = FALSE))
+    Condition
+      Error:
+      ! boom
+

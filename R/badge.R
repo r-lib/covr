@@ -18,10 +18,11 @@
 #' `system.file("workflows", "test-coverage-badge.yaml", package = "covr")` is
 #' a GitHub Actions workflow that does this.
 #'
-#' @param cov the coverage object returned from [package_coverage()]
-#' @param filename the name of the SVG file
+#' @param x the coverage object returned from [package_coverage()]
+#' @param file the name of the SVG file
 #' @param label the text on the left side of the badge
-#' @return The lines of the SVG file, invisibly.
+#' @returns The lines of the SVG file, invisibly, after writing them to
+#'   `file`.
 #' @examples
 #' cov <- code_coverage(
 #'   "f <- function(x) {\n  y <- x + 1\n  if (y > 0) {\n    'yes'\n  } else {\n    'no'\n  }\n}",
@@ -31,13 +32,13 @@
 #' badge(cov, tmp)
 #' cat(readLines(tmp), sep = "\n")
 #' @export
-badge <- function(cov, filename = "coverage.svg", label = "coverage") {
+badge <- function(x, file = "coverage.svg", label = "coverage") {
   if (!is.character(label) || length(label) != 1 || is.na(label)) {
     covr_abort("{.arg label} must be a single string.")
   }
   label <- enc2utf8(label)
 
-  percent <- percent_coverage(cov)
+  percent <- percent_coverage(x)
   if (is.nan(percent)) {
     value <- "unknown"
   } else {
@@ -46,7 +47,7 @@ badge <- function(cov, filename = "coverage.svg", label = "coverage") {
 
   out <- badge_svg(label, value, badge_color(percent))
 
-  writeLines(out, filename, useBytes = TRUE)
+  writeLines(out, file, useBytes = TRUE)
 
   invisible(out)
 }

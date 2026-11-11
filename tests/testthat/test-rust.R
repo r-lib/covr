@@ -62,6 +62,30 @@ test_that("Missing parts of the Rust toolchain are reported (#728)", {
   expect_null(rust)
 })
 
+test_that("The build directory is removed when the caller exits", {
+  skip_on_os("windows")
+  local_mocked_bindings(
+    rust_toolchain = function(dir) {
+      list(
+        rustc = "rustc",
+        sysroot = "sysroot",
+        profiler_runtime = "libprofiler_builtins.rlib",
+        llvm_cov = "llvm-cov",
+        llvm_profdata = "llvm-profdata"
+      )
+    }
+  )
+  rust <- NULL
+  caller <- function() {
+    rust <<- rust_coverage_setup(test_path("TestRust"), withr::local_tempdir())
+    expect_true(dir.exists(rust$build_dir))
+    stop("the installation fails")
+  }
+
+  expect_snapshot(caller(), error = TRUE)
+  expect_false(dir.exists(rust$build_dir))
+})
+
 test_that("Only code compiled by the checked toolchain is instrumented (#728)", {
   skip_on_os("windows")
   dir <- withr::local_tempdir()

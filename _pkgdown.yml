@@ -1,5 +1,8 @@
 url: https://covr.r-lib.org
 
+template:
+  bootstrap: 5
+
 authors:
   "Jim Hester":
     href: https://www.jimhester.com/
@@ -9,7 +12,61 @@ destination: docs
 development:
   mode: auto
 
-template:
-  bootstrap: 5
-  params:
-    ganalytics: UA-115082821-1
+reference:
+  - title: Measure coverage
+    desc: Run code or tests and record which expressions were evaluated.
+    contents:
+      - package_coverage
+      - file_coverage
+      - function_coverage
+      - code_coverage
+      - environment_coverage
+      - with_coverage
+      - shiny_app_coverage
+      - covr-package
+      - in_covr
+
+  - title: Inspect and combine results
+    contents:
+      - coverage
+      - print.coverage
+      - c.coverage
+      - as.data.frame.coverage
+      - percent_coverage
+      - tally_coverage
+      - tally_tests
+      - zero_coverage
+      - value
+      - annotate_coverage
+
+  - title: Reports
+    contents:
+      - report
+      - report_html
+      - file_report
+      - coverage_to_markdown
+      - coverage_to_list
+      - colorblind_palette
+
+  - title: Export formats
+    contents:
+      - cobertura
+      - lcov
+      - sonarqube
+      - badge
+
+  - title: CI services
+    contents:
+      - codecov
+      - coveralls
+      - gitlab
+
+  - title: Options and exclusions
+    contents:
+      - exclusions
+      - covr.branch_coverage
+      - covr.record_tests
+
+  - title: Deprecated
+    contents:
+      - covr-deprecated

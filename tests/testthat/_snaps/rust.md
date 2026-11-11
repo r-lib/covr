@@ -29,6 +29,14 @@
       i Install the llvm tools with `rustup component add llvm-tools --toolchain 1.88.0-x86_64-unknown-linux-gnu`.
       i Use `options(covr.llvm_cov = "")` to turn this off.
 
+# The build directory is removed when the caller exits
+
+    Code
+      caller()
+    Condition
+      Error in `caller()`:
+      ! the installation fails
+
 # Only code compiled by the checked toolchain is instrumented (#728)
 
     Code

@@ -2,16 +2,14 @@
 % Please edit documentation in R/sonarqube.R
 \name{sonarqube}
 \alias{sonarqube}
-\title{Create a SonarQube Generic XML file for test coverage according to
-\url{https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/test-coverage/generic-test-data}
-Based on cobertura.R}
+\title{Create a SonarQube Generic XML file}
 \usage{
-sonarqube(cov, filename = "sonarqube.xml", path_prefix = NULL)
+sonarqube(x, file = "sonarqube.xml", path_prefix = NULL)
 }
 \arguments{
-\item{cov}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
+\item{x}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
 
-\item{filename}{the name of the SonarQube Generic XML file}
+\item{file}{the name of the SonarQube Generic XML file}
 
 \item{path_prefix}{SonarQube expects file paths relative to the project's
 base directory. By default the paths are relative to the package root
@@ -19,7 +17,27 @@ base directory. By default the paths are relative to the package root
 SonarQube project. If the package is in a subdirectory of the project,
 set \code{path_prefix} to that subdirectory (e.g. \code{"pkg"} gives \code{pkg/R/foo.R}).}
 }
+\value{
+The XML document (an \code{xml2} document), invisibly, after writing it
+to \code{file}.
+}
 \description{
+Write coverage in the
+\href{https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/test-coverage/generic-test-data}{generic test data}
+XML format read by SonarQube.
+}
+\details{
+Every line with coverage is reported as a \code{lineToCover} with its \code{lineNumber}
+and whether it is \code{covered}, including the lines of compiled code. Each line
+is reported once: when several functions share a line, it is only covered if
+all its code was run, as in \code{\link[=report]{report()}} and \code{\link[=percent_coverage]{percent_coverage()}}.
+
+Branches are only reported if they were measured with
+\code{options(covr.branch_coverage = TRUE)} (see \link{covr.branch_coverage}). A line
+where an \code{if} or \code{switch()} starts then also has \code{branchesToCover}, the
+number of branches of the \code{if} and \code{switch()} calls on the line, and
+\code{coveredBranches}, how many of them were taken.
+
 This functionality requires the xml2 package be installed.
 }
 \author{

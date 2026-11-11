@@ -195,11 +195,12 @@ cnd_message <- function(format, message, output, .envir) {
 }
 
 as_package <- function(path) {
+  input <- path
   path <- normalize_path(path)
   if (!file.exists(path)) {
     covr_abort(c(
       "{.arg path} must be an existing directory.",
-      x = "{.path {path}} doesn't exist."
+      x = "{.path {input}} doesn't exist."
     ))
   }
   root <- package_root(path)
@@ -307,8 +308,76 @@ env_path <- function(...) {
 
 normalize_path <- function(x) {
   path <- normalizePath(x, winslash = "/", mustWork = FALSE)
-  # Strip any trailing slashes as they are invalid on windows
-  sub("/*$", "", path)
+  # Strip trailing slashes as they are invalid on windows, but keep those of
+  # roots: "/" and "C:/" (which, unlike "C:", is not relative to a directory).
+  root <- grepl("^([A-Za-z]:)?/+$", path)
+  path[!root] <- sub("/+$", "", path[!root])
+  path[root] <- sub("/+$", "/", path[root])
+  path
+}
+
+# Settings that are given as an option or as an environment variable are read
+# in this order: the option, then the environment variable (if it is not
+# empty), then the default.
+string_setting <- function(option, envvar, default) {
+  getOption(option) %||% non_empty(Sys.getenv(envvar, "")) %||% default
+}
+
+# Like `string_setting()` for a logical setting, which can be given as `TRUE`
+# or `FALSE`, or as a string: "true", "t", "yes" or "1", and "false", "f", "no"
+# or "0", in any case. An invalid value is ignored with a warning, as if it
+# was not set.
+logical_setting <- function(option, envvar, default) {
+  value <- getOption(option)
+  if (!is.null(value)) {
+    parsed <- parse_logical(value)
+    if (!is.na(parsed)) {
+      return(parsed)
+    }
+    covr_warn(c(
+      "Ignoring invalid value {.val {value}} of option {.code {option}}.",
+      i = logical_hint
+    ))
+  }
+  value <- non_empty(Sys.getenv(envvar, ""))
+  if (!is.null(value)) {
+    parsed <- parse_logical(value)
+    if (!is.na(parsed)) {
+      return(parsed)
+    }
+    covr_warn(c(
+      "Ignoring invalid value {.val {value}} of environment variable {.envvar {envvar}}.",
+      i = logical_hint
+    ))
+  }
+  default
+}
+
+logical_hint <- paste0(
+  "Use {.code TRUE}, {.code FALSE}, or a string that is one of ",
+  "{.val true}, {.val t}, {.val yes}, {.val 1}, {.val false}, {.val f}, ",
+  "{.val no} or {.val 0}, in any case."
+)
+
+# `TRUE` or `FALSE`, or `NA` if `x` isn't one of the accepted spellings
+parse_logical <- function(x) {
+  if (is.logical(x) && length(x) == 1L) {
+    return(x)
+  }
+  x <- tolower(trimws(as.character(x)))
+  if (length(x) != 1L) {
+    NA
+  } else if (x %in% c("true", "t", "yes", "1")) {
+    TRUE
+  } else if (x %in% c("false", "f", "no", "0")) {
+    FALSE
+  } else {
+    NA
+  }
+}
+
+non_empty <- function(x) {
+  if (nzchar(x)) x
 }
 
 is_absolute_path <- function(x) {

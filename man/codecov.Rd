@@ -54,7 +54,9 @@ this is looked up from the service if it is \code{NULL}.}
 \item{flags}{A flag to use for this coverage upload see
 \url{https://docs.codecov.com/docs/flags} for details.}
 
-\item{quiet}{if \code{FALSE}, print the coverage before submission.}
+\item{quiet}{if \code{FALSE}, print the output of running the tests (see
+\code{\link[=package_coverage]{package_coverage()}}, which is called when \code{coverage} is \code{NULL}) and the
+coverage before submission.}
 }
 \value{
 The response of Codecov to the request for an upload, invisibly: a

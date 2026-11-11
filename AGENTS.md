@@ -5,7 +5,7 @@ covr measures test coverage of R packages. `package_coverage()` installs an inst
 ### Compatibility
 
 - covr depends on `R (>= 4.0.0)`, so do not use the base pipe (`|>`), `\(x)` lambdas, or other syntax and functions newer than that.
-- Functions from optional dependencies such as httr must be called with `pkg::fun()` (or a small wrapper in covr, which also makes them mockable), not imported with `@importFrom`. Importing them makes them load time dependencies, which causes cyclic namespace errors when computing coverage of those packages (#623).
+- Functions from optional dependencies such as httr2 and curl (used for uploads, in `R/http.R`) must be called with `pkg::fun()` (or a small wrapper in covr, which also makes them mockable), not imported with `@importFrom`. Importing them makes them load time dependencies, which causes cyclic namespace errors when computing coverage of those packages (#623).
 
 ### Tests
 
@@ -29,7 +29,7 @@ R_LIBS="$lib" Rscript -e 'covr::report(covr::package_coverage())'
 
 If you do shim your working tree, run `sh unshim_package.sh` before committing. `git archive HEAD` only includes committed changes, so commit (or copy the files) first if you want to measure uncommitted work.
 
-When covr measures itself you will see `Can't find coverage from 1 R process that loaded covrShim`. This is expected: the SIGKILL test in `test-covr.R` ("package_coverage warns about processes that did not save a trace") starts a child R that loads the inner `TestSummary` hooks, which load the outer, instrumented `covrShim` (writing a `covr_pending_<pid>_*` marker to the outer install dir) before the child kills itself, so that child's `covrShim` coverage is lost by design.
+When covr measures itself you will see `Can't find coverage from 1 R process that loaded covrShim`. This is expected: the SIGKILL test in `test-package_coverage.R` ("package_coverage warns about processes that did not save a trace") starts a child R that loads the inner `TestSummary` hooks, which load the outer, instrumented `covrShim` (writing a `covr_pending_<pid>_*` marker to the outer install dir) before the child kills itself, so that child's `covrShim` coverage is lost by design.
 
 ### Running on Windows
 

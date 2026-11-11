@@ -7,6 +7,8 @@
 #' @param x a coverage dataset, defaults to running `package_coverage()`.
 #' @param file The report filename.
 #' @param browse whether to open a browser to view the report.
+#' @returns `report()` returns the absolute path of the report file,
+#'   invisibly.
 #' @section Branches:
 #' If branch coverage was measured with `options(covr.branch_coverage = TRUE)`
 #' (see [covr.branch_coverage]), the report also shows the branches of each
@@ -60,23 +62,7 @@ report <- function(
   # and dependencies are checked first
   html <- report_html(x)
 
-  # Create any directories as needed
-  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
-
-  # Paths need to be absolute for save_html to work properly
-  file <- file.path(
-    normalizePath(dirname(file), mustWork = TRUE),
-    basename(file)
-  )
-
-  ui <- report_page(html)
-
-  htmltools::save_html(ui, file)
-  viewer <- getOption("viewer", utils::browseURL)
-  if (browse) {
-    viewer(file)
-  }
-  invisible(file)
+  save_report(html, file, browse)
 }
 
 #' A coverage report to include in other documents
@@ -94,7 +80,7 @@ report <- function(
 #' The colors and the dark theme can be changed as described in [report()].
 #'
 #' @inheritParams report
-#' @return An [htmltools::tagList()], with the dependencies of the report
+#' @returns An [htmltools::tagList()], with the dependencies of the report
 #'   attached.
 #' @examples
 #' \dontrun{
@@ -156,6 +142,8 @@ report_html <- function(x = package_coverage()) {
 #' @param file The file to report on, if `NULL`, use the first file in the
 #'   coverage output.
 #' @param out_file The output file
+#' @returns `file_report()` returns the absolute path of the report file,
+#'   invisibly.
 #' @export
 file_report <- function(
   x = package_coverage(),
@@ -168,17 +156,31 @@ file_report <- function(
 ) {
   html <- file_report_html(x, file)
 
-  htmltools::save_html(report_page(html), out_file)
-  viewer <- getOption("viewer", utils::browseURL)
-  if (browse) {
-    viewer(out_file)
-  }
+  save_report(html, out_file, browse)
+}
 
-  invisible(out_file)
+# Saves `html`, from `report_html()` or `file_report_html()`, as the standalone
+# page `file`, creating its directory, and opens it if `browse`. Returns the
+# absolute path invisibly.
+save_report <- function(html, file, browse) {
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+
+  # Paths need to be absolute for save_html to work properly
+  file <- file.path(
+    normalizePath(dirname(file), mustWork = TRUE),
+    basename(file)
+  )
+
+  htmltools::save_html(report_page(html), file)
+  if (browse) {
+    viewer <- getOption("viewer", utils::browseURL)
+    viewer(file)
+  }
+  invisible(file)
 }
 
 #' @rdname file_report
-#' @return `file_report_html()` returns an [htmltools::tagList()], with the
+#' @returns `file_report_html()` returns an [htmltools::tagList()], with the
 #'   dependencies of the report attached.
 #' @export
 file_report_html <- function(x = package_coverage(), file = NULL) {
@@ -190,7 +192,9 @@ file_report_html <- function(x = package_coverage(), file = NULL) {
   if (is.null(file)) {
     file <- files[[1]]
   }
-  stopifnot(length(file) == 1)
+  if (length(file) != 1) {
+    covr_abort("{.arg file} must be a single file name.")
+  }
 
   x <- x[files %in% file]
 
@@ -323,7 +327,13 @@ report_color_names <- c("covered", "missed", "partial")
 # red, green and blue values (0-255), with columns `covered` and `missed`, and
 # `partial` if it is set. `partial` has no default; without it, the colors of
 # files with partial coverage follow the defaults or `covered`.
-report_colors <- function(colors = getOption("covr.report_colors")) {
+#
+# `invalid` is called with the cli message and its environment if the colors
+# are invalid, and its result is returned, so the default stops with an error.
+report_colors <- function(
+  colors = getOption("covr.report_colors"),
+  invalid = covr_abort
+) {
   if (is.null(colors)) {
     colors <- default_report_colors
   }
@@ -337,9 +347,12 @@ report_colors <- function(colors = getOption("covr.report_colors")) {
       anyDuplicated(nms) > 0 ||
       anyNA(colors)
   ) {
-    covr_abort(c(
-      "{.code covr.report_colors} must be a named character vector.",
-      i = "Use the names {.val covered}, {.val missed} and/or {.val partial}, e.g. {.code c(covered = \"#0072B2\", missed = \"#E69F00\")}."
+    return(invalid(
+      c(
+        "{.code covr.report_colors} must be a named character vector.",
+        i = "Use the names {.val covered}, {.val missed} and/or {.val partial}, e.g. {.code c(covered = \"#0072B2\", missed = \"#E69F00\")}."
+      ),
+      .envir = environment()
     ))
   }
 
@@ -351,10 +364,13 @@ report_colors <- function(colors = getOption("covr.report_colors")) {
     tryCatch(is.matrix(grDevices::col2rgb(color)), error = function(e) FALSE)
   })
   if (!all(valid)) {
-    invalid <- unname(res[!valid])
-    covr_abort(c(
-      "{.code covr.report_colors} must contain valid R colors.",
-      x = "Can't find color{?s} {.val {invalid}}."
+    invalid_colors <- unname(res[!valid])
+    return(invalid(
+      c(
+        "{.code covr.report_colors} must contain valid R colors.",
+        x = "Can't find color{?s} {.val {invalid_colors}}."
+      ),
+      .envir = environment()
     ))
   }
   rgb <- grDevices::col2rgb(res)
@@ -789,7 +805,7 @@ renderSourceTable <- function(data, class = "covr-hidden") {
     "(function(script) {
   var files = script ? script.parentNode : document;
   files.querySelectorAll('div.covr-files pre').forEach(function(block) {
-    covrHljs.highlightBlock(block);
+    covrHljs.highlightElement(block);
   });
 })(document.currentScript);",
     "</script></div>"
@@ -813,15 +829,15 @@ branch_line_type <- function(type, taken, total) {
   type
 }
 
-# covr's copy of highlight.js sets `covrHljs` rather than `hljs`, so it doesn't
-# replace the version used by a document that includes a report. Its colors
-# are in `report.css`.
+# covr's copy of highlight.js (see `inst/www/shared/highlight.js/README.md`)
+# sets `covrHljs` rather than `hljs`, so it doesn't replace the version used by
+# a document that includes a report. Its colors are in `report.css`.
 addHighlight <- function(x = list()) {
   highlight <- htmltools::htmlDependency(
     "covr-highlight.js",
-    "6.2",
+    "11.11.1",
     system.file(package = "covr", "www/shared/highlight.js"),
-    script = "highlight.pack.js"
+    script = "highlight.min.js"
   )
 
   htmltools::attachDependencies(
