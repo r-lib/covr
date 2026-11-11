@@ -148,19 +148,19 @@ branch is already unprotected.
 
 Instead of uploading from R, write the coverage to a file and upload it
 with the `codecov/codecov-action` GitHub Action, or any other Codecov
-uploader. [`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md)
-has no dependencies and writes `lcov.info`, which the action uploads
-without further configuration:
+uploader. [`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md) has
+no dependencies and writes `lcov.info`, which the action uploads without
+further configuration:
 
     - name: Test coverage
-      run: covr::to_lcov(covr::package_coverage())
+      run: covr::lcov(covr::package_coverage())
       shell: Rscript {0}
 
     - uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
 
-[`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
+[`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md)
 writes the Cobertura XML format, for which the xml2 package is needed.
 
 ## Examples

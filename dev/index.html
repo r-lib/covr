@@ -193,7 +193,7 @@
 <div class="section level2">
 <h2 id="can-i-get-a-coverage-badge-without-a-coverage-service">Can I get a coverage badge without a coverage service?<a class="anchor" aria-label="anchor" href="#can-i-get-a-coverage-badge-without-a-coverage-service"></a>
 </h2>
-<p>Yes, <code><a href="reference/to_badge.html">to_badge()</a></code> writes a coverage badge as an SVG file. The GitHub Actions workflow in <a href="https://github.com/r-lib/covr/blob/main/inst/workflows/test-coverage-badge.yaml" class="external-link"><code>inst/workflows/test-coverage-badge.yaml</code></a> (also <code>system.file("workflows", "test-coverage-badge.yaml", package = "covr")</code>) publishes it to a <code>badges</code> branch on every push; copy it to <code>.github/workflows/</code> and link to the badge from your README.</p>
+<p>Yes, <code><a href="reference/badge.html">badge()</a></code> writes a coverage badge as an SVG file. The GitHub Actions workflow in <a href="https://github.com/r-lib/covr/blob/main/inst/workflows/test-coverage-badge.yaml" class="external-link"><code>inst/workflows/test-coverage-badge.yaml</code></a> (also <code>system.file("workflows", "test-coverage-badge.yaml", package = "covr")</code>) publishes it to a <code>badges</code> branch on every push; copy it to <code>.github/workflows/</code> and link to the badge from your README.</p>
 </div>
 <div class="section level2">
 <h2 id="will-covr-work-with-testthat-runit-etc">Will covr work with testthat, RUnit, etc…<a class="anchor" aria-label="anchor" href="#will-covr-work-with-testthat-runit-etc"></a>

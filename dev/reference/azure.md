@@ -1,7 +1,7 @@
 # Run covr on a package and output the result so it is available on Azure Pipelines
 
 Deprecated. Use
-[`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md),
+[`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md),
 which this function calls, instead.
 
 ## Usage

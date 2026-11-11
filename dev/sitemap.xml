@@ -16,8 +16,10 @@
 <url><loc>https://covr.r-lib.org/dev/reference/as_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/as_coverage_with_tests.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/azure.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/badge.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/c.coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/clear_counters.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/cobertura.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/code_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/codecov.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/count.html</loc></url>
@@ -27,6 +29,7 @@
 <url><loc>https://covr.r-lib.org/dev/reference/coverage_to_list.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/coverage_to_markdown.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/coveralls.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/covr-deprecated.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/covr-package.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/covr.branch_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/covr.record_tests.html</loc></url>
@@ -46,6 +49,7 @@
 <url><loc>https://covr.r-lib.org/dev/reference/is_covr_count_call.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/is_current_test_finished.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/key.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/lcov.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/new_counter.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/new_test_counter.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/package_coverage.html</loc></url>
@@ -54,13 +58,10 @@
 <url><loc>https://covr.r-lib.org/dev/reference/report.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/report_html.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/shiny_app_coverage.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/sonarqube.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/system_output.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/tally_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/tally_tests.html</loc></url>
-<url><loc>https://covr.r-lib.org/dev/reference/to_badge.html</loc></url>
-<url><loc>https://covr.r-lib.org/dev/reference/to_cobertura.html</loc></url>
-<url><loc>https://covr.r-lib.org/dev/reference/to_lcov.html</loc></url>
-<url><loc>https://covr.r-lib.org/dev/reference/to_sonarqube.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/trace_calls.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/truncate_call.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/update_current_test.html</loc></url>

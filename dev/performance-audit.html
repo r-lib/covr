@@ -97,7 +97,7 @@
 <td>With 4 shards Luminescence takes ≈64 s per job instead of 175 s (estimate)</td>
 <td>Docs only / none</td>
 </tr><tr><td>7</td>
-<td>Build <code><a href="reference/to_cobertura.html">to_cobertura()</a></code>’s XML as strings</td>
+<td>Build <code><a href="reference/covr-deprecated.html">to_cobertura()</a></code>’s XML as strings</td>
 <td>Part of its 9.3 s on Luminescence (53% is in <code>xml_add_child()</code>)</td>
 <td>Small / low</td>
 </tr></tbody></table><p>Measured and not worth changing: trace file serialization (0.5 s to save, 0.1 s to merge), the installation (no slower than a normal install), and turning off the byte-code JIT (3% faster, within noise).</p>
@@ -241,7 +241,7 @@
 <td>0.04</td>
 <td>0.2</td>
 <td>2.4</td>
-</tr><tr><td><code><a href="reference/to_cobertura.html">to_cobertura()</a></code></td>
+</tr><tr><td><code><a href="reference/covr-deprecated.html">to_cobertura()</a></code></td>
 <td>0.2</td>
 <td>0.6</td>
 <td>9.3</td>
@@ -609,7 +609,7 @@
 </div>
 <div class="section level3">
 <h3 id="id_2-traced_files-split-the-package-source-once">2. <code>traced_files()</code>: split the package source once<a class="anchor" aria-label="anchor" href="#id_2-traced_files-split-the-package-source-once"></a></h3>
-<p>Each traced file of an installed package has a <code>srcfilealias</code> whose lines are the whole concatenated package source, with <code>#line</code> directives. <code>traced_files()</code> calls <code><a href="https://rdrr.io/r/base/srcfile.html" class="external-link">getSrcLines()</a></code> and a <code>rex</code> regex with two captures on all of those lines <strong>for each file</strong>. That is O(files × package lines): 144 traced files × 67,555 lines for Luminescence. <code>traced_files()</code> is called by <code>exclude()</code> (inside <code><a href="reference/package_coverage.html">package_coverage()</a></code>), <code><a href="reference/tally_coverage.html">tally_coverage()</a></code> (through <code>non_code_lines()</code>), <code>per_line()</code>, <code><a href="reference/percent_coverage.html">percent_coverage()</a></code>, <code><a href="reference/zero_coverage.html">zero_coverage()</a></code>, <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>, <code><a href="reference/to_cobertura.html">to_cobertura()</a></code>, <code><a href="reference/coverage_to_list.html">coverage_to_list()</a></code> and <code><a href="reference/report.html">report()</a></code>. In the profiles of <code><a href="reference/percent_coverage.html">percent_coverage()</a></code> and <code><a href="reference/tally_coverage.html">tally_coverage()</a></code>, it accounts for 72–74% of their time.</p>
+<p>Each traced file of an installed package has a <code>srcfilealias</code> whose lines are the whole concatenated package source, with <code>#line</code> directives. <code>traced_files()</code> calls <code><a href="https://rdrr.io/r/base/srcfile.html" class="external-link">getSrcLines()</a></code> and a <code>rex</code> regex with two captures on all of those lines <strong>for each file</strong>. That is O(files × package lines): 144 traced files × 67,555 lines for Luminescence. <code>traced_files()</code> is called by <code>exclude()</code> (inside <code><a href="reference/package_coverage.html">package_coverage()</a></code>), <code><a href="reference/tally_coverage.html">tally_coverage()</a></code> (through <code>non_code_lines()</code>), <code>per_line()</code>, <code><a href="reference/percent_coverage.html">percent_coverage()</a></code>, <code><a href="reference/zero_coverage.html">zero_coverage()</a></code>, <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>, <code><a href="reference/covr-deprecated.html">to_cobertura()</a></code>, <code><a href="reference/coverage_to_list.html">coverage_to_list()</a></code> and <code><a href="reference/report.html">report()</a></code>. In the profiles of <code><a href="reference/percent_coverage.html">percent_coverage()</a></code> and <code><a href="reference/tally_coverage.html">tally_coverage()</a></code>, it accounts for 72–74% of their time.</p>
 <p>The <code>split_once()</code> prototype in <code>microbench-post.R</code> splits the source with the existing <code>split_on_line_directives()</code> once per original srcfile, keyed by its address, and <code><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot()</a></code> checks that the result is identical:</p>
 <table class="table"><thead><tr><th>Luminescence</th>
 <th>Time</th>

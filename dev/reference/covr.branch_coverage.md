@@ -54,8 +54,8 @@ was taken. Use `tally_coverage(by = "branch")` for a data frame with one
 row for each branch, and `percent_coverage(by = "branch")` for the
 percentage of branches taken.
 
-[`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md),
-[`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md),
+[`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md),
+[`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md),
 [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) and
 [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md)
 include the branches. Codecov shows a line with branches that weren't
@@ -63,8 +63,7 @@ all taken as partly covered, and counts it as not covered in the
 coverage percentage, so the percentage on Codecov is lower with branch
 coverage. [`report()`](https://covr.r-lib.org/dev/reference/report.md),
 [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
-and
-[`to_sonarqube()`](https://covr.r-lib.org/dev/reference/to_sonarqube.md)
+and [`sonarqube()`](https://covr.r-lib.org/dev/reference/sonarqube.md)
 don't include the branches yet.
 
 ## Examples
@@ -78,8 +77,8 @@ withr::with_options(list(covr.branch_coverage = TRUE), {
 })
 tally_coverage(cov, by = "branch")
 #>                               filename functions line column branch label value
-#> 1 /tmp/Rtmpo75tKB/source.R18437427efd4         f    2      3      1  TRUE     1
-#> 2 /tmp/Rtmpo75tKB/source.R18437427efd4         f    2      3      2 FALSE     0
+#> 1 /tmp/RtmpcMDT40/source.R18657643adc1         f    2      3      1  TRUE     1
+#> 2 /tmp/RtmpcMDT40/source.R18657643adc1         f    2      3      2 FALSE     0
 percent_coverage(cov, by = "branch")
 #> [1] 50
 ```

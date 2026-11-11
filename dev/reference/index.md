@@ -18,8 +18,14 @@
   on a package and output the result so it is available on Azure
   Pipelines
 
+- [`badge()`](https://covr.r-lib.org/dev/reference/badge.md) : Create a
+  coverage badge
+
 - [`c(`*`<coverage>`*`)`](https://covr.r-lib.org/dev/reference/c.coverage.md)
   : Combine coverage objects
+
+- [`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md) :
+  Create a Cobertura XML file
 
 - [`code_coverage()`](https://covr.r-lib.org/dev/reference/code_coverage.md)
   : Calculate coverage of code directly
@@ -83,6 +89,9 @@
 - [`is_current_test_finished()`](https://covr.r-lib.org/dev/reference/is_current_test_finished.md)
   : Returns TRUE if we've moved on from test reflected in .current_test
 
+- [`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md) : Create an
+  LCOV tracefile
+
 - [`new_test_counter()`](https://covr.r-lib.org/dev/reference/new_test_counter.md)
   : Initialize a new test counter for a coverage trace
 
@@ -104,27 +113,17 @@
 - [`shiny_app_coverage()`](https://covr.r-lib.org/dev/reference/shiny_app_coverage.md)
   : Calculate test coverage for a Shiny app
 
+- [`sonarqube()`](https://covr.r-lib.org/dev/reference/sonarqube.md) :
+
+  Create a SonarQube Generic XML file for test coverage according to
+  <https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/test-coverage/generic-test-data>
+  Based on cobertura.R
+
 - [`tally_coverage()`](https://covr.r-lib.org/dev/reference/tally_coverage.md)
   : Tally coverage by line, expression, function or branch
 
 - [`tally_tests()`](https://covr.r-lib.org/dev/reference/tally_tests.md)
   : Tally which tests ran each line
-
-- [`to_badge()`](https://covr.r-lib.org/dev/reference/to_badge.md) :
-  Create a coverage badge
-
-- [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
-  : Create a Cobertura XML file
-
-- [`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md) :
-  Create an LCOV tracefile
-
-- [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/to_sonarqube.md)
-  :
-
-  Create a SonarQube Generic XML file for test coverage according to
-  <https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/test-coverage/generic-test-data>
-  Based on cobertura.R
 
 - [`truncate_call()`](https://covr.r-lib.org/dev/reference/truncate_call.md)
   : Truncate call objects to limit the number of arguments

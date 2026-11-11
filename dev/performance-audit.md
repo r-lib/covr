@@ -59,7 +59,7 @@ on main that changed performance since 3.6.5. Scripts are in
 | 4 | Index the parse data once in `parse_children()` | up to −2 s of the 4.1 s instrumentation in each process that loads Luminescence | Small–medium / low |
 | 5 | Count in C: `.Call(<symbol>, <index>)` | 27–30 ns per count instead of ≈1.1 µs: ≈ −22 s (−15%) of Luminescence’s tests; branch coverage almost free | Medium–high / medium |
 | 6 | Document sharding the tests across CI jobs, combining with [`c()`](https://rdrr.io/r/base/c.html) | With 4 shards Luminescence takes ≈64 s per job instead of 175 s (estimate) | Docs only / none |
-| 7 | Build [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)’s XML as strings | Part of its 9.3 s on Luminescence (53% is in `xml_add_child()`) | Small / low |
+| 7 | Build [`to_cobertura()`](https://covr.r-lib.org/dev/reference/covr-deprecated.md)’s XML as strings | Part of its 9.3 s on Luminescence (53% is in `xml_add_child()`) | Small / low |
 
 Measured and not worth changing: trace file serialization (0.5 s to
 save, 0.1 s to merge), the installation (no slower than a normal
@@ -142,7 +142,7 @@ installed covr main (`covr_in_child` in `results/summary.md`).
 | [`zero_coverage()`](https://covr.r-lib.org/dev/reference/zero_coverage.md) | 0.03 | 0.2 | 2.6 |
 | [`print()`](https://rdrr.io/r/base/print.html) | 0.2 | 0.5 | 3.4 |
 | [`coverage_to_list()`](https://covr.r-lib.org/dev/reference/coverage_to_list.md) | 0.04 | 0.2 | 2.4 |
-| [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md) | 0.2 | 0.6 | 9.3 |
+| [`to_cobertura()`](https://covr.r-lib.org/dev/reference/covr-deprecated.md) | 0.2 | 0.6 | 9.3 |
 | [`report()`](https://covr.r-lib.org/dev/reference/report.md) | 1.2 | 6.2 | 353.8 |
 
 - **Install.** The instrumented install is not slower than a normal one:
@@ -356,7 +356,7 @@ Luminescence. `traced_files()` is called by `exclude()` (inside
 [`percent_coverage()`](https://covr.r-lib.org/dev/reference/percent_coverage.md),
 [`zero_coverage()`](https://covr.r-lib.org/dev/reference/zero_coverage.md),
 [`print()`](https://rdrr.io/r/base/print.html),
-[`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md),
+[`to_cobertura()`](https://covr.r-lib.org/dev/reference/covr-deprecated.md),
 [`coverage_to_list()`](https://covr.r-lib.org/dev/reference/coverage_to_list.md)
 and [`report()`](https://covr.r-lib.org/dev/reference/report.md). In the
 profiles of

@@ -15,10 +15,10 @@ see “Changes to reported coverage” below.
   [`report()`](https://covr.r-lib.org/dev/reference/report.md),
   [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md),
   [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md),
-  [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md),
-  [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/to_sonarqube.md)
-  and [`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md)
-  agree. A line only counts as covered if all its expressions ran,
+  [`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md),
+  [`sonarqube()`](https://covr.r-lib.org/dev/reference/sonarqube.md) and
+  [`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md) agree. A line
+  only counts as covered if all its expressions ran,
   e.g. `if (x) a else b` on one line where `a` never ran is now
   uncovered in
   [`report()`](https://covr.r-lib.org/dev/reference/report.md),
@@ -78,6 +78,19 @@ see “Changes to reported coverage” below.
 
 - covr now requires R 4.0.0 or later.
 
+- [`to_cobertura()`](https://covr.r-lib.org/dev/reference/covr-deprecated.md)
+  and
+  [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/covr-deprecated.md)
+  are deprecated in favor of
+  [`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md) and
+  [`sonarqube()`](https://covr.r-lib.org/dev/reference/sonarqube.md),
+  matching the names of
+  [`report()`](https://covr.r-lib.org/dev/reference/report.md),
+  [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) and
+  [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md).
+  The old names still work, and warn once per session
+  ([\#750](https://github.com/r-lib/covr/issues/750)).
+
 - S4 methods are now named after their generic and signature, as in
   their Rd aliases, e.g. `show,MyClass-method`, so
   `print(x, group = "functions")`, `tally_coverage(by = "function")` and
@@ -88,8 +101,8 @@ see “Changes to reported coverage” below.
   `function_exclusions` patterns that matched the old names need to be
   updated.
 
-- [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/to_sonarqube.md)
-  now writes file paths relative to the package root (e.g. `R/foo.R`)
+- [`sonarqube()`](https://covr.r-lib.org/dev/reference/sonarqube.md) now
+  writes file paths relative to the package root (e.g. `R/foo.R`)
   instead of prefixing them with the package name, so the report works
   when the package is the root of the SonarQube project. Use the new
   `path_prefix` argument if the package is in a subdirectory of the
@@ -124,7 +137,7 @@ see “Changes to reported coverage” below.
 
 - [`azure()`](https://covr.r-lib.org/dev/reference/azure.md) is
   deprecated. Use
-  [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md),
+  [`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md),
   which it calls, instead.
 
 - covr no longer supports code coverage with Intel’s classic `icc`
@@ -221,8 +234,8 @@ see “Changes to reported coverage” below.
   `branches` attribute of the coverage object.
   `tally_coverage(by = "branch")` and `percent_coverage(by = "branch")`
   summarize them, and
-  [`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md),
-  [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md),
+  [`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md),
+  [`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md),
   [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) and
   [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md)
   include them. Line coverage is unchanged, and without the option the
@@ -405,15 +418,15 @@ see “Changes to reported coverage” below.
   Coveralls badge is updated for the right branch
   ([\#535](https://github.com/r-lib/covr/issues/535)).
 
-- New [`to_badge()`](https://covr.r-lib.org/dev/reference/to_badge.md)
-  writes an SVG badge with the percent coverage, so a README can show
-  coverage without uploading it to Codecov or Coveralls. The README has
-  an example GitHub Actions workflow that publishes the badge
+- New [`badge()`](https://covr.r-lib.org/dev/reference/badge.md) writes
+  an SVG badge with the percent coverage, so a README can show coverage
+  without uploading it to Codecov or Coveralls. The README has an
+  example GitHub Actions workflow that publishes the badge
   ([\#634](https://github.com/r-lib/covr/issues/634)).
 
-- New [`to_lcov()`](https://covr.r-lib.org/dev/reference/to_lcov.md)
-  writes coverage as an LCOV tracefile (`lcov.info`), for `genhtml` and
-  other tools that read the LCOV format
+- New [`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md) writes
+  coverage as an LCOV tracefile (`lcov.info`), for `genhtml` and other
+  tools that read the LCOV format
   ([\#442](https://github.com/r-lib/covr/issues/442), thanks to
   [@MichaelChirico](https://github.com/MichaelChirico) for the initial
   implementation in [\#637](https://github.com/r-lib/covr/issues/637)).
@@ -424,8 +437,8 @@ see “Changes to reported coverage” below.
   baseline, for GitHub Actions job summaries or pull request comments
   ([\#519](https://github.com/r-lib/covr/issues/519)).
 
-- [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
-  now only lists the lines of a method from the file it is defined in.
+- [`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md) now
+  only lists the lines of a method from the file it is defined in.
   Previously methods sharing a name across files, such as the
   [`initialize()`](https://rdrr.io/r/methods/new.html) methods of R6
   classes, listed each other’s lines, so Codecov showed line numbers
@@ -786,7 +799,7 @@ CRAN release: 2023-03-25
 
 CRAN release: 2022-08-26
 
-- [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
+- [`to_cobertura()`](https://covr.r-lib.org/dev/reference/covr-deprecated.md)
   is now explicit about the doctype of the resulting XML. It also sets a
   source path if recorded. ([@mmyrte](https://github.com/mmyrte),
   [\#524](https://github.com/r-lib/covr/issues/524))
@@ -876,7 +889,7 @@ CRAN release: 2020-03-06
   specify a token.
 
 - New
-  [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/to_sonarqube.md)
+  [`to_sonarqube()`](https://covr.r-lib.org/dev/reference/covr-deprecated.md)
   function added to support SonarQube generic XML format
   ([@nibant](https://github.com/nibant),
   [@Delfic](https://github.com/Delfic),
@@ -960,7 +973,7 @@ CRAN release: 2019-08-06
 - Define the necessary coverage flags for C++14, C++17 and C++20
   ([\#369](https://github.com/r-lib/covr/issues/369)).
 
-- [`to_cobertura()`](https://covr.r-lib.org/dev/reference/to_cobertura.md)
+- [`to_cobertura()`](https://covr.r-lib.org/dev/reference/covr-deprecated.md)
   now works with Cobertura coverage-04.dtd
   ([@samssann](https://github.com/samssann),
   [\#337](https://github.com/r-lib/covr/issues/337)).
