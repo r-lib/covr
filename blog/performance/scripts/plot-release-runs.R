@@ -29,8 +29,11 @@ summ <- do.call(rbind, lapply(split(runs, runs$pkg), function(x) {
     noise = max(n) >= min(o)
   )
 }))
-small <- summ[summ$old < min_seconds, ]
-summ <- summ[summ$old >= min_seconds, ]
+# Packages under MIN_SECONDS, or over MAX_SECONDS (default 300, which would
+# squeeze the others), are listed by the script for the caption instead.
+max_seconds <- as.numeric(Sys.getenv("MAX_SECONDS", "300"))
+small <- summ[summ$old < min_seconds | summ$old > max_seconds, ]
+summ <- summ[summ$old >= min_seconds & summ$old <= max_seconds, ]
 summ$saved <- summ$old - summ$new
 summ$label <- ifelse(summ$noise, "within noise", sprintf("\u2212%.0f%%", 100 * (1 - summ$new / summ$old)))
 levels <- summ$pkg[order(summ$saved)]
@@ -46,12 +49,12 @@ p <- ggplot(runs, aes(total, pkg)) +
   geom_text(data = summ, aes(x = xmax * 1.04, y = pkg, label = label), hjust = 0, size = 3.6, colour = "grey20") +
   scale_x_continuous(
     limits = c(0, xmax * 1.22), breaks = seq(0, xmax, by = 60),
-    labels = function(x) paste(x, "s"), expand = expansion(mult = c(0, 0))
+    labels = function(x) ifelse(x == 0, "0", paste(x / 60, "min")), expand = expansion(mult = c(0, 0))
   ) +
   scale_colour_manual(values = cols, name = NULL, labels = c("covr 3.6.5", "covr 4.0.0 (each dot is a run)")) +
   labs(x = "package_coverage() time", y = NULL) +
   theme_minimal(base_size = 13) +
   theme(legend.position = "top", legend.justification = "left", panel.grid.minor = element_blank())
 ggsave(out, p, width = 7, height = 0.38 * length(levels) + 1.4, dpi = 150, bg = "white")
-cat("wrote", out, "with", length(levels), "packages; under", min_seconds, "s:",
+cat("wrote", out, "with", length(levels), "packages; in the caption instead:",
   paste(sprintf("%s %.0f -> %.0f s", small$pkg, small$old, small$new), collapse = ", "), "\n")
