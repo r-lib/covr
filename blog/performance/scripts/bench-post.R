@@ -1,46 +1,43 @@
-# Time covr's post-processing functions on a saved coverage object, with the
-# covr installed first in R_LIBS. Network functions are timed through their
-# payload builders, without uploading.
-# Usage: Rscript --no-init-file bench-post.R <coverage.rds> <label> [reps]
+# Time covr's post-processing functions on a saved coverage object with
+# bench::mark(), using the covr installed first in R_LIBS. Exporters that
+# upload are timed through their payload builders, without uploading.
+# report() is left out: run 1 of the overnight benchmark already times it.
+# Usage: Rscript --no-init-file bench-post.R <coverage.rds> <label> <out.rds> [iterations]
 args <- commandArgs(trailingOnly = TRUE)
 cov <- readRDS(args[[1]])
 label <- args[[2]]
-reps <- if (length(args) >= 3) as.integer(args[[3]]) else 3L
+out <- args[[3]]
+iterations <- if (length(args) >= 4) as.integer(args[[4]]) else 5L
 suppressPackageStartupMessages(library(covr))
 ns <- asNamespace("covr")
-has <- function(f) exists(f, envir = ns, inherits = FALSE)
+# The exporters were renamed in 4.0.0 (#750); use whichever this covr has.
+fn <- function(new, old) {
+  if (exists(new, envir = ns, inherits = FALSE)) get(new, envir = ns) else get(old, envir = ns)
+}
+cobertura_fn <- fn("cobertura", "to_cobertura")
+sonarqube_fn <- fn("sonarqube", "to_sonarqube")
+quiet <- function(x) suppressMessages(suppressWarnings(x))
 tmp <- tempfile()
-dir.create(tmp)
-old <- setwd(tmp)
-on.exit(setwd(old))
 
-cases <- list(
-  print = function() capture.output(print(cov)),
-  print_functions = function() capture.output(print(cov, group = "functions")),
-  percent_coverage = function() percent_coverage(cov),
-  tally_coverage = function() tally_coverage(cov),
-  zero_coverage = function() zero_coverage(cov),
-  as.data.frame = function() as.data.frame(cov),
-  report = function() report(cov, file = file.path(tmp, "r.html"), browse = FALSE),
-  to_cobertura = function() to_cobertura(cov, filename = file.path(tmp, "c.xml")),
-  to_sonarqube = function() to_sonarqube(cov, filename = file.path(tmp, "s.xml")),
-  to_codecov = function() ns$to_codecov(cov),
-  to_coveralls = function() ns$to_coveralls(cov),
-  to_lcov = if (has("to_lcov")) function() to_lcov(cov, filename = file.path(tmp, "l.info")),
-  annotate_coverage = if (has("annotate_coverage")) function() capture.output(annotate_coverage(cov)),
-  print_missing = if (has("annotate_coverage")) function() capture.output(print(cov, missing = TRUE))
+res <- bench::mark(
+  tally_coverage = tally_coverage(cov),
+  percent_coverage = percent_coverage(cov),
+  zero_coverage = quiet(zero_coverage(cov)),
+  print = quiet(utils::capture.output(print(cov), type = "message")),
+  codecov = ns$to_codecov(cov),
+  cobertura = cobertura_fn(cov, filename = tmp),
+  sonarqube = sonarqube_fn(cov, filename = tmp),
+  iterations = iterations,
+  check = FALSE,
+  filter_gc = FALSE,
+  memory = FALSE
 )
-cases <- Filter(Negate(is.null), cases)
-res <- do.call(rbind, lapply(names(cases), function(nm) {
-  f <- cases[[nm]]
-  t <- vapply(seq_len(reps), function(i) {
-    gc()
-    tryCatch(system.time(suppressMessages(suppressWarnings(f())))[["elapsed"]], error = function(e) {
-      message(nm, ": ", conditionMessage(e))
-      NA_real_
-    })
-  }, numeric(1))
-  data.frame(label = label, fn = nm, median = stats::median(t), min = min(t))
-}))
-print(res, row.names = FALSE)
-saveRDS(res, sprintf("%s/post-%s.rds", dirname(normalizePath(args[[1]], mustWork = TRUE)), label))
+df <- data.frame(
+  label = label,
+  pkg = sub("^[^-]+-(.*)[.]rds$", "\\1", basename(args[[1]])),
+  fn = as.character(res$expression),
+  median = as.numeric(res$median),
+  min = as.numeric(res$min)
+)
+saveRDS(df, out)
+print(df[, c("fn", "median", "min")], row.names = FALSE, digits = 3)
