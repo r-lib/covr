@@ -37,7 +37,7 @@ jobs:
         run: |
           cov <- covr::package_coverage(quiet = FALSE)
           print(cov)
-          covr::to_badge(cov, "coverage.svg")
+          covr::badge(cov, "coverage.svg")
         shell: Rscript {0}
 
       - name: Publish coverage badge

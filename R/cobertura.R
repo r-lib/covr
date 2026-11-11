@@ -21,7 +21,7 @@
 #' @param cov the coverage object returned from [package_coverage()]
 #' @param filename the name of the Cobertura XML file
 #' @export
-to_cobertura <- function(cov, filename = "cobertura.xml") {
+cobertura <- function(cov, filename = "cobertura.xml") {
   loadNamespace("xml2")
 
   df <- tally_coverage(cov, by = "line")

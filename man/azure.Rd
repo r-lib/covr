@@ -23,5 +23,5 @@ azure(
 \item{quiet}{if \code{FALSE}, print the coverage before submission.}
 }
 \description{
-Deprecated. Use \code{\link[=to_cobertura]{to_cobertura()}}, which this function calls, instead.
+Deprecated. Use \code{\link[=cobertura]{cobertura()}}, which this function calls, instead.
 }

@@ -3,7 +3,7 @@ test_that("it works with coverage objects", {
   cov <- package_coverage(test_path("TestSummary"))
 
   attr(cov, "package")$path <- "/dummy/directory"
-  to_cobertura(cov, filename = tmp)
+  cobertura(cov, filename = tmp)
 
   expect_equal(
     readLines(tmp)[c(-1, -2, -3)],
@@ -13,7 +13,7 @@ test_that("it works with coverage objects", {
 
 test_that("each line is counted once, as uncovered if any of its code didn't run (#620)", {
   tmp <- tempfile()
-  to_cobertura(shared_line_coverage(), filename = tmp)
+  cobertura(shared_line_coverage(), filename = tmp)
   doc <- xml2::read_xml(tmp)
 
   top <- xml2::xml_find_first(doc, "/coverage")
@@ -48,7 +48,7 @@ test_that("methods only list the lines of their own file (#629)", {
   cov <- file_coverage(c(a, b), test)
 
   tmp <- withr::local_tempfile(fileext = ".xml")
-  to_cobertura(cov, filename = tmp)
+  cobertura(cov, filename = tmp)
   doc <- xml2::read_xml(tmp)
 
   method <- function(file) {
@@ -79,7 +79,7 @@ test_that("lines with branches have their condition coverage", {
     ),
     "f(1); g('a')"
   )
-  to_cobertura(cov, filename = tmp)
+  cobertura(cov, filename = tmp)
   doc <- xml2::read_xml(tmp)
 
   top <- xml2::xml_find_first(doc, "/coverage")

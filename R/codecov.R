@@ -54,12 +54,12 @@
 #' @section Alternative:
 #' Instead of uploading from R, write the coverage to a file and upload it with
 #' the `codecov/codecov-action` GitHub Action, or any other Codecov uploader.
-#' `to_lcov()` has no dependencies and writes `lcov.info`, which the action
+#' `lcov()` has no dependencies and writes `lcov.info`, which the action
 #' uploads without further configuration:
 #'
 #' ```
 #' - name: Test coverage
-#'   run: covr::to_lcov(covr::package_coverage())
+#'   run: covr::lcov(covr::package_coverage())
 #'   shell: Rscript {0}
 #'
 #' - uses: codecov/codecov-action@v5
@@ -67,7 +67,7 @@
 #'     token: ${{ secrets.CODECOV_TOKEN }}
 #' ```
 #'
-#' [to_cobertura()] writes the Cobertura XML format, for which the xml2 package
+#' [cobertura()] writes the Cobertura XML format, for which the xml2 package
 #' is needed.
 #'
 #' @param coverage an existing coverage object to submit, if `NULL`,

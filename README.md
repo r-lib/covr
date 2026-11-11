@@ -190,7 +190,7 @@ will then install covr for local development, and it helps us see which
 packages use covr. `usethis::use_coverage()` adds it for you.
 
 ## Can I get a coverage badge without a coverage service? ##
-Yes, `to_badge()` writes a coverage badge as an SVG file. The GitHub Actions
+Yes, `badge()` writes a coverage badge as an SVG file. The GitHub Actions
 workflow in
 [`inst/workflows/test-coverage-badge.yaml`](https://github.com/r-lib/covr/blob/main/inst/workflows/test-coverage-badge.yaml)
 (also `system.file("workflows", "test-coverage-badge.yaml", package = "covr")`)

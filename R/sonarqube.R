@@ -12,7 +12,7 @@
 #'   set `path_prefix` to that subdirectory (e.g. `"pkg"` gives `pkg/R/foo.R`).
 #' @author Talkdesk Inc.
 #' @export
-to_sonarqube <- function(cov, filename = "sonarqube.xml", path_prefix = NULL) {
+sonarqube <- function(cov, filename = "sonarqube.xml", path_prefix = NULL) {
   loadNamespace("xml2")
 
   # Compiled code has no functions, and isn't reported.

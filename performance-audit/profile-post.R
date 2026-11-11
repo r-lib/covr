@@ -9,8 +9,8 @@ steps <- list(
   report = function() {
     covr::report(cov, file = tempfile(fileext = ".html"), browse = FALSE)
   },
-  to_cobertura = function() {
-    covr::to_cobertura(cov, filename = tempfile(fileext = ".xml"))
+  cobertura = function() {
+    covr::cobertura(cov, filename = tempfile(fileext = ".xml"))
   },
   print = function() utils::capture.output(print(cov)),
   tally_coverage = function() covr::tally_coverage(cov),
