@@ -736,9 +736,10 @@ compute_file_stats <- function(files) {
 }
 
 # One decimal place, so a file whose lines were mostly run less than once
-# doesn't show 0 when some were run, and `<0.1` below that
+# doesn't show 0 when some were run, and `<0.1` below that. The cutoff is 0.1
+# rather than 0.05, as how `sprintf()` rounds 0.05 depends on the platform.
 format_hits_per_line <- function(x) {
-  if (!is.na(x) && x > 0 && x < 0.05) {
+  if (!is.na(x) && x > 0 && x < 0.1) {
     return("<0.1")
   }
   sprintf("%.1f", x)

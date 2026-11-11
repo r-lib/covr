@@ -54,8 +54,8 @@ test_that("report_html() lists the files in a sortable table (#316)", {
 
 test_that("hits per line show a decimal place and `<0.1` below it", {
   expect_equal(
-    vapply(c(0, 0.04, 0.05, 2.25, NaN), format_hits_per_line, character(1)),
-    c("0.0", "<0.1", "0.1", "2.2", "NaN")
+    vapply(c(0, 0.01, 0.09, 0.1, 2.24, NaN), format_hits_per_line, ""),
+    c("0.0", "<0.1", "<0.1", "0.1", "2.2", "NaN")
   )
   html <- as.character(file_table(data.frame(
     File = c("a.R", "b.R"),
