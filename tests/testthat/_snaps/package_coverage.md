@@ -48,6 +48,14 @@
       Warning in `run_commands()`:
       a warning
 
+# add_hooks() errors if the loader script doesn't read the package
+
+    Code
+      add_hooks("pkg", lib, counters_file = "counters.rds")
+    Condition
+      Error:
+      ! Can't find where the loader script of pkg reads the package.
+
 # package_coverage needs tests and srcrefs of installed packages
 
     Code

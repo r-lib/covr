@@ -477,3 +477,8 @@ test_that("cap_items() keeps the first items and counts the rest", {
   expect_equal(cap_items(letters, Inf), paste(letters, collapse = ", "))
   expect_equal(cap_items(character()), "")
 })
+
+test_that("format_messages() and range_pieces() handle no lines", {
+  expect_identical(format_messages(character()), character())
+  expect_identical(range_pieces(integer()), character())
+})

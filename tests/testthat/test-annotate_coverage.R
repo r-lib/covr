@@ -41,6 +41,25 @@ test_that("annotate_coverage accepts custom lines", {
   )
 })
 
+test_that("annotate_coverage reads sources that were not traced from the package", {
+  cov <- annotation_coverage()
+  dir <- withr::local_tempdir()
+  writeLines(c("a <- 1", "b <- 2", "c <- 3"), file.path(dir, "other.R"))
+  attr(cov, "package") <- list(path = dir)
+  lines <- data.frame(filename = "other.R", line = 2)
+  expect_snapshot(annotate_coverage(cov, lines = lines, context = 0))
+
+  lines <- data.frame(filename = "missing.R", line = 1)
+  expect_snapshot(annotate_coverage(cov, lines = lines), error = TRUE)
+})
+
+test_that("annotate_coverage ignores lines beyond the end of the source", {
+  cov <- annotation_coverage()
+  filename <- unique(zero_coverage(cov)$filename)
+  lines <- data.frame(filename = filename, line = 1000)
+  expect_snapshot(annotate_coverage(cov, lines = lines))
+})
+
 test_that("annotate_coverage reports when nothing is missed", {
   cov <- code_coverage("f <- function() 1", "f()")
   expect_snapshot(annotate_coverage(cov), transform = scrub_tempfile)

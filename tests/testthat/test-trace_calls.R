@@ -252,6 +252,13 @@ test_that("is_traced() finds the counter at the start of the body, or anywhere",
   expect_false(starts_with_count(body(later)))
   expect_true(is_traced(later))
 
+  names_only <- f
+  body(names_only) <- quote({
+    covr:::covr_count
+    x
+  })
+  expect_false(is_traced(names_only))
+
   expect_false(starts_with_count(quote(x)))
   expect_false(starts_with_count(quote({
     if (TRUE) x

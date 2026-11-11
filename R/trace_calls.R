@@ -235,16 +235,9 @@ new_counter <- function(src_ref, parent_functions) {
   key
 }
 
-# Increment a given counter
-#
-# @param key generated with `key()`
-count <- function(key) {
-  .counters[[key]]$value <- .counters[[key]]$value + 1L
-}
-
 # Increment a given counter and record the test that hit it
 #
-# Used instead of `count()` in code instrumented with
+# Used instead of `covr_count()` in code instrumented with
 # `options(covr.record_tests = TRUE)`.
 #
 # @param key generated with `key()`
@@ -266,7 +259,7 @@ is_traced <- function(fun) {
   }
   # `all.names()` is fast, so only search functions that might be traced.
   nms <- all.names(x)
-  any(c("count", "count_and_record", "covr_count") %in% nms) &&
+  any(c("count_and_record", "covr_count") %in% nms) &&
     "covr" %in% nms &&
     has_count_call(x)
 }
@@ -292,9 +285,6 @@ starts_with_count <- function(x) {
 
 # Stops at the first counter, which instrumented code has near its start.
 has_count_call <- function(x) {
-  if (!is.call(x)) {
-    return(FALSE)
-  }
   if (is_covr_count_call(x)) {
     return(TRUE)
   }

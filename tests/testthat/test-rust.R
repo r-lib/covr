@@ -171,6 +171,10 @@ test_that("Rust code coverage is skipped with a warning if llvm-cov fails", {
   )
 })
 
+test_that("write_llvm_profile() reports a DLL that isn't loaded", {
+  expect_false(write_llvm_profile(file.path(withr::local_tempdir(), "no.so")))
+})
+
 test_that("parse_lcov keeps the package's own Rust files (#728)", {
   # The package is in a `vendor` directory, which only counts for directories
   # inside the package

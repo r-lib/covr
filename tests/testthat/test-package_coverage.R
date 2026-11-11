@@ -238,6 +238,17 @@ test_that("copy_installed_package fails if the copy has no DESCRIPTION", {
   expect_match(err, "`file.copy()` failed.", fixed = TRUE)
 })
 
+test_that("add_hooks() errors if the loader script doesn't read the package", {
+  lib <- withr::local_tempdir()
+  dir.create(file.path(lib, "pkg", "R"), recursive = TRUE)
+  writeLines("loadNamespace('pkg')", file.path(lib, "pkg", "R", "pkg"))
+
+  expect_snapshot(
+    add_hooks("pkg", lib, counters_file = "counters.rds"),
+    error = TRUE
+  )
+})
+
 test_that("run_vignettes reports failures to build the vignettes", {
   lib <- withr::local_tempdir()
   pkg <- list(package = "TestMissing", path = file.path(lib, "missing"))

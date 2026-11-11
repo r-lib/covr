@@ -74,6 +74,29 @@
         11 |    1 |   a <- 1
         12 |    1 |   b <- 2
 
+# annotate_coverage reads sources that were not traced from the package
+
+    Code
+      annotate_coverage(cov, lines = lines, context = 0)
+    Output
+      other.R
+        2 |      | b <- 2
+
+---
+
+    Code
+      annotate_coverage(cov, lines = lines)
+    Condition
+      Error:
+      ! Can't find the source of 'missing.R'.
+
+# annotate_coverage ignores lines beyond the end of the source
+
+    Code
+      annotate_coverage(cov, lines = lines)
+    Output
+      No missed lines.
+
 # annotate_coverage reports when nothing is missed
 
     Code

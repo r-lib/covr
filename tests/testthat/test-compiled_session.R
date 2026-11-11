@@ -274,6 +274,21 @@ test_that("Rust code in the session is skipped with a warning if llvm-cov fails 
   expect_equal(unique(basename(as.data.frame(cov)$filename)), "TestRust.R")
 })
 
+test_that("Rust code in the session is skipped if its build wasn't instrumented (#749)", {
+  skip_on_cran()
+  skip_if_no_rust_coverage()
+  skip_if_not_installed("pkgload")
+  local_rust_package()
+  withr::local_options(covr.gcov = "")
+  local_mocked_bindings(rust_check_build = function(rust) NULL)
+
+  cov <- environment_coverage(
+    asNamespace("TestRust"),
+    local_rust_test_script()
+  )
+  expect_equal(unique(basename(as.data.frame(cov)$filename)), "TestRust.R")
+})
+
 test_that("file_coverage() requires gcov for C files of a package with Rust code (#749)", {
   skip_on_cran()
   skip_if_no_rust_coverage()

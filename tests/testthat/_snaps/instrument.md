@@ -1,3 +1,11 @@
+# restore_counters() errors without the saved counters
+
+    Code
+      restore_counters(new.env(), file)
+    Condition
+      Error:
+      ! Can't find the counters of the instrumented package at '<file>'.
+
 # restore_counters() errors if `.onLoad()` defined a `.Call` that masks the saved counters
 
     Code
