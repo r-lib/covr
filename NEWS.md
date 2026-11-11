@@ -105,6 +105,11 @@ reported coverage" below.
 
 ## Performance
 
+* `cobertura()` and `sonarqube()` are much faster for large packages, as they
+  write the XML of the lines as text and parse it once, rather than adding each
+  line with xml2 (e.g. 0.3 s rather than 7.5 s, and 0.2 s rather than 3.2 s,
+  for Luminescence). The files they write are unchanged (#755).
+
 * Code run to measure coverage is faster. Evaluated expressions are counted in
   C rather than in R (about 3.5 times less overhead per expression), and
   instrumented code no longer checks whether tests are recorded with
