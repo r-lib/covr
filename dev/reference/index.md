@@ -33,6 +33,9 @@
 - [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) : Run
   covr on a package and upload the result to codecov.io
 
+- [`colorblind_palette`](https://covr.r-lib.org/dev/reference/colorblind_palette.md)
+  : Colors for color vision deficiency
+
 - [`coverage`](https://covr.r-lib.org/dev/reference/coverage.md) :
   Coverage objects
 

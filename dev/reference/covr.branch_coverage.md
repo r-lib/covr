@@ -54,17 +54,20 @@ was taken. Use `tally_coverage(by = "branch")` for a data frame with one
 row for each branch, and `percent_coverage(by = "branch")` for the
 percentage of branches taken.
 
+[`report()`](https://covr.r-lib.org/dev/reference/report.md),
+[`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md),
 [`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md),
 [`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md),
 [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) and
 [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md)
-include the branches. Codecov shows a line with branches that weren't
-all taken as partly covered, and counts it as not covered in the
-coverage percentage, so the percentage on Codecov is lower with branch
-coverage. [`report()`](https://covr.r-lib.org/dev/reference/report.md),
-[`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
-and [`sonarqube()`](https://covr.r-lib.org/dev/reference/sonarqube.md)
-don't include the branches yet.
+include the branches. The reports show the number of branches taken on
+each line and the percentage of branches taken in each file, and show a
+line with branches that weren't all taken as partly covered. Codecov
+shows such lines as partly covered too, and counts them as not covered
+in the coverage percentage, so the percentage on Codecov is lower with
+branch coverage.
+[`sonarqube()`](https://covr.r-lib.org/dev/reference/sonarqube.md)
+doesn't include the branches yet.
 
 ## Examples
 
@@ -77,8 +80,8 @@ withr::with_options(list(covr.branch_coverage = TRUE), {
 })
 tally_coverage(cov, by = "branch")
 #>                               filename functions line column branch label value
-#> 1 /tmp/RtmpdpVSwV/source.R192a44a55997         f    2      3      1  TRUE     1
-#> 2 /tmp/RtmpdpVSwV/source.R192a44a55997         f    2      3      2 FALSE     0
+#> 1 /tmp/Rtmp9JQJkZ/source.R1a603562a0f1         f    2      3      1  TRUE     1
+#> 2 /tmp/Rtmp9JQJkZ/source.R1a603562a0f1         f    2      3      2 FALSE     0
 percent_coverage(cov, by = "branch")
 #> [1] 50
 ```

@@ -234,6 +234,16 @@ see “Changes to reported coverage” below.
   `branches` attribute of the coverage object.
   `tally_coverage(by = "branch")` and `percent_coverage(by = "branch")`
   summarize them, and
+  [`report()`](https://covr.r-lib.org/dev/reference/report.md),
+  [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md),
+  [`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md),
+  [`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md),
+  [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) and
+  [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md)
+  include them. Line coverage is unchanged, and without the option the
+  code is instrumented as before, so there is no cost. See
+  [`?covr.branch_coverage`](https://covr.r-lib.org/dev/reference/covr.branch_coverage.md)
+  ([\#279](https://github.com/r-lib/covr/issues/279)).
   [`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md),
   [`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md),
   [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) and
@@ -327,6 +337,17 @@ see “Changes to reported coverage” below.
 
 ### Reports
 
+- [`report()`](https://covr.r-lib.org/dev/reference/report.md),
+  [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
+  and their `_html()` versions show branch coverage when it was
+  measured: lines with branches show how many were taken (e.g. `1/2`,
+  with each branch’s label and count on hover), lines with an untaken
+  branch are shown as partly covered in the `partial` color of
+  `covr.report_colors` (yellow by default), and the file list has a
+  “Branches” column, with the overall percentage of branches taken in
+  the title. Reports without branch coverage are unchanged
+  ([\#751](https://github.com/r-lib/covr/issues/751)).
+
 - New
   [`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md)
   and
@@ -356,15 +377,17 @@ see “Changes to reported coverage” below.
   [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
   and the coverage percentages printed in the console can use other
   colors for covered and missed code, set with the new
-  `covr.report_colors` option, e.g.
-  `options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))`
-  for blue and orange, which are easier to tell apart with color vision
-  deficiency than the default green and red. An optional `partial`
-  element sets the color for 75% to 90% coverage. The coverage bars in
+  `covr.report_colors` option. The new `colorblind_palette` has blue,
+  yellow and vermillion from the Okabe-Ito palette, which are easier to
+  tell apart with color vision deficiency than the default green and
+  red: `options(covr.report_colors = covr::colorblind_palette)`. An
+  optional `partial` element sets the color for 75% to 90% coverage and
+  for partly covered lines with branch coverage. The coverage bars in
   [`report()`](https://covr.r-lib.org/dev/reference/report.md) now use
   the same thresholds as the console, so files with exactly 75% or 90%
   coverage get the higher color
-  ([\#529](https://github.com/r-lib/covr/issues/529)).
+  ([\#529](https://github.com/r-lib/covr/issues/529),
+  [\#751](https://github.com/r-lib/covr/issues/751)).
 
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md) now keeps
   the Files / Source tabs at the top of the page while scrolling, and

@@ -98,11 +98,13 @@ the <code>if</code> or <code><a href="https://rdrr.io/r/base/switch.html" class=
 <code>tally_coverage(by = "branch")</code> for a data frame with one row for each
 branch, and <code>percent_coverage(by = "branch")</code> for the percentage of
 branches taken.</p>
-<p><code><a href="lcov.html">lcov()</a></code>, <code><a href="cobertura.html">cobertura()</a></code>, <code><a href="codecov.html">codecov()</a></code> and <code><a href="coveralls.html">coveralls()</a></code> include the
-branches. Codecov shows a line with branches that weren't all taken as
-partly covered, and counts it as not covered in the coverage percentage, so
-the percentage on Codecov is lower with branch coverage. <code><a href="report.html">report()</a></code>,
-<code><a href="file_report.html">file_report()</a></code> and <code><a href="sonarqube.html">sonarqube()</a></code> don't include the branches yet.</p>
+<p><code><a href="report.html">report()</a></code>, <code><a href="file_report.html">file_report()</a></code>, <code><a href="lcov.html">lcov()</a></code>, <code><a href="cobertura.html">cobertura()</a></code>, <code><a href="codecov.html">codecov()</a></code> and
+<code><a href="coveralls.html">coveralls()</a></code> include the branches. The reports show the number of branches
+taken on each line and the percentage of branches taken in each file, and
+show a line with branches that weren't all taken as partly covered. Codecov
+shows such lines as partly covered too, and counts them as not covered in
+the coverage percentage, so the percentage on Codecov is lower with branch
+coverage. <code><a href="sonarqube.html">sonarqube()</a></code> doesn't include the branches yet.</p>
     </div>
 
     <div class="section level2">
@@ -115,8 +117,8 @@ the percentage on Codecov is lower with branch coverage. <code><a href="report.h
 <span class="r-in"><span><span class="op">}</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="tally_coverage.html">tally_coverage</a></span><span class="op">(</span><span class="va">cov</span>, by <span class="op">=</span> <span class="st">"branch"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                               filename functions line column branch label value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpdpVSwV/source.R192a44a55997         f    2      3      1  TRUE     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpdpVSwV/source.R192a44a55997         f    2      3      2 FALSE     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/Rtmp9JQJkZ/source.R1a603562a0f1         f    2      3      1  TRUE     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/Rtmp9JQJkZ/source.R1a603562a0f1         f    2      3      2 FALSE     0</span>
 <span class="r-in"><span><span class="fu"><a href="percent_coverage.html">percent_coverage</a></span><span class="op">(</span><span class="va">cov</span>, by <span class="op">=</span> <span class="st">"branch"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 50</span>
 </code></pre></div>

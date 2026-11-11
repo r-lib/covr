@@ -43,3 +43,9 @@ file_report_html(x = package_coverage(), file = NULL)
 `file_report_html()` returns an
 [`htmltools::tagList()`](https://rstudio.github.io/htmltools/reference/tagList.html),
 with the dependencies of the report attached.
+
+## Details
+
+With branch coverage, the report shows the branches of the file as
+described in the "Branches" section of
+[`report()`](https://covr.r-lib.org/dev/reference/report.md).

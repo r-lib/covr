@@ -79,18 +79,34 @@ document, use <code><a href="report_html.html">report_html()</a></code> instead.
 
 </dl></div>
     <div class="section level2">
+    <h2 id="branches">Branches<a class="anchor" aria-label="anchor" href="#branches"></a></h2>
+
+
+<p>If branch coverage was measured with <code>options(covr.branch_coverage = TRUE)</code>
+(see <a href="covr.branch_coverage.html">covr.branch_coverage</a>), the report also shows the branches of each
+<code>if</code> and <code><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch()</a></code>. The title has the percentage of branches taken after
+the line coverage, and the list of files has a "Branches" column with the
+percentage of the branches of each file that were taken. In the source, a
+line with branches has the number of its branches taken out of the total,
+e.g. <code>1/2</code>; hovering over it or focusing it shows the label and count of
+each branch. A line with a branch that wasn't taken is shown as partly
+covered, unless its <code>if</code> or <code><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch()</a></code> never ran, which leaves it missed.</p>
+    </div>
+    <div class="section level2">
     <h2 id="colors">Colors<a class="anchor" aria-label="anchor" href="#colors"></a></h2>
 
 
 <p>Covered lines are shown in green and missed lines in red. To use other
-colors, e.g. a pair that is easier to tell apart with color vision
-deficiency, set the <code>covr.report_colors</code> option to a named character vector
-of R colors (anything accepted by <code><a href="https://rdrr.io/r/grDevices/col2rgb.html" class="external-link">grDevices::col2rgb()</a></code>; transparency is
+colors, set the <code>covr.report_colors</code> option to a named character vector of
+R colors (anything accepted by <code><a href="https://rdrr.io/r/grDevices/col2rgb.html" class="external-link">grDevices::col2rgb()</a></code>; transparency is
 ignored) with elements <code>covered</code>, <code>missed</code> and/or <code>partial</code>. The colors are
 used for the highlighted lines and the coverage bars in the file list;
 <code>partial</code> is used for the bars of files with at least 75% but less than 90%
-coverage, which otherwise follow <code>covered</code>.</p>
-<p></p><div class="sourceCode r"><pre><code><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.report_colors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>covered <span class="op">=</span> <span class="st">"#0072B2"</span>, missed <span class="op">=</span> <span class="st">"#E69F00"</span><span class="op">)</span><span class="op">)</span></span></code></pre><p></p></div>
+coverage, which otherwise follow <code>covered</code>, and for the partly covered lines
+of reports with branches, which are otherwise yellow.</p>
+<p><a href="colorblind_palette.html">colorblind_palette</a> has colors that are easier to tell apart with color
+vision deficiency:</p>
+<p></p><div class="sourceCode r"><pre><code><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.report_colors <span class="op">=</span> <span class="fu">covr</span><span class="fu">::</span><span class="va"><a href="../reference/colorblind_palette.html">colorblind_palette</a></span><span class="op">)</span></span></code></pre><p></p></div>
     </div>
     <div class="section level2">
     <h2 id="dark-mode">Dark mode<a class="anchor" aria-label="anchor" href="#dark-mode"></a></h2>
@@ -108,11 +124,8 @@ until it is switched back.</p>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="package_coverage.html">package_coverage</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">report</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Blue and orange, which are distinguishable with most kinds of color</span></span></span>
-<span class="r-in"><span><span class="co"># blindness</span></span></span>
-<span class="r-in"><span><span class="va">old</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  covr.report_colors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>covered <span class="op">=</span> <span class="st">"#0072B2"</span>, missed <span class="op">=</span> <span class="st">"#E69F00"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Colors that are distinguishable with most kinds of color blindness</span></span></span>
+<span class="r-in"><span><span class="va">old</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>covr.report_colors <span class="op">=</span> <span class="va">colorblind_palette</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">report</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span><span class="va">old</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>

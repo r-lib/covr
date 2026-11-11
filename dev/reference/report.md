@@ -31,20 +31,39 @@ report(
 
   whether to open a browser to view the report.
 
+## Branches
+
+If branch coverage was measured with
+`options(covr.branch_coverage = TRUE)` (see
+[covr.branch_coverage](https://covr.r-lib.org/dev/reference/covr.branch_coverage.md)),
+the report also shows the branches of each `if` and
+[`switch()`](https://rdrr.io/r/base/switch.html). The title has the
+percentage of branches taken after the line coverage, and the list of
+files has a "Branches" column with the percentage of the branches of
+each file that were taken. In the source, a line with branches has the
+number of its branches taken out of the total, e.g. `1/2`; hovering over
+it or focusing it shows the label and count of each branch. A line with
+a branch that wasn't taken is shown as partly covered, unless its `if`
+or [`switch()`](https://rdrr.io/r/base/switch.html) never ran, which
+leaves it missed.
+
 ## Colors
 
 Covered lines are shown in green and missed lines in red. To use other
-colors, e.g. a pair that is easier to tell apart with color vision
-deficiency, set the `covr.report_colors` option to a named character
-vector of R colors (anything accepted by
+colors, set the `covr.report_colors` option to a named character vector
+of R colors (anything accepted by
 [`grDevices::col2rgb()`](https://rdrr.io/r/grDevices/col2rgb.html);
 transparency is ignored) with elements `covered`, `missed` and/or
 `partial`. The colors are used for the highlighted lines and the
 coverage bars in the file list; `partial` is used for the bars of files
 with at least 75% but less than 90% coverage, which otherwise follow
-`covered`.
+`covered`, and for the partly covered lines of reports with branches,
+which are otherwise yellow.
 
-    options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))
+[colorblind_palette](https://covr.r-lib.org/dev/reference/colorblind_palette.md)
+has colors that are easier to tell apart with color vision deficiency:
+
+    options(covr.report_colors = covr::colorblind_palette)
 
 ## Dark mode
 
@@ -60,11 +79,8 @@ if (FALSE) { # \dontrun{
 x <- package_coverage()
 report(x)
 
-# Blue and orange, which are distinguishable with most kinds of color
-# blindness
-old <- options(
-  covr.report_colors = c(covered = "#0072B2", missed = "#E69F00")
-)
+# Colors that are distinguishable with most kinds of color blindness
+old <- options(covr.report_colors = colorblind_palette)
 report(x)
 options(old)
 } # }

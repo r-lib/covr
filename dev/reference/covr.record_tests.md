@@ -82,11 +82,12 @@ tail(attr(cov, "tests")[[1L]], 1L)
 # extract test itemization per trace
 cov[[3]][c("srcref", "tests")]
 #> $srcref
-#> FALSE
+#> x
 #> 
 #> $tests
 #>      test call depth i
-#> [1,]    1    1     2 4
+#> [1,]    1    1     1 1
+#> [2,]    1    1     2 3
 #> 
 # $srcref
 # f(!x)
@@ -97,18 +98,18 @@ cov[[3]][c("srcref", "tests")]
 
 # reconstruct the code path of a test by ordering test traces by [,"i"]
 lapply(cov, `[[`, "tests")
-#> $`source.R192a4dea941a:4:5:4:9:5:9:4:4`
+#> $`source.R1a605a4388ba:6:5:6:9:5:9:6:6`
+#>      test call depth i
+#> [1,]    1    1     2 4
+#> 
+#> $`source.R1a605a4388ba:4:5:4:9:5:9:4:4`
 #>      test call depth i
 #> [1,]    1    1     1 2
 #> 
-#> $`source.R192a4dea941a:3:7:3:7:7:7:3:3`
+#> $`source.R1a605a4388ba:3:7:3:7:7:7:3:3`
 #>      test call depth i
 #> [1,]    1    1     1 1
 #> [2,]    1    1     2 3
-#> 
-#> $`source.R192a4dea941a:6:5:6:9:5:9:6:6`
-#>      test call depth i
-#> [1,]    1    1     2 4
 #> 
 # $`source.Ref2326138c55:4:6:4:10:6:10:4:4`
 #      test call depth i
