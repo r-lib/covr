@@ -6,6 +6,11 @@ new <- args[[1]]
 out <- args[[2]]
 dirs <- args[-(1:2)]
 suppressPackageStartupMessages(library(ggplot2))
+wall_time <- function(f) {
+  t <- sub("[.]rds$", ".time", f)
+  if (!file.exists(t)) return(NA_real_)
+  as.numeric(sub(".*wall=", "", grep("wall=", readLines(t, warn = FALSE), value = TRUE)[[1]]))
+}
 `%||%` <- function(x, y) if (is.null(x)) y else x
 files <- unlist(lapply(dirs, list.files, pattern = "[.]rds$", full.names = TRUE))
 runs <- do.call(rbind, lapply(files, function(f) {
@@ -14,7 +19,9 @@ runs <- do.call(rbind, lapply(files, function(f) {
     version = r$label,
     pkg = r$pkg,
     total = r$total,
-    until_failure = r$install + r$run_code + r$merge,
+    # Wall time of the whole run (from /usr/bin/time), as covr's phases
+    # aren't all traced for type = "tests".
+    until_failure = wall_time(f),
     report = r$report %||% NA_real_
   )
 }))
