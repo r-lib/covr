@@ -101,7 +101,7 @@ reported coverage" below.
 ## Performance
 
 * Code run to measure coverage is faster. Evaluated expressions are counted in
-  C rather than in R (about 6 times less overhead per expression), and
+  C rather than in R (about 3.5 times less overhead per expression), and
   instrumented code no longer checks whether tests are recorded with
   `covr.record_tests` every time an expression runs.
 
