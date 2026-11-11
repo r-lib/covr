@@ -337,6 +337,12 @@ see “Changes to reported coverage” below.
 
 ### Reports
 
+- [`report()`](https://covr.r-lib.org/dev/reference/report.md)’s file
+  list is easier to read: the column headers no longer wrap,
+  `Hits / Line` is renamed to `Hits/line` and shows one decimal place
+  (or `<0.1`) with a tooltip explaining it, numbers line up, and a row
+  with the totals follows the files when there are several.
+
 - [`report()`](https://covr.r-lib.org/dev/reference/report.md),
   [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md)
   and their `_html()` versions show branch coverage when it was
