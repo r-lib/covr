@@ -146,7 +146,7 @@ test_that("report_html() styles only the report (#316)", {
   css <- paste(
     c(
       readLines(system.file("www/report.css", package = "covr")),
-      report_colors_css(report_colors(NULL))$children[[1]]
+      report_colors_css(report_colors(NULL), branches = TRUE)$children[[1]]
     ),
     collapse = "\n"
   )
@@ -241,6 +241,12 @@ test_that("covr.report_colors can set the partial color (#529)", {
     c(high = "#edfde7", mid = "#fcf3e0", low = "#fcece9")
   )
   expect_equal(colnames(report_colors(NULL)), c("covered", "missed"))
+})
+
+test_that("colorblind_palette sets all three report colors (#751)", {
+  colors <- report_colors(colorblind_palette)
+  expect_equal(colnames(colors), c("covered", "missed", "partial"))
+  expect_equal(rgb_hex(colors[, "partial"]), "#f0e442")
 })
 
 test_that("coverage_tints() mixes the colors with the dark background (#563)", {
@@ -372,6 +378,116 @@ test_that("renderSourceTable() has no rows for an empty file", {
 
   expect_match(html, 'data-file="empty.R"', fixed = TRUE)
   expect_no_match(html, "<tr", fixed = TRUE)
+})
+
+test_that("report_html() and file_report_html() are unchanged without branches", {
+  skip_if_not_installed("htmltools")
+  withr::local_options(covr.report_colors = NULL)
+
+  cov <- code_coverage(report_fixture, report_fixture_tests)
+  expect_snapshot(writeLines(report_snapshot_html(cov)))
+  expect_snapshot(writeLines(report_snapshot_html(cov, file_report_html)))
+})
+
+test_that("report_html() shows the branches taken on each line (#751)", {
+  skip_if_not_installed("htmltools")
+  withr::local_options(covr.report_colors = NULL)
+
+  cov <- branch_coverage(report_fixture, report_fixture_tests)
+  expect_snapshot(writeLines(report_snapshot_html(cov)))
+  expect_match(
+    report_snapshot_html(cov, file_report_html),
+    "<h2>source.R - 57.14% (branches 66.67%)</h2>",
+    fixed = TRUE,
+    all = FALSE
+  )
+})
+
+test_that("report_html() colors partly covered lines with the partial color (#751)", {
+  skip_if_not_installed("htmltools")
+  withr::local_options(
+    covr.report_colors = c(covered = "#0072B2", partial = "#56B4E9")
+  )
+
+  cov <- branch_coverage(report_fixture, report_fixture_tests)
+  html <- report_snapshot_html(cov)
+  expect_match(
+    html,
+    "table tr.partial td{",
+    fixed = TRUE,
+    all = FALSE
+  )
+  expect_match(
+    html,
+    "background-color:rgba(86,180,233,0.3)",
+    fixed = TRUE,
+    all = FALSE
+  )
+})
+
+test_that("lines with an untaken branch are partly covered (#751)", {
+  type <- c("covered", "covered", "covered", "missed", "missed", "never")
+  taken <- c(2L, 1L, 0L, 1L, 0L, 2L)
+  total <- c(2L, 2L, 2L, 2L, 2L, 2L)
+  expect_equal(
+    branch_line_type(type, taken, total),
+    c("covered", "partial", "partial", "partial", "missed", "covered")
+  )
+  expect_equal(
+    branch_line_type(
+      c("never", "missed", "covered"),
+      c(0L, NA, NA),
+      c(3L, NA, NA)
+    ),
+    c("missed", "missed", "covered")
+  )
+})
+
+test_that("the file list has the percentage of branches taken (#751)", {
+  lines <- function(taken, total) {
+    data.frame(
+      line = 1:2,
+      source = c("a", "b"),
+      coverage = c("1", "0"),
+      taken = taken,
+      total = total,
+      branches = "",
+      stringsAsFactors = FALSE
+    )
+  }
+  stats <- compute_file_stats(list(
+    a.R = lines(c(1L, 2L), c(2L, 2L)),
+    b.R = lines(c(NA, NA), c(NA, NA))
+  ))
+  expect_equal(stats$Branches, c("75.00%", ""))
+  expect_equal(
+    names(sort_file_stats(cbind(stats, File = c("a.R", "b.R")))),
+    c(
+      "File",
+      "Lines",
+      "Relevant",
+      "Covered",
+      "Missed",
+      "Hits / Line",
+      "Branches",
+      "Coverage"
+    )
+  )
+})
+
+test_that("report_html() leaves out the branches of excluded lines (#751)", {
+  cov <- branch_coverage(
+    c(
+      "f <- function(x) {",
+      "  if (x) 1 else 2 # nocov",
+      "  if (x) 3",
+      "}"
+    ),
+    "f(TRUE)"
+  )
+  data <- to_report_data(cov)
+  expect_equal(data$full[[1]]$total, c(NA, NA, 2L, NA))
+  expect_equal(data$branches_overall, 50)
 })
 
 test_that("report() and file_report() open the report in the viewer", {

@@ -62,6 +62,17 @@ library(covr)
 report()
 ```
 
+With `options(covr.branch_coverage = TRUE)` set before measuring coverage,
+covr also records which branches of each `if` and `switch()` were taken, and
+the report shows them: the number of branches taken on each line, lines with a
+branch that was never taken as partly covered, and the percentage of branches
+taken in each file. See `?covr.branch_coverage`.
+
+```r
+options(covr.branch_coverage = TRUE)
+report()
+```
+
 covr also defines an [RStudio Addin](https://rstudio.github.io/rstudioaddins/),
 which runs `report()` on the active project. This can be used via the Addin
 menu or by binding the action to a

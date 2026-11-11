@@ -112,14 +112,16 @@ coverage counts of Rust code. Found like \code{covr.llvm_cov}.
 \item \code{covr.report_colors}: A named character vector with the colors of
 covered and missed lines in \code{\link[=report]{report()}} and \code{\link[=file_report]{file_report()}}, and of the
 coverage percentages printed in the console, e.g.
-\code{c(covered = "#0072B2", missed = "#E69F00")} for blue and orange, which
-are easier to tell apart than the default green and red with color
-vision deficiency. Either element can be left out to keep its default.
+\code{c(covered = "#0072B2", missed = "#D55E00")}. \link{colorblind_palette} has
+colors that are easier to tell apart than the default green and red
+with color vision deficiency. Either element can be left out to keep
+its default.
 An optional \code{partial} element sets the color of partial coverage (at
 least 75\% but less than 90\%), which otherwise follows \code{covered}, or is
-yellow in the console if \code{covered} isn't set either. Transparency is
-ignored. In terminals with only 8 colors, the console uses the closest
-of those colors.
+yellow in the console if \code{covered} isn't set either, and of lines with
+a branch that wasn't taken in reports with branch coverage, which are
+otherwise yellow. Transparency is ignored. In terminals with only 8
+colors, the console uses the closest of those colors.
 
 \item \code{covr.rstudio_source_markers}: A logical value. If \code{TRUE} (the
 default behavior), source markers are displayed within the RStudio IDE

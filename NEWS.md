@@ -164,6 +164,10 @@ reported coverage" below.
   each `if` (including an `if` without an `else`) and `switch()` were taken,
   in the `branches` attribute of the coverage object. `tally_coverage(by =
   "branch")` and `percent_coverage(by = "branch")` summarize them, and
+  `report()`, `file_report()`, `lcov()`, `cobertura()`, `codecov()` and
+  `coveralls()` include them. Line coverage is unchanged, and without the
+  option the code is instrumented as before, so there is no cost. See
+  `?covr.branch_coverage` (#279).
   `lcov()`, `cobertura()`, `codecov()` and `coveralls()` include them.
   Line coverage is unchanged, and without the option the code is instrumented
   as before, so there is no cost. See `?covr.branch_coverage` (#279).
@@ -222,6 +226,14 @@ reported coverage" below.
 
 ## Reports
 
+* `report()`, `file_report()` and their `_html()` versions show branch
+  coverage when it was measured: lines with branches show how many were taken
+  (e.g. `1/2`, with each branch's label and count on hover), lines with an
+  untaken branch are shown as partly covered in the `partial` color of
+  `covr.report_colors` (yellow by default), and the file list has a "Branches"
+  column, with the overall percentage of branches taken in the title. Reports
+  without branch coverage are unchanged (#751).
+
 * New `report_html()` and `file_report_html()` return the coverage reports of
   `report()` and `file_report()` as HTML that can be included in a larger
   document, such as an R Markdown or Quarto document. The reports' styles and
@@ -238,13 +250,14 @@ reported coverage" below.
 
 * `report()`, `file_report()` and the coverage percentages printed in the
   console can use other colors for covered and missed code, set with the new
-  `covr.report_colors` option, e.g.
-  `options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))`
-  for blue and orange, which are easier to tell apart with color vision
-  deficiency than the default green and red. An optional `partial` element
-  sets the color for 75% to 90% coverage. The coverage bars in `report()` now
-  use the same thresholds as the console, so files with exactly 75% or 90%
-  coverage get the higher color (#529).
+  `covr.report_colors` option. The new `colorblind_palette` has blue, yellow
+  and vermillion from the Okabe-Ito palette, which are easier to tell apart
+  with color vision deficiency than the default green and red:
+  `options(covr.report_colors = covr::colorblind_palette)`. An optional
+  `partial` element sets the color for 75% to 90% coverage and for partly
+  covered lines with branch coverage. The coverage bars in `report()` now use
+  the same thresholds as the console, so files with exactly 75% or 90%
+  coverage get the higher color (#529, #751).
 
 * `report()` now keeps the Files / Source tabs at the top of the page while
   scrolling, and returning to the file list restores its scroll position

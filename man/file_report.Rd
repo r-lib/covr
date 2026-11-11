@@ -33,3 +33,7 @@ dependencies of the report attached.
 opens it. \code{file_report_html()} creates the same report as HTML that can be
 included in a larger document, like \code{\link[=report_html]{report_html()}}.
 }
+\details{
+With branch coverage, the report shows the branches of the file as described
+in the "Branches" section of \code{\link[=report]{report()}}.
+}
