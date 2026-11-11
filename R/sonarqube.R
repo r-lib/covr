@@ -38,36 +38,50 @@ sonarqube <- function(x, file = "sonarqube.xml", path_prefix = NULL) {
     line_branch_totals(tally_coverage(x, by = "branch"))
   }
 
-  d <- xml2::xml_new_document()
-
-  top <- xml2::xml_add_child(d, "coverage", version = "1")
-
   files <- unique(lines$filename)
-
-  for (f in files) {
-    path <- as.character(f)
-    if (!is.null(path_prefix)) {
-      path <- file.path(path_prefix, path)
-    }
-    file_node <- xml2::xml_add_child(top, "file", path = path)
-
-    file_branches <- if (!is.null(branches)) {
-      branches[branches$filename == f, , drop = FALSE]
-    }
-    for (i in which(lines$filename == f)) {
-      line <- lines[i, ]
-      attrs <- list(
-        lineNumber = as.character(line$line),
-        covered = tolower(as.character(line$value > 0))
-      )
-      b <- match(line$line, file_branches$line)
-      if (!is.na(b)) {
-        attrs$branchesToCover <- as.character(file_branches$total[[b]])
-        attrs$coveredBranches <- as.character(file_branches$taken[[b]])
-      }
-      do.call(xml2::xml_add_child, c(list(file_node, "lineToCover"), attrs))
-    }
+  paths <- as.character(files)
+  if (!is.null(path_prefix)) {
+    paths <- file.path(path_prefix, paths)
   }
+
+  # Lines with branches also have the number of branches and how many were
+  # taken.
+  branch_attrs <- character(nrow(lines))
+  if (!is.null(branches)) {
+    b <- match(
+      paste(lines$filename, lines$line),
+      paste(branches$filename, branches$line)
+    )
+    has <- !is.na(b)
+    branch_attrs[has] <- sprintf(
+      ' branchesToCover="%d" coveredBranches="%d"',
+      branches$total[b[has]],
+      branches$taken[b[has]]
+    )
+  }
+
+  # Packages can have thousands of lines, so the document is written as text
+  # and parsed once, which is much faster than adding each line with xml2.
+  line_elements <- sprintf(
+    '<lineToCover lineNumber="%s" covered="%s"%s/>',
+    as.character(lines$line),
+    tolower(as.character(lines$value > 0)),
+    branch_attrs
+  )
+  file_lines <- vapply(
+    split(line_elements, factor(lines$filename, levels = files)),
+    paste,
+    character(1),
+    collapse = ""
+  )
+  d <- xml2::read_xml(paste0(
+    '<coverage version="1">',
+    paste(
+      sprintf('<file path="%s">%s</file>', xml_escape(paths), file_lines),
+      collapse = ""
+    ),
+    "</coverage>"
+  ))
 
   xml2::write_xml(d, file = file)
 

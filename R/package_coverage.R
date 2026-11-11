@@ -202,7 +202,7 @@ package_coverage <- function(
   # Measure the coverage of Rust code, if the package has any
   manifests <- if (!installed) rust_manifests(pkg$path)
   rust <- if (length(manifests)) {
-    rust_coverage_setup(pkg$path, install_path)
+    rust_coverage_setup(pkg$path, file.path(install_path, "rust_coverage"))
   }
 
   full_traversal <- getOption(
@@ -395,10 +395,13 @@ package_coverage <- function(
   }
 
   if (!is.null(rust)) {
-    res <- c(
-      res,
-      run_llvm_cov(rust, pkg$path, install_path, pkg$package, quiet = quiet)
+    objects <- list.files(
+      file.path(install_path, pkg$package, "libs"),
+      pattern = "[.](so|dll|dylib)$",
+      recursive = TRUE,
+      full.names = TRUE
     )
+    res <- c(res, run_llvm_cov(rust, pkg$path, objects, quiet = quiet))
   }
   if (length(manifests)) {
     res <- drop_rust_dependencies(

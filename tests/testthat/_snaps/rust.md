@@ -96,7 +96,7 @@
 # Rust coverage is skipped with a warning without counts or merging
 
     Code
-      expect_null(run_llvm_cov(rust, ".", ".", "pkg"))
+      expect_null(run_llvm_cov(rust, ".", "pkg.so"))
     Condition
       Warning:
       Can't find any coverage of Rust code.
@@ -104,7 +104,7 @@
 ---
 
     Code
-      expect_null(run_llvm_cov(rust, ".", ".", "pkg"))
+      expect_null(run_llvm_cov(rust, ".", "pkg.so"))
     Condition
       Warning:
       Can't measure the coverage of Rust code.

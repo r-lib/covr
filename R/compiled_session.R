@@ -4,15 +4,25 @@
 #
 # The DLL load_all() built isn't instrumented, so an instrumented copy of the
 # package is built in the session's temporary directory. Only the files that
-# changed since the last build are copied and recompiled. While the code runs,
-# the namespace uses the instrumented DLL instead of its own, and unloading
-# the instrumented DLL afterwards makes libgcov write its counts, which gcov
-# then reads. The paths of the copy are then mapped back to the package.
+# changed since the last build are copied and recompiled, and cargo only
+# recompiles the Rust crates that changed in the copy's `target` directory.
+# While the code runs, the namespace uses the instrumented DLL instead of its
+# own, and unloading the instrumented DLL afterwards makes libgcov write its
+# counts, which gcov then reads. The counts of Rust code are written before
+# the DLL is unloaded, and read with llvm-cov (#749). The paths of the copy
+# are then mapped back to the package.
 
 # Starts measuring the compiled code of `env`, or returns `NULL` if `env`
-# isn't the namespace of a package loaded by load_all() with compiled code. If
-# gcov is missing or turned off, this returns `NULL` unless `required`.
-start_compiled_coverage <- function(env, required = FALSE) {
+# isn't the namespace of a package loaded by load_all() with compiled code, or
+# none of it can be measured: gcov is missing or turned off, and the package
+# has no Rust code that can be measured. If `required`, it errors instead when
+# the package has no compiled code or its DLLs aren't built, and if
+# `gcov_required` (non-Rust files were asked for), when gcov is missing.
+start_compiled_coverage <- function(
+  env,
+  required = FALSE,
+  gcov_required = required
+) {
   if (!is.environment(env) || !isNamespace(env)) {
     return(NULL)
   }
@@ -37,10 +47,32 @@ start_compiled_coverage <- function(env, required = FALSE) {
     paste0(package, "-", substr(digest::digest(path), 1, 8))
   )
 
-  dll_dir <- with_build_tools(
-    if (has_gcov(required)) build_instrumented_copy(path, build)
-  )
-  if (is.null(dll_dir)) {
+  # Rust code is only instrumented if the tools to measure it are found, so
+  # that build is kept apart, as make doesn't relink the DLL when only that
+  # changes.
+  rust_code <- length(rust_manifests(path)) > 0
+  rust <- if (rust_code) {
+    rust_coverage_setup(path, paste0(build, "-rust-llvm"))
+  }
+  if (!is.null(rust)) {
+    build <- paste0(build, "-rust")
+  }
+  gcov <- has_gcov(gcov_required)
+  if (!gcov && is.null(rust)) {
+    return(NULL)
+  }
+
+  dll_dir <- with_build_tools({
+    if (!is.null(rust)) {
+      rust <- add_llvm_profile_writer(rust)
+    }
+    build_instrumented_copy(path, build, rust)
+  })
+  if (!is.null(rust)) {
+    rust <- rust_check_build(rust)
+  }
+  if (!gcov && is.null(rust)) {
+    unlink(dll_dir, recursive = TRUE)
     return(NULL)
   }
 
@@ -63,19 +95,30 @@ start_compiled_coverage <- function(env, required = FALSE) {
   state$path <- path
   state$build <- build
   state$dll_dir <- dll_dir
+  state$gcov <- gcov
+  state$rust <- rust
+  state$rust_code <- rust_code
   state$dlls <- character()
   state$original <- character()
   state$instrumented <- character()
   state$swapped <- TRUE
-  # Record each swapped DLL, so a failure restores the ones already swapped
+  if (!is.null(rust)) {
+    unlink(list.files(rust$profiles, full.names = TRUE))
+  }
+  # Record each swapped DLL, so a failure restores the ones already swapped.
+  # The Rust profiler runtime reads where to write its counts when the DLL is
+  # loaded.
   tryCatch(
-    for (i in which(built)) {
-      original <- getNamespaceInfo(env, "DLLs")[[dlls[[i]]]][["path"]]
-      swap_namespace_dll(env, dlls[[i]], original, instrumented[[i]])
-      state$dlls <- c(state$dlls, dlls[[i]])
-      state$original <- c(state$original, original)
-      state$instrumented <- c(state$instrumented, instrumented[[i]])
-    },
+    withr::with_envvar(
+      rust$env,
+      for (i in which(built)) {
+        original <- getNamespaceInfo(env, "DLLs")[[dlls[[i]]]][["path"]]
+        swap_namespace_dll(env, dlls[[i]], original, instrumented[[i]])
+        state$dlls <- c(state$dlls, dlls[[i]])
+        state$original <- c(state$original, original)
+        state$instrumented <- c(state$instrumented, instrumented[[i]])
+      }
+    ),
     error = function(e) {
       stop_compiled_coverage(state)
       stop(e)
@@ -101,7 +144,8 @@ has_gcov <- function(required) {
 }
 
 # Restores the namespace's own DLL. Unloading the instrumented DLL writes its
-# counts to the `.gcda` files of the copy.
+# counts to the `.gcda` files of the copy, and those of its Rust code are
+# written just before.
 stop_compiled_coverage <- function(state) {
   if (is.null(state) || !isTRUE(state$swapped)) {
     return(invisible())
@@ -127,8 +171,21 @@ add_compiled_coverage <- function(coverage, state) {
   }
   stop_compiled_coverage(state)
 
-  res <- with_build_tools(run_gcov(state$build, quiet = TRUE, clean = TRUE))
+  res <- if (state$gcov) {
+    with_build_tools(run_gcov(state$build, quiet = TRUE, clean = TRUE))
+  }
   unlink(gcov_counts(state$build))
+  if (!is.null(state$rust)) {
+    objects <- file.path(state$build, "src", basename(state$instrumented))
+    res <- c(res, run_llvm_cov(state$rust, state$build, objects))
+    unlink(list.files(state$rust$profiles, full.names = TRUE))
+  }
+  if (state$rust_code) {
+    res <- drop_rust_dependencies(
+      res,
+      roots = c(state$build, getOption("covr.gcov_additional_paths", NULL))
+    )
+  }
   res <- relocate_line_coverages(res, state$build, state$path)
 
   # Append rather than assign by name: a header has an entry for every object
@@ -154,18 +211,21 @@ gcov_counts <- function(path) {
 }
 
 # Updates the instrumented copy of the package at `path` in `build` and
-# compiles it, returning an empty directory to copy its DLLs to before loading
-# them, so they can be rebuilt while they are loaded on Windows.
-build_instrumented_copy <- function(path, build) {
+# compiles it, with the instrumentation of Rust code set up by
+# rust_coverage_setup() in `rust`. Returns an empty directory to copy its DLLs
+# to before loading them, so they can be rebuilt while they are loaded on
+# Windows.
+build_instrumented_copy <- function(path, build, rust = NULL) {
   sync <- sync_package_copy(path, build)
   changed <- sync$changed
   removed <- sync$removed
-  settings_changed <- update_build_settings(build)
+  flags <- add_rust_flags(getOption("covr.flags"), rust)
+  settings_changed <- update_build_settings(build, flags, rust$sysroot)
 
   # Objects aren't rebuilt when a header they include changes, nor when the
   # package's `configure` script or compiler settings do, or when a file they
   # were built from is removed, so rebuild everything unless only source files
-  # changed.
+  # changed. cargo rebuilds the Rust code it needs to itself.
   rebuild <- settings_changed ||
     any(is_native_input(removed)) ||
     any(is_native_input(changed) & !is_compiled_source(changed))
@@ -183,25 +243,37 @@ build_instrumented_copy <- function(path, build) {
     return(temp_dir_create("covr_dll"))
   }
   unlink(built)
-  compile_instrumented(build, force = rebuild)
+  compile_instrumented(build, flags, rust$build_env, force = rebuild)
   file.create(built)
 
   temp_dir_create("covr_dll")
 }
 
-# Compiles the instrumented copy. The DLL is only compiled again if a source or
-# header is newer than it, unless `force`, which is needed when the build's
-# settings or its `configure` script changed.
-compile_instrumented <- function(build, force = FALSE) {
-  withr::with_makevars(getOption("covr.flags"), assignment = "+=", {
-    pkgbuild::compile_dll(build, force = force, quiet = TRUE)
-  })
+# Compiles the instrumented copy with `flags`, and `env` set for cargo. The DLL
+# is only compiled again if a source or header is newer than it, unless
+# `force`, which is needed when the build's settings or its `configure` script
+# changed.
+compile_instrumented <- function(
+  build,
+  flags,
+  env = character(),
+  force = FALSE
+) {
+  withr::with_makevars(
+    flags,
+    assignment = "+=",
+    withr::with_envvar(
+      env,
+      pkgbuild::compile_dll(build, force = force, quiet = TRUE)
+    )
+  )
 }
 
 # The settings other than the package's files that determine how it is
 # compiled: the compiler flags covr adds, and the user's and site's Makevars
-# and compiler environment variables that are combined with them.
-build_settings <- function() {
+# and compiler environment variables that are combined with them, and the
+# toolchain that compiles Rust code.
+build_settings <- function(flags, sysroot = NULL) {
   makevars <- c(
     Sys.getenv(c("R_MAKEVARS_SITE", "R_MAKEVARS_USER")),
     file.path(
@@ -230,7 +302,8 @@ build_settings <- function() {
     "LIBS"
   )
   digest::digest(list(
-    flags = getOption("covr.flags"),
+    flags = flags,
+    sysroot = sysroot,
     makevars = vcapply(makevars, digest::digest, file = TRUE),
     env = Sys.getenv(compiler_vars)
   ))
@@ -238,9 +311,9 @@ build_settings <- function() {
 
 # Records the settings the build is compiled with, returning whether they
 # differ from those of the last build, or if there wasn't one.
-update_build_settings <- function(build) {
+update_build_settings <- function(build, flags, sysroot = NULL) {
   file <- paste0(build, ".settings")
-  settings <- build_settings()
+  settings <- build_settings(flags, sysroot)
   changed <- !file.exists(file) || !identical(readLines(file), settings)
   if (changed) {
     writeLines(settings, file)
@@ -255,16 +328,20 @@ temp_dir_create <- function(pattern) {
 }
 
 is_compiled_source <- function(x) {
-  grepl("[.](c|cc|cpp|cxx|c[+][+]|f|f90|f95|m|mm)$", x, ignore.case = TRUE)
+  grepl("[.](c|cc|cpp|cxx|c[+][+]|f|f90|f95|m|mm|rs)$", x, ignore.case = TRUE)
 }
 
 is_compiled_file <- function(x) {
   is_compiled_source(x) | grepl("[.](h|hh|hpp|hxx)$", x, ignore.case = TRUE)
 }
 
-# Files written by building the package, which aren't copied.
-is_build_output <- function(x) {
-  grepl("^src/", x) &
+# Files written by building the package, which aren't copied. In packages with
+# Rust code (`rust`), the files in the directories of its dependencies and
+# cargo's build output aren't: cargo rebuilds what it needs, but not the
+# libraries its build scripts wrote, and vendored crates can include
+# libraries.
+is_build_output <- function(x, rust = FALSE) {
+  output <- grepl("^src/", x) &
     (grepl(
       rex::rex(
         ".",
@@ -275,27 +352,41 @@ is_build_output <- function(x) {
     ) |
       grepl(rex::rex(".gcov.json.gz", end), x) |
       grepl("(^|/)symbols[.]rds$", x))
+  if (rust) {
+    output <- output & !in_rust_dependency_dir(x)
+  }
+  output
 }
 
 build_outputs <- function(build) {
-  files <- list.files(
-    file.path(build, "src"),
-    all.files = TRUE,
-    recursive = TRUE
+  files <- file.path(
+    "src",
+    list.files(file.path(build, "src"), all.files = TRUE, recursive = TRUE)
   )
-  file.path(build, "src", files[is_build_output(file.path("src", files))])
+  rust <- length(rust_manifests(build)) > 0
+  outputs <- files[is_build_output(files, rust)]
+  # Cache directories, e.g. cargo's `target` directories by any name, are
+  # left alone too
+  caches <- paste0(dirname(files[basename(files) == "CACHEDIR.TAG"]), "/")
+  for (cache in caches) {
+    outputs <- outputs[!startsWith(outputs, cache)]
+  }
+  file.path(build, outputs)
 }
 
 # The files of the package at `path` that would be in its source tarball,
 # relative to `path`: hidden top-level files and those matching
-# `.Rbuildignore` are left out, as are build outputs in `src/`.
+# `.Rbuildignore` are left out, as are build outputs in `src/` and cache
+# directories, e.g. cargo's `target` directories, as the copy is built on its
+# own.
 package_copy_files <- function(path) {
   ignore <- c("^[.]", read_rbuildignore(path))
+  rust <- length(rust_manifests(path)) > 0
   ignored <- function(x) {
     Reduce(
       `|`,
       lapply(ignore, grepl, x = x, perl = TRUE, ignore.case = TRUE),
-      is_build_output(x)
+      is_build_output(x, rust)
     )
   }
 
@@ -310,7 +401,8 @@ package_copy_files <- function(path) {
     }
     entries <- entries[!ignored(entries)]
     is_dir <- dir.exists(file.path(path, entries))
-    c(entries[!is_dir], unlist(lapply(entries[is_dir], list_dir)))
+    is_cache <- is_dir & file.exists(file.path(path, entries, "CACHEDIR.TAG"))
+    c(entries[!is_dir], unlist(lapply(entries[is_dir & !is_cache], list_dir)))
   }
   list_dir("")
 }
@@ -388,6 +480,8 @@ swap_namespace_dll <- function(env, name, from, to) {
   bindings <- dll_bindings(env, name)
   # Run finalizers that may call into the old DLL while it is still loaded
   gc()
+  # Rust code's counts aren't written when unloading a DLL that stays loaded
+  write_llvm_profile(from)
   dyn.unload(from)
   dll <- tryCatch(
     load_namespace_dll(env, to),
@@ -488,6 +582,10 @@ native_routine <- function(old, dll, routines) {
 # Maps the source files of compiled code coverage measured in the copy `from`
 # to the package at `to`.
 relocate_line_coverages <- function(x, from, to) {
+  # e.g. if gcov is turned off and llvm-cov failed
+  if (!length(x)) {
+    return(list())
+  }
   prefix <- paste0(from, "/")
   for (i in seq_along(x)) {
     srcfile <- attr(x[[i]]$srcref, "srcfile")

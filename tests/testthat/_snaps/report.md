@@ -115,8 +115,8 @@
                     <th class="covr-num" aria-sort="none">
                       <button type="button" class="covr-sort">Missed</button>
                     </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Hits / Line</button>
+                    <th class="covr-num" title="Average number of times each relevant line was run" aria-sort="none">
+                      <button type="button" class="covr-sort">Hits/line</button>
                     </th>
                     <th class="covr-num" aria-sort="none">
                       <button type="button" class="covr-sort">Coverage</button>
@@ -132,7 +132,7 @@
                     <td class="covr-num" data-sort="7">7</td>
                     <td class="covr-num" data-sort="4">4</td>
                     <td class="covr-num" data-sort="3">3</td>
-                    <td class="covr-num" data-sort="1">1</td>
+                    <td class="covr-num" data-sort="0.6">0.6</td>
                     <td class="covr-num" style="background:linear-gradient(90deg, var(--covr-bar-low) 57.14%, transparent 57.14%)" data-sort="57.14">57.14%</td>
                   </tr>
                 </tbody>
@@ -319,8 +319,8 @@
                     <th class="covr-num" aria-sort="none">
                       <button type="button" class="covr-sort">Missed</button>
                     </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Hits / Line</button>
+                    <th class="covr-num" title="Average number of times each relevant line was run" aria-sort="none">
+                      <button type="button" class="covr-sort">Hits/line</button>
                     </th>
                     <th class="covr-num" aria-sort="none">
                       <button type="button" class="covr-sort">Branches</button>
@@ -339,7 +339,7 @@
                     <td class="covr-num" data-sort="7">7</td>
                     <td class="covr-num" data-sort="4">4</td>
                     <td class="covr-num" data-sort="3">3</td>
-                    <td class="covr-num" data-sort="1">1</td>
+                    <td class="covr-num" data-sort="0.6">0.6</td>
                     <td class="covr-num" data-sort="66.67">66.67%</td>
                     <td class="covr-num" style="background:linear-gradient(90deg, var(--covr-bar-low) 57.14%, transparent 57.14%)" data-sort="57.14">57.14%</td>
                   </tr>

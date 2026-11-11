@@ -122,13 +122,15 @@ test_that("Only code compiled by the checked toolchain is instrumented (#728)", 
     transform = function(x) gsub(dir, "<dir>", x, fixed = TRUE)
   )
 
-  dir.create(rust$build_dir)
-  wrapper <- rust_coverage_wrapper(rust$build_dir, rust$sysroot)
+  # The crate compiled last tells how the package was built, as the log of
+  # the builds of a package loaded with pkgload::load_all() is kept
   expect_equal(compile(stable), "--crate-name pkg -C instrument-coverage")
   expect_equal(rust_check_build(rust), rust)
+  compile(pinned)
+  expect_null(suppressWarnings(rust_check_build(rust)))
 
   # cargo didn't compile anything, e.g. because of a prebuilt library
-  dir.create(rust$build_dir)
+  unlink(file.path(rust$build_dir, "rustc.log"))
   expect_snapshot(expect_null(rust_check_build(rust)))
 })
 
@@ -381,7 +383,7 @@ test_that("Rust coverage is skipped with a warning without counts or merging", {
   skip_on_os("windows")
   profiles <- withr::local_tempdir()
   rust <- list(profiles = profiles)
-  expect_snapshot(expect_null(run_llvm_cov(rust, ".", ".", "pkg")))
+  expect_snapshot(expect_null(run_llvm_cov(rust, ".", "pkg.so")))
 
   file.create(file.path(profiles, "1.profraw"))
   rust$llvm_profdata <- fake_tool(
@@ -389,5 +391,5 @@ test_that("Rust coverage is skipped with a warning without counts or merging", {
     "llvm-profdata",
     "exit 1"
   )
-  expect_snapshot(expect_null(run_llvm_cov(rust, ".", ".", "pkg")))
+  expect_snapshot(expect_null(run_llvm_cov(rust, ".", "pkg.so")))
 })

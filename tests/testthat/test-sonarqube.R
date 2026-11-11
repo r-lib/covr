@@ -64,3 +64,12 @@ test_that("branches are not reported without branch coverage", {
 
   expect_length(xml2::xml_find_all(doc, "//lineToCover[@branchesToCover]"), 0)
 })
+
+test_that("paths with XML special characters are escaped", {
+  tmp <- withr::local_tempfile(fileext = ".xml")
+  sonarqube(shared_line_coverage(), file = tmp, path_prefix = "a&<b>")
+  doc <- xml2::read_xml(tmp)
+
+  path <- xml2::xml_attr(xml2::xml_find_all(doc, "//file"), "path")
+  expect_match(path, "^a&<b>/")
+})

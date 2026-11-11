@@ -11,9 +11,11 @@ local_compiled_package <- function(
   if (!is.null(edit)) {
     edit(path)
   }
-  # Other tests build the fixture in place, possibly at the same time
+  # Other tests build the fixture in place, possibly at the same time, which
+  # for TestRust includes cargo's `target` directory
   clean_objects(path)
   clean_gcov(path)
+  unlink(file.path(path, "src", "rust", "target"), recursive = TRUE)
   pkgload::load_all(path, quiet = TRUE)
   withr::defer(pkgload::unload(pkg), envir = frame)
   path
@@ -63,6 +65,32 @@ local_compiled_test_script <- function(frame = parent.frame()) {
   file
 }
 
+# TestRust loaded with pkgload::load_all(), with a Makevars that keeps cargo's
+# `target` directory like savvy's, so later builds only recompile the crates
+# that changed. `lib_rs` replaces its Rust code.
+local_rust_package <- function(frame = parent.frame(), lib_rs = NULL) {
+  edit <- function(path) {
+    makevars <- file.path(path, "src", "Makevars")
+    writeLines(
+      sub("rm -Rf rust/target", "rm -f $(STATLIB)", readLines(makevars)),
+      makevars
+    )
+    if (!is.null(lib_rs)) {
+      writeLines(lib_rs, file.path(path, "src", "rust", "src", "lib.rs"))
+    }
+  }
+  local_compiled_package("TestRust", frame = frame, edit = edit)
+}
+
+# Makes the same calls as TestRust's tests
+local_rust_test_script <- function(frame = parent.frame()) {
+  withr::local_tempfile(
+    lines = "rust_sign(2); rust_sign(5); rust_sign(-3)",
+    fileext = ".R",
+    .local_envir = frame
+  )
+}
+
 compiled_counts <- function(coverage, file) {
   tally <- tally_coverage(coverage)
   tally <- tally[basename(tally$filename) == file, ]
@@ -89,7 +117,7 @@ mock_compile_instrumented <- function(frame = parent.frame()) {
   state <- new.env()
   state$calls <- list()
   local_mocked_bindings(
-    compile_instrumented = function(build, force = FALSE) {
+    compile_instrumented = function(build, flags, env, force = FALSE) {
       state$calls[[length(state$calls) + 1]] <- list(
         force = force,
         outputs = basename(build_outputs(build))

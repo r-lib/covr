@@ -126,6 +126,11 @@ reported coverage" below.
 
 ## Performance
 
+* `cobertura()` and `sonarqube()` are much faster for large packages, as they
+  write the XML of the lines as text and parse it once, rather than adding each
+  line with xml2 (e.g. 0.3 s rather than 7.5 s, and 0.2 s rather than 3.2 s,
+  for Luminescence). The files they write are unchanged (#755).
+
 * Code run to measure coverage is faster. Evaluated expressions are counted in
   C rather than in R (about 3.5 times less overhead per expression), and
   instrumented code no longer checks whether tests are recorded with
@@ -209,6 +214,13 @@ reported coverage" below.
   the compiled code of packages loaded with `pkgload::load_all()`, so
   `devtools::test_coverage_active_file()` now works for files in `src/`.
 
+* `file_coverage()`, `environment_coverage()` and `with_coverage()` also
+  measure the Rust code of packages loaded with `pkgload::load_all()`, e.g.
+  `file_coverage("src/rust/src/lib.rs", "tests/foo.R")`, like
+  `package_coverage()` does. cargo only recompiles the crates that changed in
+  the instrumented copy. Without the llvm tools covr warns and skips the Rust
+  code, and `options(covr.llvm_cov = "")` turns this off (#749).
+
 * New `shiny_app_coverage()` measures the coverage of a Shiny app that isn't
   part of a package while its tests run, by default with
   `shinytest2::test_app()`, including the code run by the app in the R
@@ -249,6 +261,11 @@ reported coverage" below.
 
 * `file_report()` now creates the directory of `out_file` if needed and
   returns its absolute path, like `report()`.
+
+* `report()`'s file list is easier to read: the column headers no longer wrap,
+  `Hits / Line` is renamed to `Hits/line` and shows one decimal place (or
+  `<0.1`) with a tooltip explaining it, numbers line up, and a row with the
+  totals follows the files when there are several.
 
 * `report()`, `file_report()` and their `_html()` versions show branch
   coverage when it was measured: lines with branches show how many were taken

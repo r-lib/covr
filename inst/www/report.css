@@ -117,10 +117,14 @@
    wider than the report */
 .covr-report table.covr-file-table .covr-num {
   width: 1%;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
-.covr-report table.covr-file-table td.covr-num {
-  white-space: nowrap;
+.covr-report table.covr-file-table > tfoot > tr > td {
+  padding: 8px 10px;
+  font-weight: bold;
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
 }
 
 .covr-report table.covr-file-table td.covr-file {
@@ -392,7 +396,8 @@ html.covr-dark .covr-report span.covr-branch-next {
 }
 
 html.covr-dark .covr-report table.covr-file-table,
-html.covr-dark .covr-report table.covr-file-table > thead > tr > th {
+html.covr-dark .covr-report table.covr-file-table > thead > tr > th,
+html.covr-dark .covr-report table.covr-file-table > tfoot > tr > td {
   border-color: #6c757d;
 }
 
