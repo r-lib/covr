@@ -135,7 +135,7 @@ report_html <- function(x = package_coverage()) {
       colors,
       report_header(paste0(package_name, " coverage - ", percentage)),
       tabset_panel(
-        tab_panel("Files", file_table(data$file_stats)),
+        tab_panel("Files", file_table(data$file_stats, data$file_totals)),
         tab_panel("Source", addHighlight(renderSourceTable(data$full)))
       ),
       branches = !is.null(data$branches_overall)
@@ -230,20 +230,27 @@ check_report_installed <- function() {
 }
 
 # The list of files, which `report.js` sorts by the column whose header is
-# clicked. The cells of the coverage column have a bar in the color of their
-# level of coverage, like codecov.io. The colors are CSS variables set by
-# `report_colors_css()`, so they follow the theme.
-file_table <- function(stats) {
+# clicked, followed by a row of `totals`, which isn't sorted. The cells of the
+# coverage column have a bar in the color of their level of coverage, like
+# codecov.io. The colors are CSS variables set by `report_colors_css()`, so
+# they follow the theme.
+file_table <- function(stats, totals = NULL) {
   numeric <- setdiff(names(stats), "File")
-  cell <- function(col, value) {
+  cell <- function(col, value, link = TRUE) {
     if (col == "File") {
       return(htmltools::tags$td(
         class = "covr-file",
         `data-sort` = value,
-        htmltools::a(href = "#", class = "covr-file-link", value)
+        if (link) {
+          htmltools::a(href = "#", class = "covr-file-link", value)
+        } else {
+          value
+        }
       ))
     }
-    number <- as.numeric(sub("%", "", value, fixed = TRUE))
+    # `<0.1` (hits per line) sorts as 0.1
+    key <- sub("^<", "", sub("%", "", value, fixed = TRUE))
+    number <- as.numeric(key)
     style <- NULL
     if (col == "Coverage" && !is.na(number)) {
       level <- coverage_level(number)
@@ -259,11 +266,7 @@ file_table <- function(stats) {
       style = style,
       # The values come from sprintf() or integers, so they use a decimal
       # point whatever `OutDec` is, which `Number()` in `report.js` needs
-      `data-sort` = if (is.na(number)) {
-        ""
-      } else {
-        sub("%", "", value, fixed = TRUE)
-      },
+      `data-sort` = if (is.na(number)) "" else key,
       value
     )
   }
@@ -273,6 +276,9 @@ file_table <- function(stats) {
       lapply(names(stats), function(col) {
         htmltools::tags$th(
           class = if (col %in% numeric) "covr-num",
+          title = if (col == "Hits/line") {
+            "Average number of times each relevant line was run"
+          },
           `aria-sort` = "none",
           htmltools::tags$button(type = "button", class = "covr-sort", col)
         )
@@ -284,7 +290,14 @@ file_table <- function(stats) {
           lapply(names(stats), function(col) cell(col, stats[[col]][[i]]))
         )
       })
-    )
+    ),
+    if (!is.null(totals)) {
+      htmltools::tags$tfoot(htmltools::tags$tr(
+        lapply(names(stats), function(col) {
+          cell(col, totals[[col]][[1]], link = FALSE)
+        })
+      ))
+    }
   )
 }
 
@@ -597,6 +610,12 @@ to_report_data <- function(x) {
 
   res$file_stats <- sort_file_stats(res$file_stats)
 
+  if (length(res$full) > 1) {
+    totals <- compute_file_stats(list(do.call(rbind, unname(res$full))))
+    totals$File <- "Total"
+    res$file_totals <- totals[names(res$file_stats)]
+  }
+
   res
 }
 
@@ -677,7 +696,7 @@ compute_file_stats <- function(files) {
       Relevant = integer(),
       Covered = integer(),
       Missed = integer(),
-      `Hits / Line` = character(),
+      `Hits/line` = character(),
       stringsAsFactors = FALSE,
       check.names = FALSE
     ))
@@ -694,8 +713,7 @@ compute_file_stats <- function(files) {
         Relevant = sum(file$coverage != ""),
         Covered = sum(file$coverage > 0),
         Missed = sum(file$coverage == 0),
-        `Hits / Line` = sprintf(
-          "%.0f",
+        `Hits/line` = format_hits_per_line(
           sum(as.numeric(file$coverage), na.rm = TRUE) /
             sum(file$coverage != "")
         ),
@@ -717,6 +735,15 @@ compute_file_stats <- function(files) {
   )
 }
 
+# One decimal place, so a file whose lines were mostly run less than once
+# doesn't show 0 when some were run, and `<0.1` below that
+format_hits_per_line <- function(x) {
+  if (!is.na(x) && x > 0 && x < 0.05) {
+    return("<0.1")
+  }
+  sprintf("%.1f", x)
+}
+
 sort_file_stats <- function(stats) {
   stats[
     order(as.numeric(sub("%", "", stats$Coverage)), -stats$Relevant),
@@ -726,7 +753,7 @@ sort_file_stats <- function(stats) {
       "Relevant",
       "Covered",
       "Missed",
-      "Hits / Line",
+      "Hits/line",
       if (!is.null(stats$Branches)) "Branches",
       "Coverage"
     )
