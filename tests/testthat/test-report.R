@@ -243,6 +243,12 @@ test_that("covr.report_colors can set the partial color (#529)", {
   expect_equal(colnames(report_colors(NULL)), c("covered", "missed"))
 })
 
+test_that("colorblind_palette sets all three report colors (#751)", {
+  colors <- report_colors(colorblind_palette)
+  expect_equal(colnames(colors), c("covered", "missed", "partial"))
+  expect_equal(rgb_hex(colors[, "partial"]), "#f0e442")
+})
+
 test_that("coverage_tints() mixes the colors with the dark background (#563)", {
   expect_equal(
     coverage_tints(report_colors(NULL), dark = TRUE),

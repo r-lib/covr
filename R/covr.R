@@ -106,9 +106,10 @@
 #'   \item `covr.report_colors`: A named character vector with the colors of
 #'     covered and missed lines in [report()] and [file_report()], and of the
 #'     coverage percentages printed in the console, e.g.
-#'     `c(covered = "#0072B2", missed = "#E69F00")` for blue and orange, which
-#'     are easier to tell apart than the default green and red with color
-#'     vision deficiency. Either element can be left out to keep its default.
+#'     `c(covered = "#0072B2", missed = "#D55E00")`. [colorblind_palette] has
+#'     colors that are easier to tell apart than the default green and red
+#'     with color vision deficiency. Either element can be left out to keep
+#'     its default.
 #'     An optional `partial` element sets the color of partial coverage (at
 #'     least 75% but less than 90%), which otherwise follows `covered`, or is
 #'     yellow in the console if `covered` isn't set either, and of lines with

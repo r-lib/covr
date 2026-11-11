@@ -19,17 +19,19 @@
 #' covered, unless its `if` or `switch()` never ran, which leaves it missed.
 #' @section Colors:
 #' Covered lines are shown in green and missed lines in red. To use other
-#' colors, e.g. a pair that is easier to tell apart with color vision
-#' deficiency, set the `covr.report_colors` option to a named character vector
-#' of R colors (anything accepted by [grDevices::col2rgb()]; transparency is
+#' colors, set the `covr.report_colors` option to a named character vector of
+#' R colors (anything accepted by [grDevices::col2rgb()]; transparency is
 #' ignored) with elements `covered`, `missed` and/or `partial`. The colors are
 #' used for the highlighted lines and the coverage bars in the file list;
 #' `partial` is used for the bars of files with at least 75% but less than 90%
 #' coverage, which otherwise follow `covered`, and for the partly covered lines
 #' of reports with branches, which are otherwise yellow.
 #'
+#' [colorblind_palette] has colors that are easier to tell apart with color
+#' vision deficiency:
+#'
 #' ```r
-#' options(covr.report_colors = c(covered = "#0072B2", missed = "#E69F00"))
+#' options(covr.report_colors = covr::colorblind_palette)
 #' ```
 #' @section Dark mode:
 #' The report uses a dark theme if the browser or operating system is set to
@@ -41,11 +43,8 @@
 #' x <- package_coverage()
 #' report(x)
 #'
-#' # Blue and orange, which are distinguishable with most kinds of color
-#' # blindness
-#' old <- options(
-#'   covr.report_colors = c(covered = "#0072B2", missed = "#E69F00")
-#' )
+#' # Colors that are distinguishable with most kinds of color blindness
+#' old <- options(covr.report_colors = colorblind_palette)
 #' report(x)
 #' options(old)
 #' }
@@ -290,6 +289,33 @@ file_table <- function(stats) {
 }
 
 default_report_colors <- c(covered = "#5f9744", missed = "#b94947")
+
+#' Colors for color vision deficiency
+#'
+#' `colorblind_palette` has colors for the `covr.report_colors` option that
+#' are easier to tell apart with color vision deficiency than the default
+#' green and red: blue for covered code, yellow for partial coverage and
+#' vermillion for missed code, from the Okabe-Ito palette. They are used in
+#' [report()], [file_report()] and the coverage percentages printed in the
+#' console.
+#'
+#' To set the colors in your `.Rprofile` without loading covr, copy the
+#' values.
+#'
+#' @format A named character vector with elements `covered`, `partial` and
+#'   `missed`.
+#' @examples
+#' colorblind_palette
+#' \dontrun{
+#' options(covr.report_colors = covr::colorblind_palette)
+#' report()
+#' }
+#' @export
+colorblind_palette <- c(
+  covered = "#0072B2",
+  partial = "#F0E442",
+  missed = "#D55E00"
+)
 
 report_color_names <- c("covered", "missed", "partial")
 
