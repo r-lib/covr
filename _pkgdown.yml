@@ -22,6 +22,7 @@ reference:
       - code_coverage
       - environment_coverage
       - with_coverage
+      - current_coverage
       - shiny_app_coverage
       - covr-package
       - in_covr
