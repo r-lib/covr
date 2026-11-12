@@ -71,14 +71,14 @@ test_that("`switch()` keeps its value and visibility", {
     env = env
   )
   expect_equal(
-    attr(res, "branches")[[1]]$labels,
+    branches_of(res, "f")$labels,
     c("a", "b", "<no match>")
   )
-  expect_equal(attr(res, "branches")[[1]]$value, c(1, 1, 1))
+  expect_equal(branches_of(res, "f")$value, c(1, 1, 1))
   # A single unnamed arm is the default of a character `EXPR`, so no default
   # is added
-  expect_equal(attr(res, "branches")[[2]]$labels, "1")
-  expect_equal(attr(res, "branches")[[2]]$value, 1)
+  expect_equal(branches_of(res, "g")$labels, "1")
+  expect_equal(branches_of(res, "g")$value, 1)
 
   expect_equal(
     list(

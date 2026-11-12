@@ -74,6 +74,29 @@
         11 |    1 |   a <- 1
         12 |    1 |   b <- 2
 
+# annotate_coverage reads sources that were not traced from the package
+
+    Code
+      annotate_coverage(cov, lines = lines, context = 0)
+    Output
+      other.R
+        2 |      | b <- 2
+
+---
+
+    Code
+      annotate_coverage(cov, lines = lines)
+    Condition
+      Error:
+      ! Can't find the source of 'missing.R'.
+
+# annotate_coverage ignores lines beyond the end of the source
+
+    Code
+      annotate_coverage(cov, lines = lines)
+    Output
+      No missed lines.
+
 # annotate_coverage reports when nothing is missed
 
     Code
@@ -116,4 +139,17 @@
         ...
          9 |  !!0 |     'never'
       ... 3 more lines in 1 file not shown; narrow with `files` or `lines`, or raise `max_lines`.
+
+# annotate_coverage checks max_lines and context
+
+    Code
+      annotate_coverage(cov, max_lines = "a")
+    Condition
+      Error:
+      ! `max_lines` must be a single number.
+    Code
+      annotate_coverage(cov, context = NA)
+    Condition
+      Error:
+      ! `context` must be a single number.
 

@@ -1,4 +1,3 @@
-#' @useDynLib covr, .registration = TRUE
 replacement <- function(
   name,
   env = as.environment(-1),
@@ -6,35 +5,26 @@ replacement <- function(
 ) {
   if (is.function(target_value) && !is.primitive(target_value)) {
     # The wrappers of vectorized and memoised functions are not traced, only
-    # the functions they call.
-    inner <- if (is_vectorized(target_value)) {
-      "FUN"
-    } else if (inherits(target_value, "memoised")) {
-      "_f"
+    # the functions they call. These are replaced in place, like any other
+    # function, so `reset()` restores them.
+    inner <- wrapped_function(target_value)
+    if (!is.null(inner)) {
+      return(replacement(name, env = environment(target_value), inner))
     }
-    traced <- if (is.null(inner)) {
-      target_value
-    } else {
-      environment(target_value)[[inner]]
-    }
+
     # Tracing an instrumented function again would replace its counts with
     # counters for the instrumentation itself (#641).
-    if (is_traced(traced)) {
+    if (is_traced(target_value)) {
       return(NULL)
     }
 
     # The `.Call` the counters call, for `trace_calls()`
     old_dot_call <- the$dot_call
-    the$dot_call <- dot_call(environment(traced))
+    the$dot_call <- dot_call(environment(target_value))
     on.exit(the$dot_call <- old_dot_call)
 
-    if (is.null(inner)) {
-      new_value <- trace_calls(target_value, name)
-      attributes(body(new_value)) <- attributes(body(target_value))
-    } else {
-      new_value <- target_value
-      environment(new_value)[[inner]] <- trace_calls(traced, name)
-    }
+    new_value <- trace_calls(target_value, name)
+    attributes(body(new_value)) <- attributes(body(target_value))
     attributes(new_value) <- attributes(target_value)
 
     if (isS4(target_value)) {
@@ -48,6 +38,19 @@ replacement <- function(
       target_value = target_value,
       new_value = new_value
     )
+  }
+}
+
+# The function that the wrapper `x` of a vectorized or memoised function calls,
+# or `NULL` if `x` is not such a wrapper.
+wrapped_function <- function(x) {
+  name <- if (is_vectorized(x)) {
+    "FUN"
+  } else if (inherits(x, "memoised")) {
+    "_f"
+  }
+  if (!is.null(name)) {
+    get0(name, environment(x), mode = "function", inherits = FALSE)
   }
 }
 

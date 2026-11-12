@@ -5,7 +5,10 @@
 #' Uses the [pages](https://docs.gitlab.com/user/project/pages/)
 #' GitLab job to publish the report.
 #' @inheritParams codecov
-#' @inheritParams report
+#' @param file The path of the HTML report, relative to the root directory of
+#'   the package (not the working directory). Directories that don't exist are
+#'   created.
+#' @returns The path of the report, invisibly.
 #' @export
 gitlab <- function(
   ...,

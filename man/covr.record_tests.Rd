@@ -24,12 +24,12 @@ Within the \code{covr} result, you can explore this information in two places:
 execution.
 
 \item \verb{$<srcref>$tests}: For each srcref count in the coverage object, a
-\verb{$tests} field is now included which contains a matrix with three columns,
-"test", "call", "depth" and "i" which specify the test number
-(corresponding to the index of the test in \code{attr(,"tests")}, the number
-of times the test expression was evaluated to produce the trace hit, the
-stack depth into the target code where the trace was executed, and the
-order of execution for each test.
+\verb{$tests} field is now included which contains a matrix with four columns,
+"test", "call", "depth" and "i". "test" is the test number
+(corresponding to the index of the test in \code{attr(,"tests")}), "call" is
+the number of times the test expression was evaluated to produce the
+trace hit, "depth" is the stack depth into the target code where the
+trace was executed, and "i" is the order of execution for each test.
 }
 }
 
@@ -59,6 +59,8 @@ Functions in the recorded calls, such as the function of an R6 active
 binding or a function passed to \code{\link[=do.call]{do.call()}}, have their environment replaced
 with \code{\link[=emptyenv]{emptyenv()}}, so that the objects they enclose aren't saved with the
 coverage.
+
+To find which tests ran each line of code, use \code{\link[=tally_tests]{tally_tests()}}.
 }
 
 \examples{
@@ -70,8 +72,10 @@ f <- function(x) {
     FALSE
 }'
 
-options(covr.record_tests = TRUE)
-cov <- code_coverage(fcode, "f(TRUE)")
+cov <- withr::with_options(
+  list(covr.record_tests = TRUE),
+  code_coverage(fcode, "f(TRUE)")
+)
 
 # extract executed test code for the first test
 tail(attr(cov, "tests")[[1L]], 1L)

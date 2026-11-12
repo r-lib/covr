@@ -78,7 +78,9 @@
 #'   upload API; change it for Codecov Enterprise. The former default
 #'   `"https://codecov.io"` is the website, not the API, so it (and
 #'   `"https://app.codecov.io"`) is replaced by the default.
-#' @param quiet if `FALSE`, print the coverage before submission.
+#' @param quiet if `FALSE`, print the output of running the tests (see
+#'   [package_coverage()], which is called when `coverage` is `NULL`) and the
+#'   coverage before submission.
 #' @param token a codecov upload token, if `NULL` then following external
 #'   sources will be checked in this order:
 #'   1. the environment variable \sQuote{CODECOV_TOKEN}. If it is empty, then
@@ -98,7 +100,7 @@
 #'   this is looked up from the service if it is `NULL`.
 #' @param flags A flag to use for this coverage upload see
 #'   <https://docs.codecov.com/docs/flags> for details.
-#' @return The response of Codecov to the request for an upload, invisibly: a
+#' @returns The response of Codecov to the request for an upload, invisibly: a
 #'   list that includes `url`, the url of the upload on Codecov. If Codecov
 #'   rejects either request, `codecov()` throws an error of class
 #'   `covr_codecov_error` with the response of Codecov in its message, except
@@ -188,7 +190,7 @@ codecov <- function(
     null = "null"
   )
 
-  res <- codecov_request(
+  res <- http_request(
     "POST",
     url,
     body = as.character(request),
@@ -201,10 +203,7 @@ codecov <- function(
     return(invisible(NULL))
   }
   upload <- tryCatch(
-    jsonlite::fromJSON(
-      content(res, as = "text", encoding = "UTF-8"),
-      simplifyVector = FALSE
-    ),
+    jsonlite::fromJSON(res$body, simplifyVector = FALSE),
     error = function(e) NULL
   )
   if (!is.character(upload$raw_upload_location)) {
@@ -213,11 +212,11 @@ codecov <- function(
         "Can't find an upload location in Codecov's reply.",
         i = "Codecov replied:"
       ),
-      output = content(res, as = "text", encoding = "UTF-8")
+      output = res$body
     )
   }
 
-  res <- codecov_request(
+  res <- http_request(
     "PUT",
     upload$raw_upload_location,
     body = codecov_payload(to_codecov(coverage), git_files())
@@ -289,27 +288,16 @@ empty_object <- function() {
   structure(list(), names = character())
 }
 
-codecov_request <- function(verb, url, body, headers = character()) {
-  RETRY(
-    verb,
-    url = url,
-    body = body,
-    encode = "raw",
-    httr::add_headers(.headers = headers),
-    httr::config(http_version = curl_http_1_1())
-  )
-}
-
 # Returns `FALSE` after warning about rate limits and outages, which are
 # transient Codecov problems, so don't fail CI. Other errors are thrown.
 codecov_response_ok <- function(res, what) {
-  if (!http_error(res)) {
+  if (res$status < 400L) {
     return(TRUE)
   }
-  status <- httr::status_code(res)
-  body <- content(res, as = "text", encoding = "UTF-8")
+  status <- res$status
+  body <- res$body
   details <- c(
-    x = "{httr::http_status(res)$message}.",
+    x = "{http_status_message(res)}.",
     i = if (nzchar(body)) "Codecov replied:"
   )
   if (status == 429L || status >= 500L) {
@@ -465,14 +453,16 @@ codecov_ci_info <- function() {
     # drone.io
     # --------
   } else if (Sys.getenv("CI") == "true" && Sys.getenv("DRONE") == "true") {
-    # http://docs.drone.io/env.html
+    # https://docs.drone.io/pipeline/environment/reference/
+    # `DRONE_BRANCH`, `DRONE_COMMIT` and `DRONE_BUILD_URL` are from old
+    # versions of Drone.
     list(
       ci_service = "drone.io",
-      branch = env_var("DRONE_BRANCH"),
+      branch = env_var("DRONE_COMMIT_BRANCH", "DRONE_BRANCH"),
       job_code = env_var("DRONE_BUILD_NUMBER"),
-      ci_url = env_var("DRONE_BUILD_URL"),
+      ci_url = env_var("DRONE_BUILD_LINK", "DRONE_BUILD_URL"),
       pr = env_var("DRONE_PULL_REQUEST"),
-      commit = env_var("DRONE_COMMIT")
+      commit = env_var("DRONE_COMMIT_SHA", "DRONE_COMMIT")
     )
     # --------
     # AppVeyor
@@ -602,12 +592,6 @@ github_event <- function() {
     jsonlite::fromJSON(path, simplifyVector = FALSE),
     error = function(e) NULL
   )
-}
-
-
-curl_http_1_1 <- function() {
-  symbols <- curl::curl_symbols()
-  symbols$value[symbols$name == "CURL_HTTP_VERSION_1_1"]
 }
 
 extract_from_yaml <- function(path) {

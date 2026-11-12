@@ -115,7 +115,7 @@ test_that("report() works with empty coverage (#540)", {
   )
   file <- withr::local_tempfile(fileext = ".html")
   report(x, file = file, browse = FALSE)
-  expect_true(file.exists(file))
+  expect_gt(file.size(file), 0)
 })
 
 test_that("report_html() can include several reports in a document (#316)", {
@@ -351,7 +351,7 @@ test_that("file_report() doesn't load jQuery or Bootstrap", {
   )
   html <- paste(readLines(file), collapse = "\n")
   expect_no_match(html, "jquery|bootstrap|datatables", ignore.case = TRUE)
-  expect_match(html, "covrHljs.highlightBlock", fixed = TRUE)
+  expect_match(html, "covrHljs.highlightElement", fixed = TRUE)
 })
 
 test_that("covr.report_colors is validated (#529)", {
@@ -536,7 +536,6 @@ test_that("report_html() leaves out the branches of excluded lines (#751)", {
 })
 
 test_that("report() and file_report() open the report in the viewer", {
-  skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")
   cov <- code_coverage("f <- function(x) x + 1\ng <- function() 2", "f(1)")
 
@@ -561,8 +560,38 @@ test_that("report() and file_report() open the report in the viewer", {
   expect_length(opened, 2)
 })
 
+test_that("report() and file_report() create the directory and return the absolute path", {
+  skip_if_not_installed("htmltools")
+  cov <- code_coverage("f <- function(x) x + 1", "f(1)")
+  dir <- withr::local_tempdir()
+  withr::local_dir(dir)
+
+  file <- report(cov, file = file.path("a", "b", "report.html"), browse = FALSE)
+  expect_equal(
+    file,
+    file.path(normalizePath(file.path(dir, "a", "b")), "report.html")
+  )
+  expect_gt(file.size(file), 0)
+
+  out_file <- file_report(
+    cov,
+    out_file = file.path("c", "d", "f.html"),
+    browse = FALSE
+  )
+  expect_equal(
+    out_file,
+    file.path(normalizePath(file.path(dir, "c", "d")), "f.html")
+  )
+  expect_gt(file.size(out_file), 0)
+})
+
+test_that("file_report_html() needs a single file", {
+  skip_if_not_installed("htmltools")
+  cov <- code_coverage("f <- function(x) x + 1", "f(1)")
+  expect_snapshot(file_report_html(cov, file = c("a.R", "b.R")), error = TRUE)
+})
+
 test_that("file_report() marks the lines that were not run", {
-  skip_if_not_installed("DT")
   skip_if_not_installed("htmltools")
   cov <- code_coverage("f <- function(x) x + 1\ng <- function() 2", "f(1)")
 

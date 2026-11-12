@@ -32,7 +32,7 @@
 #' @param code The code to run the app's tests, evaluated in the calling
 #'   environment.
 #' @inheritParams file_coverage
-#' @return A [coverage] object.
+#' @returns A [coverage] object.
 #' @seealso `vignette("shiny", package = "covr")`
 #' @examples
 #' \dontrun{

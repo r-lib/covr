@@ -3,8 +3,6 @@
   rex::register_shortcuts("covr")
   op <- options()
   op_covr <- list(
-    covr.covrignore = Sys.getenv("COVR_COVRIGNORE", ".covrignore"),
-    covr.gcov = find_gcov(),
     covr.gcov_args = NULL,
     covr.gcov_additional_paths = NULL,
     covr.exclude_pattern = rex::rex("#", any_spaces, "nocov"),
@@ -19,11 +17,11 @@
     covr.flags = c(
       CFLAGS = "-O0 --coverage",
       CXXFLAGS = "-O0 --coverage",
-      CXX1XFLAGS = "-O0 --coverage",
       CXX11FLAGS = "-O0 --coverage",
       CXX14FLAGS = "-O0 --coverage",
       CXX17FLAGS = "-O0 --coverage",
       CXX20FLAGS = "-O0 --coverage",
+      CXX23FLAGS = "-O0 --coverage",
 
       FFLAGS = "-O0 --coverage",
       FCFLAGS = "-O0 --coverage",

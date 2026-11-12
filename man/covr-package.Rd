@@ -36,9 +36,9 @@ before calling \code{package_coverage()}. For more details, see
 
 \item \code{covr.covrignore}: A filename to use as an ignore file,
 listing glob-style wildcarded paths of files to ignore for coverage
-calculations. Defaults to the value of environment variable
-\code{COVR_COVRIGNORE}, or \code{".covrignore"}  if the neither the option nor the
-environment variable are set.
+calculations. Defaults to the value of the environment variable
+\code{COVR_COVRIGNORE}, or \code{".covrignore"} if neither the option nor the
+environment variable is set.
 
 \item \code{covr.exclude_end}: Used along with \code{covr.exclude_start}, an optional
 regular expression which ends a line-exclusion region. For more
@@ -60,6 +60,11 @@ shown in the message and \code{print()} method of a \code{covr_error} when tests
 vignettes, examples or \code{code} fail (default \code{50}). The full output is
 always available in the condition's \verb{$output} field.
 
+\item \code{covr.allow_failures}: If \code{TRUE} (default \code{FALSE}), failures or
+errors when running the tests, vignettes, examples or \code{code} of
+\code{package_coverage()} are reported as warnings and coverage is still
+returned, the default of its \code{allow_failures} argument.
+
 \item \code{covr.annotate_max_lines}: The maximum number of source lines shown
 by \code{\link[=annotate_coverage]{annotate_coverage()}} (default \code{200}), the default of its \code{max_lines}
 argument. \code{Inf} shows everything.
@@ -73,22 +78,33 @@ forked by \pkg{parallel}'s \code{mclapply()}, \code{mcparallel()} and related
 functions, by patching \code{parallel:::mcexit}. By default
 \code{package_coverage()} does this if the package uses \pkg{parallel}, and
 the functions that measure coverage in the current session, such as
-\code{file_coverage()}, always do. The environment variable
-\code{COVR_FIX_PARALLEL_MCEXIT} takes precedence over this option. Not
-supported on Windows.
+\code{file_coverage()}, always do. Can also be set with the environment
+variable \code{COVR_FIX_PARALLEL_MCEXIT}. Not supported on Windows.
 
-\item \code{covr.flags}:
+\item \code{covr.flags}: A named character vector of the compiler and linker
+settings (the values of a \code{Makevars} file, e.g. \code{CFLAGS}) that are added
+when \code{package_coverage()} installs a package, or \code{file_coverage()}
+builds one, for coverage of compiled code. The default, set when covr
+is loaded, compiles C, C++ and Fortran code without optimization and
+with \code{--coverage} (\code{"-O0 --coverage"}) and links it to gcov (\code{FLIBS} is
+\code{"-lgcov"}, \code{LDFLAGS} or on Windows \code{SHLIB_LIBADD} is \code{"--coverage"}).
 
 \item \code{covr.gcov}: Path to the gcov executable. Defaults to the gcov found
 on your \code{PATH}, or \code{NA} if there is none. If the appropriate gcov version
 is not on your path you can use this option to set the appropriate
-location. If set to \code{""} it will turn off coverage of compiled code. If
+location. If set to \code{""} it will turn off coverage of C, C++ and Fortran
+code, but not of Rust code, which is controlled by \code{covr.llvm_cov}. If
 \code{NA}, covr throws an error if any compiled coverage files (\code{.gcno})
 exist.
 
-\item \code{covr.gcov_additional_paths}:
+\item \code{covr.gcov_additional_paths}: A character vector of directories,
+in addition to the package itself, whose compiled source files (C, C++,
+Fortran or Rust) are accepted in the coverage, e.g. the code of another
+package or library that is compiled into the package from outside of its
+\verb{src/} directory. Files elsewhere are left out. Default \code{NULL}.
 
-\item \code{covr.gcov_args}:
+\item \code{covr.gcov_args}: A character vector of additional command line
+arguments passed to gcov. Default \code{NULL}.
 
 \item \code{covr.gcov_partial}: How to count compiled code lines that gcov
 reports as only partially executed (e.g. \code{if (x) f();} when \code{f()} never
@@ -104,7 +120,8 @@ of Rust code. Defaults to the one of the Rust toolchain, installed with
 \verb{rustup component add llvm-tools}, or for Rust installed without rustup
 (e.g. with \verb{apt-get install cargo rustc}), to the one on the \code{PATH} with
 the same LLVM version as rustc, e.g. \code{llvm-cov-18}. If set to \code{""} the
-Rust code isn't instrumented, which turns off its coverage.
+Rust code isn't instrumented, which turns off its coverage. This is
+independent of \code{covr.gcov}, which only controls C, C++ and Fortran code.
 
 \item \code{covr.llvm_profdata}: Path to the \code{llvm-profdata} used to merge the
 coverage counts of Rust code. Found like \code{covr.llvm_cov}.
@@ -127,8 +144,8 @@ colors, the console uses the closest of those colors.
 default behavior), source markers are displayed within the RStudio IDE
 when using \code{zero_coverage}.
 
-\item \code{covr.record_tests}: If \code{TRUE} (default \code{NULL}), record a listing of
-top level test expressions and associate tests with \code{covr} traces
+\item \code{covr.record_tests}: If \code{TRUE} (default \code{FALSE}), record a listing
+of top level test expressions and associate tests with \code{covr} traces
 evaluated during the test's execution. For more details, see
 \code{?covr.record_tests}.
 
@@ -140,13 +157,20 @@ This walks every object in the package, so it is off by default. For
 \code{Config/covr/full_traversal: true} to its DESCRIPTION; the option takes
 precedence when set.
 
-\item \code{covr.install_instrument}: If \code{FALSE} (default \code{TRUE}, or the value
-of the environment variable \code{COVR_INSTALL_INSTRUMENT}),
+\item \code{covr.install_instrument}: If \code{FALSE} (default \code{TRUE}),
 \code{package_coverage()} installs a package as usual and instruments it each
-time a process loads it, rather than once after installing it.
-
-\item \code{covr.showCfunctions}:
+time a process loads it, rather than once after installing it. Can also
+be set with the environment variable \code{COVR_INSTALL_INSTRUMENT}.
 }
+
+Some options can also be set with an environment variable. They are read in
+this order: the option, then the environment variable (ignored if it is
+empty), then the default. So an option set in R always takes precedence over
+the environment variable, e.g. \code{COVR_FIX_PARALLEL_MCEXIT=false} has no
+effect if \code{options(covr.fix_parallel_mcexit = TRUE)} is set. Logical
+settings are \code{TRUE} or \code{FALSE}, or for the environment variable (and
+options set to a string), one of \code{true}, \code{t}, \code{yes} or \code{1}, and \code{false},
+\code{f}, \code{no} or \code{0}, in any case. Other values are ignored with a warning.
 }
 
 \seealso{

@@ -1,9 +1,9 @@
 test_that("it works with coverage objects", {
-  tmp <- tempfile()
+  tmp <- withr::local_tempfile()
   cov <- package_coverage(test_path("TestSummary"))
 
   attr(cov, "package")$path <- "/dummy/directory"
-  cobertura(cov, filename = tmp)
+  cobertura(cov, file = tmp)
 
   expect_equal(
     readLines(tmp)[c(-1, -2, -3)],
@@ -12,8 +12,8 @@ test_that("it works with coverage objects", {
 })
 
 test_that("each line is counted once, as uncovered if any of its code didn't run (#620)", {
-  tmp <- tempfile()
-  cobertura(shared_line_coverage(), filename = tmp)
+  tmp <- withr::local_tempfile()
+  cobertura(shared_line_coverage(), file = tmp)
   doc <- xml2::read_xml(tmp)
 
   top <- xml2::xml_find_first(doc, "/coverage")
@@ -48,7 +48,7 @@ test_that("methods only list the lines of their own file (#629)", {
   cov <- file_coverage(c(a, b), test)
 
   tmp <- withr::local_tempfile(fileext = ".xml")
-  cobertura(cov, filename = tmp)
+  cobertura(cov, file = tmp)
   doc <- xml2::read_xml(tmp)
 
   method <- function(file) {
@@ -75,7 +75,7 @@ test_that("names with XML special characters are escaped", {
   cov <- file_coverage(file, local_r_file("1 %&% 2"))
 
   tmp <- withr::local_tempfile(fileext = ".xml")
-  cobertura(cov, filename = tmp)
+  cobertura(cov, file = tmp)
   doc <- xml2::read_xml(tmp)
 
   expect_equal(
@@ -89,7 +89,7 @@ test_that("names with XML special characters are escaped", {
 })
 
 test_that("lines with branches have their condition coverage", {
-  tmp <- tempfile()
+  tmp <- withr::local_tempfile()
   cov <- branch_coverage(
     c(
       "f <- function(x) {",
@@ -101,7 +101,7 @@ test_that("lines with branches have their condition coverage", {
     ),
     "f(1); g('a')"
   )
-  cobertura(cov, filename = tmp)
+  cobertura(cov, file = tmp)
   doc <- xml2::read_xml(tmp)
 
   top <- xml2::xml_find_first(doc, "/coverage")

@@ -70,7 +70,7 @@ static void grow(void) {
   int *new_table_index = (int *)calloc(new_size, sizeof(int));
   double *new_counts =
       (double *)realloc(counts, (size_t)new_capacity * sizeof(double));
-  if (new_table_keys == NULL || new_table_index == NULL ||
+  if (new_table_keys == NULL || new_table_index == NULL || // # nocov start
       new_counts == NULL) {
     free(new_table_keys);
     free(new_table_index);
@@ -80,7 +80,7 @@ static void grow(void) {
     }
     R_ReleaseObject(new_keys);
     Rf_error("can't allocate memory for the counts");
-  }
+  } // # nocov end
   counts = new_counts;
 
   if (keys != NULL) {

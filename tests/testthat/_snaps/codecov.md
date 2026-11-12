@@ -23,7 +23,7 @@
     Condition
       Error:
       ! Can't request an upload from Codecov.
-      x Client error: (400) Bad Request.
+      x HTTP 400 Bad Request.
       i Codecov replied:
       Missing repository upload token
 
@@ -34,7 +34,7 @@
     Condition
       Warning:
       Can't request an upload from Codecov.
-      x Client error: (429) Too Many Requests (RFC 6585).
+      x HTTP 429 Too Many Requests.
       i Codecov replied:
       Rate limit reached
 
@@ -45,7 +45,7 @@
     Condition
       Warning:
       Can't request an upload from Codecov.
-      x Server error: (503) Service Unavailable.
+      x HTTP 503 Service Unavailable.
       i Codecov replied:
       Service unavailable
 
@@ -66,7 +66,7 @@
     Condition
       Error:
       ! Can't send coverage to Codecov.
-      x Client error: (403) Forbidden.
+      x HTTP 403 Forbidden.
       i Codecov replied:
       <Error><Code>AccessDenied</Code></Error>
 
@@ -80,7 +80,7 @@
     Condition
       Warning:
       Can't send coverage to Codecov.
-      x Client error: (429) Too Many Requests (RFC 6585).
+      x HTTP 429 Too Many Requests.
       i Codecov replied:
       Rate limit reached
 
@@ -91,7 +91,7 @@
     Condition
       Warning:
       Can't send coverage to Codecov.
-      x Server error: (503) Service Unavailable.
+      x HTTP 503 Service Unavailable.
       i Codecov replied:
       Service unavailable
 

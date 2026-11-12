@@ -1,17 +1,16 @@
-#' trace each call with a srcref attribute
-#'
-#' This function calls itself recursively so it can properly traverse the AST.
-#' @param x the call
-#' @param parent_functions the functions which this call is a child of.
-#' @param parent_ref argument used to set the srcref of the current call during
-#'   the recursion.
-#' @param impute_ref a function returning the srcref of the current call, if it
-#'   has no srcref of its own. It is only called to impute srcrefs for nested
-#'   conditionals, so the expressions in their branches get their own counters.
-#' @seealso <http://adv-r.had.co.nz/Expressions.html>
-#' @return a modified expression with count calls inserted before each previous
-#' call.
-#' @keywords internal
+# Trace each call with a srcref attribute
+#
+# This function calls itself recursively so it can properly traverse the AST.
+# @param x the call
+# @param parent_functions the functions which this call is a child of.
+# @param parent_ref argument used to set the srcref of the current call during
+#   the recursion.
+# @param impute_ref a function returning the srcref of the current call, if it
+#   has no srcref of its own. It is only called to impute srcrefs for nested
+#   conditionals, so the expressions in their branches get their own counters.
+# @seealso <http://adv-r.had.co.nz/Expressions.html>
+# @return a modified expression with count calls inserted before each previous
+# call.
 trace_calls <- function(
   x,
   parent_functions = NULL,
@@ -211,11 +210,10 @@ sync_counts <- function() {
 }
 
 
-#' initialize a new counter
-#'
-#' @param src_ref a [base::srcref()]
-#' @param parent_functions the functions that this srcref is contained in.
-#' @keywords internal
+# Initialize a new counter
+#
+# @param src_ref a `srcref()`
+# @param parent_functions the functions that this srcref is contained in.
 new_counter <- function(src_ref, parent_functions) {
   key <- key(src_ref)
   # Keep the counts of a trace that already exists, e.g. when a function is
@@ -237,21 +235,12 @@ new_counter <- function(src_ref, parent_functions) {
   key
 }
 
-#' increment a given counter
-#'
-#' @param key generated with [key()]
-#' @keywords internal
-count <- function(key) {
-  .counters[[key]]$value <- .counters[[key]]$value + 1L
-}
-
-#' increment a given counter and record the test that hit it
-#'
-#' Used instead of [count()] in code instrumented with
-#' `options(covr.record_tests = TRUE)`.
-#'
-#' @param key generated with [key()]
-#' @keywords internal
+# Increment a given counter and record the test that hit it
+#
+# Used instead of `covr_count()` in code instrumented with
+# `options(covr.record_tests = TRUE)`.
+#
+# @param key generated with `key()`
 count_and_record <- function(key) {
   .counters[[key]]$value <- .counters[[key]]$value + 1L
   count_test(key)
@@ -270,7 +259,7 @@ is_traced <- function(fun) {
   }
   # `all.names()` is fast, so only search functions that might be traced.
   nms <- all.names(x)
-  any(c("count", "count_and_record", "covr_count") %in% nms) &&
+  any(c("count_and_record", "covr_count") %in% nms) &&
     "covr" %in% nms &&
     has_count_call(x)
 }
@@ -296,9 +285,6 @@ starts_with_count <- function(x) {
 
 # Stops at the first counter, which instrumented code has near its start.
 has_count_call <- function(x) {
-  if (!is.call(x)) {
-    return(FALSE)
-  }
   if (is_covr_count_call(x)) {
     return(TRUE)
   }
@@ -310,9 +296,7 @@ has_count_call <- function(x) {
   FALSE
 }
 
-#' clear all previous counters
-#'
-#' @keywords internal
+# Clear all previous counters
 clear_counters <- function() {
   .Call(covr_counter_reset)
   rm(envir = .counters, list = ls(envir = .counters))
@@ -333,10 +317,9 @@ zero_counters <- function() {
   zero_branches()
 }
 
-#' Generate a key for a  call
-#'
-#' @param x the srcref of the call to create a key for
-#' @keywords internal
+# Generate a key for a call
+#
+# @param x the srcref of the call to create a key for
 key <- function(x) {
   paste(collapse = ":", c(get_source_filename(x), x))
 }

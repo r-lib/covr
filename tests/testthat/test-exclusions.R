@@ -1,9 +1,3 @@
-exclude_ops <- list(
-  exclude_pattern = "#TeSt_NoLiNt",
-  exclude_start = "#TeSt_NoLiNt_StArT",
-  exclude_end = "#TeSt_NoLiNt_EnD"
-)
-
 test_that("it returns an empty vector if there are no exclusions", {
   t1 <- c("this", "is", "a", "test")
   expect_equal(
@@ -86,9 +80,6 @@ test_that("unpaired start and end errors give the file name", {
   )
 })
 
-expect_equal_vals <- function(x, y) {
-  testthat::expect_equal(unname(x), unname(y))
-}
 test_that("it merges two NULL or empty objects as an empty list", {
   expect_equal(normalize_exclusions(c(NULL, NULL)), list())
   expect_equal(normalize_exclusions(c(NULL, list())), list())
@@ -152,9 +143,8 @@ test_that("it handles redundant files", {
   )
 })
 
-cov <- package_coverage("TestSummary")
-
-test_that("it excludes lines", {
+test_that("exclude() excludes lines and functions, and preserves the class", {
+  cov <- package_coverage("TestSummary")
   expect_equal(length(cov), 4)
   expect_equal(
     length(exclude(cov, list("R/TestSummary.R" = 5), path = "TestSummary")),
@@ -164,15 +154,13 @@ test_that("it excludes lines", {
     length(exclude(cov, list("R/TestSummary.R" = 13), path = "TestSummary")),
     3
   )
-})
-test_that("it preserves the class", {
+
   expect_equal(class(exclude(cov, NULL, path = "TestSummary")), class(cov))
   expect_equal(
     class(exclude(cov, list("R/TestSummary.R" = 3), path = "TestSummary")),
     class(cov)
   )
-})
-test_that("function exclusions work", {
+
   expect_equal(length(exclude(cov, NULL, "^test")), 1)
   expect_equal(length(exclude(cov, NULL, c("^test", "dont"))), 0)
 })
@@ -214,8 +202,7 @@ describe("covrignore", {
       list("COVR_COVRIGNORE" = ""),
       expect_equal(parse_covr_ignore(), NULL)
     )
-    tf <- tempfile()
-    on.exit(unlink(tf))
+    tf <- withr::local_tempfile()
     writeLines("", tf)
     withr::with_options(
       list(covr.covrignore = tf),
@@ -226,10 +213,27 @@ describe("covrignore", {
       expect_equal(parse_covr_ignore(), NULL)
     )
   })
+  it("reads the option, then the environment variable, then .covrignore", {
+    td <- withr::local_tempdir()
+    writeLines("from-default.c", file.path(td, ".covrignore"))
+    writeLines("from-env.c", file.path(td, "env-ignore"))
+    writeLines("from-option.c", file.path(td, "option-ignore"))
+    for (file in c("from-default.c", "from-env.c", "from-option.c")) {
+      writeLines("", file.path(td, file))
+    }
+    withr::local_dir(td)
+    withr::local_options(covr.covrignore = NULL)
+    withr::local_envvar(COVR_COVRIGNORE = NA)
+    expect_equal(parse_covr_ignore(), "from-default.c")
+
+    withr::local_envvar(COVR_COVRIGNORE = "env-ignore")
+    expect_equal(parse_covr_ignore(), "from-env.c")
+
+    withr::local_options(covr.covrignore = "option-ignore")
+    expect_equal(parse_covr_ignore(), "from-option.c")
+  })
   it("returns the file if file exists", {
-    td <- tempfile()
-    on.exit(unlink(td, recursive = TRUE))
-    dir.create(td)
+    td <- withr::local_tempdir()
     writeLines("foo.c", file.path(td, ".covrignore"))
     writeLines("", file.path(td, "foo.c"))
     withr::with_dir(td, {
@@ -237,9 +241,7 @@ describe("covrignore", {
     })
   })
   it("handles globs correctly", {
-    td <- tempfile()
-    on.exit(unlink(td, recursive = TRUE))
-    dir.create(td)
+    td <- withr::local_tempdir()
     writeLines("foo.*", file.path(td, ".covrignore"))
     writeLines("", file.path(td, "foo.c"))
     writeLines("", file.path(td, "foo.o"))
@@ -248,9 +250,7 @@ describe("covrignore", {
     })
   })
   it("handles directories correctly", {
-    td <- tempfile()
-    on.exit(unlink(td, recursive = TRUE))
-    dir.create(td)
+    td <- withr::local_tempdir()
     dir.create(file.path(td, "src"))
     writeLines("src", file.path(td, ".covrignore"))
     writeLines("", file.path(td, "src", "foo.c"))

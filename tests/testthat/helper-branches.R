@@ -91,3 +91,9 @@ branch_coverage <- function(source_code, test_code) {
     code_coverage(paste(source_code, collapse = "\n"), test_code)
   )
 }
+
+# The decision of the `branches` attribute of `cov` in the function `fun`
+branches_of <- function(cov, fun) {
+  branches <- attr(cov, "branches")
+  branches[[which(vapply(branches, function(b) b$functions[[1]], "") == fun)]]
+}

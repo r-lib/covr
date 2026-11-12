@@ -158,7 +158,7 @@
       <script>(function(script) {
         var files = script ? script.parentNode : document;
         files.querySelectorAll('div.covr-files pre').forEach(function(block) {
-          covrHljs.highlightBlock(block);
+          covrHljs.highlightElement(block);
         });
       })(document.currentScript);</script></div></div>
           </div>
@@ -228,7 +228,7 @@
       <script>(function(script) {
         var files = script ? script.parentNode : document;
         files.querySelectorAll('div.covr-files pre').forEach(function(block) {
-          covrHljs.highlightBlock(block);
+          covrHljs.highlightElement(block);
         });
       })(document.currentScript);</script></div>
       </div>
@@ -366,12 +366,20 @@
       <script>(function(script) {
         var files = script ? script.parentNode : document;
         files.querySelectorAll('div.covr-files pre').forEach(function(block) {
-          covrHljs.highlightBlock(block);
+          covrHljs.highlightElement(block);
         });
       })(document.currentScript);</script></div></div>
           </div>
         </div>
       </div>
+
+# file_report_html() needs a single file
+
+    Code
+      file_report_html(cov, file = c("a.R", "b.R"))
+    Condition
+      Error:
+      ! `file` must be a single file name.
 
 # report() and file_report() require htmltools
 

@@ -7,7 +7,7 @@
 #'   expressions and sort the rows by file and position. If `FALSE`, there is
 #'   one row for each element of `x`, in the same order.
 #' @param ... ignored.
-#' @return A data frame with one row for each traced expression of R code and
+#' @returns A data frame with one row for each traced expression of R code and
 #'   each line of compiled code, and the columns:
 #'
 #'   * `filename`: the source file, relative to the `root` attribute of `x`

@@ -1,4 +1,3 @@
-#' @importFrom utils getParseData getSrcref tail
 impute_srcref <- function(x, parent_ref) {
   if (!is_conditional_or_loop(x)) {
     return(NULL)

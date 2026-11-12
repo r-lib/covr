@@ -6,13 +6,17 @@
 \usage{
 in_covr()
 }
+\value{
+A single \code{TRUE} or \code{FALSE}.
+}
 \description{
-covr functions set the environment variable \code{R_COVR} when they are running.
-\code{\link[=in_covr]{in_covr()}} returns \code{TRUE} if this environment variable is set and \code{FALSE}
-otherwise.
+covr functions set the environment variable \code{R_COVR} to \code{"true"} while they
+are running. \code{in_covr()} returns \code{TRUE} if the environment variable is
+exactly \code{"true"} and \code{FALSE} otherwise, e.g. to skip tests that don't work
+while measuring coverage.
 }
 \examples{
-if (require(testthat)) {
-  testthat::skip_if(in_covr())
-}
+\dontshow{if (requireNamespace("testthat", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+testthat::skip_if(in_covr())
+\dontshow{\}) # examplesIf}
 }

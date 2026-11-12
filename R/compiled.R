@@ -52,16 +52,16 @@ parse_gcov_json <- function(file, package_path = "") {
 }
 
 # Is the source file in the package, or one of the
-# `covr.gcov_additional_paths`?
+# `covr.gcov_additional_paths`? An empty path doesn't restrict the files, which
+# is used to parse a report on its own.
 in_package_path <- function(source_file, package_path) {
-  file.exists(source_file) &&
-    grepl(
-      rex::rex(
-        start,
-        rex::regex(paste0(rex::escape(package_path), collapse = "|"))
-      ),
-      source_file
-    )
+  if (!file.exists(source_file)) {
+    return(FALSE)
+  }
+  if (any(!nzchar(package_path))) {
+    return(TRUE)
+  }
+  any(path_in_roots(source_file, package_path))
 }
 
 # Partially executed lines count as covered by default, or as uncovered with
@@ -193,7 +193,6 @@ in_gcov_function_section <- function(lines) {
 # for mocking
 readLines <- NULL
 file.exists <- NULL
-system2 <- NULL
 
 clean_gcov <- function(path) {
   src_dir <- file.path(path, "src")
@@ -253,25 +252,34 @@ find_gcov <- function() {
   path
 }
 
+# The gcov to use: `options(covr.gcov = )` if it is set, including to `""` to
+# turn coverage of compiled code off or to `NA` for no gcov. Otherwise the gcov
+# found with the build tools on the `PATH`, as Rtools' gcov isn't on it by
+# default on Windows. This is looked up when it is needed rather than when covr
+# is loaded, for that reason.
+resolve_gcov <- function() {
+  path <- getOption("covr.gcov")
+  if (is.null(path)) {
+    path <- with_build_tools(find_gcov())
+  }
+  path
+}
+
 # Run gcov, capturing its output so that failures report gcov's diagnostics.
 # gcov exits with status 0 for objects with no functions; a nonzero status
 # always means a real problem, e.g. a .gcno version mismatch (status 3) when
 # the package was compiled with a different gcc than the gcov used (#537).
 gcov_run <- function(gcov_path, args, quiet = TRUE) {
   if (!quiet) {
-    message(wrap_command(paste(
-      c(shQuote(gcov_path), shQuote(args)),
-      collapse = " "
-    )))
+    message(wrap_command(command_line(gcov_path, args)))
   }
-  output <- suppressWarnings(
-    system2(gcov_path, shQuote(args), stdout = TRUE, stderr = TRUE)
-  )
-  status <- attr(output, "status")
+  res <- run_command(gcov_path, args)
+  status <- res$status
+  output <- c(res$stdout, res$stderr)
   if (!quiet && length(output)) {
     message(paste(output, collapse = "\n"))
   }
-  if (!is.null(status) && status != 0) {
+  if (status != 0L) {
     covr_abort(
       c(
         "Can't run gcov.",
@@ -284,11 +292,32 @@ gcov_run <- function(gcov_path, args, quiet = TRUE) {
   invisible(output)
 }
 
+# The reports in the current directory that match `pattern`, as a vector of
+# their sizes and modification times named by their paths.
+gcov_reports <- function(pattern) {
+  files <- list.files(
+    ".",
+    pattern = pattern,
+    recursive = TRUE,
+    full.names = TRUE
+  )
+  info <- file.info(files)
+  stats::setNames(paste(info$size, as.numeric(info$mtime)), files)
+}
+
+# The reports in `after` that are new or were rewritten since `before`, which
+# are the ones the gcov that ran in between wrote. Other reports in the
+# directory, such as those of an earlier run, aren't owned by it.
+new_gcov_reports <- function(before, after) {
+  files <- as.character(names(after))
+  files[is.na(before[files]) | before[files] != after]
+}
+
 run_gcov <- function(
   path,
   quiet = TRUE,
   clean = TRUE,
-  gcov_path = getOption("covr.gcov", find_gcov()),
+  gcov_path = resolve_gcov(),
   gcov_args = getOption("covr.gcov_args", NULL)
 ) {
   src_path <- normalize_path(file.path(path, "src"))
@@ -344,17 +373,13 @@ run_gcov <- function(
   }
 
   run_gcov_format <- function(src, format) {
+    before <- gcov_reports(format$pattern)
     gcov_run(
       gcov_path,
       args = c(gcov_args, src, format$args, "-p", "-o", dirname(src)),
       quiet = quiet
     )
-    gcov_outputs <- list.files(
-      ".",
-      pattern = format$pattern,
-      recursive = TRUE,
-      full.names = TRUE
-    )
+    gcov_outputs <- new_gcov_reports(before, gcov_reports(format$pattern))
 
     if (!quiet) {
       message("gcov output for ", src, ":")

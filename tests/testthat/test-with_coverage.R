@@ -1,34 +1,3 @@
-local_fixture_env <- function(frame = parent.frame()) {
-  src <- withr::local_tempfile(fileext = ".R", .local_envir = frame)
-  writeLines(
-    c(
-      "add <- function(x, y) {",
-      "  if (x > 0) {",
-      "    x + y",
-      "  } else {",
-      "    y",
-      "  }",
-      "}"
-    ),
-    src
-  )
-  env <- new.env(parent = globalenv())
-  sys.source(src, envir = env, keep.source = TRUE)
-  attr(env, "src") <- src
-  env
-}
-
-normalize_coverage <- function(x) {
-  df <- as.data.frame(x)
-  df$filename <- basename(df$filename)
-  df <- df[
-    order(df$filename, df$first_line, df$first_byte),
-    c("filename", "functions", "first_line", "last_line", "value")
-  ]
-  rownames(df) <- NULL
-  df
-}
-
 test_that("with_coverage() measures arbitrary code run against env", {
   env <- local_fixture_env()
 
@@ -69,7 +38,7 @@ test_that("with_coverage() supports exclusions", {
     line_exclusions = structure(list(3), names = attr(env, "src"))
   )
 
-  expect_false(3 %in% as.data.frame(cov)$first_line)
+  expect_length(intersect(3, as.data.frame(cov)$first_line), 0L)
 })
 
 test_that("environment_coverage() runs test files against env", {
@@ -94,7 +63,7 @@ test_that("environment_coverage() supports exclusions", {
     test_file,
     line_exclusions = structure(list(3), names = attr(env, "src"))
   )
-  expect_false(3 %in% as.data.frame(cov)$first_line)
+  expect_length(intersect(3, as.data.frame(cov)$first_line), 0L)
 
   cov <- environment_coverage(env, test_file, function_exclusions = "^add$")
   expect_equal(length(cov), 0)
@@ -125,7 +94,7 @@ test_that("with_coverage() restores functions and counters on error", {
   env <- local_fixture_env()
   original <- body(env$add)
 
-  expect_error(
+  expect_snapshot(
     with_coverage(
       {
         env$add(1, 2)
@@ -133,7 +102,7 @@ test_that("with_coverage() restores functions and counters on error", {
       },
       env = env
     ),
-    "boom"
+    error = TRUE
   )
 
   expect_identical(body(env$add), original)
@@ -240,33 +209,6 @@ test_that("traces can be reset and reused after tracing env again with record_te
   expect_equal(as.data.frame(cov)$value, c(1, 1, 0))
 })
 
-local_load_all <- function(pkg, frame = parent.frame()) {
-  pkgload::load_all(test_path(pkg), quiet = TRUE, export_all = TRUE)
-  withr::defer(pkgload::unload(pkg), envir = frame)
-  asNamespace(pkg)
-}
-
-fixture_test_file <- function(pkg) {
-  list.files(
-    test_path(pkg, "tests", "testthat"),
-    "^test.*\\.R$",
-    full.names = TRUE
-  )
-}
-
-# Run a fixture's test file, capturing what its tests print
-quiet_test_file <- function(pkg, ...) {
-  utils::capture.output(
-    res <- testthat::test_file(
-      fixture_test_file(pkg),
-      package = pkg,
-      reporter = "silent",
-      ...
-    )
-  )
-  invisible(res)
-}
-
 test_that("with_coverage() works with testthat::test_file() on a load_all()ed package", {
   skip_if_not_installed("pkgload")
 
@@ -324,12 +266,13 @@ test_that("with_coverage() cleans up when a test file fails", {
   ns <- local_load_all("TestFailure")
   original <- body(ns$covered)
 
-  expect_error(
+  expect_snapshot(
     with_coverage(
       quiet_test_file("TestFailure", stop_on_failure = TRUE),
       env = ns
     ),
-    "Test failures"
+    error = TRUE,
+    transform = function(x) sub("Test failures[.]?$", "Test failures", x)
   )
 
   expect_identical(body(ns$covered), original)

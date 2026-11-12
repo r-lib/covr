@@ -115,6 +115,51 @@ test_that("instrument_package() leaves packages with functions in sysdata.rda", 
   expect_null(file)
 })
 
+test_that("instrument_installed_package() leaves the installed package if it fails", {
+  skip_on_cran()
+  local_install_defaults()
+  lib <- withr::local_tempdir()
+  pkg <- as_package(test_path("TestInstrument"))
+  install_package(pkg, lib, getOption("covr.flags"), TRUE, byte_compile = FALSE)
+  clear_counters()
+  withr::defer(clear_counters())
+  withr::defer(the$traced_env <- NULL)
+  withr::defer(unloadNamespace("TestInstrument"))
+  local_mocked_bindings(
+    portable_srcfiles = function(...) {
+      stop(structure(
+        class = c("covr_test_failure", "error", "condition"),
+        list(message = "failed", call = NULL)
+      ))
+    }
+  )
+
+  expect_error(
+    instrument_installed_package("TestInstrument", lib),
+    class = "covr_test_failure"
+  )
+  expect_equal(
+    sort(list.files(file.path(lib, "TestInstrument", "R"))),
+    c("TestInstrument", "TestInstrument.rdb", "TestInstrument.rdx")
+  )
+})
+
+test_that("instrument_package() instruments packages with only data in sysdata.rda", {
+  skip_on_cran()
+  local_install_defaults()
+  src <- withr::local_tempdir()
+  file.copy(test_path("TestInstrument"), src, recursive = TRUE)
+  x <- 1
+  save(x, file = file.path(src, "TestInstrument", "R", "sysdata.rda"))
+  lib <- withr::local_tempdir()
+  pkg <- as_package(file.path(src, "TestInstrument"))
+  install_package(pkg, lib, getOption("covr.flags"), TRUE, byte_compile = FALSE)
+
+  expect_false(has_sysdata_functions("TestInstrument", lib))
+  withr::local_options(covr.full_traversal = TRUE)
+  expect_true(has_sysdata_functions("TestInstrument", lib))
+})
+
 test_that("instrument_package() warns if the package can't be instrumented", {
   skip_on_cran()
   local_install_defaults()
@@ -143,6 +188,15 @@ test_that("package_coverage() instruments the package when it is loaded if it ca
   df <- as.data.frame(cov)
   expect_equal(df$value[df$first_line == 16L], 1)
   expect_equal(df$value[df$first_line == 18L], 0)
+})
+
+test_that("restore_counters() errors without the saved counters", {
+  file <- file.path(withr::local_tempdir(), "covr_counters.rds")
+  expect_snapshot(
+    restore_counters(new.env(), file),
+    error = TRUE,
+    transform = function(x) sub(file, "<file>", x, fixed = TRUE)
+  )
 })
 
 test_that("restore_counters() keeps the counts of a namespace that is restored again", {
@@ -291,6 +345,21 @@ test_that("install_instrument() reads the option and COVR_INSTALL_INSTRUMENT", {
         c(COVR_INSTALL_INSTRUMENT = "false"),
         install_instrument()
       )
+    )
+  )
+  expect_false(
+    withr::with_options(
+      list(covr.install_instrument = FALSE),
+      withr::with_envvar(
+        c(COVR_INSTALL_INSTRUMENT = "true"),
+        install_instrument()
+      )
+    )
+  )
+  expect_false(
+    withr::with_envvar(
+      c(COVR_INSTALL_INSTRUMENT = "No"),
+      install_instrument()
     )
   )
 })

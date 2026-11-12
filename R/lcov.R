@@ -24,9 +24,10 @@
 #' relative to the package root, so tools such as `genhtml` should be run from
 #' that directory.
 #'
-#' @param cov the coverage object returned from [package_coverage()]
-#' @param filename the name of the LCOV file
-#' @return The lines of the LCOV file, invisibly.
+#' @param x the coverage object returned from [package_coverage()]
+#' @param file the name of the LCOV file
+#' @returns The lines of the LCOV file, invisibly, after writing them to
+#'   `file`.
 #' @examples
 #' cov <- code_coverage(
 #'   "f <- function(x) {\n  y <- x + 1\n  y * 2\n}\ng <- function() 1",
@@ -36,11 +37,11 @@
 #' lcov(cov, tmp)
 #' cat(readLines(tmp), sep = "\n")
 #' @export
-lcov <- function(cov, filename = "lcov.info") {
-  lines <- collapse_lines(tally_coverage(cov, by = "line"))
-  funs <- tally_coverage(cov, by = "function")
-  branches <- if (!is.null(attr(cov, "branches"))) {
-    tally_coverage(cov, by = "branch")
+lcov <- function(x, file = "lcov.info") {
+  lines <- collapse_lines(tally_coverage(x, by = "line"))
+  funs <- tally_coverage(x, by = "function")
+  branches <- if (!is.null(attr(x, "branches"))) {
+    tally_coverage(x, by = "branch")
   }
 
   files <- sort(unique(as.character(c(
@@ -70,7 +71,7 @@ lcov <- function(cov, filename = "lcov.info") {
   }))
   out <- as.character(out)
 
-  writeLines(out, filename)
+  writeLines(out, file)
 
   invisible(out)
 }

@@ -1,3 +1,14 @@
+# with_coverage() measures compiled code and restores the DLL on error
+
+    Code
+      with_coverage({
+        ns$simple(1)
+        stop("boom")
+      }, env = ns)
+    Condition
+      Error in `force()`:
+      ! boom
+
 # Rust code in the session is skipped with a warning without the tools (#749)
 
     Code
@@ -69,4 +80,20 @@
       Error:
       ! Compiled `source_files` must be in a single package.
       i Can't find one package for 'foo.c'.
+
+# a failed build is compiled again
+
+    Code
+      build_instrumented_copy(path, build)
+    Condition
+      Error in `compile_instrumented()`:
+      ! compile error
+
+---
+
+    Code
+      build_instrumented_copy(path, build)
+    Condition
+      Error in `compile_instrumented()`:
+      ! compile error
 

@@ -127,10 +127,10 @@ start_compiled_coverage <- function(
   state
 }
 
-# gcov is looked up with the build tools on the `PATH`, as Rtools' gcov isn't
-# on it by default on Windows. `options(covr.gcov = "")` turns it off.
+# Is there a gcov to measure the compiled code with? `options(covr.gcov = "")`
+# turns it off, see resolve_gcov().
 has_gcov <- function(required) {
-  gcov_path <- getOption("covr.gcov", with_build_tools(find_gcov()))
+  gcov_path <- resolve_gcov()
   if (!is.na(gcov_path)) {
     return(nzchar(gcov_path))
   }
@@ -216,19 +216,20 @@ gcov_counts <- function(path) {
 # to before loading them, so they can be rebuilt while they are loaded on
 # Windows.
 build_instrumented_copy <- function(path, build, rust = NULL) {
-  changed <- sync_package_copy(path, build)
-
-  # Objects aren't rebuilt when a header they include changes, or the flags
-  # they're compiled with, so rebuild everything if anything other than a
-  # source file changed, or the flags or Rust toolchain. cargo rebuilds the
-  # Rust code it needs to itself.
+  sync <- sync_package_copy(path, build)
+  changed <- sync$changed
+  removed <- sync$removed
   flags <- add_rust_flags(getOption("covr.flags"), rust)
-  config <- digest::digest(list(flags, rust$sysroot))
-  built <- paste0(build, ".built")
-  same_config <- file.exists(built) && identical(readLines(built), config)
-  build_inputs <- grepl("^(src|inst/include)/", changed) |
-    changed == "DESCRIPTION"
-  if (!same_config || any(build_inputs & !is_compiled_source(changed))) {
+  settings_changed <- update_build_settings(build, flags, rust$sysroot)
+
+  # Objects aren't rebuilt when a header they include changes, nor when the
+  # package's `configure` script or compiler settings do, or when a file they
+  # were built from is removed, so rebuild everything unless only source files
+  # changed. cargo rebuilds the Rust code it needs to itself.
+  rebuild <- settings_changed ||
+    any(is_native_input(removed)) ||
+    any(is_native_input(changed) & !is_compiled_source(changed))
+  if (rebuild) {
     unlink(build_outputs(build))
   }
   unlink(gcov_counts(build))
@@ -236,22 +237,88 @@ build_instrumented_copy <- function(path, build, rust = NULL) {
   # Checking that the DLL is up to date takes a while for some packages, so
   # skip it if the last build succeeded and only files that can't affect it
   # changed since.
-  affects_dll <- !grepl("^(R|tests|man|vignettes)/", changed)
-  if (same_config && !any(affects_dll)) {
+  built <- paste0(build, ".built")
+  affects_dll <- !grepl("^(R|tests|man|vignettes)/", c(changed, removed))
+  if (!rebuild && file.exists(built) && !any(affects_dll)) {
     return(temp_dir_create("covr_dll"))
   }
   unlink(built)
+  compile_instrumented(build, flags, rust$build_env, force = rebuild)
+  file.create(built)
+
+  temp_dir_create("covr_dll")
+}
+
+# Compiles the instrumented copy with `flags`, and `env` set for cargo. The DLL
+# is only compiled again if a source or header is newer than it, unless
+# `force`, which is needed when the build's settings or its `configure` script
+# changed.
+compile_instrumented <- function(
+  build,
+  flags,
+  env = character(),
+  force = FALSE
+) {
   withr::with_makevars(
     flags,
     assignment = "+=",
     withr::with_envvar(
-      rust$build_env,
-      pkgbuild::compile_dll(build, quiet = TRUE)
+      env,
+      pkgbuild::compile_dll(build, force = force, quiet = TRUE)
     )
   )
-  writeLines(config, built)
+}
 
-  temp_dir_create("covr_dll")
+# The settings other than the package's files that determine how it is
+# compiled: the compiler flags covr adds, and the user's and site's Makevars
+# and compiler environment variables that are combined with them, and the
+# toolchain that compiles Rust code.
+build_settings <- function(flags, sysroot = NULL) {
+  makevars <- c(
+    Sys.getenv(c("R_MAKEVARS_SITE", "R_MAKEVARS_USER")),
+    file.path(
+      path.expand("~/.R"),
+      c(
+        paste0("Makevars-", R.version$platform),
+        "Makevars.ucrt",
+        "Makevars.win64",
+        "Makevars.win",
+        "Makevars"
+      )
+    )
+  )
+  makevars <- unique(makevars[nzchar(makevars) & file.exists(makevars)])
+  compiler_vars <- c(
+    "CC",
+    "CXX",
+    "FC",
+    "F77",
+    "CFLAGS",
+    "CPPFLAGS",
+    "CXXFLAGS",
+    "FFLAGS",
+    "FCFLAGS",
+    "LDFLAGS",
+    "LIBS"
+  )
+  digest::digest(list(
+    flags = flags,
+    sysroot = sysroot,
+    makevars = vcapply(makevars, digest::digest, file = TRUE),
+    env = Sys.getenv(compiler_vars)
+  ))
+}
+
+# Records the settings the build is compiled with, returning whether they
+# differ from those of the last build, or if there wasn't one.
+update_build_settings <- function(build, flags, sysroot = NULL) {
+  file <- paste0(build, ".settings")
+  settings <- build_settings(flags, sysroot)
+  changed <- !file.exists(file) || !identical(readLines(file), settings)
+  if (changed) {
+    writeLines(settings, file)
+  }
+  changed
 }
 
 temp_dir_create <- function(pattern) {
@@ -349,33 +416,61 @@ read_rbuildignore <- function(path) {
   patterns[nzchar(patterns) & !grepl("^#", patterns)]
 }
 
+# Is the file, relative to the package, one that the compiled code is built
+# from or depends on?
+is_native_input <- function(x) {
+  grepl("^(src|inst/include)/", x) |
+    x %in% c("DESCRIPTION", "configure", "configure.win")
+}
+
 # Makes `build` a copy of the package at `path`, copying only the files that
-# are missing or changed, so that only changed sources are recompiled. Copies
-# get the current time, so they are always newer than their objects. Files
-# copied by a previous call that are no longer in the package are removed,
-# but not the files the build creates. Returns the changed files.
+# are missing or differ from when they were last copied, so that only changed
+# sources are recompiled. The size and modification time of each file when it
+# was copied are saved, and compared with those of the package, as copies get
+# the current time, so they are always newer than their objects. Files copied
+# by a previous call that are no longer in the package are removed, but not
+# the files the build creates. Returns the `changed` and `removed` files.
 sync_package_copy <- function(path, build) {
   files <- package_copy_files(path)
   manifest <- paste0(build, ".rds")
-  if (file.exists(manifest)) {
-    unlink(file.path(build, setdiff(readRDS(manifest), files)))
+  copied <- if (file.exists(manifest)) {
+    readRDS(manifest)
+  } else {
+    data.frame(
+      file = character(),
+      size = numeric(),
+      mtime = .POSIXct(numeric())
+    )
   }
+  removed <- setdiff(copied$file, files)
+  unlink(file.path(build, removed))
   dir.create(build, recursive = TRUE, showWarnings = FALSE)
-  saveRDS(files, manifest)
 
   from <- file.path(path, files)
   to <- file.path(build, files)
-  from_info <- file.info(from)
-  to_info <- file.info(to)
-  changed <- is.na(to_info$size) |
-    from_info$size != to_info$size |
-    from_info$mtime > to_info$mtime
+  info <- file.info(from)
+  current <- data.frame(
+    file = files,
+    size = info$size,
+    mtime = info$mtime,
+    stringsAsFactors = FALSE
+  )
+  previous <- copied[match(files, copied$file), ]
+  changed <- is.na(info$size) |
+    is.na(previous$size) |
+    !file.exists(to) |
+    (previous$size != info$size) %in% TRUE |
+    (previous$mtime != info$mtime) %in% TRUE
 
   for (dir in unique(dirname(to[changed]))) {
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   }
-  file.copy(from[changed], to[changed], overwrite = TRUE)
-  files[changed]
+  copy_ok <- file.copy(from[changed], to[changed], overwrite = TRUE)
+  # Copy a file that couldn't be copied again next time
+  current$size[which(changed)[!copy_ok]] <- NA_real_
+  saveRDS(current, manifest)
+
+  list(changed = files[changed], removed = removed)
 }
 
 # Replaces the DLL `name` at `from` with the one at `to` in the namespace

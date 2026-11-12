@@ -4,12 +4,16 @@
 \alias{cobertura}
 \title{Create a Cobertura XML file}
 \usage{
-cobertura(cov, filename = "cobertura.xml")
+cobertura(x, file = "cobertura.xml")
 }
 \arguments{
-\item{cov}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
+\item{x}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
 
-\item{filename}{the name of the Cobertura XML file}
+\item{file}{the name of the Cobertura XML file}
+}
+\value{
+The XML document (an \code{xml2} document), invisibly, after
+writing it to \code{file}.
 }
 \description{
 Create a

@@ -4,17 +4,18 @@
 \alias{badge}
 \title{Create a coverage badge}
 \usage{
-badge(cov, filename = "coverage.svg", label = "coverage")
+badge(x, file = "coverage.svg", label = "coverage")
 }
 \arguments{
-\item{cov}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
+\item{x}{the coverage object returned from \code{\link[=package_coverage]{package_coverage()}}}
 
-\item{filename}{the name of the SVG file}
+\item{file}{the name of the SVG file}
 
 \item{label}{the text on the left side of the badge}
 }
 \value{
-The lines of the SVG file, invisibly.
+The lines of the SVG file, invisibly, after writing them to
+\code{file}.
 }
 \description{
 Write an SVG badge showing the percent coverage, in the style of the badges

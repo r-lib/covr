@@ -13,9 +13,16 @@ gitlab(..., coverage = NULL, file = "public/coverage.html", quiet = TRUE)
 \code{\link[=package_coverage]{package_coverage()}} will be called with the arguments from
 \code{...}}
 
-\item{file}{The report filename.}
+\item{file}{The path of the HTML report, relative to the root directory of
+the package (not the working directory). Directories that don't exist are
+created.}
 
-\item{quiet}{if \code{FALSE}, print the coverage before submission.}
+\item{quiet}{if \code{FALSE}, print the output of running the tests (see
+\code{\link[=package_coverage]{package_coverage()}}, which is called when \code{coverage} is \code{NULL}) and the
+coverage before submission.}
+}
+\value{
+The path of the report, invisibly.
 }
 \description{
 Utilize internal GitLab static pages to publish package coverage.

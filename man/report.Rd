@@ -17,6 +17,10 @@ report(
 
 \item{browse}{whether to open a browser to view the report.}
 }
+\value{
+\code{report()} returns the absolute path of the report file,
+invisibly.
+}
 \description{
 \code{report()} saves the coverage report as a standalone HTML file and opens it.
 To include the report in a larger document, such as an R Markdown or Quarto

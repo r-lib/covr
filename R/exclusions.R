@@ -238,10 +238,7 @@ remove_line_duplicates <- function(x) {
 }
 
 parse_covr_ignore <- function(
-  file = getOption(
-    "covr.covrignore",
-    Sys.getenv("COVR_COVRIGNORE", ".covrignore")
-  )
+  file = string_setting("covr.covrignore", "COVR_COVRIGNORE", ".covrignore")
 ) {
   if (!file.exists(file)) {
     return(NULL)

@@ -22,9 +22,9 @@ SonarQube project. If the package is in a subdirectory of the project,
 set \code{path_prefix} to that subdirectory (e.g. \code{"pkg"} gives \code{pkg/R/foo.R}).}
 }
 \description{
-These functions are deprecated and warn once per session. They take the
-same arguments and return the same value as the functions that replace
-them:
+These functions are deprecated and warn once per session. They return the
+same value as the functions that replace them, and \code{cov} and \code{filename}
+are the \code{x} and \code{file} arguments of those functions:
 \itemize{
 \item \code{to_cobertura()} is now \code{\link[=cobertura]{cobertura()}}.
 \item \code{to_sonarqube()} is now \code{\link[=sonarqube]{sonarqube()}}.

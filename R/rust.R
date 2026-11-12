@@ -338,22 +338,16 @@ system_llvm_tool <- function(name, major) {
 # matches `empty`, which returns no output.
 llvm_tool_run <- function(tool, args, quiet = TRUE, empty = NULL) {
   if (!quiet) {
-    message(wrap_command(paste(
-      c(shQuote(tool), shQuote(args)),
-      collapse = " "
-    )))
+    message(wrap_command(command_line(tool, args)))
   }
-  errors_file <- tempfile()
-  on.exit(unlink(errors_file))
-  output <- suppressWarnings(
-    system2(tool, shQuote(args), stdout = TRUE, stderr = errors_file)
-  )
-  errors <- readLines(errors_file)
+  res <- run_command(tool, args)
+  output <- res$stdout
+  errors <- res$stderr
   if (!quiet && length(errors)) {
     message(paste(errors, collapse = "\n"))
   }
-  status <- attr(output, "status")
-  if (!is.null(status) && status != 0) {
+  status <- res$status
+  if (status != 0L) {
     if (!is.null(empty) && any(grepl(empty, errors, ignore.case = TRUE))) {
       return(character())
     }
