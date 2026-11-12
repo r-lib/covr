@@ -7,6 +7,9 @@
 #
 # Usage: VERSIONS="plain 3.6.5 aaa75cf" sh run-release.sh <bench> <reps> <tarball>...
 set -u
+# Coding agents set these, and testthat >= 3.3 then switches to its LLM
+# reporter, which fails testthat's own reporter tests and changes output.
+unset AGENT CLAUDECODE GEMINI_CLI CURSOR_AGENT OMPCODE
 bench=$1
 reps=$2
 shift 2
