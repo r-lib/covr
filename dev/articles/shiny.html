@@ -5,19 +5,17 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Coverage of Shiny apps • covr</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Coverage of Shiny apps">
 <meta name="robots" content="noindex">
-<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-115082821-1"></script><script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-115082821-1');
-</script>
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -105,10 +103,10 @@ R process as the tests, so the code it runs counts towards the coverage
 like any other test:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># tests/testthat/test-server.R</span></span>
-<span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_that.html" class="external-link">test_that</a></span><span class="op">(</span><span class="st">"the server doubles n"</span>, <span class="op">{</span></span>
+<span><span class="fu">test_that</span><span class="op">(</span><span class="st">"the server doubles n"</span>, <span class="op">{</span></span>
 <span>  <span class="fu">shiny</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/testServer.html" class="external-link">testServer</a></span><span class="op">(</span><span class="va">app_server</span>, <span class="op">{</span></span>
 <span>    <span class="va">session</span><span class="op">$</span><span class="fu">setInputs</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span>    <span class="fu"><a href="https://testthat.r-lib.org/reference/equality-expectations.html" class="external-link">expect_equal</a></span><span class="op">(</span><span class="va">output</span><span class="op">$</span><span class="va">out</span>, <span class="st">"4"</span><span class="op">)</span></span>
+<span>    <span class="fu">expect_equal</span><span class="op">(</span><span class="va">output</span><span class="op">$</span><span class="va">out</span>, <span class="st">"4"</span><span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -122,10 +120,10 @@ the app with the package’s functions, either by passing the app object
 to the driver:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># tests/testthat/test-app.R</span></span>
-<span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_that.html" class="external-link">test_that</a></span><span class="op">(</span><span class="st">"the app doubles n"</span>, <span class="op">{</span></span>
+<span><span class="fu">test_that</span><span class="op">(</span><span class="st">"the app doubles n"</span>, <span class="op">{</span></span>
 <span>  <span class="va">app</span> <span class="op">&lt;-</span> <span class="fu">shinytest2</span><span class="fu">::</span><span class="va"><a href="https://rstudio.github.io/shinytest2/reference/AppDriver.html" class="external-link">AppDriver</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="fu">run_app</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">app</span><span class="op">$</span><span class="fu">set_inputs</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://testthat.r-lib.org/reference/equality-expectations.html" class="external-link">expect_equal</a></span><span class="op">(</span><span class="va">app</span><span class="op">$</span><span class="fu">get_value</span><span class="op">(</span>output <span class="op">=</span> <span class="st">"out"</span><span class="op">)</span>, <span class="st">"4"</span><span class="op">)</span></span>
+<span>  <span class="fu">expect_equal</span><span class="op">(</span><span class="va">app</span><span class="op">$</span><span class="fu">get_value</span><span class="op">(</span>output <span class="op">=</span> <span class="st">"out"</span><span class="op">)</span>, <span class="st">"4"</span><span class="op">)</span></span>
 <span>  <span class="va">app</span><span class="op">$</span><span class="kw">stop</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p>or with an <code>app.R</code> in the tests that calls them,
@@ -178,10 +176,10 @@ its tests in the app’s <code>tests/testthat/</code> directory:</p>
 <span><span class="op">}</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># tests/testthat/test-app.R</span></span>
-<span><span class="fu"><a href="https://testthat.r-lib.org/reference/test_that.html" class="external-link">test_that</a></span><span class="op">(</span><span class="st">"the app triples n"</span>, <span class="op">{</span></span>
+<span><span class="fu">test_that</span><span class="op">(</span><span class="st">"the app triples n"</span>, <span class="op">{</span></span>
 <span>  <span class="va">app</span> <span class="op">&lt;-</span> <span class="fu">shinytest2</span><span class="fu">::</span><span class="va"><a href="https://rstudio.github.io/shinytest2/reference/AppDriver.html" class="external-link">AppDriver</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="va">app</span><span class="op">$</span><span class="fu">set_inputs</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://testthat.r-lib.org/reference/equality-expectations.html" class="external-link">expect_equal</a></span><span class="op">(</span><span class="va">app</span><span class="op">$</span><span class="fu">get_value</span><span class="op">(</span>output <span class="op">=</span> <span class="st">"out"</span><span class="op">)</span>, <span class="st">"6"</span><span class="op">)</span></span>
+<span>  <span class="fu">expect_equal</span><span class="op">(</span><span class="va">app</span><span class="op">$</span><span class="fu">get_value</span><span class="op">(</span>output <span class="op">=</span> <span class="st">"out"</span><span class="op">)</span>, <span class="st">"6"</span><span class="op">)</span></span>
 <span>  <span class="va">app</span><span class="op">$</span><span class="kw">stop</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">

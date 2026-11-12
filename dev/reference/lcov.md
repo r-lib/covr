@@ -8,23 +8,23 @@ plugins such as Coverage Gutters.
 ## Usage
 
 ``` r
-lcov(cov, filename = "lcov.info")
+lcov(x, file = "lcov.info")
 ```
 
 ## Arguments
 
-- cov:
+- x:
 
   the coverage object returned from
   [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
 
-- filename:
+- file:
 
   the name of the LCOV file
 
 ## Value
 
-The lines of the LCOV file, invisibly.
+The lines of the LCOV file, invisibly, after writing them to `file`.
 
 ## Details
 
@@ -65,7 +65,7 @@ tmp <- tempfile(fileext = ".info")
 lcov(cov, tmp)
 cat(readLines(tmp), sep = "\n")
 #> TN:
-#> SF:/tmp/RtmpNEgzHm/source.R18aa5c7323d4
+#> SF:/tmp/RtmpOeHbfo/source.R1967433986f6
 #> FN:2,f
 #> FN:5,g
 #> FNDA:1,f

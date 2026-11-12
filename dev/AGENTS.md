@@ -13,11 +13,12 @@ afterwards. Compiled code coverage uses gcov.
 
 - covr depends on `R (>= 4.0.0)`, so do not use the base pipe (`|>`),
   `\(x)` lambdas, or other syntax and functions newer than that.
-- Functions from optional dependencies such as httr must be called with
-  `pkg::fun()` (or a small wrapper in covr, which also makes them
-  mockable), not imported with `@importFrom`. Importing them makes them
-  load time dependencies, which causes cyclic namespace errors when
-  computing coverage of those packages (#623).
+- Functions from optional dependencies such as httr2 and curl (used for
+  uploads, in `R/http.R`) must be called with `pkg::fun()` (or a small
+  wrapper in covr, which also makes them mockable), not imported with
+  `@importFrom`. Importing them makes them load time dependencies, which
+  causes cyclic namespace errors when computing coverage of those
+  packages (#623).
 
 ### Tests
 
@@ -65,13 +66,30 @@ commit (or copy the files) first if you want to measure uncommitted
 work.
 
 When covr measures itself you will see
-`Can't find coverage from 1 R process that loaded covrShim`. This is
-expected: the SIGKILL test in `test-covr.R` (“package_coverage warns
-about processes that did not save a trace”) starts a child R that loads
-the inner `TestSummary` hooks, which load the outer, instrumented
-`covrShim` (writing a `covr_pending_<pid>_*` marker to the outer install
-dir) before the child kills itself, so that child’s `covrShim` coverage
-is lost by design.
+`Can't find coverage from 2 R processes that loaded covrShim`. Both are
+expected, and both are tests that deliberately kill a child R that loads
+the inner `TestSummary`/`TestS4` hooks. Those hooks load the outer,
+instrumented `covrShim` (writing a `covr_pending_<pid>_*` marker to the
+outer install dir) before the child is killed, so that child’s
+`covrShim` coverage is lost by design:
+
+- the SIGKILL test in `test-package_coverage.R` (“package_coverage warns
+  about processes that did not save a trace”), which kills a child R
+  running `dont_test_me(1, 2)` from `TestSummary`.
+- the “package_coverage reports killed code shown while it runs” test in
+  `test-package_coverage.R`, which runs
+  `tools::pskill(Sys.getpid(), tools::SIGKILL)` as `code` with
+  `show_code_output = TRUE` (the
+  `--vanilla --quiet -f TestS4-commands.Rout` child started by
+  `run_r_live()`) after
+  [`library('TestS4')`](https://rdrr.io/r/base/library.html).
+
+A different count means a new process that loads covrShim and doesn’t
+save its trace. To find it, temporarily make `register_trace()` and
+`save_trace_and_clear()` in the throwaway copy append
+[`Sys.getpid()`](https://rdrr.io/r/base/Sys.getpid.html) and
+[`commandArgs()`](https://rdrr.io/r/base/commandArgs.html) to a log
+file, and look for the pids that registered but never saved.
 
 ### Running on Windows
 

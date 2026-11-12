@@ -1,8 +1,8 @@
 # Deprecated functions
 
-These functions are deprecated and warn once per session. They take the
-same arguments and return the same value as the functions that replace
-them:
+These functions are deprecated and warn once per session. They return
+the same value as the functions that replace them, and `cov` and
+`filename` are the `x` and `file` arguments of those functions:
 
 - `to_cobertura()` is now
   [`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md).

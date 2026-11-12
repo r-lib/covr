@@ -65,9 +65,9 @@ Code run in processes forked by
 and related functions (not available on Windows) is included in the
 coverage. While the code runs, `parallel:::mcfork` and
 `parallel:::mcexit` are patched so that the forked processes save their
-counts when they exit. To turn this off, set the environment variable
-`COVR_FIX_PARALLEL_MCEXIT` or the option `covr.fix_parallel_mcexit` to
-`FALSE`.
+counts when they exit. To turn this off, set the option
+`covr.fix_parallel_mcexit` or the environment variable
+`COVR_FIX_PARALLEL_MCEXIT` to `FALSE`.
 
 ## testthat tests
 
@@ -146,16 +146,14 @@ code, and `options(covr.llvm_cov = "")` to leave out Rust code.
 ## Examples
 
 ``` r
-# For the purpose of this example, save code containing code and tests to files
-cat("add <- function(x, y) { x + y }", file="add.R")
-cat("add(1, 2) == 3", file="add_test.R")
+# Save code and tests to temporary files
+source_file <- tempfile(fileext = ".R")
+test_file <- tempfile(fileext = ".R")
+cat("add <- function(x, y) { x + y }", file = source_file)
+cat("add(1, 2) == 3", file = test_file)
 
 # Use file_coverage() to calculate test coverage
-file_coverage(source_files = "add.R", test_files = "add_test.R")
+file_coverage(source_files = source_file, test_files = test_file)
 #> Coverage: 100.00%
-#> add.R: 100.00%
-
-# cleanup
-file.remove(c("add.R", "add_test.R"))
-#> [1] TRUE TRUE
+#> /tmp/RtmpOeHbfo/file196729fa4b0a.R: 100.00%
 ```

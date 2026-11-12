@@ -76,7 +76,10 @@ codecov(
 
 - quiet:
 
-  if `FALSE`, print the coverage before submission.
+  if `FALSE`, print the output of running the tests (see
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md),
+  which is called when `coverage` is `NULL`) and the coverage before
+  submission.
 
 ## Value
 

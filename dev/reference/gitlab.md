@@ -26,8 +26,17 @@ gitlab(..., coverage = NULL, file = "public/coverage.html", quiet = TRUE)
 
 - file:
 
-  The report filename.
+  The path of the HTML report, relative to the root directory of the
+  package (not the working directory). Directories that don't exist are
+  created.
 
 - quiet:
 
-  if `FALSE`, print the coverage before submission.
+  if `FALSE`, print the output of running the tests (see
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md),
+  which is called when `coverage` is `NULL`) and the coverage before
+  submission.
+
+## Value
+
+The path of the report, invisibly.

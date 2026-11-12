@@ -20,12 +20,13 @@ places:
   execution.
 
 - `$<srcref>$tests`: For each srcref count in the coverage object, a
-  `$tests` field is now included which contains a matrix with three
-  columns, "test", "call", "depth" and "i" which specify the test number
-  (corresponding to the index of the test in `attr(,"tests")`, the
-  number of times the test expression was evaluated to produce the trace
-  hit, the stack depth into the target code where the trace was
-  executed, and the order of execution for each test.
+  `$tests` field is now included which contains a matrix with four
+  columns, "test", "call", "depth" and "i". "test" is the test number
+  (corresponding to the index of the test in `attr(,"tests")`), "call"
+  is the number of times the test expression was evaluated to produce
+  the trace hit, "depth" is the stack depth into the target code where
+  the trace was executed, and "i" is the order of execution for each
+  test.
 
 ## Test traces
 
@@ -57,6 +58,9 @@ environment replaced with
 [`emptyenv()`](https://rdrr.io/r/base/environment.html), so that the
 objects they enclose aren't saved with the coverage.
 
+To find which tests ran each line of code, use
+[`tally_tests()`](https://covr.r-lib.org/dev/reference/tally_tests.md).
+
 ## Examples
 
 ``` r
@@ -68,8 +72,10 @@ f <- function(x) {
     FALSE
 }'
 
-options(covr.record_tests = TRUE)
-cov <- code_coverage(fcode, "f(TRUE)")
+cov <- withr::with_options(
+  list(covr.record_tests = TRUE),
+  code_coverage(fcode, "f(TRUE)")
+)
 
 # extract executed test code for the first test
 tail(attr(cov, "tests")[[1L]], 1L)
@@ -97,16 +103,16 @@ cov[[3]][c("srcref", "tests")]
 
 # reconstruct the code path of a test by ordering test traces by [,"i"]
 lapply(cov, `[[`, "tests")
-#> $`source.R18aa58543c26:6:5:6:9:5:9:6:6`
-#>      test call depth i
-#> [1,]    1    1     2 4
-#> 
-#> $`source.R18aa58543c26:3:7:3:7:7:7:3:3`
+#> $`source.R19677b460468:3:7:3:7:7:7:3:3`
 #>      test call depth i
 #> [1,]    1    1     1 1
 #> [2,]    1    1     2 3
 #> 
-#> $`source.R18aa58543c26:4:5:4:9:5:9:4:4`
+#> $`source.R19677b460468:6:5:6:9:5:9:6:6`
+#>      test call depth i
+#> [1,]    1    1     2 4
+#> 
+#> $`source.R19677b460468:4:5:4:9:5:9:4:4`
 #>      test call depth i
 #> [1,]    1    1     1 2
 #> 

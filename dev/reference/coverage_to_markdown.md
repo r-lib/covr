@@ -30,6 +30,16 @@ A character vector of markdown lines, with class `"covr_markdown"`.
 ## Examples
 
 ``` r
+cov <- code_coverage(
+  "add <- function(x, y) { x + y }",
+  "add(1, 2)"
+)
+coverage_to_markdown(cov)
+#> | File | Coverage |
+#> | :--- | ---: |
+#> | Total | 100.00% |
+#> | /tmp/RtmpOeHbfo/source.R19676d9115a | 100.00% |
+
 if (FALSE) { # \dontrun{
 # In a GitHub Actions step
 md <- coverage_to_markdown(package_coverage())

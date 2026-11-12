@@ -13,8 +13,9 @@ package, C, C++, Fortran and Rust, together in one report.
 
 install.packages("covr")
 
-# For devel version
-devtools::install_github("r-lib/covr")
+# For the development version
+# install.packages("pak")
+pak::pak("r-lib/covr")
 ```
 
 The easiest way to setup covr on [Github
@@ -134,7 +135,7 @@ directory:
 Alternative locations for the file can be set by the environment
 variable `COVR_COVRIGNORE` or the R option `covr.covrignore`.
 
-The `.covrignore` file should be added to your `.RBuildignore` file
+The `.covrignore` file should be added to your `.Rbuildignore` file
 unless you want to distribute it with your package. If so it can be
 added to `inst/.covrignore` instead.
 
@@ -170,7 +171,7 @@ package_coverage(line_exclusions = "R/test.R")
 package_coverage(line_exclusions = list("R/test.R" = c(1:10, 15)))
 
 # exclude lines 1 to 10 from R/test.R, all of R/test2.R
-package_coverage(line_exclusions = list("R/test.R" = c(1, 10), "R/test2.R"))
+package_coverage(line_exclusions = list("R/test.R" = 1:10, "R/test2.R"))
 ```
 
 ## Exclusion Comments

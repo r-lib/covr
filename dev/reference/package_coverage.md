@@ -19,7 +19,6 @@ package_coverage(
   code = character(),
   install_path = temp_file("R_LIBS"),
   ...,
-  pre_clean,
   allow_failures = getOption("covr.allow_failures", FALSE),
   show_code_output = FALSE
 )
@@ -87,11 +86,6 @@ package_coverage(
   Use `outDir` to save the output of the tests and examples to a
   directory which is kept after coverage finishes; by default it is
   written to `install_path`.
-
-- pre_clean:
-
-  Deprecated and ignored. Objects present in the src directory are
-  always deleted before recompiling.
 
 - allow_failures:
 
@@ -165,9 +159,9 @@ code isn't measured on Windows, as rustup's Rust for the
 
 Parallelized code using parallel's `mcparallel()` needs to use a patched
 `parallel:::mcexit`. This is done automatically if the package depends
-on parallel, but can also be explicitly set using the environment
-variable `COVR_FIX_PARALLEL_MCEXIT` or the global option
-`covr.fix_parallel_mcexit`.
+on parallel, but can also be explicitly set using the global option
+`covr.fix_parallel_mcexit` or the environment variable
+`COVR_FIX_PARALLEL_MCEXIT`.
 
 ## See also
 

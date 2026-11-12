@@ -8,17 +8,17 @@ made locally and doesn't need a network connection.
 ## Usage
 
 ``` r
-badge(cov, filename = "coverage.svg", label = "coverage")
+badge(x, file = "coverage.svg", label = "coverage")
 ```
 
 ## Arguments
 
-- cov:
+- x:
 
   the coverage object returned from
   [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
 
-- filename:
+- file:
 
   the name of the SVG file
 
@@ -28,7 +28,7 @@ badge(cov, filename = "coverage.svg", label = "coverage")
 
 ## Value
 
-The lines of the SVG file, invisibly.
+The lines of the SVG file, invisibly, after writing them to `file`.
 
 ## Details
 

@@ -31,9 +31,7 @@ the columns:
   `tests/testthat/test-foo.R`. `NA` if the test has no source
   references.
 
-- `test`: the description of the enclosing
-  [`test_that()`](https://testthat.r-lib.org/reference/test_that.html)
-  or [`it()`](https://testthat.r-lib.org/reference/describe.html) call,
+- `test`: the description of the enclosing `test_that()` or `it()` call,
   or `NA`.
 
 - `value`: the number of times the test ran the line.
@@ -60,8 +58,8 @@ cov <- withr::with_options(
 tests <- tally_tests(cov)
 tests
 #>                               filename functions line            test_file
-#> 1 /tmp/RtmpNEgzHm/source.R18aa6bd54f4b         f    2 ./test.R18aa34ad43fd
-#> 2 /tmp/RtmpNEgzHm/source.R18aa6bd54f4b         f    2 ./test.R18aa34ad43fd
+#> 1 /tmp/RtmpOeHbfo/source.R19677b9796b5         f    2 ./test.R196715cc3eaf
+#> 2 /tmp/RtmpOeHbfo/source.R19677b9796b5         f    2 ./test.R196715cc3eaf
 #>   test_line test value
 #> 1         1 <NA>     1
 #> 2         2 <NA>     1
@@ -69,6 +67,6 @@ tests
 # The tests that ran lines 1 to 2
 unique(tests[tests$line %in% 1:2, c("test_file", "test_line")])
 #>              test_file test_line
-#> 1 ./test.R18aa34ad43fd         1
-#> 2 ./test.R18aa34ad43fd         2
+#> 1 ./test.R196715cc3eaf         1
+#> 2 ./test.R196715cc3eaf         2
 ```

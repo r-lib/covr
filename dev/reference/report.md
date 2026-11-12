@@ -31,6 +31,10 @@ report(
 
   whether to open a browser to view the report.
 
+## Value
+
+`report()` returns the absolute path of the report file, invisibly.
+
 ## Branches
 
 If branch coverage was measured with

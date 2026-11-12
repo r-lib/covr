@@ -58,6 +58,7 @@ percentage of branches taken.
 [`file_report()`](https://covr.r-lib.org/dev/reference/file_report.md),
 [`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md),
 [`cobertura()`](https://covr.r-lib.org/dev/reference/cobertura.md),
+[`sonarqube()`](https://covr.r-lib.org/dev/reference/sonarqube.md),
 [`codecov()`](https://covr.r-lib.org/dev/reference/codecov.md) and
 [`coveralls()`](https://covr.r-lib.org/dev/reference/coveralls.md)
 include the branches. The reports show the number of branches taken on
@@ -66,8 +67,6 @@ line with branches that weren't all taken as partly covered. Codecov
 shows such lines as partly covered too, and counts them as not covered
 in the coverage percentage, so the percentage on Codecov is lower with
 branch coverage.
-[`sonarqube()`](https://covr.r-lib.org/dev/reference/sonarqube.md)
-doesn't include the branches yet.
 
 ## Examples
 
@@ -80,8 +79,8 @@ withr::with_options(list(covr.branch_coverage = TRUE), {
 })
 tally_coverage(cov, by = "branch")
 #>                               filename functions line column branch label value
-#> 1 /tmp/RtmpNEgzHm/source.R18aa61c7a1a3         f    2      3      1  TRUE     1
-#> 2 /tmp/RtmpNEgzHm/source.R18aa61c7a1a3         f    2      3      2 FALSE     0
+#> 1 /tmp/RtmpOeHbfo/source.R196756e884e0         f    2      3      1  TRUE     1
+#> 2 /tmp/RtmpOeHbfo/source.R196756e884e0         f    2      3      2 FALSE     0
 percent_coverage(cov, by = "branch")
 #> [1] 50
 ```

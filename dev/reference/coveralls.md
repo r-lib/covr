@@ -15,7 +15,7 @@ instead, as the action reads which branches were taken from it.
 coveralls(
   ...,
   coverage = NULL,
-  repo_token = Sys.getenv("COVERALLS_TOKEN"),
+  repo_token = env_var("COVERALLS_TOKEN", "COVERALLS_REPO_TOKEN"),
   service_name = NULL,
   quiet = TRUE
 )
@@ -37,10 +37,14 @@ coveralls(
 - repo_token:
 
   The secret repo token for your repository, found on your repository's
-  page on Coveralls. Without a token (`""` or `NULL`), only the CI
-  service and job are submitted, which Coveralls only accepts from
-  Travis CI. With a token, information about the git commit, branch and
-  remote is also submitted.
+  page on Coveralls. The default is the environment variable
+  `COVERALLS_TOKEN`, or if it is not set, `COVERALLS_REPO_TOKEN`, the
+  name Coveralls uses for it. Coveralls requires a token (see
+  <https://docs.coveralls.io/api-jobs-endpoint>). Without one (`""` or
+  `NULL`), only the CI service and job are submitted, which Coveralls
+  rejects unless the CI service identifies the repository by itself.
+  With a token, information about the git commit, branch and remote is
+  also submitted.
 
 - service_name:
 
@@ -51,7 +55,17 @@ coveralls(
 
 - quiet:
 
-  if `FALSE`, print the coverage before submission.
+  if `FALSE`, print the output of running the tests (see
+  [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md),
+  which is called when `coverage` is `NULL`) and the coverage before
+  submission.
+
+## Value
+
+The response of Coveralls, parsed from JSON, invisibly. If Coveralls
+doesn't accept the upload, `coveralls()` throws an error of class
+`covr_coveralls_error` with the HTTP status and the response of
+Coveralls in its message.
 
 ## Details
 

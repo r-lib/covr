@@ -12,19 +12,24 @@ zero is reported.
 ## Usage
 
 ``` r
-cobertura(cov, filename = "cobertura.xml")
+cobertura(x, file = "cobertura.xml")
 ```
 
 ## Arguments
 
-- cov:
+- x:
 
   the coverage object returned from
   [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
 
-- filename:
+- file:
 
   the name of the Cobertura XML file
+
+## Value
+
+The XML document (an `xml2` document), invisibly, after writing it to
+`file`.
 
 ## Details
 

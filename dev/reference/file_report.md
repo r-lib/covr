@@ -40,6 +40,8 @@ file_report_html(x = package_coverage(), file = NULL)
 
 ## Value
 
+`file_report()` returns the absolute path of the report file, invisibly.
+
 `file_report_html()` returns an
 [`htmltools::tagList()`](https://rstudio.github.io/htmltools/reference/tagList.html),
 with the dependencies of the report attached.
