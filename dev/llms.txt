@@ -385,6 +385,8 @@ Run code or tests and record which expressions were evaluated.
   : Calculate coverage of an environment
 - [`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md)
   : Calculate coverage of arbitrary code run against an environment
+- [`current_coverage()`](https://covr.r-lib.org/dev/reference/current_coverage.md)
+  : Coverage measured so far in the current process
 - [`shiny_app_coverage()`](https://covr.r-lib.org/dev/reference/shiny_app_coverage.md)
   : Calculate test coverage for a Shiny app
 - [`covr`](https://covr.r-lib.org/dev/reference/covr-package.md)

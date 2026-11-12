@@ -548,6 +548,14 @@ see “Changes to reported coverage” below.
 ### Working with coverage results
 
 - New
+  [`current_coverage()`](https://covr.r-lib.org/dev/reference/current_coverage.md)
+  returns the coverage measured so far in the current process, and can
+  reset the counts, so code run by covr can measure the coverage of
+  parts of a run, such as each test file. Use it rather than reading
+  covr’s internal counters, whose counts are now kept in C until they
+  are read.
+
+- New
   [`annotate_coverage()`](https://covr.r-lib.org/dev/reference/annotate_coverage.md)
   shows the source of the missed lines, or any other lines, as plain
   text with their execution counts, so coverage can be read without the
