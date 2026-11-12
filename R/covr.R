@@ -173,6 +173,54 @@
 #' @useDynLib covr, .registration = TRUE
 "_PACKAGE"
 
+#' Coverage measured so far in the current process
+#'
+#' `current_coverage()` returns the coverage that instrumented code has
+#' recorded so far in the current R process. Call it from code that covr runs,
+#' such as the `code` of [package_coverage()] or [with_coverage()], to measure
+#' the coverage of parts of a run, e.g. of each test file in turn.
+#'
+#' Only the current process is included: code run in other processes, e.g. by
+#' [parallel::mclapply()], is added to the coverage that covr returns at the
+#' end of the run, but not to that of `current_coverage()`. No exclusions are
+#' applied.
+#'
+#' @param reset If `TRUE`, set the counts of all traces to zero after reading
+#'   them, so the next call only includes code run after this one. The coverage
+#'   returned at the end of the run then also only includes code run after the
+#'   last reset.
+#' @return A [coverage] object, with no traces if no code was instrumented.
+#' @export
+#' @examples
+#' env <- new.env()
+#' code <- "f <- function(x) {
+#'   if (x) {
+#'     'yes'
+#'   } else {
+#'     'no'
+#'   }
+#' }"
+#' eval(parse(text = code, keep.source = TRUE), env)
+#' with_coverage(
+#'   {
+#'     env$f(TRUE)
+#'     first <- current_coverage(reset = TRUE)
+#'     env$f(FALSE)
+#'     second <- current_coverage()
+#'   },
+#'   env = env
+#' )
+#' tally_coverage(first)
+#' tally_coverage(second)
+current_coverage <- function(reset = FALSE) {
+  sync_counts()
+  coverage <- as_coverage(.counters)
+  if (isTRUE(reset)) {
+    zero_counters()
+  }
+  coverage
+}
+
 #' Determine if code is being run in covr
 #'
 #' covr functions set the environment variable `R_COVR` to `"true"` while they
