@@ -26,6 +26,25 @@ test_that("with_coverage() sets R_COVR while evaluating code", {
   expect_equal(Sys.getenv("R_COVR", ""), "")
 })
 
+test_that("current_coverage() returns the counts so far, and resets them", {
+  env <- local_fixture_env()
+
+  cov <- with_coverage(
+    {
+      env$add(1, 2)
+      env$add(1, 2)
+      first <- current_coverage(reset = TRUE)
+      env$add(-1, 2)
+      second <- current_coverage()
+    },
+    env = env
+  )
+
+  expect_equal(as.data.frame(first)$value, c(2, 2, 0))
+  expect_equal(as.data.frame(second)$value, c(1, 0, 1))
+  expect_equal(as.data.frame(cov)$value, c(1, 0, 1))
+})
+
 test_that("with_coverage() supports exclusions", {
   env <- local_fixture_env()
 
