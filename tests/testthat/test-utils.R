@@ -133,7 +133,7 @@ test_that("as_package() errors if the path isn't in a package", {
   expect_snapshot(
     as_package(dir),
     error = TRUE,
-    transform = function(x) gsub(dir, "<dir>", x, fixed = TRUE)
+    transform = function(x) gsub(normalize_path(dir), "<dir>", x, fixed = TRUE)
   )
 })
 
@@ -180,11 +180,15 @@ test_that("read_description errors if there is no DESCRIPTION file", {
 test_that("normalize_path() strips trailing slashes but keeps roots", {
   dir <- withr::local_tempdir()
   expect_equal(normalize_path(paste0(dir, "//")), normalize_path(dir))
-  expect_equal(normalize_path("/"), "/")
-  expect_equal(normalize_path("//"), "/")
+  expect_match(normalize_path("/"), "^([A-Za-z]:)?/$")
   expect_equal(normalize_path("C:/"), "C:/")
   expect_equal(normalize_path("C:/foo/"), "C:/foo")
-  expect_equal(normalize_path(c("/", NA)), c("/", NA))
+  expect_equal(normalize_path(c("/", NA)), c(normalize_path("/"), NA))
+})
+
+test_that("normalize_path() keeps a root of slashes", {
+  skip_on_os("windows")
+  expect_equal(normalize_path("//"), "/")
 })
 
 test_that("package_root() stops at the filesystem root", {

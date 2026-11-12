@@ -6,7 +6,7 @@ test_that("gitlab writes the report in the package directory", {
 
   report <- file.path(normalizePath(path), "public", "coverage.html")
   expect_true(file.exists(report))
-  expect_equal(res, report)
+  expect_equal(normalize_path(res), normalize_path(report))
 })
 
 test_that("gitlab's file is relative to the package directory", {

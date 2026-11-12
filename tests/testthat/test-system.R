@@ -71,7 +71,8 @@ test_that("system_output() shows the command's standard error unless quiet", {
 test_that("system_output() errors for a command that can't be run", {
   expect_snapshot(
     system_output("covr-command-that-does-not-exist", quiet = TRUE),
-    error = TRUE
+    error = TRUE,
+    transform = function(x) gsub("\"", "'", x, fixed = TRUE)
   )
 })
 

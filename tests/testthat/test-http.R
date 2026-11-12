@@ -46,7 +46,10 @@ test_that("http_request() sends files as a multipart form", {
   expect_equal(sent$method, "POST")
   expect_equal(sent$body$type, "multipart")
   expect_s3_class(sent$body$data$json_file, "form_file")
-  expect_equal(unclass(sent$body$data$json_file)$path, file)
+  expect_equal(
+    normalizePath(unclass(sent$body$data$json_file)$path),
+    normalizePath(file)
+  )
 })
 
 test_that("http_is_transient() retries rate limiting and server errors", {

@@ -782,15 +782,16 @@ test_that("resolve_gcov() looks for gcov unless covr.gcov is set", {
 
 test_that("resolve_gcov() finds gcov with the build tools on the PATH", {
   withr::local_options(covr.gcov = NULL)
+  bin <- file.path(withr::local_tempdir(), "rtools", "bin")
   local_mocked_bindings(
     with_build_tools = function(code) {
-      withr::local_path("/rtools/bin")
+      withr::local_path(bin)
       code
     },
     find_gcov = function() Sys.getenv("PATH")
   )
 
-  expect_match(resolve_gcov(), "/rtools/bin", fixed = TRUE)
+  expect_match(resolve_gcov(), "rtools", fixed = TRUE)
 })
 
 test_that("in_package_path() compares whole path components", {

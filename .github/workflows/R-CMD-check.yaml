@@ -41,8 +41,9 @@ jobs:
           # Check the minimum supported R version. Current packages (e.g.
           # testthat >= 3.3) need R >= 4.1, so use a snapshot of CRAN from before
           # they dropped R 4.0, like setup-r does for R 3.6.
-          # httr2 >= 1.2.0 needs R >= 4.1, so install the last version for R 4.0.
-          - {os: ubuntu-22.04,    r: '4.0', rspm: 'https://packagemanager.posit.co/cran/__linux__/jammy/2025-09-01', pin: 'httr2@1.1.2'}
+          # httr2 >= 1.2.0 needs R >= 4.1, so install the last version for R 4.0
+          # and ignore paws.common, which it only suggests but needs R >= 4.1.
+          - {os: ubuntu-22.04,    r: '4.0', rspm: 'https://packagemanager.posit.co/cran/__linux__/jammy/2025-09-01', pin: 'httr2@1.1.2, paws.common=?ignore'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}

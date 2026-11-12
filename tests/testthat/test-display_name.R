@@ -42,25 +42,30 @@ test_that("to_relative_path() only strips a root at the start of the path", {
 test_that("path_in_roots() compares whole path components", {
   expect_equal(
     path_in_roots(
-      c("/tmp/pkg/R/a.R", "/tmp/pkg2/R/a.R", "/other/tmp/pkg/R/a.R", NA),
+      normalize_path(
+        c("/tmp/pkg/R/a.R", "/tmp/pkg2/R/a.R", "/other/tmp/pkg/R/a.R", NA)
+      ),
       "/tmp/pkg"
     ),
     c(TRUE, FALSE, FALSE, NA)
   )
   expect_equal(
-    path_in_roots(c("/a/x.c", "/b/y.c", "/c/z.c"), c("/a", "/b/")),
+    path_in_roots(
+      normalize_path(c("/a/x.c", "/b/y.c", "/c/z.c")),
+      c("/a", "/b/")
+    ),
     c(TRUE, TRUE, FALSE)
   )
 })
 
 test_that("filter_non_package_files() keeps the files in the package", {
   cov <- coverage_of_files(
-    c(
+    normalize_path(c(
       "/tmp/pkg/R/a.R",
       "/tmp/pkg/src/b.c",
       "/other/tmp/pkg/R/a.R",
       "/tmp/pkg2/R/a.R"
-    ),
+    )),
     package_path = "/tmp/pkg"
   )
 
@@ -69,14 +74,14 @@ test_that("filter_non_package_files() keeps the files in the package", {
     unname(vcapply(filtered, function(x) {
       get_source_filename(x$srcref, full.names = TRUE)
     })),
-    c("/tmp/pkg/R/a.R", "/tmp/pkg/src/b.c")
+    normalize_path(c("/tmp/pkg/R/a.R", "/tmp/pkg/src/b.c"))
   )
   expect_s3_class(filtered, "coverage")
   expect_equal(attr(filtered, "package"), list(path = "/tmp/pkg"))
 })
 
 test_that("covr.gcov_additional_paths keeps the native files in them", {
-  files <- c(
+  files <- normalize_path(c(
     "/tmp/pkg/R/a.R",
     "/ext/lib/x.c",
     "/ext/lib/x.h",
@@ -84,7 +89,7 @@ test_that("covr.gcov_additional_paths keeps the native files in them", {
     "/ext/lib/not-native.R",
     "/ext2/lib/y.c",
     "/elsewhere/z.c"
-  )
+  ))
   cov <- coverage_of_files(files, package_path = "/tmp/pkg")
   kept <- function() {
     unname(vcapply(filter_non_package_files(cov), function(x) {
@@ -92,7 +97,7 @@ test_that("covr.gcov_additional_paths keeps the native files in them", {
     }))
   }
 
-  expect_equal(kept(), "/tmp/pkg/R/a.R")
+  expect_equal(kept(), files[1])
 
   withr::local_options(covr.gcov_additional_paths = "/ext")
   expect_equal(kept(), files[1:4])
