@@ -15,5 +15,5 @@
       with_coverage(quiet_test_file("TestFailure", stop_on_failure = TRUE), env = ns)
     Condition
       Error:
-      ! Test failures.
+      ! Test failures
 

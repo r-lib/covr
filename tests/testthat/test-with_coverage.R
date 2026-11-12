@@ -271,7 +271,8 @@ test_that("with_coverage() cleans up when a test file fails", {
       quiet_test_file("TestFailure", stop_on_failure = TRUE),
       env = ns
     ),
-    error = TRUE
+    error = TRUE,
+    transform = function(x) sub("Test failures[.]?$", "Test failures", x)
   )
 
   expect_identical(body(ns$covered), original)

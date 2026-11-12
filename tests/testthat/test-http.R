@@ -16,11 +16,17 @@ test_that("http_request() sends a request and returns the response", {
   expect_equal(sent$method, "PUT")
   expect_equal(sent$url, "https://example.com/upload")
   expect_equal(sent$body$data, charToRaw("data"))
-  headers <- httr2::req_get_headers(sent, redacted = "reveal")
-  expect_equal(headers$`Content-Type`, "text/plain")
-  expect_equal(headers$Authorization, "token abc")
+  headers <- httr2::req_dry_run(
+    sent,
+    redact_headers = FALSE,
+    quiet = TRUE
+  )$headers
+  expect_equal(headers$`content-type`, "text/plain")
+  expect_equal(headers$authorization, "token abc")
   # The token is redacted
-  expect_named(httr2::req_get_headers(sent), "Content-Type")
+  redacted <- httr2::req_dry_run(sent, quiet = TRUE)$headers
+  expect_equal(redacted$`content-type`, "text/plain")
+  expect_false(identical(redacted$authorization, "token abc"))
   # HTTP/1.1
   expect_equal(sent$options$http_version, 2L)
 })
