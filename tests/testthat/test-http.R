@@ -24,9 +24,9 @@ test_that("http_request() sends a request and returns the response", {
   expect_equal(headers$`content-type`, "text/plain")
   expect_equal(headers$authorization, "token abc")
   # The token is redacted
-  redacted <- httr2::req_dry_run(sent, quiet = TRUE)$headers
-  expect_equal(redacted$`content-type`, "text/plain")
-  expect_false(identical(redacted$authorization, "token abc"))
+  shown <- capture.output(httr2::req_dry_run(sent))
+  expect_match(shown, "authorization", ignore.case = TRUE, all = FALSE)
+  expect_no_match(shown, "token abc")
   # HTTP/1.1
   expect_equal(sent$options$http_version, 2L)
 })
