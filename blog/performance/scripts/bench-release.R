@@ -48,19 +48,6 @@ dir.create(src_dir)
 untar(tarball, exdir = src_dir)
 src <- file.path(src_dir, pkg)
 
-has_testthat <- dir.exists(file.path(src, "tests", "testthat"))
-test_code <- if (has_testthat) {
-  sprintf(
-    "Sys.setenv(NOT_CRAN = 'true'); testthat::test_dir(system.file('tests/testthat', package = '%s'), package = '%s', load_package = 'installed', reporter = 'silent', stop_on_failure = FALSE, stop_on_warning = FALSE)",
-    pkg,
-    pkg
-  )
-} else {
-  sprintf(
-    "Sys.setenv(NOT_CRAN = 'true'); setwd(system.file('tests', package = '%s')); for (f in sort(list.files(pattern = '[.]R$'))) tryCatch(sys.source(f, envir = new.env(parent = globalenv())), error = function(e) message(f, ': ', conditionMessage(e)))",
-    pkg
-  )
-}
 
 invisible(suppressPackageStartupMessages(loadNamespace("covr")))
 covr_version <- as.character(packageVersion("covr"))
@@ -115,24 +102,17 @@ for (i in seq_along(phases)) {
 }
 
 cov <- NULL
-# COVR_BENCH_TYPE=tests runs the package's tests the way R CMD check does, each
-# script in tests/ in its own process (type = "tests"), for packages whose
-# test scripts can't share one process (future). The run then fails if any
-# test fails, as covr 3.6.5 has no `allow_failures`.
-bench_type <- Sys.getenv("COVR_BENCH_TYPE", "code")
-total <- timed(
-  cov <- if (identical(bench_type, "tests")) {
-    covr::package_coverage(src, type = "tests", quiet = TRUE, clean = FALSE)
-  } else {
-    covr::package_coverage(
-      src,
-      type = "none",
-      code = test_code,
-      quiet = TRUE,
-      clean = FALSE
-    )
-  }
-)
+# Run the tests the way users do: package_coverage() with its default
+# type = "tests", i.e. tests/*.R via tools::testInstalledPackage(), as R CMD
+# check does. covr >= 4.0.0 keeps the coverage when tests fail
+# (allow_failures); covr 3.6.5 errors after the tests have run, and the run is
+# recorded as failed with its wall time.
+Sys.setenv(NOT_CRAN = "true")
+args <- list(src, type = "tests", quiet = TRUE, clean = FALSE)
+if ("allow_failures" %in% names(formals(covr::package_coverage))) {
+  args$allow_failures <- TRUE
+}
+total <- timed(cov <- suppressWarnings(do.call(covr::package_coverage, args)))
 for (x in traced) {
   suppressMessages(untrace(x[[1]], where = asNamespace(x[[2]])))
 }

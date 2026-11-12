@@ -24,11 +24,9 @@ st <- system2(rbin, c("CMD", "INSTALL", "--install-tests", "-l", shQuote(lib), s
 install <- now() - t0
 if (st != 0) stop("install failed")
 
-# Run the tests the way covr does (R/covr.R), minus instrumenting, under the
-# same environment variables, so the same tests run and skip:
-# - type = "tests": tools::testInstalledPackage();
-# - otherwise (type = "none" with code): `library(pkg)` and the code, run with
-#   R CMD BATCH --vanilla, as covr's run_commands() does.
+# Run the tests the way package_coverage(type = "tests") does (R/covr.R),
+# minus instrumenting: tools::testInstalledPackage() under the same
+# environment variables, so the same tests run and skip.
 env <- c(
   R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
   R_LIBS = libs,
@@ -37,27 +35,12 @@ env <- c(
   R_TESTS = file.path(R.home("share"), "R", "tests-startup.R"),
   NOT_CRAN = "true"
 )
-tests <- file.path(lib, pkg, "tests")
 out_dir <- tempfile("out")
 dir.create(out_dir)
 t1 <- now()
-if (identical(Sys.getenv("COVR_BENCH_TYPE"), "tests")) {
-  withr::with_envvar(env, tools::testInstalledPackage(pkg, lib.loc = lib, outDir = out_dir, types = "tests"))
-} else {
-  code <- if (dir.exists(file.path(tests, "testthat"))) {
-    sprintf("Sys.setenv(NOT_CRAN = 'true'); testthat::test_dir(system.file('tests/testthat', package = '%s'), package = '%s', load_package = 'installed', reporter = 'silent', stop_on_failure = FALSE, stop_on_warning = FALSE)", pkg, pkg)
-  } else {
-    sprintf("Sys.setenv(NOT_CRAN = 'true'); setwd(system.file('tests', package = '%s')); for (f in sort(list.files(pattern = '[.]R$'))) tryCatch(sys.source(f, envir = new.env(parent = globalenv())), error = function(e) message(f, ': ', conditionMessage(e)))", pkg)
-  }
-  infile <- file.path(out_dir, "commands.R")
-  writeLines(c(sprintf("library('%s')", pkg), code), infile)
-  withr::with_envvar(env, system(paste(
-    shQuote(file.path(R.home("bin"), "R")), "CMD BATCH --vanilla --no-timing",
-    shQuote(infile), shQuote(file.path(out_dir, "commands.Rout"))
-  )))
-}
+status <- withr::with_envvar(env, tools::testInstalledPackage(pkg, lib.loc = lib, outDir = out_dir, types = "tests"))
 run_code <- now() - t1
 res <- list(label = "plain", pkg = pkg, total = install + run_code, install = install,
-  run_code = run_code, merge = 0)
+  run_code = run_code, merge = 0, tests_failed = status != 0L)
 saveRDS(res, out)
 cat(sprintf("plain %s: %.1f s (install %.1f, tests %.1f)\n", pkg, res$total, install, run_code))

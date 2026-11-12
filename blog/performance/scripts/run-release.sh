@@ -1,11 +1,11 @@
 #!/bin/sh
 # Interleaved runs of bench-release.R comparing covr versions on R 4.6.2,
-# writing <bench>/out/<OUT_SUBDIR, default release>/<covr>-<pkg>-<rep>.{rds,log,time}.
-# report() is only timed in the first rep. Runs that already have an .rds are
-# skipped, so the script can be resumed. COVR_BENCH_TYPE is passed on to
-# bench-release.R.
+# writing <OUT_DIR>/<version>-<pkg>-<rep>.{rds,log,time,load}. The version
+# "plain" runs the same tests without covr (bench-plain.R). report() is only
+# timed in the first rep. Runs that already have an .rds are skipped, so the
+# script can be resumed.
 #
-# Usage: VERSIONS="3.6.5 aaa75cf" sh run-release.sh <bench> <reps> <tarball>...
+# Usage: VERSIONS="plain 3.6.5 aaa75cf" sh run-release.sh <bench> <reps> <tarball>...
 set -u
 bench=$1
 reps=$2
@@ -53,10 +53,21 @@ for rep in $(seq "$reps"); do
       echo "load=$load host_cpu=${cpu:-NA} waited=$waited" >"$out.load"
       report=true
       [ "$rep" -gt 1 ] && report=false
-      COVR_BENCH_REPORT=$report R_LIBS=$lib/covr-$v:$lib/deps \
+      # "plain" runs the same tests without covr (bench-plain.R).
+      if [ "$v" = plain ]; then
+        libs=$lib/deps
+        script=bench-plain.R
+        rargs="$tarball $out.rds"
+      else
+        libs=$lib/covr-$v:$lib/deps
+        script=bench-release.R
+        rargs="$tarball $v $out.rds"
+      fi
+      # shellcheck disable=SC2086
+      COVR_BENCH_REPORT=$report R_LIBS=$libs \
         timeout "${RUN_TIMEOUT:-3600}" memcap "${MEMCAP:-6G}" \
         /usr/bin/time -f 'maxrss_kb=%M wall=%e' -o "$out.time" \
-        /opt/R/4.6.2/bin/Rscript --no-init-file "$here/bench-release.R" "$tarball" "$v" "$out.rds" \
+        /opt/R/4.6.2/bin/Rscript --no-init-file "$here/$script" $rargs \
         >"$out.log" 2>&1 || echo "  failed: $v $pkg rep $rep (see $out.log)"
     done
   done

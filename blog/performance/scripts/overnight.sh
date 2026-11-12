@@ -22,7 +22,9 @@ tarballs() {
   for p in "$@"; do ls "$bench"/src/"${p}"_*.tar.gz; done
 }
 
-final=$here/../results/final
+# Results of the type = "tests" benchmark. The earlier runs, made with
+# type = "none" and testthat::test_dir(), are in results/final.
+final=$here/../results/tests
 mkdir -p "$final"
 # Coverage objects from run 1 of each package and version, for benchmarking
 # post-processing later (kept out of the repository; they can be large).
@@ -40,18 +42,13 @@ fi
 echo "covr main: $sha"
 [ -d "$lib/covr-$sha/covr" ] || run sh "$repo/performance-audit/setup-commits.sh" "$bench" 4.6.2 "$sha"
 
-# 2. Both versions on every package, interleaved, on a quiet machine.
-# Packages whose tests can't share one process, or that use tinytest, run with
-# type = "tests" in release-tests.
-pkgs="forcats purrr checkmate roxygen2 tidyr testthat devtools dplyr cli lintr targets recipes data.table ggplot2 Luminescence mlr3 insight posterior igraph sf quanteda distributional collapse ggdist"
+# 2. Every package with type = "tests" (as users run it), interleaving the
+# no-coverage baseline ("plain"), covr 3.6.5 and covr main, on a quiet machine.
+pkgs="forcats purrr checkmate roxygen2 tidyr testthat devtools dplyr cli lintr targets recipes data.table ggplot2 Luminescence mlr3 insight posterior igraph sf quanteda distributional collapse ggdist future digest"
+run env VERSIONS="plain 3.6.5 $sha" OUT_DIR="$final/release" sh "$here/run-release.sh" "$bench" 3 $(tarballs $pkgs)
 # languageserver: covr 3.6.5 needs over an hour and then runs out of memory
-# merging (#744); that is documented in #747, so only 4.0.0 is run, three
-# times.
-tests_mode="future digest"
-run env VERSIONS="3.6.5 $sha" OUT_DIR="$final/release" sh "$here/run-release.sh" "$bench" 3 $(tarballs $pkgs)
-run env COVR_BENCH_TYPE=tests OUT_DIR="$final/release-tests" VERSIONS="3.6.5 $sha" \
-  sh "$here/run-release.sh" "$bench" 3 $(tarballs $tests_mode)
-run env VERSIONS="$sha" OUT_DIR="$final/release" sh "$here/run-release.sh" "$bench" 3 $(tarballs languageserver)
+# merging (#744, documented in #747), so only the baseline and covr main.
+run env VERSIONS="plain $sha" OUT_DIR="$final/release" sh "$here/run-release.sh" "$bench" 3 $(tarballs languageserver)
 
 # 3. Overhead per counted expression.
 run mkdir -p "$final/counter"
@@ -62,12 +59,12 @@ for v in 3.6.5 "$sha"; do
 done
 
 # 4. Summarise and plot.
-run sh -c "\"$rscript\" --no-init-file \"$here/summarise-release.R\" \"$sha\" \
-  \"$final/release\" \"$final/release-tests\" > \"$final/summary.md\""
+run sh -c "\"$rscript\" --no-init-file \"$here/summarise-tests.R\" \"$sha\" \
+  \"$final/release\" > \"$final/summary.md\""
 for plot in runs relative log; do
   script=$here/plot-release-$plot.R
   [ "$plot" = log ] && script=$here/plot-release.R
   run env R_LIBS="$lib/deps" "$rscript" --no-init-file "$script" "$sha" \
-    "$final/benchmarks-$plot.png" "$final/release" "$final/release-tests"
+    "$final/benchmarks-$plot.png" "$final/release"
 done
 echo "done: $(date)"
