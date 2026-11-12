@@ -24,23 +24,38 @@ st <- system2(rbin, c("CMD", "INSTALL", "--install-tests", "-l", shQuote(lib), s
 install <- now() - t0
 if (st != 0) stop("install failed")
 
+# Run the tests the way covr does (R/covr.R), minus instrumenting, under the
+# same environment variables, so the same tests run and skip:
+# - type = "tests": tools::testInstalledPackage();
+# - otherwise (type = "none" with code): `library(pkg)` and the code, run with
+#   R CMD BATCH --vanilla, as covr's run_commands() does.
+env <- c(
+  R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
+  R_LIBS = libs,
+  R_LIBS_USER = libs,
+  R_COVR = "true",
+  R_TESTS = file.path(R.home("share"), "R", "tests-startup.R"),
+  NOT_CRAN = "true"
+)
 tests <- file.path(lib, pkg, "tests")
-code <- if (identical(Sys.getenv("COVR_BENCH_TYPE"), "tests")) {
-  # Each script in its own R process, as R CMD check does.
-  sprintf("for (f in sort(list.files(%s, pattern = '[.]R$', full.names = TRUE))) system2(%s, c('--no-echo', '--no-restore', '-f', shQuote(f)), stdout = FALSE, stderr = FALSE)",
-    deparse(tests), deparse(file.path(R.home("bin"), "R")))
-} else if (dir.exists(file.path(tests, "testthat"))) {
-  sprintf("testthat::test_dir(%s, package = %s, load_package = 'installed', reporter = 'silent', stop_on_failure = FALSE, stop_on_warning = FALSE)",
-    deparse(file.path(tests, "testthat")), deparse(pkg))
-} else {
-  sprintf("setwd(%s); for (f in sort(list.files(pattern = '[.]R$'))) tryCatch(sys.source(f, envir = new.env(parent = globalenv())), error = function(e) message(f, ': ', conditionMessage(e)))",
-    deparse(tests))
-}
-script <- tempfile(fileext = ".R")
-writeLines(c("Sys.setenv(NOT_CRAN = 'true')", code), script)
+out_dir <- tempfile("out")
+dir.create(out_dir)
 t1 <- now()
-system2(file.path(R.home("bin"), "Rscript"), c("--no-init-file", shQuote(script)),
-  env = c(paste0("R_LIBS=", libs), "NOT_CRAN=true"), stdout = FALSE, stderr = FALSE)
+if (identical(Sys.getenv("COVR_BENCH_TYPE"), "tests")) {
+  withr::with_envvar(env, tools::testInstalledPackage(pkg, lib.loc = lib, outDir = out_dir, types = "tests"))
+} else {
+  code <- if (dir.exists(file.path(tests, "testthat"))) {
+    sprintf("Sys.setenv(NOT_CRAN = 'true'); testthat::test_dir(system.file('tests/testthat', package = '%s'), package = '%s', load_package = 'installed', reporter = 'silent', stop_on_failure = FALSE, stop_on_warning = FALSE)", pkg, pkg)
+  } else {
+    sprintf("Sys.setenv(NOT_CRAN = 'true'); setwd(system.file('tests', package = '%s')); for (f in sort(list.files(pattern = '[.]R$'))) tryCatch(sys.source(f, envir = new.env(parent = globalenv())), error = function(e) message(f, ': ', conditionMessage(e)))", pkg)
+  }
+  infile <- file.path(out_dir, "commands.R")
+  writeLines(c(sprintf("library('%s')", pkg), code), infile)
+  withr::with_envvar(env, system(paste(
+    shQuote(file.path(R.home("bin"), "R")), "CMD BATCH --vanilla --no-timing",
+    shQuote(infile), shQuote(file.path(out_dir, "commands.Rout"))
+  )))
+}
 run_code <- now() - t1
 res <- list(label = "plain", pkg = pkg, total = install + run_code, install = install,
   run_code = run_code, merge = 0)
