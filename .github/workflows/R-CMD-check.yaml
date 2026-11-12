@@ -41,7 +41,8 @@ jobs:
           # Check the minimum supported R version. Current packages (e.g.
           # testthat >= 3.3) need R >= 4.1, so use a snapshot of CRAN from before
           # they dropped R 4.0, like setup-r does for R 3.6.
-          - {os: ubuntu-22.04,    r: '4.0', rspm: 'https://packagemanager.posit.co/cran/__linux__/jammy/2025-09-01'}
+          # httr2 >= 1.2.0 needs R >= 4.1, so install the last version for R 4.0.
+          - {os: ubuntu-22.04,    r: '4.0', rspm: 'https://packagemanager.posit.co/cran/__linux__/jammy/2025-09-01', pin: 'httr2@1.1.2'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -61,7 +62,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck${{ matrix.config.s7 == 'dev' && ', github::RConsortium/S7' || '' }}
+          extra-packages: any::rcmdcheck${{ matrix.config.s7 == 'dev' && ', github::RConsortium/S7' || '' }}${{ matrix.config.pin && format(', {0}', matrix.config.pin) || '' }}
           needs: check
 
       # Lets the tests measure the coverage of Rust code. rustup's Rust for
