@@ -42,7 +42,7 @@
 <p>covr measures test coverage of R packages. <code><a href="reference/package_coverage.html">package_coverage()</a></code> installs an instrumented copy of the package into a temporary library and runs the tests, vignettes, examples or <code>code</code> in separate R processes; trace counts are saved to files by a finalizer and merged afterwards. Compiled code coverage uses gcov.</p>
 <div class="section level3">
 <h3 id="compatibility">Compatibility<a class="anchor" aria-label="anchor" href="#compatibility"></a></h3>
-<ul><li>covr depends on <code>R (&gt;= 4.0.0)</code>, so do not use the base pipe (<code>|&gt;</code>), <code>\(x)</code> lambdas, or other syntax and functions newer than that.</li>
+<ul><li>covr depends on <code>R (&gt;= 4.1.0)</code>, so the base pipe (<code>|&gt;</code>) and <code>\(x)</code> lambdas are fine, but don’t use syntax or functions newer than R 4.1.</li>
 <li>Functions from optional dependencies such as httr2 and curl (used for uploads, in <code>R/http.R</code>) must be called with <code>pkg::fun()</code> (or a small wrapper in covr, which also makes them mockable), not imported with <code>@importFrom</code>. Importing them makes them load time dependencies, which causes cyclic namespace errors when computing coverage of those packages (#623).</li>
 </ul></div>
 <div class="section level3">

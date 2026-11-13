@@ -76,7 +76,8 @@ see “Changes to reported coverage” below.
 
 ### Breaking changes
 
-- covr now requires R 4.0.0 or later.
+- covr now requires R 4.1.0 or later, as httr2, which it uses for
+  uploads, does.
 
 - `azure()` is removed. Use `cobertura(x, file = "coverage.xml")` to
   write the Cobertura file Azure Pipelines reads.

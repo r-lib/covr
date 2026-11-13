@@ -54,7 +54,7 @@
 </ul></div>
 <div class="section level3">
 <h3 id="breaking-changes-development-version">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-development-version"></a></h3>
-<ul><li><p>covr now requires R 4.0.0 or later.</p></li>
+<ul><li><p>covr now requires R 4.1.0 or later, as httr2, which it uses for uploads, does.</p></li>
 <li><p><code>azure()</code> is removed. Use <code>cobertura(x, file = "coverage.xml")</code> to write the Cobertura file Azure Pipelines reads.</p></li>
 <li><p><code><a href="../reference/package_coverage.html">package_coverage()</a></code> no longer has a <code>pre_clean</code> argument. Objects in <code>src/</code> are always removed before the package is installed.</p></li>
 <li><p><code>display_name()</code> is no longer exported. It was only meant for covr’s own use.</p></li>
