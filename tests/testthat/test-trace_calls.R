@@ -578,7 +578,6 @@ test_that("switch with trailing comma", {
 })
 
 test_that("switch with drop through and the base pipe (#630)", {
-  skip_if(getRversion() < "4.1")
   f <-
     'f <- function(x) {
   x |>
