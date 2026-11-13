@@ -384,9 +384,6 @@ test_that("package_coverage warns about processes that did not save a trace", {
 })
 
 test_that("package_coverage works if the site libraries are removed (#560)", {
-  # for `.libPaths(include.site = FALSE)`
-  skip_if(getRversion() < "4.1.0")
-
   # As renv does when it activates its sandbox, e.g. if the package imports
   # renv in an renv project, where this session has no site libraries. Site
   # libraries of this session are kept, as they could have covr's dependencies.

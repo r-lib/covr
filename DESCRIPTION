@@ -41,7 +41,7 @@ URL: https://covr.r-lib.org, https://github.com/r-lib/covr
 BugReports: https://github.com/r-lib/covr/issues
 Depends:
     methods,
-    R (>= 4.0.0)
+    R (>= 4.1.0)
 Imports:
     cli (>= 2.5.0),
     curl,
