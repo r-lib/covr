@@ -29,4 +29,5 @@
 | insight | 645.9 s | 671.1 s* | 660.9 s | 1.04× | 1.02× |
 
 Times exclude installing the package; median of the runs. * covr 3.6.5 stopped with an error after the tests, as some tests fail; wall time of the run.
+future was run with its tests patched as in futureverse/future#850 (`future-850.patch`).
 Packages with failing tests (also without coverage): cli, devtools, dplyr, ggdist, ggplot2, insight, languageserver, Luminescence, purrr, testthat, tidyr 

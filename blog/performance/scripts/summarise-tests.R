@@ -56,5 +56,6 @@ for (p in pkgs) {
   ))
 }
 cat("\nTimes exclude installing the package; median of the runs. * covr 3.6.5 stopped with an error after the tests, as some tests fail; wall time of the run.\n")
+cat("future was run with its tests patched as in futureverse/future#850 (`future-850.patch`).\n")
 tf <- unique(runs$pkg[runs$tests_failed])
 if (length(tf)) cat("Packages with failing tests (also without coverage):", paste(sort(tf), collapse = ", "), "\n")
