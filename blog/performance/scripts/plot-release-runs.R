@@ -1,60 +1,73 @@
-# Plot every package_coverage() run of covr 3.6.5 and 4.0.0 as a dot, per
-# package, on a linear time axis, for packages taking at least MIN_SECONDS
-# (default 30) with 3.6.5. Packages that failed with either version are left
-# out (the post covers them in text). Each row is labelled with the change in
-# median time, or "within noise" when the slowest 4.0.0 run is no faster than
-# the fastest 3.6.5 run.
-# Usage: Rscript --no-init-file plot-release-runs.R <new label> <out.png> <dir>...
+# Plot every run of the type = "tests" benchmark as a dot, per package, on a
+# linear time axis: without coverage ("plain"), covr 3.6.5 and covr main.
+# Times exclude installing the package (see summarise-tests.R). A covr 3.6.5
+# run that stopped with an error after the tests (failing tests) is drawn at
+# its wall time minus the install, like the others.
+#
+# Packages are shown when their median covr 3.6.5 time is between MIN_SECONDS
+# (default 30) and MAX_SECONDS (default 300); the others are printed for the
+# caption. Each row is labelled with covr 4.0.0's time relative to running the
+# tests without coverage.
+# Usage: Rscript --no-init-file plot-release-runs.R <covr main label> <out.png> <dir>
 args <- commandArgs(trailingOnly = TRUE)
 new <- args[[1]]
 out <- args[[2]]
-dirs <- args[-(1:2)]
+dir <- args[[3]]
 min_seconds <- as.numeric(Sys.getenv("MIN_SECONDS", "30"))
+max_seconds <- as.numeric(Sys.getenv("MAX_SECONDS", "300"))
 suppressPackageStartupMessages(library(ggplot2))
-files <- unlist(lapply(dirs, list.files, pattern = "[.]rds$", full.names = TRUE))
+wall_time <- function(f) {
+  t <- sub("[.]rds$", ".time", f)
+  if (!file.exists(t)) return(NA_real_)
+  as.numeric(sub(".*wall=", "", grep("wall=", readLines(t, warn = FALSE), value = TRUE)[[1]]))
+}
+files <- list.files(dir, pattern = "[.]rds$", full.names = TRUE)
 runs <- do.call(rbind, lapply(files, function(f) {
   r <- readRDS(f)
-  data.frame(version = r$label, pkg = r$pkg, total = r$total)
-}))
-runs <- runs[runs$version %in% c("3.6.5", new), ]
-runs$version <- factor(ifelse(runs$version == new, "4.0.0", "3.6.5"), levels = c("3.6.5", "4.0.0"))
-ok <- tapply(runs$total, list(runs$pkg, runs$version), function(x) all(!is.na(x)))
-keep <- rownames(ok)[ok[, "3.6.5"] & ok[, "4.0.0"] & !is.na(ok[, "3.6.5"]) & !is.na(ok[, "4.0.0"])]
-runs <- runs[runs$pkg %in% keep, ]
-summ <- do.call(rbind, lapply(split(runs, runs$pkg), function(x) {
-  o <- x$total[x$version == "3.6.5"]
-  n <- x$total[x$version == "4.0.0"]
+  failed <- is.null(r$total) || is.na(r$total)
+  total <- if (failed) wall_time(f) else r$total
   data.frame(
-    pkg = x$pkg[[1]], old = stats::median(o), new = stats::median(n),
-    noise = max(n) >= min(o)
+    version = r$label, pkg = r$pkg,
+    seconds = if (identical(r$label, "plain")) r$run_code else total - r$install
   )
 }))
-# Packages under MIN_SECONDS, or over MAX_SECONDS (default 300, which would
-# squeeze the others), are listed by the script for the caption instead.
-max_seconds <- as.numeric(Sys.getenv("MAX_SECONDS", "300"))
-small <- summ[summ$old < min_seconds | summ$old > max_seconds, ]
-summ <- summ[summ$old >= min_seconds & summ$old <= max_seconds, ]
-summ$saved <- summ$old - summ$new
-summ$label <- ifelse(summ$noise, "within noise", sprintf("\u2212%.0f%%", 100 * (1 - summ$new / summ$old)))
-levels <- summ$pkg[order(summ$saved)]
+labels <- c(plain = "without coverage", "3.6.5" = "covr 3.6.5", new = "covr 4.0.0")
+names(labels)[3] <- new
+runs <- runs[runs$version %in% names(labels) & !is.na(runs$seconds), ]
+runs$version <- factor(labels[runs$version], levels = labels)
+med <- function(p, v) stats::median(runs$seconds[runs$pkg == p & runs$version == v])
+pkgs <- unique(runs$pkg)
+summ <- data.frame(
+  pkg = pkgs,
+  plain = vapply(pkgs, med, 0, v = labels[["plain"]]),
+  old = vapply(pkgs, med, 0, v = labels[["3.6.5"]]),
+  new = vapply(pkgs, med, 0, v = labels[[new]])
+)
+shown <- !is.na(summ$old) & summ$old >= min_seconds & summ$old <= max_seconds
+other <- summ[!shown, ]
+summ <- summ[shown, ]
+summ$label <- sprintf("+%.0f%%", 100 * (summ$new / summ$plain - 1))
+levels <- summ$pkg[order(summ$old - summ$new)]
 runs <- runs[runs$pkg %in% summ$pkg, ]
 runs$pkg <- factor(runs$pkg, levels = levels)
 summ$pkg <- factor(summ$pkg, levels = levels)
-xmax <- max(runs$total)
-cols <- c("3.6.5" = "#E69F00", "4.0.0" = "#0072B2")
+xmax <- max(runs$seconds)
+cols <- stats::setNames(c("grey55", "#E69F00", "#0072B2"), labels)
 
-p <- ggplot(runs, aes(total, pkg)) +
-  geom_segment(data = summ, aes(x = new, xend = old, y = pkg, yend = pkg), colour = "grey65", linewidth = 0.8) +
-  geom_point(aes(colour = version), size = 2.8, alpha = 0.8) +
+p <- ggplot(runs, aes(seconds, pkg)) +
+  geom_segment(data = summ, aes(x = new, xend = old, y = pkg, yend = pkg), colour = "grey75", linewidth = 0.8) +
+  geom_point(aes(colour = version, shape = version), size = 2.8, alpha = 0.85) +
   geom_text(data = summ, aes(x = xmax * 1.04, y = pkg, label = label), hjust = 0, size = 3.6, colour = "grey20") +
   scale_x_continuous(
-    limits = c(0, xmax * 1.22), breaks = seq(0, xmax, by = 60),
+    limits = c(0, xmax * 1.18), breaks = seq(0, xmax, by = 60),
     labels = function(x) ifelse(x == 0, "0", paste(x / 60, "min")), expand = expansion(mult = c(0, 0))
   ) +
-  scale_colour_manual(values = cols, name = NULL, labels = c("covr 3.6.5", "covr 4.0.0 (each dot is a run)")) +
-  labs(x = "package_coverage() time", y = NULL) +
+  scale_colour_manual(values = cols, name = NULL) +
+  scale_shape_manual(values = stats::setNames(c(17, 16, 16), labels), name = NULL) +
+  labs(x = "Time to run the tests (each mark is a run)", y = NULL) +
   theme_minimal(base_size = 13) +
   theme(legend.position = "top", legend.justification = "left", panel.grid.minor = element_blank())
-ggsave(out, p, width = 7, height = 0.38 * length(levels) + 1.4, dpi = 150, bg = "white")
-cat("wrote", out, "with", length(levels), "packages; in the caption instead:",
-  paste(sprintf("%s %.0f -> %.0f s", small$pkg, small$old, small$new), collapse = ", "), "\n")
+ggsave(out, p, width = 7.5, height = 0.38 * length(levels) + 1.5, dpi = 150, bg = "white")
+fmt <- function(x) ifelse(is.na(x), "fails", sprintf("%.0f s", x))
+cat("wrote", out, "with", length(levels), "packages; in the caption instead (without / 3.6.5 / 4.0.0):\n",
+  paste(sprintf("%s %s / %s / %s", other$pkg, fmt(other$plain), fmt(other$old), fmt(other$new)), collapse = "; "), "\n")
