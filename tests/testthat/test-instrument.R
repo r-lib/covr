@@ -95,7 +95,6 @@ test_that("instrument_package() returns the file with the counters", {
   )
   counters <- readRDS(file)
   expect_gt(length(ls(counters)), 0L)
-  # `expect_all_equal()` needs testthat 3.3.0, which isn't on R 4.0
   values <- unname(vapply(as.list(counters), function(x) x$value, numeric(1)))
   expect_equal(values, rep(0, length(values)))
 })

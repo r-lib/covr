@@ -549,7 +549,8 @@ dll_bindings <- function(env, name) {
     if (!inherits(x, "NativeSymbolInfo")) {
       return(FALSE)
     }
-    # R < 4.1 doesn't record the DLL of routines that aren't registered
+    # Routines found without the DLL, e.g. with `getNativeSymbolInfo(name)`,
+    # don't record it
     if (!is.null(x$dll)) {
       return(identical(x$dll[["name"]], name))
     }
