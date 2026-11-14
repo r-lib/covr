@@ -99,6 +99,36 @@ test_that("shiny_app_coverage() instruments the app's files in this process", {
   expect_equal(class(shiny:::sourceUTF8), "function")
 })
 
+test_that("shiny_app_coverage() works with apps whose functions need parse data (#761)", {
+  skip_if_not_installed("shiny")
+
+  app_dir <- withr::local_tempdir()
+  writeLines(
+    c(
+      "library(shiny)",
+      'ui <- fluidPage(numericInput("n", "n", 1), textOutput("o"))',
+      "describe <- function(n) {",
+      '  if (n < 0) "negative" else "positive"',
+      "}",
+      "server <- function(input, output, session) {",
+      "  output$o <- renderText(describe(input$n))",
+      "}",
+      "shinyApp(ui, server)"
+    ),
+    file.path(app_dir, "app.R")
+  )
+
+  cov <- shiny_app_coverage(
+    app_dir,
+    shiny::testServer(app_dir, session$setInputs(n = 2))
+  )
+
+  df <- as.data.frame(cov)
+  expect_equal(df$functions, c("describe", "describe", "describe", "server"))
+  expect_equal(df$value, c(1, 0, 1, 1))
+  expect_length(per_line(cov)[["app.R"]]$coverage, 9)
+})
+
 test_that("shiny_app_coverage() restores a sourceUTF8() traced before, also on error", {
   skip_if_not_installed("shiny")
 

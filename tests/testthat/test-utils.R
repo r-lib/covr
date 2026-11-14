@@ -127,6 +127,21 @@ test_that("split_on_line_directives handles empty files (#522)", {
   )
 })
 
+test_that("split_on_line_directives drops the end of Shiny's wrapper (#761)", {
+  expect_identical(
+    split_on_line_directives(
+      c("..stacktraceon..({", '#line 1 "app.R"', "abc", "})")
+    ),
+    list("app.R" = "abc")
+  )
+  expect_identical(
+    split_on_line_directives(
+      c("..stacktraceon..({", '#line 1 "app.R"', "})")
+    ),
+    list("app.R" = character())
+  )
+})
+
 test_that("as_package() errors if the path isn't in a package", {
   dir <- withr::local_tempdir()
 
