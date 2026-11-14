@@ -67,8 +67,15 @@ split_on_line_directives <- function(lines) {
     return(NULL)
   }
 
+  # Shiny's `sourceUTF8()` wraps the lines of an app's file as
+  # `c("..stacktraceon..({", '#line 1 "<file>"', <lines>, "})")`, so the
+  # closing line isn't part of the file (#761)
+  n <- length(lines)
+  if (n > 1 && lines[[1]] == "..stacktraceon..({" && lines[[n]] == "})") {
+    n <- n - 1
+  }
   file_starts <- directive_lines + 1
-  file_ends <- c(directive_lines[-1] - 1, length(lines))
+  file_ends <- c(directive_lines[-1] - 1, n)
   # An empty file has no lines between its directive and the next one (or the
   # end), so `file_ends` is one less than `file_starts` (#522)
   res <- mapply(
