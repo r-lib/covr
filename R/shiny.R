@@ -72,6 +72,7 @@ shiny_app_coverage <- function(
     the$shiny_replacements <- list()
     the$shiny_app_dir <- NULL
     clear_counters()
+    clean_parse_data()
     unlink(trace_dir, recursive = TRUE)
   })
 
