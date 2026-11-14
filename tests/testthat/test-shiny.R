@@ -137,6 +137,54 @@ test_that("shiny_app_coverage() works with apps whose functions need parse data 
   expect_equal(df$value, c(1, 0, 1, 1))
 })
 
+test_that("shiny_app_coverage() sources app files without Ark's breakpoint annotations", {
+  skip_if_not_installed("shiny")
+  skip_if(is.null(asNamespace("shiny")$maybeAnnotateSourceForArk))
+
+  # Like Positron's Ark with a breakpoint on line 4
+  annotate <- function(file, lines) {
+    uri <- sprintf('#line %%d "file://%s"', normalize_path(file))
+    c(
+      "base::list({",
+      sprintf(uri, 1),
+      lines[1:3],
+      "browser()",
+      sprintf(uri, 4),
+      lines[-(1:3)],
+      "})[[1]]"
+    )
+  }
+  original <- asNamespace("shiny")$maybeAnnotateSourceForArk
+  replace_binding("shiny", "maybeAnnotateSourceForArk", annotate)
+  withr::defer(replace_binding("shiny", "maybeAnnotateSourceForArk", original))
+
+  app_dir <- withr::local_tempdir()
+  writeLines(
+    c(
+      "library(shiny)",
+      'ui <- fluidPage(numericInput("n", "n", 1), textOutput("o"))',
+      "describe <- function(n) {",
+      '  if (n < 0) "negative" else "positive"',
+      "}",
+      "server <- function(input, output, session) {",
+      "  output$o <- renderText(describe(input$n))",
+      "}",
+      "shinyApp(ui, server)"
+    ),
+    file.path(app_dir, "app.R")
+  )
+  cov <- shiny_app_coverage(
+    app_dir,
+    shiny::testServer(app_dir, session$setInputs(n = 2))
+  )
+
+  df <- as.data.frame(cov)
+  expect_equal(df$filename, rep("app.R", 4))
+  expect_equal(df$first_column, c(7, 14, 30, 3))
+  expect_equal(df$value, c(1, 0, 1, 1))
+  expect_identical(asNamespace("shiny")$maybeAnnotateSourceForArk, annotate)
+})
+
 test_that("shiny_app_coverage() restores a sourceUTF8() traced before, also on error", {
   skip_if_not_installed("shiny")
 

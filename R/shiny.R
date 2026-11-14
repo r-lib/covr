@@ -148,7 +148,8 @@ shiny_loaded <- function() {
 # Shiny sources the files of an app with its internal `sourceUTF8(file,
 # envir)`, keeping their srcrefs. The functions they define, and the server
 # function they return, are instrumented when it returns. Returns a function
-# that restores `sourceUTF8()` as it was before, e.g. traced by the user.
+# that restores `sourceUTF8()` as it was before, e.g. traced by the user, and
+# undoes `skip_ark_annotation()`.
 trace_shiny_source <- function(
   original = asNamespace("shiny")$sourceUTF8
 ) {
@@ -171,7 +172,30 @@ trace_shiny_source <- function(
     where = shiny,
     print = FALSE
   ))
-  function() replace_binding("shiny", "sourceUTF8", original)
+  restore_annotation <- skip_ark_annotation(shiny)
+  function() {
+    restore_annotation()
+    replace_binding("shiny", "sourceUTF8", original)
+  }
+}
+
+# With breakpoints set in Positron, `sourceUTF8()` lets Ark annotate the lines
+# of a file: they are split into sections by `#line` directives that name the
+# file by a `file://` URI, and some can't be parsed on their own. covr then
+# can't tell that its functions are in the app or impute their srcrefs, so the
+# files are sourced as they are, and the breakpoints don't fire. Returns a
+# function that restores `maybeAnnotateSourceForArk()`.
+skip_ark_annotation <- function(shiny) {
+  original <- shiny$maybeAnnotateSourceForArk
+  if (!identical(names(formals(original)), c("file", "lines"))) {
+    return(function() invisible())
+  }
+  replace_binding(
+    "shiny",
+    "maybeAnnotateSourceForArk",
+    function(file, lines) lines
+  )
+  function() replace_binding("shiny", "maybeAnnotateSourceForArk", original)
 }
 
 instrument_shiny_source <- function(file, env, value) {
