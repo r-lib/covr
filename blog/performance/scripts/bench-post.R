@@ -10,7 +10,8 @@ out <- args[[3]]
 iterations <- if (length(args) >= 4) as.integer(args[[4]]) else 5L
 suppressPackageStartupMessages(library(covr))
 ns <- asNamespace("covr")
-# The exporters were renamed in 4.0.0 (#750); use whichever this covr has.
+# The exporters were renamed in 4.0.0 (#750), and their output argument from
+# `filename` to `file`; use whichever this covr has, passing the path second.
 fn <- function(new, old) {
   if (exists(new, envir = ns, inherits = FALSE)) get(new, envir = ns) else get(old, envir = ns)
 }
@@ -25,8 +26,8 @@ res <- bench::mark(
   zero_coverage = quiet(zero_coverage(cov)),
   print = quiet(utils::capture.output(print(cov), type = "message")),
   codecov = ns$to_codecov(cov),
-  cobertura = cobertura_fn(cov, filename = tmp),
-  sonarqube = sonarqube_fn(cov, filename = tmp),
+  cobertura = cobertura_fn(cov, tmp),
+  sonarqube = sonarqube_fn(cov, tmp),
   iterations = iterations,
   check = FALSE,
   filter_gc = FALSE,
