@@ -1,6 +1,6 @@
 Package: covr
 Title: Test Coverage for Packages
-Version: 3.6.5.9002
+Version: 4.0.0
 Authors@R: c(
     person("Jim", "Hester", , "james.f.hester@gmail.com", role = c("aut", "cre")),
     person("Willem", "Ligtenberg", role = "ctb"),
