@@ -185,8 +185,13 @@ covr_warn <- function(
 # The deprecated functions that have warned in this session.
 deprecation_warned <- new.env(parent = emptyenv())
 
-# Warn that `old()` is deprecated in favor of `new()`, once per session.
-warn_deprecated <- function(old, new) {
+# Warn that `old()` is deprecated in favor of `new()`, once per session. With
+# `interactive_only = TRUE`, only warn in interactive sessions, for functions
+# that scripts such as CI workflows commonly call.
+warn_deprecated <- function(old, new, interactive_only = FALSE) {
+  if (interactive_only && !rlang::is_interactive()) {
+    return(invisible())
+  }
   if (isTRUE(deprecation_warned[[old]])) {
     return(invisible())
   }

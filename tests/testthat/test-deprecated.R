@@ -1,5 +1,6 @@
 test_that("to_cobertura() warns once and writes the same file as cobertura()", {
   local_deprecation_warnings()
+  withr::local_options(rlang_interactive = TRUE)
   without_timestamp <- function(file) {
     sub(' timestamp="[^"]*"', "", readLines(file))
   }
@@ -12,6 +13,14 @@ test_that("to_cobertura() warns once and writes the same file as cobertura()", {
   expect_equal(without_timestamp(old), without_timestamp(new))
 
   expect_no_warning(to_cobertura(cov, filename = old))
+})
+
+test_that("to_cobertura() doesn't warn in non-interactive sessions", {
+  local_deprecation_warnings()
+  withr::local_options(rlang_interactive = FALSE)
+  cov <- code_coverage("f <- function(x) if (x) 1 else 2", "f(TRUE)")
+
+  expect_no_warning(to_cobertura(cov, filename = withr::local_tempfile()))
 })
 
 test_that("to_sonarqube() warns once and writes the same file as sonarqube()", {
