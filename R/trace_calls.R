@@ -8,7 +8,7 @@
 # @param impute_ref a function returning the srcref of the current call, if it
 #   has no srcref of its own. It is only called to impute srcrefs for nested
 #   conditionals, so the expressions in their branches get their own counters.
-# @seealso <http://adv-r.had.co.nz/Expressions.html>
+# @seealso <https://adv-r.hadley.nz/expressions.html>
 # @return a modified expression with count calls inserted before each previous
 # call.
 trace_calls <- function(

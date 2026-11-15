@@ -240,7 +240,7 @@ options(covr.gcov = "path/to/gcov")
 
 ## Can covr measure the coverage of Rust code? ##
 Yes. `package_coverage()` measures the coverage of the Rust code in `src/`,
-e.g. of packages using [extendr](https://extendr.github.io/) or
+e.g. of packages using [extendr](https://extendr.rs/) or
 [savvy](https://yutannihilation.github.io/savvy/guide/), with LLVM's
 source-based coverage. `file_coverage()`, `environment_coverage()` and
 `with_coverage()` also measure it in the current session for packages loaded

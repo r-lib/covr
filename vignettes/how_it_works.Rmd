@@ -50,7 +50,7 @@ The clear box view can be accessed using online tools or a local report can be g
 
 The core function in **covr** is `trace_calls()`.
 This function was adapted from ideas in [_Advanced R - Walking the Abstract Syntax Tree with
-recursive functions_](https://adv-r.had.co.nz/Expressions.html#ast-funs).
+recursive functions_](https://adv-r.hadley.nz/expressions.html#ast-funs).
 This recursive function modifies each of the leaves (atomic or name objects) of
 an R expression by applying a given function to them.
 If the expression is not a leaf the walker function calls itself recursively on elements of the expression instead.

@@ -1,4 +1,21 @@
-This is a patch release to fix a change made in R-devel
+This is a major release. It removes a few rarely used functions and arguments
+(`azure()`, `display_name()`, and the `pre_clean` and `exclusions` arguments
+of `package_coverage()`); none of them are used by CRAN packages. It now
+requires R >= 4.1.0.
 
 ## R CMD check results
-There were no NOTEs, ERRORs or WARNINGs.
+
+0 errors | 0 warnings | 0 notes
+
+## Reverse dependencies
+
+We checked the 12 packages that depend on, import or link to covr (11 on CRAN
+and 1 on Bioconductor), comparing R CMD check results with the CRAN and the
+development version of covr.
+
+* We saw 1 new problem, in mutator. It reads covr's internal counters
+  directly, which this release no longer updates while code runs. covr now
+  exports `current_coverage()` for this, and we have sent the maintainer a pull
+  request that uses it and still works with the CRAN version of covr
+  (https://github.com/PRL-PRG/mutator/pull/16).
+* We failed to check 0 packages.
