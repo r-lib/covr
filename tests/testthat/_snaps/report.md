@@ -97,46 +97,48 @@
           </ul>
           <div class="covr-tab-content">
             <div class="covr-tab-pane active" data-value="Files">
-              <table class="covr-file-table">
-                <thead>
-                  <tr>
-                    <th aria-sort="none">
-                      <button type="button" class="covr-sort">File</button>
-                    </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Lines</button>
-                    </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Relevant</button>
-                    </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Covered</button>
-                    </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Missed</button>
-                    </th>
-                    <th class="covr-num" title="Average number of times each relevant line was run" aria-sort="none">
-                      <button type="button" class="covr-sort">Hits/line</button>
-                    </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Coverage</button>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="covr-file" data-sort="source.R">
-                      <a href="#" class="covr-file-link">source.R</a>
-                    </td>
-                    <td class="covr-num" data-sort="15">15</td>
-                    <td class="covr-num" data-sort="7">7</td>
-                    <td class="covr-num" data-sort="4">4</td>
-                    <td class="covr-num" data-sort="3">3</td>
-                    <td class="covr-num" data-sort="0.6">0.6</td>
-                    <td class="covr-num" style="background:linear-gradient(90deg, var(--covr-bar-low) 57.14%, transparent 57.14%)" data-sort="57.14">57.14%</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="covr-file-table-scroll">
+                <table class="covr-file-table">
+                  <thead>
+                    <tr>
+                      <th aria-sort="none">
+                        <button type="button" class="covr-sort">File</button>
+                      </th>
+                      <th class="covr-num" aria-sort="none">
+                        <button type="button" class="covr-sort">Lines</button>
+                      </th>
+                      <th class="covr-num" aria-sort="none">
+                        <button type="button" class="covr-sort">Relevant</button>
+                      </th>
+                      <th class="covr-num" aria-sort="none">
+                        <button type="button" class="covr-sort">Covered</button>
+                      </th>
+                      <th class="covr-num" aria-sort="none">
+                        <button type="button" class="covr-sort">Missed</button>
+                      </th>
+                      <th class="covr-num" title="Average number of times each relevant line was run" aria-sort="none">
+                        <button type="button" class="covr-sort">Hits/line</button>
+                      </th>
+                      <th class="covr-num" aria-sort="none">
+                        <button type="button" class="covr-sort">Coverage</button>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="covr-file" data-sort="source.R">
+                        <a href="#" class="covr-file-link">source.R</a>
+                      </td>
+                      <td class="covr-num" data-sort="15">15</td>
+                      <td class="covr-num" data-sort="7">7</td>
+                      <td class="covr-num" data-sort="4">4</td>
+                      <td class="covr-num" data-sort="3">3</td>
+                      <td class="covr-num" data-sort="0.6">0.6</td>
+                      <td class="covr-num" style="background:linear-gradient(90deg, var(--covr-bar-low) 57.14%, transparent 57.14%)" data-sort="57.14">57.14%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
             <div class="covr-tab-pane" data-value="Source"><div class="covr-files"><div data-file="source.R" class="covr-hidden"><table class="table-condensed"><tbody>
       <tr class="never"><td class="num">1</td><td class="coverage"></td><td class="covr-source"><pre class="language-r">sign_of &lt;- function(x) {</pre></td></tr>
@@ -301,50 +303,52 @@
           </ul>
           <div class="covr-tab-content">
             <div class="covr-tab-pane active" data-value="Files">
-              <table class="covr-file-table">
-                <thead>
-                  <tr>
-                    <th aria-sort="none">
-                      <button type="button" class="covr-sort">File</button>
-                    </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Lines</button>
-                    </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Relevant</button>
-                    </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Covered</button>
-                    </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Missed</button>
-                    </th>
-                    <th class="covr-num" title="Average number of times each relevant line was run" aria-sort="none">
-                      <button type="button" class="covr-sort">Hits/line</button>
-                    </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Branches</button>
-                    </th>
-                    <th class="covr-num" aria-sort="none">
-                      <button type="button" class="covr-sort">Coverage</button>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="covr-file" data-sort="source.R">
-                      <a href="#" class="covr-file-link">source.R</a>
-                    </td>
-                    <td class="covr-num" data-sort="15">15</td>
-                    <td class="covr-num" data-sort="7">7</td>
-                    <td class="covr-num" data-sort="4">4</td>
-                    <td class="covr-num" data-sort="3">3</td>
-                    <td class="covr-num" data-sort="0.6">0.6</td>
-                    <td class="covr-num" data-sort="66.67">66.67%</td>
-                    <td class="covr-num" style="background:linear-gradient(90deg, var(--covr-bar-low) 57.14%, transparent 57.14%)" data-sort="57.14">57.14%</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="covr-file-table-scroll">
+                <table class="covr-file-table">
+                  <thead>
+                    <tr>
+                      <th aria-sort="none">
+                        <button type="button" class="covr-sort">File</button>
+                      </th>
+                      <th class="covr-num" aria-sort="none">
+                        <button type="button" class="covr-sort">Lines</button>
+                      </th>
+                      <th class="covr-num" aria-sort="none">
+                        <button type="button" class="covr-sort">Relevant</button>
+                      </th>
+                      <th class="covr-num" aria-sort="none">
+                        <button type="button" class="covr-sort">Covered</button>
+                      </th>
+                      <th class="covr-num" aria-sort="none">
+                        <button type="button" class="covr-sort">Missed</button>
+                      </th>
+                      <th class="covr-num" title="Average number of times each relevant line was run" aria-sort="none">
+                        <button type="button" class="covr-sort">Hits/line</button>
+                      </th>
+                      <th class="covr-num" aria-sort="none">
+                        <button type="button" class="covr-sort">Branches</button>
+                      </th>
+                      <th class="covr-num" aria-sort="none">
+                        <button type="button" class="covr-sort">Coverage</button>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="covr-file" data-sort="source.R">
+                        <a href="#" class="covr-file-link">source.R</a>
+                      </td>
+                      <td class="covr-num" data-sort="15">15</td>
+                      <td class="covr-num" data-sort="7">7</td>
+                      <td class="covr-num" data-sort="4">4</td>
+                      <td class="covr-num" data-sort="3">3</td>
+                      <td class="covr-num" data-sort="0.6">0.6</td>
+                      <td class="covr-num" data-sort="66.67">66.67%</td>
+                      <td class="covr-num" style="background:linear-gradient(90deg, var(--covr-bar-low) 57.14%, transparent 57.14%)" data-sort="57.14">57.14%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
             <div class="covr-tab-pane" data-value="Source"><div class="covr-files"><div data-file="source.R" class="covr-hidden"><table class="table-condensed"><tbody>
       <tr class="never"><td class="num">1</td><td class="coverage"></td><td class="covr-source"><pre class="language-r">sign_of &lt;- function(x) {</pre></td></tr>

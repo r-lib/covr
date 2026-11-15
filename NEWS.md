@@ -257,6 +257,11 @@ reported coverage" below.
 
 ## Reports
 
+* In narrow reports, e.g. one embedded with `report_html()`, the file list of
+  `report()` only wraps file names after a `/` rather than between any
+  letters, and scrolls horizontally if it doesn't fit rather than cutting off
+  the last columns (#763).
+
 * The code in `report()` is highlighted with highlight.js 11, which supports
   light and dark themes.
 
