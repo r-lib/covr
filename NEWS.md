@@ -181,37 +181,42 @@ reported coverage" below.
 * New experimental branch coverage of R code. With
   `options(covr.branch_coverage = TRUE)`, covr also records which branches of
   each `if` (including an `if` without an `else`) and `switch()` were taken,
-  in the `branches` attribute of the coverage object. `tally_coverage(by =
-  "branch")` and `percent_coverage(by = "branch")` summarize them, and
-  `report()`, `file_report()`, `lcov()`, `cobertura()`, `codecov()` and
-  `coveralls()` include them. Line coverage is unchanged, and without the
-  option the code is instrumented as before, so there is no cost. See
-  `?covr.branch_coverage` (#279).
-  `lcov()`, `cobertura()`, `codecov()` and `coveralls()` include them.
-  Line coverage is unchanged, and without the option the code is instrumented
-  as before, so there is no cost. See `?covr.branch_coverage` (#279).
+  in the `branches` attribute of the coverage object.
+  `tally_coverage(by = "branch")` and `percent_coverage(by = "branch")`
+  summarize them, and `report()`, `file_report()`, `lcov()`, `cobertura()`,
+  `codecov()` and `coveralls()` include them. Line coverage is unchanged, and
+  without the option the code is instrumented as before, so there is no cost.
+  See `?covr.branch_coverage` (#279).
 
 ## Measuring more code
 
 * Functions of a package that are sent to other R processes, e.g. parallel
   workers, are now counted there if the process loads the package (#740).
 
-* `package_coverage()` now measures the coverage of Rust code, such as the
-  code of packages using extendr or savvy. It's built with LLVM's source-based
-  coverage, which needs the llvm tools of the Rust toolchain
-  (`rustup component add llvm-tools`), or for Rust installed by a Linux
-  distribution, those of the LLVM version rustc uses (e.g. `llvm-cov-18`).
-  Without them covr warns and only skips the Rust code.
-  `options(covr.llvm_cov = "")` turns this off (#728).
+* Functions nested inside lists and environments, such as
+  `fns <- list(a = function(x) x)`, functions defined inside `local()` and
+  ggproto methods, can now be traced. This is off by default; enable it for a
+  package with `Config/covr/full_traversal: true` in its DESCRIPTION, or with
+  `options(covr.full_traversal = TRUE)` (#113).
+
+* Coverage is now reported for S7 property getters, setters, and validators
+  with S7 > 0.2.2, which stores class callbacks in a shared class reference
+  (@t-kalinowski, #646).
+
+* Tracing functions in packages, R6 classes, S7 objects and box modules now
+  skips active bindings, so ones that fail when read (e.g.
+  `makeActiveBinding('x', function() stop('boom'), environment())`) don't
+  break tracing (#732).
 
 * `file_coverage()` can now measure the coverage of a package's compiled code
   in the current session, e.g. `file_coverage("src/foo.c", "tests/foo.R")`,
-  which is much faster than `package_coverage()` (#605). It loads the package
-  with `pkgload::load_all()`, builds an instrumented copy of it in the
-  session's temporary directory, and only recompiles the files that changed
-  on later runs. `environment_coverage()` and `with_coverage()` also include
-  the compiled code of packages loaded with `pkgload::load_all()`, so
-  `devtools::test_coverage_active_file()` now works for files in `src/`.
+  which is much faster than `package_coverage()`. It loads the package with
+  `pkgload::load_all()`, builds an instrumented copy of it in the session's
+  temporary directory, and only recompiles the files that changed on later
+  runs. `environment_coverage()` and `with_coverage()` also include the
+  compiled code of packages loaded with `pkgload::load_all()`, so
+  `devtools::test_coverage_active_file()` now works for files in `src/`
+  (#605).
 
 * `file_coverage()`, `environment_coverage()` and `with_coverage()` also
   measure the Rust code of packages loaded with `pkgload::load_all()`, e.g.
@@ -220,38 +225,31 @@ reported coverage" below.
   the instrumented copy. Without the llvm tools covr warns and skips the Rust
   code, and `options(covr.llvm_cov = "")` turns this off (#749).
 
-* New `shiny_app_coverage()` measures the coverage of a Shiny app that isn't
-  part of a package while its tests run, by default with
-  `shinytest2::test_app()`, including the code run by the app in the R
-  processes that shinytest2 starts. The new `vignette("shiny")` describes how
-  to measure the coverage of Shiny apps, including tests run with shinytest2
-  and apps that aren't in a package (#277).
-
-* `package_coverage()` now measures the coverage of installed packages, e.g.
-  `package_coverage(system.file(package = "pkg"))`, so the package source isn't
-  needed. Previously it silently returned no coverage. The package must be
-  installed with `--install-tests` and `--with-keep.source`, and
-  `package_coverage()` errors if it wasn't (#638).
-
-* Functions nested inside lists and environments, such as
-  `fns <- list(a = function(x) x)`, functions defined inside `local()` and
-  ggproto methods, can now be traced. This is off by default; enable it for a
-  package with `Config/covr/full_traversal: true` in its DESCRIPTION, or with
-  `options(covr.full_traversal = TRUE)` (#113).
-
 * `file_coverage()`, `code_coverage()`, `environment_coverage()`,
   `function_coverage()` and `with_coverage()` now include code run in
   processes forked by parallel's `mclapply()`, `mcparallel()` and related
   functions, as `package_coverage()` already did. Set
   `options(covr.fix_parallel_mcexit = FALSE)` to turn this off (#410).
 
-* Coverage is now reported for S7 property getters, setters, and validators
-  with S7 > 0.2.2, which stores class callbacks in a shared class reference
-  (@t-kalinowski, #646).
+* `package_coverage()` now measures the coverage of Rust code, such as the
+  code of packages using extendr or savvy. It's built with LLVM's source-based
+  coverage, which needs the llvm tools of the Rust toolchain
+  (`rustup component add llvm-tools`), or for Rust installed by a Linux
+  distribution, those of the LLVM version rustc uses (e.g. `llvm-cov-18`).
+  Without them, covr warns and measures everything except the Rust code.
+  `options(covr.llvm_cov = "")` turns this off (#728).
 
-* covr no longer reads active bindings (which could fail, e.g. with
-  `makeActiveBinding('x', function() stop('boom'), environment())`) when looking
-  for functions to trace in packages, R6 classes, S7 objects and box modules.
+* `package_coverage()` now measures the coverage of installed packages, e.g.
+  `package_coverage(system.file(package = "pkg"))`, so the package source isn't
+  needed. The package must be installed with `--install-tests` and
+  `--with-keep.source`, and `package_coverage()` errors if it wasn't (#638).
+
+* New `shiny_app_coverage()` measures the coverage of a Shiny app that isn't
+  part of a package while its tests run, by default with
+  `shinytest2::test_app()`, including the code run by the app in the R
+  processes that shinytest2 starts. The new `vignette("shiny")` describes how
+  to measure the coverage of Shiny apps, including tests run with shinytest2
+  and apps that aren't in a package (#277).
 
 ## Reports
 
