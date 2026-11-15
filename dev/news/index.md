@@ -379,6 +379,14 @@ see “Changes to reported coverage” below.
 
 ### Reports
 
+- In narrow reports, e.g. one embedded with
+  [`report_html()`](https://covr.r-lib.org/dev/reference/report_html.md),
+  the file list of
+  [`report()`](https://covr.r-lib.org/dev/reference/report.md) only
+  wraps file names after a `/` rather than between any letters, and
+  scrolls horizontally if it doesn’t fit rather than cutting off the
+  last columns ([\#763](https://github.com/r-lib/covr/issues/763)).
+
 - The code in
   [`report()`](https://covr.r-lib.org/dev/reference/report.md) is
   highlighted with highlight.js 11, which supports light and dark
