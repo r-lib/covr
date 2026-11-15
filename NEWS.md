@@ -483,15 +483,16 @@ reported coverage" below.
 
 ## Compiled code
 
-* Compiled code in packages that set `CXX_STD = CXX23` is now instrumented.
+* Compiled code in packages that set `CXX_STD = CXX23` is now instrumented
+  (#758).
 
 * Compiled code coverage only reads the gcov reports written by each gcov
-  run, so stale `.gcov` files in `src/` are no longer parsed or deleted.
+  run, so stale `.gcov` files in `src/` are left alone (#758).
 
 * Source files are now matched against the package directory and
   `covr.gcov_additional_paths` by whole path components, not by a prefix
-  anywhere in the path. Native files in `covr.gcov_additional_paths` are no
-  longer removed from the result by `covr.filter_non_package`.
+  anywhere in the path. Native files in `covr.gcov_additional_paths` are now
+  kept when `covr.filter_non_package` is set (#758).
 
 * Compiled code coverage now reads gcov's structured JSON output
   (`gcov --json-format`) when gcov supports it (gcc >= 9), instead of parsing
@@ -499,12 +500,12 @@ reported coverage" below.
   of llvm-cov, the gcov on macOS, and older gcc, and falls back to it for any
   file whose JSON output is missing or can't be read (#609).
 
+* `options(covr.gcov = "")` once again turns off coverage of compiled code,
+  as documented, instead of failing with "gcov not found" (#516).
+
 * When gcov fails, the error from `package_coverage()` now includes gcov's
   output, e.g. the `.gcno` version mismatch reported when the package was
   compiled with a different version of gcc than the gcov used (#537).
-
-* `options(covr.gcov = "")` once again turns off coverage of compiled code,
-  as documented, instead of failing with "gcov not found" (#516).
 
 * `package_coverage()` now also excludes the `inst/include/<pkg>_RcppExports.h`
   header that Rcpp generates for `// [[Rcpp::interfaces(cpp)]]`, like the other
@@ -513,52 +514,28 @@ reported coverage" below.
 
 ## Bug fixes
 
-* Coverage of a file whose name starts with `tests` or `branches` is no longer
-  mistaken for recorded tests or branches, which made `tally_tests()` return
-  an empty result instead of an error, and corrupted `c()` and merged coverage.
-
-* `with_coverage()`, `function_coverage()` and the other functions that
-  measure coverage now restore the functions wrapped by `Vectorize()` and
-  `memoise::memoise()`, so later measurements of them are no longer lost.
-  Functions are only treated as `Vectorize()` wrappers if they have the
-  wrapper's own bindings.
-
-* `print()` of a coverage object no longer fails or prints the wrong text for
-  file or function names that contain braces.
+* Coverage of a file whose name starts with `tests` is no longer mistaken for
+  recorded tests (#758).
 
 * `relative_path = "/"` and other filesystem roots, such as `C:/`, are no
-  longer changed when trailing slashes are removed.
+  longer changed when trailing slashes are removed (#758).
 
 * The `COVR_COVRIGNORE` environment variable is now read each time it is
-  needed, rather than only when covr is loaded.
+  needed, rather than only when covr is loaded (#758).
 
-* `package_coverage()` no longer crashes R when a package stores data read
-  with arrow in an environment of its namespace, e.g. in a fastmap. The
-  coverage saved by each R process included the contents of the package's
-  environments, which are no longer saved, so it is also smaller (#602).
+* Tracing a `switch()` call with fall-through cases (`a = ,`) whose subject is
+  piped in with the base pipe (`x |> switch(...)`) no longer errors with
+  "argument is missing, with no default" (#630).
 
-* `package_coverage()` no longer reports 0% coverage for packages whose last
-  file in `R/` is empty (#522).
+* Tracing a `switch()` call with a trailing comma no longer warns, which was
+  an error under `options(warn = 2)` (#483).
 
-* `package_coverage()` no longer reports spurious uncovered lines for braceless
-  `if`, `for` and `switch` conditions when some of the R processes that load
-  the package run with `options(keep.parse.data = FALSE)`.
+* Measuring the coverage of httr and its dependencies, such as R6, no longer
+  fails with a cyclic namespace dependency (#623).
 
-* `zero_coverage()` no longer errors in RStudio when rstudioapi isn't
-  installed.
-
-* Fix "argument is missing, with no default" errors when tracing a `switch()`
-  call with fall-through cases (`a = ,`) whose subject is piped in with the
-  base pipe (`x |> switch(...)`) (#630).
-
-* Fix a warning, and possibly an error under `options(warn = 2)`, when tracing
-  a `switch()` call with a trailing comma (#483).
-
-* Avoid cyclic namespace dependency when running coverage on httr and its
-  dependencies, such as R6 (#623).
-
-* Fix a generational garbage-collection bug when replacing traced functions in
-  place, without permanently retaining their bodies or environments (#640).
+* Replacing traced functions in place no longer risks a generational
+  garbage-collection bug, and doesn't permanently keep their bodies or
+  environments (#640).
 
 * Two fixes for `options(covr.record_tests = TRUE)` (#627):
 
@@ -574,7 +551,7 @@ reported coverage" below.
 * With `options(covr.record_tests = TRUE)`, tests that call the package through
   code with source references, e.g. testthat expectations when rlang was
   installed with `R_KEEP_PKG_SOURCE=yes`, are no longer all recorded as a
-  single test named after that code.
+  single test named after that code (#723).
 
 * With `options(covr.record_tests = TRUE)`, functions in the recorded test
   calls, such as those of R6 active bindings, no longer keep their environment.
@@ -587,6 +564,30 @@ reported coverage" below.
 
 * Fixed two rare crashes and an error with `options(covr.record_tests = TRUE)`
   (@maksymiuks, #631).
+
+* `package_coverage()` no longer crashes R when a package stores data read
+  with arrow in an environment of its namespace, e.g. in a fastmap. The
+  coverage saved by each R process included the contents of the package's
+  environments, which are no longer saved, so it is also smaller (#602).
+
+* `package_coverage()` no longer reports 0% coverage for packages whose last
+  file in `R/` is empty (#522).
+
+* `package_coverage()` no longer reports spurious uncovered lines for braceless
+  `if`, `for` and `switch` conditions when some of the R processes that load
+  the package run with `options(keep.parse.data = FALSE)` (#732).
+
+* `print()` of a coverage object no longer fails or prints the wrong text for
+  file or function names that contain braces (#758).
+
+* `with_coverage()`, `function_coverage()` and the other functions that
+  measure coverage now restore the functions wrapped by `Vectorize()` and
+  `memoise::memoise()`, so later measurements of them are no longer lost.
+  Functions are only treated as `Vectorize()` wrappers if they have the
+  wrapper's own bindings (#758).
+
+* `zero_coverage()` no longer errors in RStudio when rstudioapi isn't
+  installed (#732).
 
 # covr 3.6.5
 
