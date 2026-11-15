@@ -104,6 +104,9 @@ see “Changes to reported coverage” below.
   The old names still work, with their `cov` and `filename` arguments,
   and warn once per session
   ([\#750](https://github.com/r-lib/covr/issues/750)).
+  [`to_cobertura()`](https://covr.r-lib.org/dev/reference/covr-deprecated.md)
+  only warns in interactive sessions, so CI workflows that call it, such
+  as the coverage workflow of r-lib/actions, don’t warn.
 
 - The option `covr.fix_parallel_mcexit` now takes precedence over the
   environment variable `COVR_FIX_PARALLEL_MCEXIT`, which was used first
