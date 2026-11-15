@@ -22,7 +22,8 @@ SonarQube project. If the package is in a subdirectory of the project,
 set \code{path_prefix} to that subdirectory (e.g. \code{"pkg"} gives \code{pkg/R/foo.R}).}
 }
 \description{
-These functions are deprecated and warn once per session. They return the
+These functions are deprecated and warn once per session (\code{to_cobertura()}
+only in interactive sessions). They return the
 same value as the functions that replace them, and \code{cov} and \code{filename}
 are the \code{x} and \code{file} arguments of those functions:
 \itemize{
