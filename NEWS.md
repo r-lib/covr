@@ -318,36 +318,46 @@ reported coverage" below.
 
 ## CI services and output formats
 
-* covr uses httr2 instead of httr to upload coverage to Codecov and Coveralls.
+* covr uses httr2 instead of httr to upload coverage to Codecov and Coveralls
+  (#758).
 
-* `coveralls()` uses the environment variable `COVERALLS_REPO_TOKEN` if
-  `COVERALLS_TOKEN` is not set, deletes the temporary file with the coverage
-  it uploaded, and its documentation no longer promises uploads without a
-  token.
+* New `badge()` writes an SVG badge with the percent coverage, so a README
+  can show coverage without uploading it to Codecov or Coveralls. The README
+  has an example GitHub Actions workflow that publishes the badge (#634).
+
+* `cobertura()` now only lists the lines of a method from the file it is
+  defined in, so methods sharing a name across files, such as the
+  `initialize()` methods of R6 classes, don't list each other's lines, and
+  Codecov shows the correct line numbers and the same coverage as `print()`
+  (#629).
 
 * `codecov()` and `coveralls()` use the current Drone variables
   `DRONE_COMMIT_BRANCH`, `DRONE_COMMIT_SHA` and `DRONE_BUILD_LINK`, and fall
-  back to the old ones.
-
-* `sonarqube()` now reports the lines of compiled code, and with branch
-  coverage (`options(covr.branch_coverage = TRUE)`) the `branchesToCover` and
-  `coveredBranches` of each line.
+  back to the old ones (#758).
 
 * `codecov()` now uploads with Codecov's current upload protocol, a request to
   `https://ingest.codecov.io` for an upload followed by sending the coverage to
   the location it returns, instead of the legacy `/upload/v2` endpoint, which
   Codecov has deprecated and which doesn't support organization-level upload
-  tokens (#568, #464). The repository and git service come from the CI service
-  or the `origin` remote, and `base_url` is now the upload API, so
-  `"https://codecov.io"` is replaced by it. Without a token, pull requests from
-  forks on GitHub Actions are uploaded from an unprotected branch
-  (`owner:branch`), like `codecov/codecov-action` does, and on GitHub Actions
-  pull requests use the head commit of the pull request. `codecov()` now
-  returns the response of Codecov, which includes the `url` of the upload.
+  tokens. The repository and git service come from the CI service or the
+  `origin` remote. Without a token, pull requests from forks on GitHub Actions
+  are uploaded from an unprotected branch (`owner:branch`), like
+  `codecov/codecov-action` does, and on GitHub Actions pull requests use the
+  head commit of the pull request (#568, #464).
+
+* `codecov()` now returns the response of Codecov, which includes the `url` of
+  the upload (#568).
 
 * `codecov()` outside a git repository now gives its "Can't determine the
-  repository" error instead of a git failure, as covr's failed git commands
-  could escape its error handlers.
+  repository" error, rather than a raw git error (#732).
+
+* New `coverage_to_markdown()` formats coverage as a markdown table, optionally
+  compared against a baseline, for GitHub Actions job summaries or pull
+  request comments (#519).
+
+* `coveralls()` uses the environment variable `COVERALLS_REPO_TOKEN` if
+  `COVERALLS_TOKEN` is not set, and deletes the temporary file with the
+  coverage it uploaded (#758).
 
 * `coveralls()` now detects the CI service, job and pull request on the
   services that `codecov()` supports, e.g. GitHub Actions, instead of
@@ -355,23 +365,13 @@ reported coverage" below.
   branch and remote on every service, or from the local git repository
   outside CI, so the Coveralls badge is updated for the right branch (#535).
 
-* New `badge()` writes an SVG badge with the percent coverage, so a README
-  can show coverage without uploading it to Codecov or Coveralls. The README
-  has an example GitHub Actions workflow that publishes the badge (#634).
-
 * New `lcov()` writes coverage as an LCOV tracefile (`lcov.info`), for
   `genhtml` and other tools that read the LCOV format (#442, thanks to
   @MichaelChirico for the initial implementation in #637).
 
-* New `coverage_to_markdown()` formats coverage as a markdown table, optionally
-  compared against a baseline, for GitHub Actions job summaries or pull
-  request comments (#519).
-
-* `cobertura()` now only lists the lines of a method from the file it is
-  defined in. Previously methods sharing a name across files, such as the
-  `initialize()` methods of R6 classes, listed each other's lines, so Codecov
-  showed line numbers past the end of the file and a different coverage than
-  `print()` (#629).
+* `sonarqube()` now reports the lines of compiled code, and with branch
+  coverage (`options(covr.branch_coverage = TRUE)`) the `branchesToCover` and
+  `coveredBranches` of each line (#758).
 
 ## Working with coverage results
 
