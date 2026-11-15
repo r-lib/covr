@@ -58,7 +58,12 @@ test_that("Can pass path to relative_path argument", {
 test_that("Rcpp interfaces header and .covrignore files are excluded (#531)", {
   skip_on_cran()
   skip_if(is_win_r41())
-  pkg <- normalize_path("TestRcpp.Interfaces")
+  # `.covrignore` is written here rather than shipped with the fixture, as
+  # R CMD check notes hidden files in the package.
+  dir <- withr::local_tempdir()
+  file.copy(test_path("TestRcpp.Interfaces"), dir, recursive = TRUE)
+  pkg <- normalize_path(file.path(dir, "TestRcpp.Interfaces"))
+  writeLines("R/ignored.R", file.path(pkg, ".covrignore"))
   files <- c("R/simple.R", "src/simple.cc", "inst/include/helper.h")
   withr::local_dir(tempdir())
 
