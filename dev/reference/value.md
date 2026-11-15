@@ -31,6 +31,6 @@ For a single element, its count.
 ``` r
 cov <- code_coverage("add <- function(x, y) { x + y }", "add(1, 2)")
 value(cov)
-#> source.R185f6be30f34:1:25:1:29:25:29:1:1 
+#> source.R1af117059e52:1:25:1:29:25:29:1:1 
 #>                                        1 
 ```
