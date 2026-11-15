@@ -126,59 +126,55 @@ reported coverage" below.
 
 ## Performance
 
+* Code run to measure coverage is faster. Evaluated expressions are counted in
+  C rather than in R (about 3.5 times less overhead per expression), and
+  instrumented code only checks whether tests are recorded with
+  `covr.record_tests` once, when it is instrumented (#734).
+
+* Combining the coverage of many R processes is much faster for packages with
+  many traces (@erkurtharun, #643).
+
+* Tracing a package is faster, as parse data now keeps text only for terminal
+  tokens (@erkurtharun, #644).
+
 * `cobertura()` and `sonarqube()` are much faster for large packages, as they
   write the XML of the lines as text and parse it once, rather than adding each
   line with xml2 (e.g. 0.3 s rather than 7.5 s, and 0.2 s rather than 3.2 s,
   for Luminescence). The files they write are unchanged (#755).
 
-* Code run to measure coverage is faster. Evaluated expressions are counted in
-  C rather than in R (about 3.5 times less overhead per expression), and
-  instrumented code no longer checks whether tests are recorded with
-  `covr.record_tests` every time an expression runs.
-
 * `package_coverage()` instruments and byte-compiles a source package once,
-  after installing it, rather than every time a process loads it. The package
-  is installed without byte-compiling it, then its instrumented functions are
-  byte-compiled and written back to the installed package, so each process
-  that loads it starts faster (e.g. 0.3 s rather than 4.6 s for Luminescence)
-  and doesn't compile the functions again as it runs them. Functions that
-  `.onLoad()` creates or replaces are instrumented when the package is loaded.
-  If instrumenting after installing fails, or the package has functions in
-  `R/sysdata.rda`, the package is instrumented when it is loaded, as before.
-  Set `options(covr.install_instrument = FALSE)` (or the environment variable
-  `COVR_INSTALL_INSTRUMENT=false`) to always do that.
-  Functions of the package that are sent to other R processes, e.g. parallel
-  workers, are now counted there if the process loads the package (#740).
+  after installing it, rather than every time a process loads it, so each
+  process that loads it starts faster (e.g. 0.3 s rather than 4.6 s for
+  Luminescence) and doesn't compile the functions again as it runs them. If
+  that isn't possible, e.g. the package has functions in `R/sysdata.rda`, the
+  package is instrumented when it is loaded, as before. Set
+  `options(covr.install_instrument = FALSE)` (or the environment variable
+  `COVR_INSTALL_INSTRUMENT=false`) to always do that (#740).
 
 * `package_coverage()` is faster and uses much less memory when the code
   starts many R processes that load the package. Each process now saves only
   the counts it recorded, which are added to the counters saved when the
   package was instrumented, rather than all its counters and their source
-  references (a few KB rather than 1 MB per process for languageserver). The
-  traces of the processes are also added up as they are read, rather than all
-  read first. Measuring the coverage of languageserver's tests, which start
-  about 1,000 processes, took more than 7 GB to merge their traces (#744).
+  references (a few KB rather than 1 MB per process for languageserver), and
+  the traces of the processes are added up as they are read. Merging the
+  traces of languageserver's tests, which start about 1,000 processes, now
+  takes 1 s and 144 MB, where it previously ran out of memory at 7 GB (#744).
+
+* `percent_coverage()`, `tally_coverage()`, `zero_coverage()`, `report()` and
+  the exclusions in `package_coverage()` are faster for packages with many
+  files, as the package source is now split into files once rather than once
+  per file (#733).
+
+* `report()`, `report_html()` and `file_report_html()` are much faster for
+  large packages, as the source table is built as text rather than an
+  htmltools tag per line (e.g. 6 minutes to a few seconds for Luminescence)
+  (#733).
 
 * `tally_coverage()`, and so `percent_coverage()`, `zero_coverage()`,
   `coverage_to_list()` and the reports, are about 4 times faster for large
   coverage objects, and `print()` about 8 times faster (e.g. 0.16 s rather than
   0.7 s, and 0.18 s rather than 1.4 s, for Luminescence). The rows of
   `tally_coverage(by = "line")` are now numbered from 1 (#745).
-
-* `report()`, `report_html()` and `file_report_html()` are much faster for
-  large packages, as the source table is built as text rather than an
-  htmltools tag per line (e.g. 6 minutes to a few seconds for Luminescence).
-
-* `percent_coverage()`, `tally_coverage()`, `zero_coverage()`, `report()` and
-  the exclusions in `package_coverage()` are faster for packages with many
-  files, as the package source is now split into files once rather than once
-  per file.
-
-* `merge_coverage()` is much faster for packages with many traces
-  (@erkurtharun, #643).
-
-* Tracing a package is faster, as parse data now keeps text only for terminal
-  tokens (@erkurtharun, #644).
 
 ## Branch coverage
 
@@ -196,6 +192,9 @@ reported coverage" below.
   as before, so there is no cost. See `?covr.branch_coverage` (#279).
 
 ## Measuring more code
+
+* Functions of a package that are sent to other R processes, e.g. parallel
+  workers, are now counted there if the process loads the package (#740).
 
 * `package_coverage()` now measures the coverage of Rust code, such as the
   code of packages using extendr or savvy. It's built with LLVM's source-based
