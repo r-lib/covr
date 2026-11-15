@@ -39,6 +39,7 @@ report_fixture_tests <- paste(
 report_snapshot_html <- function(cov, fun = report_html) {
   html <- htmltools::renderTags(fun(cov))$html
   for (file in unique(display_name(cov))) {
+    html <- gsub(file_name_breaks(file), "source.R", html, fixed = TRUE)
     html <- gsub(file, "source.R", html, fixed = TRUE)
   }
   strsplit(html, "\n", fixed = TRUE)[[1]]

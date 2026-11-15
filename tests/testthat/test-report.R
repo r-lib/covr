@@ -52,6 +52,22 @@ test_that("report_html() lists the files in a sortable table (#316)", {
   expect_match(html, '<a href="#" class="covr-file-link">b.R</a>', fixed = TRUE)
 })
 
+test_that("report_html() file names only wrap after a `/` (#763)", {
+  skip_if_not_installed("htmltools")
+  html <- as.character(file_table(data.frame(
+    File = c("src/rust/src/lib.rs", "R/a&b.R"),
+    Lines = c(1L, 2L)
+  )))
+  expect_match(html, 'data-sort="src/rust/src/lib.rs"', fixed = TRUE)
+  expect_match(
+    html,
+    '<a href="#" class="covr-file-link">src/<wbr>rust/<wbr>src/<wbr>lib.rs</a>',
+    fixed = TRUE
+  )
+  expect_match(html, ">R/<wbr>a&amp;b.R</a>", fixed = TRUE)
+  expect_match(html, '^<div class="covr-file-table-scroll">\\s*<table')
+})
+
 test_that("hits per line show a decimal place and `<0.1` below it", {
   expect_equal(
     vapply(c(0, 0.01, 0.09, 0.1, 2.24, NaN), format_hits_per_line, ""),

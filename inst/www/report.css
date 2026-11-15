@@ -81,6 +81,12 @@
   border-top: 1px solid rgba(0, 0, 0, 0.15);
 }
 
+/* Scrolls the list of files horizontally if it doesn't fit, e.g. when the
+   report is embedded in a narrow iframe, rather than clipping it */
+.covr-report div.covr-file-table-scroll {
+  overflow-x: auto;
+}
+
 /* The list of files, styled like DataTables' tables with borders between the
    rows */
 .covr-report table.covr-file-table {
@@ -113,8 +119,9 @@
 }
 
 /* The numeric columns are as narrow as their content, so the file column
-   takes the rest of the width, and long paths wrap rather than make the table
-   wider than the report */
+   takes the rest of the width, and long paths wrap after a `/` (at the
+   `<wbr>`s added by `file_name_breaks()`) rather than make the table wider
+   than the report */
 .covr-report table.covr-file-table .covr-num {
   width: 1%;
   white-space: nowrap;
@@ -127,9 +134,11 @@
   border-top: 1px solid rgba(0, 0, 0, 0.3);
 }
 
+/* Without `overflow-wrap`, the file column is at least as wide as the longest
+   part of a path between `/`s. The minimum keeps short paths readable, but is
+   small enough that the table fits a standalone report on a laptop screen */
 .covr-report table.covr-file-table td.covr-file {
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  min-width: 5em;
 }
 
 .covr-report button.covr-sort {

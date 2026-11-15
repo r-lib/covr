@@ -242,13 +242,14 @@ file_table <- function(stats, totals = NULL) {
   numeric <- setdiff(names(stats), "File")
   cell <- function(col, value, link = TRUE) {
     if (col == "File") {
+      name <- file_name_breaks(value)
       return(htmltools::tags$td(
         class = "covr-file",
         `data-sort` = value,
         if (link) {
-          htmltools::a(href = "#", class = "covr-file-link", value)
+          htmltools::a(href = "#", class = "covr-file-link", name)
         } else {
-          value
+          name
         }
       ))
     }
@@ -274,35 +275,50 @@ file_table <- function(stats, totals = NULL) {
       value
     )
   }
-  htmltools::tags$table(
-    class = "covr-file-table",
-    htmltools::tags$thead(htmltools::tags$tr(
-      lapply(names(stats), function(col) {
-        htmltools::tags$th(
-          class = if (col %in% numeric) "covr-num",
-          title = if (col == "Hits/line") {
-            "Average number of times each relevant line was run"
-          },
-          `aria-sort` = "none",
-          htmltools::tags$button(type = "button", class = "covr-sort", col)
-        )
-      })
-    )),
-    htmltools::tags$tbody(
-      lapply(seq_len(nrow(stats)), function(i) {
-        htmltools::tags$tr(
-          lapply(names(stats), function(col) cell(col, stats[[col]][[i]]))
-        )
-      })
-    ),
-    if (!is.null(totals)) {
-      htmltools::tags$tfoot(htmltools::tags$tr(
+  # The wrapper scrolls the table horizontally if it is still wider than the
+  # report, e.g. in a narrow iframe, rather than clipping its last columns
+  htmltools::div(
+    class = "covr-file-table-scroll",
+    htmltools::tags$table(
+      class = "covr-file-table",
+      htmltools::tags$thead(htmltools::tags$tr(
         lapply(names(stats), function(col) {
-          cell(col, totals[[col]][[1]], link = FALSE)
+          htmltools::tags$th(
+            class = if (col %in% numeric) "covr-num",
+            title = if (col == "Hits/line") {
+              "Average number of times each relevant line was run"
+            },
+            `aria-sort` = "none",
+            htmltools::tags$button(type = "button", class = "covr-sort", col)
+          )
         })
-      ))
-    }
+      )),
+      htmltools::tags$tbody(
+        lapply(seq_len(nrow(stats)), function(i) {
+          htmltools::tags$tr(
+            lapply(names(stats), function(col) cell(col, stats[[col]][[i]]))
+          )
+        })
+      ),
+      if (!is.null(totals)) {
+        htmltools::tags$tfoot(htmltools::tags$tr(
+          lapply(names(stats), function(col) {
+            cell(col, totals[[col]][[1]], link = FALSE)
+          })
+        ))
+      }
+    )
   )
+}
+
+# Lets long paths wrap after each `/`, but not between other characters
+file_name_breaks <- function(path) {
+  htmltools::HTML(gsub(
+    "/",
+    "/<wbr>",
+    htmltools::htmlEscape(path),
+    fixed = TRUE
+  ))
 }
 
 default_report_colors <- c(covered = "#5f9744", missed = "#b94947")
