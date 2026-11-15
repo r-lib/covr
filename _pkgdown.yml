@@ -38,6 +38,7 @@ reference:
       - tally_tests
       - zero_coverage
       - value
+      - display_name
       - annotate_coverage
 
   - title: Reports

@@ -100,9 +100,6 @@ reported coverage" below.
   outside a supported CI service, and the git committer fields are now named
   as Coveralls expects (`committer_name`, `committer_email`) (#535).
 
-* `display_name()` is no longer exported. It was only meant for covr's own
-  use (#758).
-
 * `package_coverage()` no longer accepts the `exclusions` argument, deprecated
   in favor of `line_exclusions`. Use `line_exclusions` instead (#732).
 

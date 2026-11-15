@@ -1,4 +1,16 @@
-# The path of each trace of the coverage object `x`, relative to its root.
+#' The source file of each trace
+#'
+#' `display_name()` returns the path of the source file of each trace of a
+#' coverage object, relative to the package root, e.g. to keep the coverage of
+#' some files with `x[display_name(x) %in% files]`.
+#'
+#' @param x A [coverage] object.
+#' @return A character vector with one path for each trace of `x`, or `NULL`
+#'   if `x` has no traces.
+#' @export
+#' @examples
+#' cov <- code_coverage("f <- function(x) x + 1", "f(1)")
+#' display_name(cov)
 display_name <- function(x) {
   stopifnot(inherits(x, "coverage"))
   if (length(x) == 0) {
