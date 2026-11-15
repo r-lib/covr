@@ -6,88 +6,66 @@ reported coverage" below.
 
 ## Changes to reported coverage
 
-* Line coverage is now computed the same way everywhere, so `print()`,
-  `percent_coverage()`, `tally_coverage()`, `report()`, `codecov()`,
-  `coveralls()`, `cobertura()`, `sonarqube()` and `lcov()` agree. A
-  line only counts as covered if all its expressions ran, e.g. `if (x) a else
-  b` on one line where `a` never ran is now uncovered in `report()`, `codecov()`
-  and `coveralls()`. Lines shared by several functions, such as
-  `f <- function() 1; g <- function() 2`, are counted once, and `print()` and
-  `percent_coverage()` no longer count lines with only punctuation such as `}`.
-  Reported line coverage may decrease slightly (#620).
+* Reported line coverage may decrease slightly, as it is now computed the same
+  way everywhere, so `print()`, `percent_coverage()`, `tally_coverage()`,
+  `report()`, `codecov()`, `coveralls()`, `cobertura()`, `sonarqube()` and
+  `lcov()` agree. A line only counts as covered if all its expressions ran,
+  e.g. `if (x) a else b` on one line where `a` never ran is now uncovered in
+  `report()`, `codecov()` and `coveralls()`. Lines shared by several
+  functions, such as `f <- function() 1; g <- function() 2`, are counted once,
+  and `print()` and `percent_coverage()` only count lines with code, not lines
+  with only punctuation such as `}` (#620).
 
-* Expressions in `if` and `switch` branches written without braces now get
-  their own counters when the conditional is the body of a function or is
-  nested in another call, such as `x <- if (a) b else c` or
-  `function(x) if (x) 1 else 2`, like they already did when the conditional is
-  a statement in braces. Previously the whole expression shared one counter, so
-  a branch that never ran was reported as covered. This changes reported
-  coverage: code with such branches may now have lower coverage percentages,
-  e.g. `f <- function(x) if (x) 1 else 2` tested only with `f(TRUE)` drops from
-  100% to 0% line coverage. The same applies to `if` and `switch()` without
-  braces in the default values of arguments, e.g.
-  `function(x = if (y) 1 else 2)`. This is more complete expression coverage,
-  not branch coverage (#279, #682).
+* Expressions in `if` and `switch()` branches without braces now get their
+  own counters when the conditional is a function body or nested in another
+  call, such as `x <- if (a) b else c` or `function(x) if (x) 1 else 2`, or
+  in an argument default. Previously the whole expression shared one counter,
+  so a branch that never ran was reported as covered. Coverage of such code
+  may drop, e.g. `f <- function(x) if (x) 1 else 2` tested only with
+  `f(TRUE)` drops from 100% to 0% line coverage (#279, #682).
 
 * Braceless `while` loop bodies are now counted separately from the loop
-  condition, like `if` and `for`.
+  condition, like `if` and `for` (#732).
 
-* Lines excluded with `# nocov` are no longer reported as uncovered when they
-  are part of a larger expression that is not entirely excluded, such as the
-  first and last lines of a function defined inside another function (#594).
+* Lines excluded with `# nocov` now stay excluded when they are part of a
+  larger expression that is not entirely excluded, such as the first and last
+  lines of a function defined inside another function (#594).
 
 * Compiled code coverage counts differently in several cases:
 
-  - Lines of C++ templates instantiated more than once in a file are no
-    longer counted twice, which also stopped
-    `options(covr.gcov_partial = "uncovered")` from working on them (#609).
+  - Lines of C++ templates instantiated more than once in a file are counted
+    once, so `options(covr.gcov_partial = "uncovered")` also works on them
+    (#609).
   - Lines only reached by C++ exceptions, such as a `catch` block that never
     ran, now count as not covered instead of being left out of the coverage
     (#609).
   - Lines of compiled code that gcov reports as only partially executed (e.g.
-    `if (x) f();` when `f()` never runs) are no longer dropped from the
-    coverage. They count as covered, or as not covered with
+    `if (x) f();` when `f()` never runs) are now included in the coverage.
+    They count as covered, or as not covered with
     `options(covr.gcov_partial = "uncovered")` (#604). covr now runs gcov with
     `-a` so partial lines are also found with llvm-cov, the gcov on macOS, and
     older versions of gcc (#610).
 
 ## Breaking changes
 
-* covr now requires R 4.1.0 or later, as httr2, which it uses for uploads,
-  does.
-
-* `azure()` is removed. Use `cobertura(x, file = "coverage.xml")` to write the
-  Cobertura file Azure Pipelines reads.
-
-* `package_coverage()` no longer has a `pre_clean` argument. Objects in `src/`
-  are always removed before the package is installed.
-
-* `display_name()` is no longer exported. It was only meant for covr's own
-  use.
-
-* `to_cobertura()` and `to_sonarqube()` are deprecated in favor of
-  `cobertura()` and `sonarqube()`, matching the names of `report()`,
-  `codecov()` and `coveralls()`. Like `report()`, the new functions take the
-  coverage as `x` and the output path as `file`. The old names still work,
-  with their `cov` and `filename` arguments, and warn once per session (#750).
-  `to_cobertura()` only warns in interactive sessions, so CI workflows that
-  call it, such as the coverage workflow of r-lib/actions, don't warn.
+* covr now requires R 4.1.0 or later, as does httr2, which it uses for
+  uploads (#760).
 
 * The option `covr.fix_parallel_mcexit` now takes precedence over the
-  environment variable `COVR_FIX_PARALLEL_MCEXIT`, which was used first before,
-  so options always win over the `COVR_*` environment variables. The
-  environment variables accept `true`, `t`, `yes`, `1`, `false`, `f`, `no` and
-  `0` in any case, and warn about other values.
+  environment variable `COVR_FIX_PARALLEL_MCEXIT`, so options always win over
+  the `COVR_*` environment variables. The environment variables accept `true`,
+  `t`, `yes`, `1`, `false`, `f`, `no` and `0` in any case, and warn about other
+  values (#758).
 
-* The `covr.gcov` option is no longer set when covr is loaded. gcov is looked
-  up when it is needed, with the build tools on the `PATH`, so the gcov of
+* covr now looks up gcov when it needs it, with the build tools on the `PATH`,
+  rather than setting the `covr.gcov` option when it is loaded, so the gcov of
   Rtools is found on Windows. `getOption("covr.gcov")` is now `NULL` unless you
-  set it.
+  set it (#758).
 
-* `coveralls()` now returns the response of Coveralls invisibly, like
-  `codecov()`, and signals an error of class `covr_coveralls_error` for any
-  response that is not HTTP 200 with a JSON body, with the status and the
-  response in its message.
+* covr no longer supports code coverage with Intel's classic `icc` compiler,
+  which Intel discontinued in 2024, and the `covr.icov`, `covr.icov_args`,
+  `covr.icov_flags` and `covr.icov_prof` options have been removed. Use gcc or
+  clang to measure the coverage of compiled code (#732).
 
 * S4 methods are now named after their generic and signature, as in their Rd
   aliases, e.g. `show,MyClass-method`, so `print(x, group = "functions")`,
@@ -96,11 +74,8 @@ reported coverage" below.
   e.g. `numeric#character` (#417). `function_exclusions` patterns that matched
   the old names need to be updated.
 
-* `sonarqube()` now writes file paths relative to the package root (e.g.
-  `R/foo.R`) instead of prefixing them with the package name, so the report
-  works when the package is the root of the SonarQube project. Use the new
-  `path_prefix` argument if the package is in a subdirectory of the project,
-  e.g. `path_prefix = "mypkg"` restores the previous paths (#636).
+* `azure()` is removed. Use `cobertura(x, file = "coverage.xml")` to write the
+  Cobertura file Azure Pipelines reads (#758).
 
 * `codecov()` now throws an error if the upload to codecov.io fails, so CI
   jobs that upload coverage fail instead of silently succeeding. The error has
@@ -112,20 +87,42 @@ reported coverage" below.
   rather than `"https://codecov.io"`; see "CI services and output formats"
   (#568).
 
+* `codecov()` no longer detects Codeship, Semaphore (classic) and Wercker, which
+  have been shut down. Their environment variables are now ignored and the
+  commit, branch and repository come from the local git repository (#732).
+
+* `coveralls()` now returns the response of Coveralls invisibly, like
+  `codecov()`, and signals an error of class `covr_coveralls_error` for any
+  response that is not HTTP 200 with a JSON body, with the status and the
+  response in its message (#758).
+
 * `coveralls()` now sets `service_name` to `"local"` rather than `"travis-ci"`
   outside a supported CI service, and the git committer fields are now named
   as Coveralls expects (`committer_name`, `committer_email`) (#535).
 
+* `display_name()` is no longer exported. It was only meant for covr's own
+  use (#758).
+
 * `package_coverage()` no longer accepts the `exclusions` argument, deprecated
-  in favor of `line_exclusions`.
+  in favor of `line_exclusions`. Use `line_exclusions` instead (#732).
 
-* covr no longer supports code coverage with Intel's classic `icc` compiler,
-  which Intel discontinued in 2024, and the `covr.icov`, `covr.icov_args`,
-  `covr.icov_flags` and `covr.icov_prof` options have been removed.
+* `package_coverage()` no longer has a `pre_clean` argument. Objects in `src/`
+  are always removed before the package is installed, so remove `pre_clean`
+  from calls (#758).
 
-* `codecov()` no longer detects Codeship, Semaphore (classic) and Wercker, which
-  have been shut down. Their environment variables are now ignored and the
-  commit, branch and repository come from the local git repository.
+* `sonarqube()` now writes file paths relative to the package root (e.g.
+  `R/foo.R`) instead of prefixing them with the package name, so the report
+  works when the package is the root of the SonarQube project. Use the new
+  `path_prefix` argument if the package is in a subdirectory of the project,
+  e.g. `path_prefix = "mypkg"` restores the previous paths (#636).
+
+* `to_cobertura()` and `to_sonarqube()` are deprecated in favor of
+  `cobertura()` and `sonarqube()`, matching the names of `report()`,
+  `codecov()` and `coveralls()`. Like `report()`, the new functions take the
+  coverage as `x` and the output path as `file`. The old names still work,
+  with their `cov` and `filename` arguments, and warn once per session (#750).
+  `to_cobertura()` only warns in interactive sessions, so CI workflows that
+  call it, such as the coverage workflow of r-lib/actions, don't warn (#765).
 
 ## Performance
 
