@@ -61,7 +61,7 @@ report can be generated using
 The core function in **covr** is `trace_calls()`. This function was
 adapted from ideas in [*Advanced R - Walking the Abstract Syntax Tree
 with recursive
-functions*](https://adv-r.had.co.nz/Expressions.html#ast-funs). This
+functions*](https://adv-r.hadley.nz/expressions.html#ast-funs). This
 recursive function modifies each of the leaves (atomic or name objects)
 of an R expression by applying a given function to them. If the
 expression is not a leaf the walker function calls itself recursively on

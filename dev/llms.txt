@@ -280,7 +280,7 @@ options(covr.gcov = "path/to/gcov")
 Yes.
 [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
 measures the coverage of the Rust code in `src/`, e.g. of packages using
-[extendr](https://extendr.github.io/) or
+[extendr](https://extendr.rs/) or
 [savvy](https://yutannihilation.github.io/savvy/guide/), with LLVM’s
 source-based coverage.
 [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md),
