@@ -253,21 +253,35 @@ reported coverage" below.
 
 ## Reports
 
-* In narrow reports, e.g. one embedded with `report_html()`, the file list of
-  `report()` only wraps file names after a `/` rather than between any
-  letters, and scrolls horizontally if it doesn't fit rather than cutting off
-  the last columns (#763).
-
-* The code in `report()` is highlighted with highlight.js 11, which supports
-  light and dark themes.
+* The RStudio addin now prints a message when it starts calculating coverage,
+  so there is feedback before the report opens (#404).
 
 * `file_report()` now creates the directory of `out_file` if needed and
-  returns its absolute path, like `report()`.
+  returns its absolute path, like `report()` (#758).
 
-* `report()`'s file list is easier to read: the column headers no longer wrap,
-  `Hits / Line` is renamed to `Hits/line` and shows one decimal place (or
+* `file_report()` highlights the syntax of the source code again; it failed
+  with JavaScript errors as the report didn't include jQuery (#708).
+
+* `report()` highlights code with highlight.js 11, which supports light and
+  dark themes (#758).
+
+* `report()`'s file list is easier to read: the column headers stay on one
+  line, `Hits / Line` is renamed to `Hits/line` and shows one decimal place (or
   `<0.1`) with a tooltip explaining it, numbers line up, and a row with the
-  totals follows the files when there are several.
+  totals follows the files when there are several (#756).
+
+* `report()`'s file list only wraps file names after a `/` in narrow reports,
+  e.g. one embedded with `report_html()`, and scrolls horizontally if it
+  doesn't fit, rather than cutting off the last columns (#763).
+
+* `report()` and `file_report()` no longer need the DT package, jQuery or
+  Bootstrap, and no longer bundle Bootstrap, whose bundled version had known
+  security vulnerabilities (#639). The file list is now sorted with the least
+  covered files first (#316).
+
+* `report()` and `file_report()` use a dark theme when the browser prefers
+  one, and have a button to switch between the light and dark themes, which
+  the browser remembers for other reports (#563).
 
 * `report()`, `file_report()` and their `_html()` versions show branch
   coverage when it was measured: lines with branches show how many were taken
@@ -276,20 +290,6 @@ reported coverage" below.
   `covr.report_colors` (yellow by default), and the file list has a "Branches"
   column, with the overall percentage of branches taken in the title. Reports
   without branch coverage are unchanged (#751).
-
-* New `report_html()` and `file_report_html()` return the coverage reports of
-  `report()` and `file_report()` as HTML that can be included in a larger
-  document, such as an R Markdown or Quarto document. The reports' styles and
-  scripts only apply to the report, and a report no longer uses Bootstrap's
-  JavaScript or replaces the document's highlight.js, so a document can include
-  several reports without changing the rest of the page. The reports no longer
-  need the DT package, jQuery or Bootstrap (so they no longer bundle Bootstrap,
-  whose bundled version had known security vulnerabilities, #639), and the list
-  of files is now shown sorted with the least covered files first (#316, #709).
-
-* `report()` and `file_report()` use a dark theme when the browser prefers
-  one, and have a button to switch between the light and dark themes, which
-  the browser remembers for other reports (#563).
 
 * `report()`, `file_report()` and the coverage percentages printed in the
   console can use other colors for covered and missed code, set with the new
@@ -306,14 +306,15 @@ reported coverage" below.
   scrolling, and returning to the file list restores its scroll position
   (#232).
 
-* `file_report()` now highlights the syntax of the source code, which failed
-  with JavaScript errors because the report didn't include jQuery.
+* `report()` now works when the coverage object has no traces; it failed with
+  "invalid argument to unary operator" (#540).
 
-* The RStudio addin now prints a message when it starts calculating coverage,
-  so there is feedback before the report opens (#404).
-
-* `report()` no longer fails with "invalid argument to unary operator" when
-  the coverage object has no traces (#540).
+* New `report_html()` and `file_report_html()` return the coverage reports of
+  `report()` and `file_report()` as HTML that can be included in a larger
+  document, such as an R Markdown or Quarto document. The reports' styles and
+  scripts only apply to the report, and a report doesn't replace the
+  document's highlight.js, so a document can include several reports without
+  changing the rest of the page (#709).
 
 ## CI services and output formats
 
