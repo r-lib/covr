@@ -17,6 +17,7 @@ _dev\.R$
 ^codecov\.yml$
 ^SECURITY\.md$
 ^CRAN-SUBMISSION$
+^revdep$
 ^air\.toml$
 ^AGENTS\.md$
 ^\.git-blame-ignore-revs$
