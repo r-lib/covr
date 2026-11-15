@@ -375,71 +375,63 @@ reported coverage" below.
 
 ## Working with coverage results
 
-* New `current_coverage()` returns the coverage measured so far in the current
-  process, and can reset the counts, so code run by covr can measure the
-  coverage of parts of a run, such as each test file. Use it rather than
-  reading covr's internal counters, whose counts are now kept in C until they
-  are read.
+* Error and warning messages are shorter and follow the tidyverse style guide,
+  starting with a short statement of the problem followed by bulleted details,
+  e.g. for unpaired `# nocov start` / `# nocov end` lines (#710).
+
+* The error for unpaired `# nocov start` and `# nocov end` comments now gives
+  the name of the file along with the line numbers of the comments (#409).
+
+* `covr_error` conditions (and the `covr_warning`s from `allow_failures`) now
+  keep the whole failure output in `$output` and its file in `$file`. The
+  message shows the last 50 lines, bounded by `warning.length` in characters,
+  and `print()` shows the last `n` lines, 50 by default. The number of lines
+  can be set with `options(covr.failure_lines)` (#570, #642).
 
 * New `annotate_coverage()` shows the source of the missed lines, or any other
   lines, as plain text with their execution counts, so coverage can be read
   without the HTML report, e.g. by coding agents. With branch coverage, lines
   with a branch that was never taken are shown and marked too. Its output is
   capped at 200 source lines (`max_lines`, or the `covr.annotate_max_lines`
-  option), ending with how many lines were left out.
-
-* `print()` of coverage objects gains a `missing` argument; `missing = TRUE`
-  lists the missed lines of each file or function as ranges such as
-  `41-48, 112`, and the missed branches if branch coverage was measured. The
-  branch coverage percentage is shown when it was measured. At most 10 ranges
-  and branches are listed for each file or function, which can be changed with
-  the `covr.print_max_ranges` option.
+  option), ending with how many lines were left out (#742).
 
 * `c()` now combines coverage objects, e.g. from runs of tests in different
   directories. The counts of traces in several objects are added, and recorded
   tests are combined as well (#439).
 
+* New `current_coverage()` returns the coverage measured so far in the current
+  process, and can reset the counts, so code run by covr can measure the
+  coverage of parts of a run, such as each test file. Use it rather than
+  reading covr's internal counters, which no longer show the counts while code
+  runs (#759).
+
+* `print()` of coverage objects gains `missing` and `n` arguments.
+  `missing = TRUE` lists the missed lines of each file or function as ranges
+  such as `41-48, 112`, and the missed branches if branch coverage was
+  measured; at most 10 ranges and branches are listed for each file or
+  function, which can be changed with the `covr.print_max_ranges` option. `n`
+  limits the number of files or functions printed, showing the least covered
+  first. The branch coverage percentage is shown when it was measured (#215,
+  #742).
+
 * `tally_coverage()` gains `by = "function"`, with one row for each function,
   so `zero_coverage(cov, by = "function")` lists the functions that were
   never run. `percent_coverage()` and `print()` also accept it (#245).
-
-* `print.coverage()` gains an `n` argument to limit the number of files or
-  functions printed, showing the least covered first (#215).
 
 * New `tally_tests()` returns a traceability matrix from coverage recorded with
   `options(covr.record_tests = TRUE)`: which tests ran each line of code, with
   the test file, line and `test_that()` description, so you can find the tests
   to rerun after changing some lines (#361).
 
-* `value()` now works on coverage objects of R code; it previously errored
-  for anything but compiled code. The structure of coverage objects is now
-  documented in `?coverage`, and `as.data.frame()` on a coverage object in
-  `?as.data.frame.coverage` (#564).
-
-* `covr_error` conditions (and the `covr_warning`s from `allow_failures`) now
-  keep the whole failure output in `$output` and its file in `$file`. The
-  message shows the last 50 lines and is bounded by `warning.length`
-  measured in characters (it was measured inconsistently in bytes, so
-  multibyte output could leave the message empty), and `print()` shows the
-  last `n` lines, 50 by default. The number of lines can be set with
-  `options(covr.failure_lines)` (#570, #642).
-
-* Error and warning messages are shorter and follow the tidyverse style guide,
-  starting with a short statement of the problem followed by bulleted details,
-  e.g. for unpaired `# nocov start` / `# nocov end` lines.
-
-* The error for unpaired `# nocov start` and `# nocov end` comments now gives
-  the name of the file along with the line numbers of the comments (#409).
+* `value()` now works on coverage objects of R code, not only compiled code.
+  The structure of coverage objects is now documented in `?coverage`, and
+  `as.data.frame()` on a coverage object in `?as.data.frame.coverage` (#564).
 
 ## Running coverage
 
-* New `with_coverage()` measures the coverage of arbitrary code, such as
-  `testthat::test_file()`, run against an environment like a package namespace
-  loaded with `pkgload::load_all()`. This allows tools such as
-  `devtools::test_coverage_active_file()` to use testthat's own runner instead
-  of recreating it, so setup files and fixtures found with
-  `testthat::test_path()` work as they do in `testthat::test_file()` (related
-  to #543, #551).
+* Trace files are now written atomically, and a failure to save or read one
+  is reported as a `covr_error` (a `covr_warning` with `allow_failures = TRUE`)
+  naming the file, rather than a cryptic `readRDS()` error (#509).
 
 * `file_coverage()` gains a `runner` argument to choose how test files are
   run. `runner = testthat::test_file` runs them with testthat's test runner,
@@ -451,18 +443,14 @@ reported coverage" below.
   coverage is still returned, e.g. so `covr::report()` can be viewed after a
   long test run with a failure (#533).
 
-* `package_coverage(allow_failures = TRUE)` now also keeps `install_path` when
-  failures are reported as warnings, so the output files they refer to can be
-  inspected (#554).
-
-* `package_coverage()` now only deletes `install_path` if coverage succeeds,
-  so the test output referenced in failure messages can be inspected
-  (@hadley, #615).
-
 * `package_coverage()` gains a `show_code_output` argument. If `TRUE`, the
   output of `code` is shown on the console while it runs, e.g. to follow it in
   the logs of a CI job, rather than only being shown when `code` fails
   (@gergness, #558).
+
+* `package_coverage()` now keeps `install_path` when coverage fails, or when
+  failures are reported as warnings with `allow_failures = TRUE`, so the
+  output files they refer to can be inspected (@hadley, #554, #615).
 
 * `package_coverage()` now accepts `outDir` in `...` to save the test and
   example output to a directory of your choice, instead of failing with
@@ -475,21 +463,23 @@ reported coverage" below.
   could vary from run to run (#438).
 
 * `package_coverage()` now works in renv projects when the package imports
-  renv, or a package that embeds it such as vetiver. covr passed all of its
-  library paths to the R processes running the tests as site libraries, which
-  renv removes from the library paths when it is loaded, so covr, the package
-  and its dependencies could no longer be found (#560).
+  renv, or a package that embeds it such as vetiver, as covr no longer passes
+  its library paths as site libraries, which renv removes (#560).
 
-* `package_coverage(combine_types = FALSE)` now works when its arguments are
-  local variables of the calling function.
-
-* `package_coverage()` no longer discards the coverage measured so far, or
-  fails with "'from' must be a finite number", when `code` loads the package
+* `package_coverage()` now keeps the coverage measured so far, and doesn't
+  fail with "'from' must be a finite number", when `code` loads the package
   again with `pkgload::load_all()`, e.g. via `devtools::test()` (#641).
 
-* Trace files are now written atomically, and a failure to save or read one
-  is reported as a `covr_error` (a `covr_warning` with `allow_failures = TRUE`)
-  naming the file, rather than a cryptic `readRDS()` error (#509).
+* `package_coverage(combine_types = FALSE)` now works when its arguments are
+  local variables of the calling function (#732).
+
+* New `with_coverage()` measures the coverage of arbitrary code, such as
+  `testthat::test_file()`, run against an environment like a package namespace
+  loaded with `pkgload::load_all()`. This allows tools such as
+  `devtools::test_coverage_active_file()` to use testthat's own runner instead
+  of recreating it, so setup files and fixtures found with
+  `testthat::test_path()` work as they do in `testthat::test_file()` (related
+  to #543, #551).
 
 ## Compiled code
 
