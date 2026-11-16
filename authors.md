@@ -54,7 +54,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/r-lib/covr/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/r-lib/covr/blob/v4.0.0/DESCRIPTION)
 
 Hester J (2026). *covr: Test Coverage for Packages*. R package version
 4.0.0, <https://covr.r-lib.org>.

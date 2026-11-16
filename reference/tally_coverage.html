@@ -33,7 +33,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Tally coverage by line, expression, function or branch</h1>
-      <small class="dont-index">Source: <a href="https://github.com/r-lib/covr/blob/main/R/summary_functions.R" class="external-link"><code>R/summary_functions.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/r-lib/covr/blob/v4.0.0/R/summary_functions.R" class="external-link"><code>R/summary_functions.R</code></a></small>
       <div class="d-none name"><code>tally_coverage.Rd</code></div>
     </div>
 
@@ -94,14 +94,14 @@ taken. It has no rows if branch coverage wasn't measured.</p>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">tally_coverage</span><span class="op">(</span><span class="va">cov</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                               filename functions line value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpyZ6StW/source.R18602d7a8b39         f    2     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpyZ6StW/source.R18602d7a8b39         g    4     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpexhDEN/source.R1900703dc8fb         f    2     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpexhDEN/source.R1900703dc8fb         g    4     0</span>
 <span class="r-in"><span><span class="fu">tally_coverage</span><span class="op">(</span><span class="va">cov</span>, by <span class="op">=</span> <span class="st">"expression"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                               filename functions first_line first_byte</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpyZ6StW/source.R18602d7a8b39         f          2          7</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpyZ6StW/source.R18602d7a8b39         f          2         10</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 /tmp/RtmpyZ6StW/source.R18602d7a8b39         f          2         21</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 /tmp/RtmpyZ6StW/source.R18602d7a8b39         g          4          6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpexhDEN/source.R1900703dc8fb         f          2          7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpexhDEN/source.R1900703dc8fb         f          2         10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 /tmp/RtmpexhDEN/source.R1900703dc8fb         f          2         21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 /tmp/RtmpexhDEN/source.R1900703dc8fb         g          4          6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   last_line last_byte first_column last_column first_parsed last_parsed value</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1         2         7            7           7            2           2     1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2         2        14           10          14            2           2     1</span>
@@ -109,8 +109,8 @@ taken. It has no rows if branch coverage wasn't measured.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4         4        17            6          17            4           4     0</span>
 <span class="r-in"><span><span class="fu">tally_coverage</span><span class="op">(</span><span class="va">cov</span>, by <span class="op">=</span> <span class="st">"function"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                               filename functions first_line last_line value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpyZ6StW/source.R18602d7a8b39         f          2         2     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpyZ6StW/source.R18602d7a8b39         g          4         4     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 /tmp/RtmpexhDEN/source.R1900703dc8fb         f          2         2     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 /tmp/RtmpexhDEN/source.R1900703dc8fb         g          4         4     0</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
