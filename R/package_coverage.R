@@ -546,13 +546,16 @@ r_libs_site <- function(site = .Library.site) {
 # Escape the value of R_LIBS_USER or R_LIBS_SITE so R processes read `x`. R
 # expands `%v`, `%V`, `%p` and others in them and reads `%%` as `%` (see
 # `?.libPaths`), and on Unix `R_HOME/etc/Renviron` sets them from themselves,
-# which removes the quotes that aren't escaped with a backslash (#774).
-# `tools::testInstalledPackage()` clears R_LIBS to run the examples, so they
-# only find the package through these.
+# which removes quotes (#774). A quote is kept in quotes of the other kind; R
+# 4.1 doesn't read `\'` as `'`. `tools::testInstalledPackage()` clears R_LIBS
+# to run the examples, so they only find the package through these.
 r_libs_env_value <- function(x) {
   x <- gsub("%", "%%", x, fixed = TRUE)
   if (!is_windows()) {
-    x <- gsub("(['\"])", "\\\\\\1", x)
+    chars <- strsplit(x, "", fixed = TRUE)[[1]]
+    chars[chars == "'"] <- "\"'\""
+    chars[chars == "\""] <- "'\"'"
+    x <- paste(chars, collapse = "")
   }
   x
 }
