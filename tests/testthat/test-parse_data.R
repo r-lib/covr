@@ -55,6 +55,10 @@ test_that("get_parse_data returns NULL for files that can't be parsed on their o
     "b.R",
     c('#line 1 "b.R"', "f <- function() {", '#line 3 "b.R"', "}")
   )))
+  expect_null(get_parse_data(srcfilecopy(
+    "c.R",
+    c('#line 1 "c.R"', "x <- 1", '#line 12 "c.R"', "y <- 1")
+  )))
 })
 
 test_that("get_parse_data returns NULL for srcfiles without a filename", {

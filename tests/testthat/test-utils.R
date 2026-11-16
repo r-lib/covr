@@ -104,6 +104,15 @@ test_that("split_on_line_directives does not simplify the result (#588)", {
   )
 })
 
+test_that("split_on_line_directives splits on line numbers with several digits", {
+  expect_identical(
+    split_on_line_directives(
+      c('#line 1 "foo.R"', "abc", '#line 12 "bar.R"', "def")
+    ),
+    list("foo.R" = "abc", "bar.R" = "def")
+  )
+})
+
 test_that("split_on_line_directives handles empty files (#522)", {
   expect_identical(
     split_on_line_directives(

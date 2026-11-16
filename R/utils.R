@@ -56,7 +56,7 @@ match_line_directives <- function(lines) {
       any_spaces,
       "#line",
       spaces,
-      capture(name = "line_number", digit),
+      capture(name = "line_number", digits),
       spaces,
       quotes,
       capture(name = "filename", anything),
