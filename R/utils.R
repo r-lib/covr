@@ -46,22 +46,30 @@ to_title <- function(x) {
   )
 }
 
-# Split lines into a list based on the line directives in the file.
-split_on_line_directives <- function(lines) {
-  matches <- rex::re_matches(
+# The `line_number` and `filename` of the `#line` directives in `lines`, `NA`
+# for other lines.
+match_line_directives <- function(lines) {
+  rex::re_matches(
     lines,
     rex::rex(
       start,
       any_spaces,
       "#line",
       spaces,
-      capture(name = "line_number", digit),
+      capture(name = "line_number", digits),
       spaces,
       quotes,
       capture(name = "filename", anything),
       quotes
     )
   )
+}
+
+# Split lines into a list based on the line directives in the file.
+split_on_line_directives <- function(
+  lines,
+  matches = match_line_directives(lines)
+) {
   directive_lines <- which(!is.na(matches$line_number))
   if (!length(directive_lines)) {
     return(NULL)
@@ -102,21 +110,38 @@ traced_files <- function(x) {
     source <- originals[[id]]
     if (is.null(source)) {
       lines <- getSrcLines(src_file, 1, Inf)
-      source <- list(lines = lines, split = split_on_line_directives(lines))
+      matches <- match_line_directives(lines)
+      source <- list(
+        lines = lines,
+        split = split_on_line_directives(lines, matches),
+        line_numbers = as.integer(na.omit(matches$line_number))
+      )
       originals[[id]] <- source
     }
 
-    # Use the section for this file only if it is unambiguous
-    split <- source$split
-    if (sum(names(split) == src_file$filename) == 1) {
-      src_file$file_lines <- split[[src_file$filename]]
-    } else {
-      src_file$file_lines <- source$lines
-    }
+    src_file$file_lines <- file_lines(source, src_file$filename) %||%
+      source$lines
 
     res[[filename]] <- src_file
   }
   res
+}
+
+# The lines of `filename` in the sections of a source split on its `#line`
+# directives, each at the line number of its directive, or `NULL` if no section
+# is from `filename`. Lines between sections are empty.
+file_lines <- function(source, filename) {
+  sections <- which(names(source$split) == filename)
+  if (!length(sections)) {
+    return(NULL)
+  }
+  lines <- character()
+  for (i in sections) {
+    section <- source$split[[i]]
+    lines[source$line_numbers[[i]] - 1L + seq_along(section)] <- section
+  }
+  lines[is.na(lines)] <- ""
+  lines
 }
 
 per_line <- function(coverage) {
