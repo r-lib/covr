@@ -4,6 +4,9 @@
   directory in `tempdir()`) contains a space. The vignettes and `code` are now
   run with `R -f` rather than `R CMD BATCH`, which can't run a script with a
   space in its path (#770).
+* `package_coverage()` now works when the package or temporary library path
+  contains quotes or backslashes, e.g. a `tempdir()` under a user named
+  `O'Brien` (#774).
 
 * With `covr.record_tests = TRUE`, tests run from a directory inside the first
   library, such as `<pkg>.Rcheck/tests` when `R CMD check` is run with

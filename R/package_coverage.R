@@ -512,9 +512,9 @@ run_vignettes <- function(pkg, lib) {
   outfile <- file.path(lib, paste0(pkg$package, "-Vignette.Rout"))
   failfile <- paste(outfile, "fail", sep = ".")
   cat(
-    "tools::buildVignettes(dir = '",
-    pkg$path,
-    "')\n",
+    "tools::buildVignettes(dir = ",
+    encodeString(pkg$path, quote = '"'),
+    ")\n",
     file = outfile,
     sep = ""
   )
@@ -707,7 +707,11 @@ add_hooks <- function(
   branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE)),
   counters_file = NULL
 ) {
-  trace_dir <- paste0("Sys.getenv(\"COVERAGE_DIR\", \"", lib, "\")")
+  trace_dir <- paste0(
+    "Sys.getenv(\"COVERAGE_DIR\", ",
+    encodeString(lib, quote = '"'),
+    ")"
+  )
 
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
   lines <- readLines(load_script)
@@ -767,7 +771,10 @@ add_hooks <- function(
   )
 
   if (fix_mcexit) {
-    lines <- append(lines, sprintf("covr:::fix_mcexit('%s')", trace_dir))
+    lines <- append(
+      lines,
+      paste0("covr:::fix_mcexit(", encodeString(trace_dir, quote = '"'), ")")
+    )
   }
 
   writeLines(text = lines, con = load_script)

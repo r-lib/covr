@@ -286,10 +286,38 @@ test_that("add_hooks() errors if the loader script doesn't read the package", {
   )
 })
 
+test_that("add_hooks() quotes library paths containing quotes (#774)", {
+  name <- if (is_windows()) "O'Brien" else "O'Brien \"lib\" \\"
+  lib <- file.path(withr::local_tempdir(), name)
+  dir.create(file.path(lib, "pkg", "R"), recursive = TRUE)
+  load_script <- file.path(lib, "pkg", "R", "pkg")
+  writeLines(c("local({", "})"), load_script)
+  withr::local_envvar(COVERAGE_DIR = NA)
+
+  add_hooks("pkg", lib, fix_mcexit = TRUE)
+
+  lines <- readLines(load_script)
+  expect_no_error(parse(text = lines))
+  hook <- parse(text = grep("register_trace", lines, value = TRUE))[[1]]
+  expect_equal(eval(hook[[3]][[3]][[3]]), lib)
+  fix <- parse(text = grep("fix_mcexit", lines, value = TRUE))[[1]]
+  expect_equal(eval(parse(text = fix[[2]])[[1]]), lib)
+})
+
 test_that("run_vignettes reports failures to build the vignettes", {
   lib <- withr::local_tempdir()
   pkg <- list(package = "TestMissing", path = file.path(lib, "missing"))
   expect_error(run_vignettes(pkg, lib), class = "covr_error")
+})
+
+test_that("run_vignettes handles package paths containing quotes (#774)", {
+  lib <- withr::local_tempdir()
+  name <- if (is_windows()) "O'Brien" else "O'Brien \"pkg\" \\"
+  pkg <- list(package = "TestQuotes", path = file.path(lib, name))
+  dir.create(pkg$path)
+  writeLines("Package: TestQuotes", file.path(pkg$path, "DESCRIPTION"))
+
+  expect_no_error(run_vignettes(pkg, lib))
 })
 
 test_that("package_coverage measures installed packages (#638)", {
