@@ -269,6 +269,9 @@ package_parse_data <- new.env()
 # cached (#768). Files without parse data are cached as `NULL`.
 get_parse_data <- function(srcfile) {
   filename <- srcfile[["filename"]]
+  if (!nzchar(filename)) {
+    return(NULL)
+  }
   if (!exists(filename, envir = package_parse_data, inherits = FALSE)) {
     lines <- getSrcLines(srcfile, 1L, Inf)
     lines_split <- split_on_line_directives(lines)

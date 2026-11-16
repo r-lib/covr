@@ -38,6 +38,10 @@ test_that("get_parse_data caches the files of each srcfile (#768)", {
   )
 })
 
+test_that("get_parse_data returns NULL for srcfiles without a filename", {
+  expect_null(get_parse_data(srcfilecopy("", "x <- 1")))
+})
+
 test_that("imputing srcrefs without a srcref or without matching parse data returns NULL", {
   expect_null(impute_child_srcrefs(quote(f(x)), NULL))
   expect_null(impute_body_srcref(NULL))
