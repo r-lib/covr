@@ -87,14 +87,14 @@ a `branches` attribute with the branches of each `if` and
 cov <- code_coverage("add <- function(x, y) { x + y }", "add(1, 2)")
 cov
 #> Coverage: 100.00%
-#> /tmp/RtmpAoWcpY/source.R196b75238047: 100.00%
+#> /tmp/Rtmp9qpioK/source.R19224d289a58: 100.00%
 as.data.frame(cov)
 #>                               filename functions first_line first_byte
-#> 1 /tmp/RtmpAoWcpY/source.R196b75238047       add          1         25
+#> 1 /tmp/Rtmp9qpioK/source.R19224d289a58       add          1         25
 #>   last_line last_byte first_column last_column first_parsed last_parsed value
 #> 1         1        29           25          29            1           1     1
 names(cov)
-#> [1] "source.R196b75238047:1:25:1:29:25:29:1:1"
+#> [1] "source.R19224d289a58:1:25:1:29:25:29:1:1"
 cov[[1]]$value
 #> [1] 1
 ```

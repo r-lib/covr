@@ -3,6 +3,15 @@
 ## covr (development version)
 
 - [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  is no longer very slow for packages whose namespace has functions with
+  source references to another package, e.g. the `clone()` method of R6
+  classes when R6 was installed with `--with-keep.source`, or functions
+  created by
+  [`memoise::memoise()`](https://memoise.r-lib.org/reference/memoise.html).
+  covr reparsed the whole package for each conditional in such packages
+  ([\#768](https://github.com/r-lib/covr/issues/768)).
+
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   now works when `install_path` (which defaults to a directory in
   [`tempdir()`](https://rdrr.io/r/base/tempfile.html)) contains a space.
   The vignettes and `code` are now run with `R -f` rather than
