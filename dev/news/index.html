@@ -44,7 +44,7 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="covr-development-version">covr (development version)<a class="anchor" aria-label="anchor" href="#covr-development-version"></a></h2>
-<ul><li>With <code>covr.record_tests = TRUE</code>, tests run from a directory inside the first library, such as <code>&lt;pkg&gt;.Rcheck/tests</code> when <code>R CMD check</code> is run with <code>_R_CHECK_SUGGESTS_ONLY_=false</code>, are now recorded separately rather than all as the call that started coverage.</li>
+<ul><li>With <code>covr.record_tests = TRUE</code>, tests run from a directory inside the first library, such as <code>&lt;pkg&gt;.Rcheck/tests</code> when <code>R CMD check</code> is run with <code>_R_CHECK_SUGGESTS_ONLY_=false</code>, are now recorded separately rather than all as the call that started coverage. On Windows, the calls recorded for tests now start at the test rather than at the top of the call stack, as on other platforms.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="4.0.0" id="covr-400">covr 4.0.0<a class="anchor" aria-label="anchor" href="#covr-400"></a></h2><p class="text-muted">CRAN release: 2026-11-16</p>
