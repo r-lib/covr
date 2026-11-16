@@ -59,7 +59,7 @@ coveralls <- function(
   )
   json_file <- to_file(coverage_json)
   # The file has the repo token and the source code, so don't leave it behind
-  on.exit(unlink(json_file), add = TRUE)
+  on.exit(unlink(json_file, expand = FALSE), add = TRUE)
 
   res <- http_request(
     "POST",

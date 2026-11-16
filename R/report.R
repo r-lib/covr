@@ -173,10 +173,44 @@ save_report <- function(html, file, browse) {
 
   htmltools::save_html(report_page(html), file)
   if (browse) {
-    viewer <- getOption("viewer", utils::browseURL)
-    viewer(file)
+    viewer <- getOption("viewer")
+    if (!is.null(viewer)) {
+      viewer(file)
+    } else {
+      browse_url(browse_target(file))
+    }
   }
   invisible(file)
+}
+
+# On Unix `utils::browseURL()` pastes its argument into a shell command, so a
+# path with a backtick or `"` would run code (#774); it is passed as a
+# `file://` URL with each segment percent-encoded instead. On Windows
+# `browseURL()` uses `shell.exec()`, which takes the path.
+browse_target <- function(file) {
+  if (is_windows()) {
+    return(file) # nocov
+  }
+  segments <- strsplit(file, "/", fixed = TRUE)[[1]]
+  paste0(
+    "file://",
+    paste(
+      vapply(
+        segments,
+        utils::URLencode,
+        "",
+        reserved = TRUE,
+        repeated = TRUE,
+        USE.NAMES = FALSE
+      ),
+      collapse = "/"
+    )
+  )
+}
+
+# A wrapper so that tests can mock it
+browse_url <- function(url) {
+  utils::browseURL(url)
 }
 
 #' @rdname file_report

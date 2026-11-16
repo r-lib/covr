@@ -320,6 +320,77 @@ test_that("run_vignettes handles package paths containing quotes (#774)", {
   expect_no_error(run_vignettes(pkg, lib))
 })
 
+test_that("package_coverage works with special characters in paths (#774)", {
+  dir <- file.path(withr::local_tempdir(), special_path_name())
+  dir.create(dir)
+  file.copy(test_path("TestS4"), dir, recursive = TRUE)
+
+  expect_output(
+    cov <- package_coverage(
+      file.path(dir, "TestS4"),
+      type = "all",
+      code = "a(1)",
+      install_path = file.path(dir, "lib"),
+      show_code_output = TRUE
+    ),
+    "> a(1)",
+    fixed = TRUE
+  )
+  df <- tally_coverage(cov)
+  expect_equal(unique(df$filename), "R/TestS4.R")
+  expect_equal(df$value, c(7, 4, 3, 1, 1, 1))
+})
+
+test_that("package_coverage works with a relative install_path (#774)", {
+  pkg <- normalizePath(test_path("TestSummary"))
+  withr::local_dir(withr::local_tempdir())
+  cov <- package_coverage(pkg, install_path = "lib")
+  expect_equal(percent_coverage(cov), 50)
+})
+
+test_that("package_coverage works with a package path in another case (#774)", {
+  dir <- withr::local_tempdir()
+  file.copy(test_path("TestSummary"), dir, recursive = TRUE)
+  path <- file.path(dir, "testsummary")
+  skip_if_not(dir.exists(path), "The file system is case-sensitive")
+  cov <- package_coverage(path)
+  expect_equal(percent_coverage(cov), 50)
+  expect_equal(unique(as.data.frame(cov)$filename), "R/TestSummary.R")
+})
+
+test_that("package_coverage works with a package path in another Unicode normalization form (#774)", {
+  dir <- withr::local_tempdir()
+  dir.create(file.path(dir, "e\u0301"))
+  file.copy(
+    test_path("TestSummary"),
+    file.path(dir, "e\u0301"),
+    recursive = TRUE
+  )
+  path <- file.path(dir, "\u00e9", "TestSummary")
+  skip_if_not(
+    dir.exists(path),
+    "The file system tells normalization forms apart"
+  )
+  cov <- package_coverage(path)
+  expect_equal(percent_coverage(cov), 50)
+  expect_equal(unique(as.data.frame(cov)$filename), "R/TestSummary.R")
+})
+
+test_that("package_coverage errors for libraries R can't use (#774)", {
+  expect_snapshot(check_library_path("/x/a[1]b/lib"), error = TRUE)
+})
+
+test_that("package_coverage errors for R files R CMD INSTALL misnames (#774)", {
+  skip_on_os("windows")
+  withr::local_dir(withr::local_tempdir())
+  dir.create(file.path("pkg", "R"), recursive = TRUE)
+  file.create(file.path("pkg", "R", "a\"b.R"))
+  expect_snapshot(
+    check_source_paths(list(package = "pkg", path = "pkg")),
+    error = TRUE
+  )
+})
+
 test_that("package_coverage measures installed packages (#638)", {
   pkg <- local_installed_package(
     "TestSummary",

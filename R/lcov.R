@@ -71,7 +71,7 @@ lcov <- function(x, file = "lcov.info") {
   }))
   out <- as.character(out)
 
-  writeLines(out, file)
+  writeLines(enc2utf8(out), file, useBytes = TRUE)
 
   invisible(out)
 }

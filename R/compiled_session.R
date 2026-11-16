@@ -72,7 +72,7 @@ start_compiled_coverage <- function(
     rust <- rust_check_build(rust)
   }
   if (!gcov && is.null(rust)) {
-    unlink(dll_dir, recursive = TRUE)
+    unlink(dll_dir, recursive = TRUE, expand = FALSE)
     return(NULL)
   }
 
@@ -80,7 +80,7 @@ start_compiled_coverage <- function(
   file.copy(file.path(build, "src", basename(instrumented)), dll_dir)
   built <- file.exists(instrumented)
   if (!any(built)) {
-    unlink(dll_dir, recursive = TRUE)
+    unlink(dll_dir, recursive = TRUE, expand = FALSE)
     if (required) {
       covr_abort(
         "Can't find the DLLs {.val {dlls}} in the build of {.pkg {package}}."
@@ -103,7 +103,7 @@ start_compiled_coverage <- function(
   state$instrumented <- character()
   state$swapped <- TRUE
   if (!is.null(rust)) {
-    unlink(list.files(rust$profiles, full.names = TRUE))
+    unlink(list.files(rust$profiles, full.names = TRUE), expand = FALSE)
   }
   # Record each swapped DLL, so a failure restores the ones already swapped.
   # The Rust profiler runtime reads where to write its counts when the DLL is
@@ -159,7 +159,7 @@ stop_compiled_coverage <- function(state) {
       state$original[[i]]
     )
   }
-  unlink(state$dll_dir, recursive = TRUE)
+  unlink(state$dll_dir, recursive = TRUE, expand = FALSE)
   invisible()
 }
 
@@ -174,11 +174,11 @@ add_compiled_coverage <- function(coverage, state) {
   res <- if (state$gcov) {
     with_build_tools(run_gcov(state$build, quiet = TRUE, clean = TRUE))
   }
-  unlink(gcov_counts(state$build))
+  unlink(gcov_counts(state$build), expand = FALSE)
   if (!is.null(state$rust)) {
     objects <- file.path(state$build, "src", basename(state$instrumented))
     res <- c(res, run_llvm_cov(state$rust, state$build, objects))
-    unlink(list.files(state$rust$profiles, full.names = TRUE))
+    unlink(list.files(state$rust$profiles, full.names = TRUE), expand = FALSE)
   }
   if (state$rust_code) {
     res <- drop_rust_dependencies(
@@ -230,9 +230,9 @@ build_instrumented_copy <- function(path, build, rust = NULL) {
     any(is_native_input(removed)) ||
     any(is_native_input(changed) & !is_compiled_source(changed))
   if (rebuild) {
-    unlink(build_outputs(build))
+    unlink(build_outputs(build), expand = FALSE)
   }
-  unlink(gcov_counts(build))
+  unlink(gcov_counts(build), expand = FALSE)
 
   # Checking that the DLL is up to date takes a while for some packages, so
   # skip it if the last build succeeded and only files that can't affect it
@@ -242,7 +242,7 @@ build_instrumented_copy <- function(path, build, rust = NULL) {
   if (!rebuild && file.exists(built) && !any(affects_dll)) {
     return(temp_dir_create("covr_dll"))
   }
-  unlink(built)
+  unlink(built, expand = FALSE)
   compile_instrumented(build, flags, rust$build_env, force = rebuild)
   file.create(built)
 
@@ -443,7 +443,7 @@ sync_package_copy <- function(path, build) {
     )
   }
   removed <- setdiff(copied$file, files)
-  unlink(file.path(build, removed))
+  unlink(file.path(build, removed), expand = FALSE)
   dir.create(build, recursive = TRUE, showWarnings = FALSE)
 
   from <- file.path(path, files)

@@ -293,7 +293,7 @@ clean_objects <- function(path) {
     files <- files[!in_rust_dependency_dir(files)]
   }
   files <- file.path(path, "src", files)
-  unlink(files)
+  unlink(files, expand = FALSE)
 
   invisible(files)
 }

@@ -2,11 +2,38 @@
 
 * `package_coverage()` now works when `install_path` (which defaults to a
   directory in `tempdir()`) contains a space. The vignettes and `code` are now
-  run with `R -f` rather than `R CMD BATCH`, which can't run a script with a
-  space in its path (#770).
-* `package_coverage()` now works when the package or temporary library path
-  contains quotes or backslashes, e.g. a `tempdir()` under a user named
-  `O'Brien` (#774).
+  run with `R --file=` rather than `R CMD BATCH`, which can't run a script with
+  a space in its path (#770).
+* `package_coverage()` now works with more characters in the paths of the
+  package, `install_path` and `tempdir()` (#774):
+  * Quotes and backslashes, e.g. a `tempdir()` under a user named `O'Brien`,
+    in the code it writes to run the vignettes and to load the package.
+  * `%`, e.g. `%PATH%`, on Windows, where `R.exe` expanded environment
+    variables in its arguments. R code is now run with `Rterm.exe`, and `%` is
+    escaped for `R CMD INSTALL`.
+  * `=` on Windows and `*`, `?` and `[` on Unix in the path of the scripts run
+    for the vignettes and `code`, now run with `--file=` rather than `-f`.
+  * `'`, `"` and `%` in `install_path` when running examples, which R removed
+    or expanded in `R_LIBS_USER`.
+  * A relative `install_path` on Unix, for which the tests silently didn't
+    run.
+* `package_coverage()` now errors clearly when `install_path` contains a
+  character R can't have in the path of a library (`[`, the path separator, or
+  `\` on Unix), and on Unix when the path of the package or its R files
+  contains `"` or `\`, for which `R CMD INSTALL` records wrong file names,
+  rather than failing later or reporting no coverage (#774).
+* covr no longer deletes files or directories whose names match the paths it
+  cleans up as a glob, e.g. a `lib1` next to an `install_path` of `lib[1]`, and
+  now cleans up those paths themselves (#774).
+* `report()` and `file_report()` no longer run shell commands contained in the
+  path of the report when opening it with `browseURL()` on Unix (#774).
+* `lcov()` now writes non-ASCII file names in UTF-8, and `to_cobertura()` no
+  longer fails for them, when the native encoding isn't UTF-8, e.g. with R 4.1
+  on Windows (#774).
+* Rust coverage now works when the paths of the profiles contain a comma, or
+  the paths of the libraries it links contain `$` or `#`, and warns rather
+  than silently losing the coverage when the profiles' directory contains `%`
+  (#774).
 
 * With `covr.record_tests = TRUE`, tests run from a directory inside the first
   library, such as `<pkg>.Rcheck/tests` when `R CMD check` is run with

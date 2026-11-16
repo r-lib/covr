@@ -73,7 +73,7 @@ shiny_app_coverage <- function(
     the$shiny_app_dir <- NULL
     clear_counters()
     clean_parse_data()
-    unlink(trace_dir, recursive = TRUE)
+    unlink(trace_dir, recursive = TRUE, expand = FALSE)
   })
 
   withr::with_envvar(

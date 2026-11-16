@@ -397,3 +397,32 @@ test_that("Rust coverage is skipped with a warning without counts or merging", {
   )
   expect_snapshot(expect_null(run_llvm_cov(rust, ".", "pkg.so")))
 })
+
+test_that("Rust coverage is skipped with a warning if the path has a %", {
+  skip_on_os("windows")
+  withr::local_options(covr.llvm_cov = NULL)
+  dir <- file.path(withr::local_tempdir(), "50%done")
+  expect_warning(
+    expect_null(rust_coverage_setup(test_path("TestRust"), dir)),
+    "contains"
+  )
+})
+
+test_that("Paths with make's special characters reach the linker unchanged", {
+  skip_on_os("windows")
+  skip_if(!nzchar(Sys.which("make")))
+  dir <- file.path(withr::local_tempdir(), "a$b #c 'd")
+  makefile <- withr::local_tempfile()
+  writeLines(
+    c(
+      paste("PKG_LIBS =", shell_quote_make(file.path(dir, "lib.a"))),
+      "all:",
+      "\t@for lib in $(PKG_LIBS); do printf '%s' \"$$lib\"; done"
+    ),
+    makefile
+  )
+  expect_equal(
+    system2("make", c("-s", "-f", shQuote(makefile)), stdout = TRUE),
+    file.path(dir, "lib.a")
+  )
+})

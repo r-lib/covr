@@ -43,7 +43,12 @@ instrument_package <- function(
       R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
       R_LIBS = env_path(install_path, .libPaths())
     ),
-    suppressWarnings(system2(r_binary(), args, stdout = TRUE, stderr = TRUE))
+    suppressWarnings(system2(
+      rterm_binary(),
+      args,
+      stdout = TRUE,
+      stderr = TRUE
+    ))
   )
   status <- attr(output, "status") %||% 0L
   file <- instrumented_counters_file(pkg$package, install_path)
@@ -140,7 +145,12 @@ instrument_installed_package <- function(pkg_name, lib) {
   counters_file <- instrumented_counters_file(pkg_name, lib)
   done <- FALSE
   on.exit(
-    if (!done) unlink(c(paste0(new_base, c(".rdb", ".rdx")), counters_file)),
+    if (!done) {
+      unlink(
+        c(paste0(new_base, c(".rdb", ".rdx")), counters_file),
+        expand = FALSE
+      )
+    },
     add = TRUE
   )
   compress <- readRDS(paste0(base, ".rdx"))$compressed
