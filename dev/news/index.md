@@ -2,6 +2,13 @@
 
 ## covr (development version)
 
+- [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+  now works when `install_path` (which defaults to a directory in
+  [`tempdir()`](https://rdrr.io/r/base/tempfile.html)) contains a space.
+  The vignettes and `code` are now run with `R -f` rather than
+  `R CMD BATCH`, which can’t run a script with a space in its path
+  ([\#770](https://github.com/r-lib/covr/issues/770)).
+
 - With `covr.record_tests = TRUE`, tests run from a directory inside the
   first library, such as `<pkg>.Rcheck/tests` when `R CMD check` is run
   with `_R_CHECK_SUGGESTS_ONLY_=false`, are now recorded separately
