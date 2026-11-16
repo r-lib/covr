@@ -441,15 +441,19 @@ update_current_test <- function() {
   names(.counters$tests)[[.current_test$index]] <- .current_test$key
 }
 
-# Whether `files` are in the copy of a package's tests that
-# `tools::testInstalledPackage()` makes in the temporary library,
-# `<lib>/<pkg>-tests`. Other files under the library aren't tests run by covr:
-# `R CMD check` uses `<pkg>.Rcheck` as the library and runs the tests from
-# `<pkg>.Rcheck/tests`, so all of covr's own tests would be taken as the test.
+# Whether `files`, normalized with `normalize_path()`, are in a package
+# installed in the temporary library, such as the tests that
+# `tools::testInstalledPackage()` runs from `<lib>/<pkg>/<pkg>-tests` or those
+# that `testthat::test_package()` runs from `<lib>/<pkg>/tests`. Other files
+# under the library aren't tests run by covr: `R CMD check` uses `<pkg>.Rcheck`
+# as the library and runs the tests from `<pkg>.Rcheck/tests`, so all of covr's
+# own tests would be taken as the test.
 in_installed_tests <- function(files) {
-  lib <- normalizePath(.libPaths()[[1]], mustWork = FALSE)
-  startsWith(files, lib) &
-    grepl("^[/\\\\][^/\\\\]+-tests[/\\\\]", substring(files, nchar(lib) + 1L))
+  lib <- sub("/?$", "/", normalize_path(.libPaths()[[1]]))
+  in_lib <- startsWith(files, lib)
+  pkg <- sub("/.*", "", substring(files[in_lib], nchar(lib) + 1L))
+  in_lib[in_lib] <- file.exists(paste0(lib, pkg, "/DESCRIPTION"))
+  in_lib
 }
 
 # Build key for the current test
