@@ -518,13 +518,7 @@ run_vignettes <- function(pkg, lib) {
     file = outfile,
     sep = ""
   )
-  cmd <- paste(
-    shQuote(r_binary()),
-    "CMD BATCH --vanilla --no-timing",
-    shQuote(outfile),
-    shQuote(failfile)
-  )
-  res <- system(cmd)
+  res <- run_r(outfile, failfile)
   if (res != 0) {
     show_failures(dirname(failfile))
   } else {
@@ -633,17 +627,7 @@ run_commands <- function(pkg, lib, commands, show_output = FALSE) {
     ),
     con = outfile
   )
-  if (isTRUE(show_output)) {
-    res <- run_r_live(outfile, failfile)
-  } else {
-    cmd <- paste(
-      shQuote(r_binary()),
-      "CMD BATCH --vanilla --no-timing",
-      shQuote(outfile),
-      shQuote(failfile)
-    )
-    res <- system(cmd)
-  }
+  res <- run_r(outfile, failfile, show = show_output)
   if (res != 0L) {
     show_failures(dirname(failfile))
   } else {
@@ -651,10 +635,26 @@ run_commands <- function(pkg, lib, commands, show_output = FALSE) {
   }
 }
 
-# Run the R script `infile` like `R CMD BATCH` does, but also show its stdout
-# and stderr on the console (on stdout and stderr respectively) as it runs.
-# Both are saved to `outfile`, in the order they are read. Returns the exit
-# status.
+# Run the R script `infile` with `R -f`, saving its stdout and stderr to
+# `outfile`. `R CMD BATCH` can't run scripts with a space in their path (#770).
+# Returns the exit status.
+run_r <- function(infile, outfile, show = FALSE) {
+  if (isTRUE(show)) {
+    return(run_r_live(infile, outfile))
+  }
+  # Both streams go to the same file (`2>&1`), so their output stays in order
+  system2(
+    r_binary(),
+    c("--vanilla", "--quiet", "-f", shQuote(infile)),
+    stdout = outfile,
+    stderr = outfile
+  )
+}
+
+# Like `run_r()`, but also show stdout and stderr on the console (on stdout and
+# stderr respectively) as it runs. They are read from separate pipes, so in
+# `outfile` they are in the order they are read, not the order they were
+# written.
 run_r_live <- function(infile, outfile) {
   out <- file(outfile, "wb")
   on.exit(close(out))
@@ -672,7 +672,7 @@ run_r_live <- function(infile, outfile) {
       std_err = show(stderr())
     ),
     # sys signals an error if the process is killed, e.g. by a segfault; report
-    # it as a failure, as `R CMD BATCH` does.
+    # it as a failure.
     error = function(e) {
       show(stderr())(charToRaw(paste0(conditionMessage(e), "\n")))
       1L
