@@ -357,7 +357,7 @@ test_that("covr.record_tests: records multiple calls to the same test expr", {
 })
 
 test_that("covr.record_tests: records repeated calls of tests without srcrefs once (#627)", {
-  # The code is run with `R CMD BATCH`, without srcrefs, so the tests are
+  # The code is run with `R -f`, without srcrefs, so the tests are
   # identified by their calls
   cov <- withr::with_options(
     c("covr.record_tests" = TRUE),
