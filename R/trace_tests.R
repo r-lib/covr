@@ -450,7 +450,8 @@ update_current_test <- function() {
 # own tests would be taken as the test.
 in_installed_tests <- function(files) {
   lib <- sub("/?$", "/", normalize_path(.libPaths()[[1]]))
-  in_lib <- startsWith(files, lib)
+  # a file name is NA for code parsed with `srcfilecopy(NA, ...)`
+  in_lib <- startsWith(files, lib) %in% TRUE
   pkg <- sub("/.*", "", substring(files[in_lib], nchar(lib) + 1L))
   in_lib[in_lib] <- file.exists(paste0(lib, pkg, "/DESCRIPTION"))
   in_lib
