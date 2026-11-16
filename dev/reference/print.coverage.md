@@ -88,5 +88,5 @@ cov <- code_coverage(
 )
 print(cov, missing = TRUE)
 #> Coverage: 33.33%
-#> /tmp/Rtmpuk27rI/source.R18642f2cc6aa: 33.33%  missed 3-6
+#> /tmp/RtmpKQz88e/source.R192146b29c6a: 33.33%  missed 3-6
 ```
