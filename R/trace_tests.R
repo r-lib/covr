@@ -367,10 +367,7 @@ update_current_test <- function() {
 
   has_srcfile <- viapply(syscall_srcfile, length) > 0L
   srcfile_tmp <- logical(length(has_srcfile))
-  srcfile_tmp[has_srcfile] <- startsWith(
-    syscall_srcfile[has_srcfile],
-    normalizePath(.libPaths()[[1]], mustWork = FALSE)
-  )
+  srcfile_tmp[has_srcfile] <- in_installed_tests(syscall_srcfile[has_srcfile])
 
   test_frames <- if (any(srcfile_tmp)) {
     # if possible, try to take any frames within the temporary library
@@ -442,6 +439,22 @@ update_current_test <- function() {
     "call_count"
   ) <- .current_test$call_count
   names(.counters$tests)[[.current_test$index]] <- .current_test$key
+}
+
+# Whether `files`, normalized with `normalize_path()`, are in a package
+# installed in the temporary library, such as the tests that
+# `tools::testInstalledPackage()` runs from `<lib>/<pkg>/<pkg>-tests` or those
+# that `testthat::test_package()` runs from `<lib>/<pkg>/tests`. Other files
+# under the library aren't tests run by covr: `R CMD check` uses `<pkg>.Rcheck`
+# as the library and runs the tests from `<pkg>.Rcheck/tests`, so all of covr's
+# own tests would be taken as the test.
+in_installed_tests <- function(files) {
+  lib <- sub("/?$", "/", normalize_path(.libPaths()[[1]]))
+  # a file name is NA for code parsed with `srcfilecopy(NA, ...)`
+  in_lib <- startsWith(files, lib) %in% TRUE
+  pkg <- sub("/.*", "", substring(files[in_lib], nchar(lib) + 1L))
+  in_lib[in_lib] <- file.exists(paste0(lib, pkg, "/DESCRIPTION"))
+  in_lib
 }
 
 # Build key for the current test
