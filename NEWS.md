@@ -1,3 +1,5 @@
+# covr (development version)
+
 # covr 4.0.0
 
 This is a major release. It changes how coverage is counted in several places,
