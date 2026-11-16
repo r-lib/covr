@@ -261,24 +261,30 @@ is_conditional_or_loop <- function(x) {
 
 package_parse_data <- new.env()
 
+# The parse data of each file, from the lines of the srcfile of a package
+# installed with `--with-keep.source`, which concatenates its files with `#line`
+# directives. Each srcfile is split and parsed once, the first time one of its
+# files is asked for, so the srcfiles of other packages, e.g. of the `clone()`
+# method R6 adds to a class, don't stop the files of the package from being
+# cached (#768). Files without parse data are cached as `NULL`.
 get_parse_data <- function(srcfile) {
-  if (length(package_parse_data) == 0) {
+  filename <- srcfile[["filename"]]
+  if (!exists(filename, envir = package_parse_data, inherits = FALSE)) {
     lines <- getSrcLines(srcfile, 1L, Inf)
     lines_split <- split_on_line_directives(lines)
-    if (!length(lines_split)) {
-      return(NULL)
-    }
-
     res <- lapply(lines_split, function(x) {
       withr::with_options(c(keep.parse.data = TRUE), {
         getParseData(parse(text = x, keep.source = TRUE), includeText = NA)
       })
     })
     for (i in seq_along(res)) {
-      package_parse_data[[names(res)[[i]]]] <- res[[i]]
+      assign(names(res)[[i]], res[[i]], envir = package_parse_data)
+    }
+    if (!exists(filename, envir = package_parse_data, inherits = FALSE)) {
+      assign(filename, NULL, envir = package_parse_data)
     }
   }
-  package_parse_data[[srcfile[["filename"]]]]
+  package_parse_data[[filename]]
 }
 
 clean_parse_data <- function() {

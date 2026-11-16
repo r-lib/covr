@@ -22,6 +22,22 @@ test_that("impute_srcref returns NULL for calls that are not conditionals or loo
   expect_null(impute_srcref(p$exprs[[1]], p$refs[[1]]))
 })
 
+test_that("get_parse_data caches the files of each srcfile (#768)", {
+  clean_parse_data()
+  withr::defer(clean_parse_data())
+  other <- srcfilecopy("other/R/a.R", c('#line 1 "other/R/a.R"', "a <- 1"))
+  own <- srcfilecopy(
+    "pkg/R/b.R",
+    c('#line 1 "pkg/R/a.R"', "x <- 1", '#line 1 "pkg/R/b.R"', "y <- 2")
+  )
+  expect_equal(subset(get_parse_data(other), token == "SYMBOL")$text, "a")
+  expect_equal(subset(get_parse_data(own), token == "SYMBOL")$text, "y")
+  expect_setequal(
+    ls(package_parse_data),
+    c("other/R/a.R", "pkg/R/a.R", "pkg/R/b.R")
+  )
+})
+
 test_that("imputing srcrefs without a srcref or without matching parse data returns NULL", {
   expect_null(impute_child_srcrefs(quote(f(x)), NULL))
   expect_null(impute_body_srcref(NULL))
