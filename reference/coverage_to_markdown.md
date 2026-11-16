@@ -38,7 +38,7 @@ coverage_to_markdown(cov)
 #> | File | Coverage |
 #> | :--- | ---: |
 #> | Total | 100.00% |
-#> | /tmp/RtmpexhDEN/source.R1900154ea42b | 100.00% |
+#> | /tmp/RtmpymvzaM/source.R18686b64292f | 100.00% |
 
 if (FALSE) { # \dontrun{
 # In a GitHub Actions step

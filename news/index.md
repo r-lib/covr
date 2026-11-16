@@ -2,6 +2,8 @@
 
 ## covr 4.0.0
 
+CRAN release: 2026-11-16
+
 This is a major release. It changes how coverage is counted in several
 places, which can lower the coverage covr reports for the same tests;
 see “Changes to reported coverage” below.
