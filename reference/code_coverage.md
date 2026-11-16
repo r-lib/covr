@@ -41,6 +41,22 @@ code_coverage(
   Additional arguments passed to
   [`file_coverage()`](https://covr.r-lib.org/reference/file_coverage.md)
 
+## Value
+
+A [coverage](https://covr.r-lib.org/reference/coverage.md) object.
+
+## Parallel code
+
+Code run in processes forked by
+[`parallel::mclapply()`](https://rdrr.io/r/parallel/mclapply.html),
+[`parallel::mcparallel()`](https://rdrr.io/r/parallel/mcparallel.html)
+and related functions (not available on Windows) is included in the
+coverage. While the code runs, `parallel:::mcfork` and
+`parallel:::mcexit` are patched so that the forked processes save their
+counts when they exit. To turn this off, set the option
+`covr.fix_parallel_mcexit` or the environment variable
+`COVR_FIX_PARALLEL_MCEXIT` to `FALSE`.
+
 ## Examples
 
 ``` r
@@ -48,5 +64,5 @@ source <- "add <- function(x, y) { x + y }"
 test <- "add(1, 2) == 3"
 code_coverage(source, test)
 #> Coverage: 100.00%
-#> /tmp/RtmpjICtsh/source.R18fb6c05b36f: 100.00%
+#> /tmp/RtmpyZ6StW/source.R18601f5ed46b: 100.00%
 ```

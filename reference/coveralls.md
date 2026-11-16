@@ -1,6 +1,13 @@
 # Run covr on a package and upload the result to coveralls
 
-Run covr on a package and upload the result to coveralls
+On GitHub Actions, use the official [Coveralls
+action](https://github.com/coverallsapp/github-action) instead of this
+function: write the coverage with
+[`cobertura()`](https://covr.r-lib.org/reference/cobertura.md) and
+upload `cobertura.xml` with `coverallsapp/github-action@v2`. See the
+README for an example workflow. With branch coverage, upload the LCOV
+file written by [`lcov()`](https://covr.r-lib.org/reference/lcov.md)
+instead, as the action reads which branches were taken from it.
 
 ## Usage
 
@@ -8,8 +15,8 @@ Run covr on a package and upload the result to coveralls
 coveralls(
   ...,
   coverage = NULL,
-  repo_token = Sys.getenv("COVERALLS_TOKEN"),
-  service_name = Sys.getenv("CI_NAME", "travis-ci"),
+  repo_token = env_var("COVERALLS_TOKEN", "COVERALLS_REPO_TOKEN"),
+  service_name = NULL,
   quiet = TRUE
 )
 ```
@@ -29,16 +36,49 @@ coveralls(
 
 - repo_token:
 
-  The secret repo token for your repository, found at the bottom of your
-  repository's page on Coveralls. This is useful if your job is running
-  on a service Coveralls doesn't support out-of-the-box. If set to NULL,
-  it is assumed that the job is running on travis-ci
+  The secret repo token for your repository, found on your repository's
+  page on Coveralls. The default is the environment variable
+  `COVERALLS_TOKEN`, or if it is not set, `COVERALLS_REPO_TOKEN`, the
+  name Coveralls uses for it. Coveralls requires a token (see
+  <https://docs.coveralls.io/api-jobs-endpoint>). Without one (`""` or
+  `NULL`), only the CI service and job are submitted, which Coveralls
+  rejects unless the CI service identifies the repository by itself.
+  With a token, information about the git commit, branch and remote is
+  also submitted.
 
 - service_name:
 
-  the CI service to use, if environment variable ‘CI_NAME’ is set that
-  is used, otherwise ‘travis-ci’ is used.
+  The name of the CI service. If `NULL`, the environment variable
+  `CI_NAME` is used if it is set, otherwise the CI service is detected
+  from the environment, e.g. ‘github’ on GitHub Actions and ‘travis-ci’
+  on Travis CI. Outside a supported CI service it is ‘local’.
 
 - quiet:
 
-  if `FALSE`, print the coverage before submission.
+  if `FALSE`, print the output of running the tests (see
+  [`package_coverage()`](https://covr.r-lib.org/reference/package_coverage.md),
+  which is called when `coverage` is `NULL`) and the coverage before
+  submission.
+
+## Value
+
+The response of Coveralls, parsed from JSON, invisibly. If Coveralls
+doesn't accept the upload, `coveralls()` throws an error of class
+`covr_coveralls_error` with the HTTP status and the response of
+Coveralls in its message.
+
+## Details
+
+With branch coverage (see
+[covr.branch_coverage](https://covr.r-lib.org/reference/covr.branch_coverage.md)),
+each source file sent to Coveralls also has its `branches`: the line,
+block, branch and count of each branch, as in
+[`lcov()`](https://covr.r-lib.org/reference/lcov.md). A branch that was
+never taken has a count of zero.
+
+The CI service, job, pull request, branch and commit are detected from
+the environment variables of the services
+[`codecov()`](https://covr.r-lib.org/reference/codecov.md) supports.
+Anywhere else, the branch, commit and remote are looked up from the
+local git repository. The environment variables `CI_BRANCH` and
+`CI_REMOTE` override the detected branch and remote.

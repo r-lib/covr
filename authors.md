@@ -51,30 +51,18 @@
 - **Ivan Sagalaev**. Contributor, copyright holder.  
   highlight.js library
 
-- **Mark Otto**. Contributor.  
-  Bootstrap library
-
-- **Jacob Thornton**. Contributor.  
-  Bootstrap library
-
-- **Bootstrap contributors**. Contributor.  
-  Bootstrap library
-
-- **Twitter, Inc**. Copyright holder.  
-  Bootstrap library
-
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/r-lib/covr/blob/v3.6.5/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/r-lib/covr/blob/main/DESCRIPTION)
 
 Hester J (2026). *covr: Test Coverage for Packages*. R package version
-3.6.5, <https://covr.r-lib.org>.
+4.0.0, <https://covr.r-lib.org>.
 
     @Manual{,
       title = {covr: Test Coverage for Packages},
       author = {Jim Hester},
       year = {2026},
-      note = {R package version 3.6.5},
+      note = {R package version 4.0.0},
       url = {https://covr.r-lib.org},
     }

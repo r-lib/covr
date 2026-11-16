@@ -26,6 +26,22 @@ function_coverage(fun, code = NULL, env = NULL, enc = parent.frame())
 
   the enclosing environment which to run the expressions.
 
+## Value
+
+A [coverage](https://covr.r-lib.org/reference/coverage.md) object.
+
+## Parallel code
+
+Code run in processes forked by
+[`parallel::mclapply()`](https://rdrr.io/r/parallel/mclapply.html),
+[`parallel::mcparallel()`](https://rdrr.io/r/parallel/mcparallel.html)
+and related functions (not available on Windows) is included in the
+coverage. While the code runs, `parallel:::mcfork` and
+`parallel:::mcexit` are patched so that the forked processes save their
+counts when they exit. To turn this off, set the option
+`covr.fix_parallel_mcexit` or the environment variable
+`COVR_FIX_PARALLEL_MCEXIT` to `FALSE`.
+
 ## Examples
 
 ``` r

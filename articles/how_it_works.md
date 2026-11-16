@@ -20,7 +20,7 @@ Measuring code coverage allows developers to asses their progress in
 quality checking their own (or their collaborators) code. Measuring code
 coverage allows code consumers to have confidence in the measures taken
 by the package authors to verify high code quality. **covr** provides
-three functions to calculate test coverage.
+several functions to calculate test coverage.
 
 - [`package_coverage()`](https://covr.r-lib.org/reference/package_coverage.md)
   performs coverage calculation on an R package. (Unit tests must be
@@ -31,6 +31,20 @@ three functions to calculate test coverage.
 - [`function_coverage()`](https://covr.r-lib.org/reference/function_coverage.md)
   performs coverage calculation on a single named function, using an
   expression provided.
+- [`code_coverage()`](https://covr.r-lib.org/reference/code_coverage.md)
+  performs coverage calculation on a string of R source code, using an
+  expression provided.
+- [`environment_coverage()`](https://covr.r-lib.org/reference/environment_coverage.md)
+  performs coverage calculation on the functions in an environment,
+  e.g. the namespace of a package loaded with
+  [`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html),
+  using an expression provided.
+- [`with_coverage()`](https://covr.r-lib.org/reference/with_coverage.md)
+  is the lower level function the others build on: it runs an expression
+  while the functions in an environment are traced.
+- [`shiny_app_coverage()`](https://covr.r-lib.org/reference/shiny_app_coverage.md)
+  performs coverage calculation on a Shiny app, including tests that run
+  the app in a separate process, e.g. with **shinytest2**.
 
 In addition to providing an objective metric of test suite
 extensiveness, it is often advantageous for developers to have a code
@@ -44,11 +58,10 @@ report can be generated using
 
 ### Modifying the call tree
 
-The core function in **covr** is
-[`trace_calls()`](https://covr.r-lib.org/reference/trace_calls.md). This
-function was adapted from ideas in [*Advanced R - Walking the Abstract
-Syntax Tree with recursive
-functions*](http://adv-r.had.co.nz/Expressions.html#ast-funs). This
+The core function in **covr** is `trace_calls()`. This function was
+adapted from ideas in [*Advanced R - Walking the Abstract Syntax Tree
+with recursive
+functions*](https://adv-r.hadley.nz/expressions.html#ast-funs). This
 recursive function modifies each of the leaves (atomic or name objects)
 of an R expression by applying a given function to them. If the
 expression is not a leaf the walker function calls itself recursively on
@@ -146,12 +159,21 @@ env$f2() == 3
 
 As modifying external environments and correctly restoring them can be
 tricky to get correct, we use the C function
-[`covr_reassign_function`](https://github.com/r-lib/covr/blob/40122df12bc9ef1e577dd0720a895b5340b1516f/src/reassign.c#L65-L135).
-This function takes a function name, environment, old definition, new
-definition and copies the formals, body, attributes and environment from
-the old function to the new function. This allows you to do an in-place
-replacement of a given function with a new function and ensure that all
-references to the old function will use the new definition.
+[`covr_reassign_function`](https://github.com/r-lib/covr/blob/main/src/reassign.c).
+This function takes the target and replacement functions and copies the
+replacement’s formals, body, attributes and environment into the target.
+This allows an in-place replacement of a given function and ensures that
+all existing references to it use the new definition.
+
+Copying closure fields directly bypasses R’s generational
+garbage-collection write barrier. Before copying the fields, covr
+temporarily attaches an attribute referencing the replacement through
+R’s barrier-aware attribute API. The attribute copy is shallow so it
+retains the exact replacement. This lets R remember the target for
+scanning or age the incoming reference graph appropriately. The
+replacement’s original attributes are then copied onto the target,
+removing the temporary reference without undoing the GC bookkeeping. No
+permanent `R_PreserveObject()` roots or extra attributes remain.
 
 ## Object Orientation
 
@@ -189,7 +211,7 @@ Test coverage of compiled code uses a completely different mechanism
 than that of R code. Fortunately we can take advantage of
 [Gcov](https://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Gcov.html#Gcov), the
 built-in coverage tool for [gcc](https://gcc.gnu.org/) and compatible
-reports from [clang](http://clang.llvm.org/) versions 3.5 and greater.
+reports from [clang](https://clang.llvm.org/) versions 3.5 and greater.
 
 Both of these compilers track execution coverage when given the
 `--coverage` flag. In addition it is necessary to turn off compiler
@@ -200,15 +222,17 @@ functions can be inlined, etc.
 ### Makevars
 
 R passes flags defined in `PKG_CFLAGS` to the compiler, however it also
-has default flags including `-02` (defined in `$R_HOME/etc/Makeconf`),
+has default flags including `-O2` (defined in `$R_HOME/etc/Makeconf`),
 which need to be overridden. Unfortunately it is not possible to
 override the default flags with environment variables (as the new flags
-are added to the left of the defaults rather than the right). However if
-Make variables are defined in `~/.R/Makevars` they *are* used in place
-of the defaults.
+are added to the left of the defaults rather than the right). However
+Make variables defined in a user Makevars file *are* used in place of
+the defaults.
 
-Therefore, we need to temporarily add `-O0 --coverage` to the Makevars
-file, then restore the previous state after the coverage is run.
+Therefore, **covr** writes a temporary Makevars file with the flags in
+the `covr.flags` option, which include `-O0 --coverage`, and tells R to
+use it (with the `R_MAKEVARS_USER` environment variable) while it
+installs the package. Your own `~/.R/Makevars` is never modified.
 
 ### Subprocess
 
@@ -218,15 +242,82 @@ Therefore you cannot run the tests and get the results in the same R
 process. **covr** runs a separate R process when running tests. However
 we need to modify the package code first before running the tests.
 
-**covr** installs the package to be tested in a temporary directory.
-Next, calls are made to the lazy loading code which installs a user hook
-to modify the code when it is loaded. We also register a finalizer which
-prints the coverage counts when the namespace is unloaded or the R
-process exits. These output files are then aggregated together to
-determine the coverage.
+**covr** installs the package to be tested in a temporary directory. By
+default the package is then instrumented once, right after it is
+installed: a new R process loads the installed namespace, traces and
+byte-compiles its functions in place and writes the instrumented code
+next to the original. The counters, with their source references, are
+saved with it. Each test process then loads the instrumented code
+directly, which is much faster than tracing the package every time it is
+loaded. If the package can’t be instrumented ahead of time, e.g. because
+it stores functions in `R/sysdata.rda`, **covr** falls back to
+instrumenting the package as it is loaded: calls are made to the lazy
+loading code which installs a user hook to modify the code when it is
+loaded. Set `options(covr.install_instrument = FALSE)` (or the
+environment variable `COVR_INSTALL_INSTRUMENT=false`) to always use this
+load-time instrumentation.
+
+Either way each process registers a finalizer which saves its coverage
+counts when the namespace is unloaded or the R process exits. When the
+package is instrumented once after it is installed, each process only
+saves the counts it recorded, and these are added to the saved counters.
+These output files are then aggregated together to determine the
+coverage.
 
 This procedure works regardless of the number of child R processes used,
-so therefore also works with parallel code.
+so therefore also works with parallel code. However a process which is
+killed (e.g. a Shiny app or worker process stopped with `SIGKILL`) never
+runs its finalizer, so its coverage is lost. Each process therefore also
+leaves a marker file when it loads the package, which it removes once
+its coverage is saved; **covr** warns about any markers left over.
+
+### Packages loaded with `load_all()`
+
+[`package_coverage()`](https://covr.r-lib.org/reference/package_coverage.md)
+isn’t the only way to measure compiled code. For a package loaded with
+[`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html),
+which is what `devtools::test_coverage()` uses, the compiled code is
+measured in the current session by
+[`environment_coverage()`](https://covr.r-lib.org/reference/environment_coverage.md),
+[`with_coverage()`](https://covr.r-lib.org/reference/with_coverage.md)
+and
+[`file_coverage()`](https://covr.r-lib.org/reference/file_coverage.md).
+The DLL that `load_all()` built isn’t instrumented, so **covr** builds
+an instrumented copy of the package in the session’s temporary directory
+(only recompiling the files that changed since the last build) and has
+the namespace use its DLL while the code runs. Unloading that DLL
+afterwards makes `libgcov` write its counts, which `gcov` then reads and
+**covr** maps back to the paths of the package.
+
+### Rust
+
+R packages build Rust code with cargo into a static library, which is
+linked into the package’s shared object along with its C code. gcov
+can’t read the coverage of Rust code, so **covr** uses [LLVM’s
+source-based
+coverage](https://doc.rust-lang.org/rustc/instrument-coverage.html) for
+it instead:
+
+1.  While the package is installed, cargo runs rustc for the crates of
+    the package’s workspace through a wrapper script (set with the
+    `RUSTC_WORKSPACE_WRAPPER` environment variable) that adds
+    `-C instrument-coverage`. This works however the package’s Makevars
+    or configure script sets `RUSTFLAGS`, and its dependencies are built
+    as usual.
+2.  Static libraries don’t include the profiler runtime that writes the
+    counts, so **covr** links the runtime of the Rust toolchain into the
+    shared object.
+3.  The `LLVM_PROFILE_FILE` environment variable has each R process that
+    runs the tests write its counts to a separate `.profraw` file when
+    it exits.
+4.  `llvm-profdata` merges the counts, and `llvm-cov export` reads the
+    coverage of each line from them and the installed shared object.
+
+`llvm-profdata` and `llvm-cov` must use the same version of LLVM as
+rustc, so **covr** uses those of the Rust toolchain, which are installed
+with `rustup component add llvm-tools`. The Rust of Linux distributions
+uses the system’s LLVM instead, so for it **covr** looks for the tools
+of the LLVM version rustc reports, e.g. `llvm-cov-18`.
 
 ## Output Formats
 
@@ -260,6 +351,22 @@ While **covr** tracks coverage by expression, typically users expect
 coverage to be reported by line, so there are functions to convert to
 line oriented coverage.
 
+## Reports and Export Formats
+
+[`report()`](https://covr.r-lib.org/reference/report.md) creates a local
+HTML report, and
+[`report_html()`](https://covr.r-lib.org/reference/report_html.md) the
+same report to include in an R Markdown or Quarto document. Coverage can
+also be exported to other tools:
+[`cobertura()`](https://covr.r-lib.org/reference/cobertura.md),
+[`lcov()`](https://covr.r-lib.org/reference/lcov.md) and
+[`sonarqube()`](https://covr.r-lib.org/reference/sonarqube.md) write
+files in the formats of the same names,
+[`badge()`](https://covr.r-lib.org/reference/badge.md) writes a coverage
+badge as an SVG file, and
+[`coverage_to_markdown()`](https://covr.r-lib.org/reference/coverage_to_markdown.md)
+summarizes the results as Markdown for pull request comments.
+
 ## Codecov.io and Coveralls.io
 
 [Codecov](https://about.codecov.io/) and
@@ -268,8 +375,9 @@ your code coverage over time, and ensure that all new code is
 appropriately covered.
 
 They both have JSON-based APIs to submit and report on coverage. The
-functions `codecov` and `coveralls` create outputs that can be consumed
-by these services.
+functions [`codecov()`](https://covr.r-lib.org/reference/codecov.md) and
+[`coveralls()`](https://covr.r-lib.org/reference/coveralls.md) create
+outputs that can be consumed by these services.
 
 ## Prior Art
 

@@ -4,14 +4,18 @@ Track test coverage for your R package and view reports locally or
 (optionally) upload the results to [codecov](https://about.codecov.io/)
 or [coveralls](https://coveralls.io/).
 
+covr measures the coverage of the R code and the compiled code of a
+package, C, C++, Fortran and Rust, together in one report.
+
 # Installation
 
 ``` r
 
 install.packages("covr")
 
-# For devel version
-devtools::install_github("r-lib/covr")
+# For the development version
+# install.packages("pak")
+pak::pak("r-lib/covr")
 ```
 
 The easiest way to setup covr on [Github
@@ -23,17 +27,55 @@ is with [usethis](https://github.com/r-lib/usethis).
 usethis::use_github_action("test-coverage")
 ```
 
+This workflow uploads to Codecov. To use
+[Coveralls](https://coveralls.io/) instead, replace the
+`codecov/codecov-action` step with the official [Coveralls
+action](https://github.com/coverallsapp/github-action), which uploads
+the `cobertura.xml` file the workflow already creates. No Coveralls
+token is needed, the action authenticates with the built-in
+`GITHUB_TOKEN`.
+
+``` yaml
+      - uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./cobertura.xml
+          format: cobertura
+          # Fail if error if not on PR
+          fail-on-error: ${{ github.event_name != 'pull_request' }}
+```
+
+If the package is in a subdirectory of the repository, also set
+`base-path` to that directory so Coveralls can find the source files.
+
 # Usage
 
 For local development a coverage report can be used to inspect coverage
 for each line in your package. *Note* requires the
-[DT](https://github.com/rstudio/DT) package to be installed.
+[htmltools](https://github.com/rstudio/htmltools) package to be
+installed.
+[`report_html()`](https://covr.r-lib.org/reference/report_html.md)
+creates the same report to include in an R Markdown or Quarto document.
 
 ``` r
 
 library(covr)
 
 # If run with no arguments implicitly calls `package_coverage()`
+report()
+```
+
+With `options(covr.branch_coverage = TRUE)` set before measuring
+coverage, covr also records which branches of each `if` and
+[`switch()`](https://rdrr.io/r/base/switch.html) were taken, and the
+report shows them: the number of branches taken on each line, lines with
+a branch that was never taken as partly covered, and the percentage of
+branches taken in each file. See
+[`?covr.branch_coverage`](https://covr.r-lib.org/reference/covr.branch_coverage.md).
+
+``` r
+
+options(covr.branch_coverage = TRUE)
 report()
 ```
 
@@ -62,6 +104,9 @@ as.data.frame(cov)
 # If run within RStudio, `zero_coverage()` will open a marker pane with the
 # uncovered lines.
 zero_coverage(cov)
+
+# or the functions which were never run
+zero_coverage(cov, by = "function")
 ```
 
 # Exclusions
@@ -77,12 +122,20 @@ used to exclude files or directories.
 The lines in the `.covrignore` file are interpreted as a list of file
 globs to ignore. It uses the globbing rules in
 [`Sys.glob()`](https://rdrr.io/r/base/Sys.glob.html). Any directories
-listed will ignore all the files in the directory.
+listed will ignore all the files in the directory. Paths are relative to
+the package root and refer to the source files being measured
+(e.g. files in `R/` or `src/`), not to test files. For example, to
+ignore a single file, all files matching a wildcard, and every file in a
+directory:
+
+    R/deprecated.R
+    R/zzz*.R
+    src/vendor
 
 Alternative locations for the file can be set by the environment
 variable `COVR_COVRIGNORE` or the R option `covr.covrignore`.
 
-The `.covrignore` file should be added to your `.RBuildignore` file
+The `.covrignore` file should be added to your `.Rbuildignore` file
 unless you want to distribute it with your package. If so it can be
 added to `inst/.covrignore` instead.
 
@@ -118,7 +171,7 @@ package_coverage(line_exclusions = "R/test.R")
 package_coverage(line_exclusions = list("R/test.R" = c(1:10, 15)))
 
 # exclude lines 1 to 10 from R/test.R, all of R/test2.R
-package_coverage(line_exclusions = list("R/test.R" = c(1, 10), "R/test2.R"))
+package_coverage(line_exclusions = list("R/test.R" = 1:10, "R/test2.R"))
 ```
 
 ## Exclusion Comments
@@ -153,16 +206,63 @@ should look like `// # nocov`.
 
 # FAQ
 
+## Should I add covr to my package’s Suggests?
+
+It isn’t required, as covr is usually only used in CI rather than by
+your package’s code. It is useful though: `devtools::install()` and
+[`pak::pak()`](https://pak.r-lib.org/reference/pak.html) will then
+install covr for local development, and it helps us see which packages
+use covr. `usethis::use_coverage()` adds it for you.
+
+## Can I get a coverage badge without a coverage service?
+
+Yes, [`badge()`](https://covr.r-lib.org/reference/badge.md) writes a
+coverage badge as an SVG file. The GitHub Actions workflow in
+[`inst/workflows/test-coverage-badge.yaml`](https://github.com/r-lib/covr/blob/main/inst/workflows/test-coverage-badge.yaml)
+(also
+`system.file("workflows", "test-coverage-badge.yaml", package = "covr")`)
+publishes it to a `badges` branch on every push; copy it to
+`.github/workflows/` and link to the badge from your README.
+
 ## Will covr work with testthat, RUnit, etc…
 
 Covr should be compatible with any testing package, it uses
 [`tools::testInstalledPackage()`](https://rdrr.io/r/tools/testInstalledPackage.html)
 to run your packages tests.
 
-## Will covr work with alternative compilers such as ICC
+## Why are tests using `skip_on_cran()` not counted in my coverage?
 
-Covr now supports Intel’s `icc` compiler, thanks to work contributed by
-Qin Wang at Oracle.
+[`package_coverage()`](https://covr.r-lib.org/reference/package_coverage.md)
+runs your tests non-interactively in a separate R process, so testthat
+assumes it is running on CRAN unless the `NOT_CRAN` environment variable
+is `"true"`. Tests that call `skip_on_cran()` are then skipped, and the
+code they exercise is reported as uncovered. To include them, set the
+variable before computing coverage:
+
+``` r
+
+Sys.setenv(NOT_CRAN = "true")
+package_coverage()
+```
+
+`devtools::test_coverage()` sets `NOT_CRAN` for you.
+
+## Can covr measure the coverage of a Shiny app?
+
+Yes, including tests that run the app with shinytest2. Use
+[`package_coverage()`](https://covr.r-lib.org/reference/package_coverage.md)
+for an app in a package, and
+[`shiny_app_coverage()`](https://covr.r-lib.org/reference/shiny_app_coverage.md)
+for other apps. The vignette
+[vignettes/shiny.Rmd](https://github.com/r-lib/covr/blob/main/vignettes/shiny.Rmd)
+describes both.
+
+``` r
+
+vignette("shiny", package = "covr")
+```
+
+## Will covr work with alternative compilers?
 
 Covr is known to work with clang versions `3.5+` and gcc version `4.2+`.
 
@@ -175,13 +275,68 @@ to “” it will turn *off* coverage of compiled code.
 options(covr.gcov = "path/to/gcov")
 ```
 
+## Can covr measure the coverage of Rust code?
+
+Yes.
+[`package_coverage()`](https://covr.r-lib.org/reference/package_coverage.md)
+measures the coverage of the Rust code in `src/`, e.g. of packages using
+[extendr](https://extendr.rs/) or
+[savvy](https://yutannihilation.github.io/savvy/guide/), with LLVM’s
+source-based coverage.
+[`file_coverage()`](https://covr.r-lib.org/reference/file_coverage.md),
+[`environment_coverage()`](https://covr.r-lib.org/reference/environment_coverage.md)
+and
+[`with_coverage()`](https://covr.r-lib.org/reference/with_coverage.md)
+also measure it in the current session for packages loaded with
+[`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html),
+which is much faster, and only recompile the Rust code that changed on
+later runs:
+
+``` r
+
+file_coverage("src/rust/src/lib.rs", "tests/testthat/test-foo.R")
+```
+
+This needs the llvm tools of your Rust toolchain:
+
+``` sh
+rustup component add llvm-tools
+```
+
+If Rust is installed by your Linux distribution (e.g. with
+`apt-get install cargo rustc`), install the LLVM version that rustc uses
+instead, e.g. `apt-get install llvm-18` if `rustc -vV` shows
+`LLVM version: 18.1.3`.
+
+Without the tools covr warns and reports no coverage for the Rust code.
+Set `options(covr.llvm_cov = "")` to turn off the coverage of Rust code.
+
+On GitHub Actions, add a step that installs the tools before computing
+coverage, e.g. in the `test-coverage.yaml` workflow from
+`usethis::use_github_action("test-coverage")`, after
+`setup-r-dependencies`:
+
+``` yaml
+      - name: Install Rust's llvm-tools
+        run: rustup component add llvm-tools
+```
+
+Exclusions work in Rust files too, e.g. `// # nocov` at the end of a
+line. Code generated by macros such as `#[extendr]` or `#[savvy]` counts
+on the macro’s line, which is only covered if all of that code runs,
+e.g. including the errors for arguments that can’t be converted.
+
+This isn’t supported on Windows, as rustup’s Rust for the GNU ABI that
+Rtools uses (`x86_64-pc-windows-gnu`) doesn’t include the profiler
+runtime that writes the coverage counts.
+
 ## How does covr work?
 
 `covr` tracks test coverage by modifying a package’s code to add
 tracking calls to each call.
 
 The vignette
-[vignettes/how_it_works.Rmd](https://github.com/r-lib/covr/blob/master/vignettes/how_it_works.Rmd)
+[vignettes/how_it_works.Rmd](https://github.com/r-lib/covr/blob/main/vignettes/how_it_works.Rmd)
 contains a detailed explanation of the technique and the rationale
 behind it.
 

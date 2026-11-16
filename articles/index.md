@@ -4,3 +4,4 @@
 
 - [How does covr work
   anyway?](https://covr.r-lib.org/articles/how_it_works.md):
+- [Coverage of Shiny apps](https://covr.r-lib.org/articles/shiny.md):

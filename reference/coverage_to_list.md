@@ -17,5 +17,7 @@ coverage_to_list(x = package_coverage())
 
 ## Value
 
-A list containing coverage result for each individual file and the whole
-package
+A list with two components: `filecoverage`, a named numeric vector with
+the percentage of lines covered in each file, and `totalcoverage`, the
+percentage of lines covered in the whole package. Both are rounded to
+two decimal places.

@@ -5,18 +5,16 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>How does covr work anyway? • covr</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="How does covr work anyway?">
-<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-115082821-1"></script><script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-115082821-1');
-</script>
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -26,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">covr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">3.6.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">4.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +38,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/how_it_works.html">How does covr work anyway?</a></li>
+    <li><a class="dropdown-item" href="../articles/shiny.html">Coverage of Shiny apps</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -64,9 +63,9 @@
       <img src="../logo.png" class="logo" alt=""><h1>How does covr work anyway?</h1>
                         <h4 data-toc-skip class="author">Jim Hester</h4>
             
-            <h4 data-toc-skip class="date">2026-11-07</h4>
+            <h4 data-toc-skip class="date">2026-11-16</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/r-lib/covr/blob/v3.6.5/vignettes/how_it_works.Rmd" class="external-link"><code>vignettes/how_it_works.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/r-lib/covr/blob/main/vignettes/how_it_works.Rmd" class="external-link"><code>vignettes/how_it_works.Rmd</code></a></small>
       <div class="d-none name"><code>how_it_works.Rmd</code></div>
     </div>
 
@@ -94,7 +93,7 @@ run,</li>
 quality checking their own (or their collaborators) code. Measuring code
 coverage allows code consumers to have confidence in the measures taken
 by the package authors to verify high code quality.
-<strong>covr</strong> provides three functions to calculate test
+<strong>covr</strong> provides several functions to calculate test
 coverage.</p>
 <ul>
 <li>
@@ -107,6 +106,22 @@ more R scripts by executing one or more R scripts.</li>
 <li>
 <code><a href="../reference/function_coverage.html">function_coverage()</a></code> performs coverage calculation on a
 single named function, using an expression provided.</li>
+<li>
+<code><a href="../reference/code_coverage.html">code_coverage()</a></code> performs coverage calculation on a
+string of R source code, using an expression provided.</li>
+<li>
+<code><a href="../reference/environment_coverage.html">environment_coverage()</a></code> performs coverage calculation on
+the functions in an environment, e.g. the namespace of a package loaded
+with <code><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">pkgload::load_all()</a></code>, using an expression
+provided.</li>
+<li>
+<code><a href="../reference/with_coverage.html">with_coverage()</a></code> is the lower level function the others
+build on: it runs an expression while the functions in an environment
+are traced.</li>
+<li>
+<code><a href="../reference/shiny_app_coverage.html">shiny_app_coverage()</a></code> performs coverage calculation on a
+Shiny app, including tests that run the app in a separate process,
+e.g. with <strong>shinytest2</strong>.</li>
 </ul>
 <p>In addition to providing an objective metric of test suite
 extensiveness, it is often advantageous for developers to have a code
@@ -122,10 +137,10 @@ report can be generated using <code><a href="../reference/report.html">report()<
 <h3 id="modifying-the-call-tree">Modifying the call tree<a class="anchor" aria-label="anchor" href="#modifying-the-call-tree"></a>
 </h3>
 <p>The core function in <strong>covr</strong> is
-<code><a href="../reference/trace_calls.html">trace_calls()</a></code>. This function was adapted from ideas in <a href="http://adv-r.had.co.nz/Expressions.html#ast-funs" class="external-link"><em>Advanced R -
-Walking the Abstract Syntax Tree with recursive functions</em></a>. This
-recursive function modifies each of the leaves (atomic or name objects)
-of an R expression by applying a given function to them. If the
+<code>trace_calls()</code>. This function was adapted from ideas in <a href="https://adv-r.hadley.nz/expressions.html#ast-funs" class="external-link"><em>Advanced R
+- Walking the Abstract Syntax Tree with recursive functions</em></a>.
+This recursive function modifies each of the leaves (atomic or name
+objects) of an R expression by applying a given function to them. If the
 expression is not a leaf the walker function calls itself recursively on
 elements of the expression instead.</p>
 <p>We can use this same framework to instead insert a trace statement
@@ -142,7 +157,7 @@ expression, we can call a counting function followed by the previous
 function substituting <code>as.call(recurse(x))</code> in our function
 above with.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">`{`</span><span class="op">(</span><span class="fu"><a href="../reference/count.html">count</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/call.html" class="external-link">as.call</a></span><span class="op">(</span><span class="fu">recurse</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">`{`</span><span class="op">(</span><span class="fu">count</span><span class="op">(</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/call.html" class="external-link">as.call</a></span><span class="op">(</span><span class="fu">recurse</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="source-references">Source References<a class="anchor" aria-label="anchor" href="#source-references"></a>
@@ -202,12 +217,21 @@ in a different environment.</p>
 <span><span class="va">env</span><span class="op">$</span><span class="fu">f2</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="fl">3</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] FALSE</span></span></code></pre>
 <p>As modifying external environments and correctly restoring them can
-be tricky to get correct, we use the C function <a href="https://github.com/r-lib/covr/blob/40122df12bc9ef1e577dd0720a895b5340b1516f/src/reassign.c#L65-L135" class="external-link"><code>covr_reassign_function</code></a>.
-This function takes a function name, environment, old definition, new
-definition and copies the formals, body, attributes and environment from
-the old function to the new function. This allows you to do an in-place
-replacement of a given function with a new function and ensure that all
-references to the old function will use the new definition.</p>
+be tricky to get correct, we use the C function <a href="https://github.com/r-lib/covr/blob/main/src/reassign.c" class="external-link"><code>covr_reassign_function</code></a>.
+This function takes the target and replacement functions and copies the
+replacement’s formals, body, attributes and environment into the target.
+This allows an in-place replacement of a given function and ensures that
+all existing references to it use the new definition.</p>
+<p>Copying closure fields directly bypasses R’s generational
+garbage-collection write barrier. Before copying the fields, covr
+temporarily attaches an attribute referencing the replacement through
+R’s barrier-aware attribute API. The attribute copy is shallow so it
+retains the exact replacement. This lets R remember the target for
+scanning or age the incoming reference graph appropriately. The
+replacement’s original attributes are then copied onto the target,
+removing the temporary reference without undoing the GC bookkeeping. No
+permanent <code>R_PreserveObject()</code> roots or extra attributes
+remain.</p>
 </div>
 </div>
 <div class="section level2">
@@ -251,7 +275,7 @@ methods when the generator function is run.</p>
 <p>Test coverage of compiled code uses a completely different mechanism
 than that of R code. Fortunately we can take advantage of <a href="https://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Gcov.html#Gcov" class="external-link">Gcov</a>,
 the built-in coverage tool for <a href="https://gcc.gnu.org/" class="external-link">gcc</a>
-and compatible reports from <a href="http://clang.llvm.org/" class="external-link">clang</a>
+and compatible reports from <a href="https://clang.llvm.org/" class="external-link">clang</a>
 versions 3.5 and greater.</p>
 <p>Both of these compilers track execution coverage when given the
 <code>--coverage</code> flag. In addition it is necessary to turn off
@@ -263,16 +287,17 @@ into one, functions can be inlined, etc.</p>
 <h3 id="makevars">Makevars<a class="anchor" aria-label="anchor" href="#makevars"></a>
 </h3>
 <p>R passes flags defined in <code>PKG_CFLAGS</code> to the compiler,
-however it also has default flags including <code>-02</code> (defined in
+however it also has default flags including <code>-O2</code> (defined in
 <code>$R_HOME/etc/Makeconf</code>), which need to be overridden.
 Unfortunately it is not possible to override the default flags with
 environment variables (as the new flags are added to the left of the
-defaults rather than the right). However if Make variables are defined
-in <code>~/.R/Makevars</code> they <em>are</em> used in place of the
-defaults.</p>
-<p>Therefore, we need to temporarily add <code>-O0 --coverage</code> to
-the Makevars file, then restore the previous state after the coverage is
-run.</p>
+defaults rather than the right). However Make variables defined in a
+user Makevars file <em>are</em> used in place of the defaults.</p>
+<p>Therefore, <strong>covr</strong> writes a temporary Makevars file
+with the flags in the <code>covr.flags</code> option, which include
+<code>-O0 --coverage</code>, and tells R to use it (with the
+<code>R_MAKEVARS_USER</code> environment variable) while it installs the
+package. Your own <code>~/.R/Makevars</code> is never modified.</p>
 </div>
 <div class="section level3">
 <h3 id="subprocess">Subprocess<a class="anchor" aria-label="anchor" href="#subprocess"></a>
@@ -284,13 +309,83 @@ process. <strong>covr</strong> runs a separate R process when running
 tests. However we need to modify the package code first before running
 the tests.</p>
 <p><strong>covr</strong> installs the package to be tested in a
-temporary directory. Next, calls are made to the lazy loading code which
-installs a user hook to modify the code when it is loaded. We also
-register a finalizer which prints the coverage counts when the namespace
-is unloaded or the R process exits. These output files are then
-aggregated together to determine the coverage.</p>
+temporary directory. By default the package is then instrumented once,
+right after it is installed: a new R process loads the installed
+namespace, traces and byte-compiles its functions in place and writes
+the instrumented code next to the original. The counters, with their
+source references, are saved with it. Each test process then loads the
+instrumented code directly, which is much faster than tracing the
+package every time it is loaded. If the package can’t be instrumented
+ahead of time, e.g. because it stores functions in
+<code>R/sysdata.rda</code>, <strong>covr</strong> falls back to
+instrumenting the package as it is loaded: calls are made to the lazy
+loading code which installs a user hook to modify the code when it is
+loaded. Set <code>options(covr.install_instrument = FALSE)</code> (or
+the environment variable <code>COVR_INSTALL_INSTRUMENT=false</code>) to
+always use this load-time instrumentation.</p>
+<p>Either way each process registers a finalizer which saves its
+coverage counts when the namespace is unloaded or the R process exits.
+When the package is instrumented once after it is installed, each
+process only saves the counts it recorded, and these are added to the
+saved counters. These output files are then aggregated together to
+determine the coverage.</p>
 <p>This procedure works regardless of the number of child R processes
-used, so therefore also works with parallel code.</p>
+used, so therefore also works with parallel code. However a process
+which is killed (e.g. a Shiny app or worker process stopped with
+<code>SIGKILL</code>) never runs its finalizer, so its coverage is lost.
+Each process therefore also leaves a marker file when it loads the
+package, which it removes once its coverage is saved;
+<strong>covr</strong> warns about any markers left over.</p>
+</div>
+<div class="section level3">
+<h3 id="packages-loaded-with-load_all">Packages loaded with <code>load_all()</code><a class="anchor" aria-label="anchor" href="#packages-loaded-with-load_all"></a>
+</h3>
+<p><code><a href="../reference/package_coverage.html">package_coverage()</a></code> isn’t the only way to measure
+compiled code. For a package loaded with
+<code><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">pkgload::load_all()</a></code>, which is what
+<code>devtools::test_coverage()</code> uses, the compiled code is
+measured in the current session by <code><a href="../reference/environment_coverage.html">environment_coverage()</a></code>,
+<code><a href="../reference/with_coverage.html">with_coverage()</a></code> and <code><a href="../reference/file_coverage.html">file_coverage()</a></code>. The DLL
+that <code>load_all()</code> built isn’t instrumented, so
+<strong>covr</strong> builds an instrumented copy of the package in the
+session’s temporary directory (only recompiling the files that changed
+since the last build) and has the namespace use its DLL while the code
+runs. Unloading that DLL afterwards makes <code>libgcov</code> write its
+counts, which <code>gcov</code> then reads and <strong>covr</strong>
+maps back to the paths of the package.</p>
+</div>
+<div class="section level3">
+<h3 id="rust">Rust<a class="anchor" aria-label="anchor" href="#rust"></a>
+</h3>
+<p>R packages build Rust code with cargo into a static library, which is
+linked into the package’s shared object along with its C code. gcov
+can’t read the coverage of Rust code, so <strong>covr</strong> uses <a href="https://doc.rust-lang.org/rustc/instrument-coverage.html" class="external-link">LLVM’s
+source-based coverage</a> for it instead:</p>
+<ol style="list-style-type: decimal">
+<li>While the package is installed, cargo runs rustc for the crates of
+the package’s workspace through a wrapper script (set with the
+<code>RUSTC_WORKSPACE_WRAPPER</code> environment variable) that adds
+<code>-C instrument-coverage</code>. This works however the package’s
+Makevars or configure script sets <code>RUSTFLAGS</code>, and its
+dependencies are built as usual.</li>
+<li>Static libraries don’t include the profiler runtime that writes the
+counts, so <strong>covr</strong> links the runtime of the Rust toolchain
+into the shared object.</li>
+<li>The <code>LLVM_PROFILE_FILE</code> environment variable has each R
+process that runs the tests write its counts to a separate
+<code>.profraw</code> file when it exits.</li>
+<li>
+<code>llvm-profdata</code> merges the counts, and
+<code>llvm-cov export</code> reads the coverage of each line from them
+and the installed shared object.</li>
+</ol>
+<p><code>llvm-profdata</code> and <code>llvm-cov</code> must use the
+same version of LLVM as rustc, so <strong>covr</strong> uses those of
+the Rust toolchain, which are installed with
+<code>rustup component add llvm-tools</code>. The Rust of Linux
+distributions uses the system’s LLVM instead, so for it
+<strong>covr</strong> looks for the tools of the LLVM version rustc
+reports, e.g. <code>llvm-cov-18</code>.</p>
 </div>
 </div>
 <div class="section level2">
@@ -320,14 +415,26 @@ users expect coverage to be reported by line, so there are functions to
 convert to line oriented coverage.</p>
 </div>
 <div class="section level2">
+<h2 id="reports-and-export-formats">Reports and Export Formats<a class="anchor" aria-label="anchor" href="#reports-and-export-formats"></a>
+</h2>
+<p><code><a href="../reference/report.html">report()</a></code> creates a local HTML report, and
+<code><a href="../reference/report_html.html">report_html()</a></code> the same report to include in an R Markdown
+or Quarto document. Coverage can also be exported to other tools:
+<code><a href="../reference/cobertura.html">cobertura()</a></code>, <code><a href="../reference/lcov.html">lcov()</a></code> and
+<code><a href="../reference/sonarqube.html">sonarqube()</a></code> write files in the formats of the same names,
+<code><a href="../reference/badge.html">badge()</a></code> writes a coverage badge as an SVG file, and
+<code><a href="../reference/coverage_to_markdown.html">coverage_to_markdown()</a></code> summarizes the results as Markdown
+for pull request comments.</p>
+</div>
+<div class="section level2">
 <h2 id="codecov-io-and-coveralls-io">Codecov.io and Coveralls.io<a class="anchor" aria-label="anchor" href="#codecov-io-and-coveralls-io"></a>
 </h2>
 <p><a href="https://about.codecov.io/" class="external-link">Codecov</a> and <a href="https://coveralls.io/" class="external-link">Coveralls</a> are a web services to help
 you track your code coverage over time, and ensure that all new code is
 appropriately covered.</p>
 <p>They both have JSON-based APIs to submit and report on coverage. The
-functions <code>codecov</code> and <code>coveralls</code> create outputs
-that can be consumed by these services.</p>
+functions <code><a href="../reference/codecov.html">codecov()</a></code> and <code><a href="../reference/coveralls.html">coveralls()</a></code> create
+outputs that can be consumed by these services.</p>
 </div>
 <div class="section level2">
 <h2 id="prior-art">Prior Art<a class="anchor" aria-label="anchor" href="#prior-art"></a>

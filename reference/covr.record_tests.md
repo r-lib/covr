@@ -20,12 +20,13 @@ places:
   execution.
 
 - `$<srcref>$tests`: For each srcref count in the coverage object, a
-  `$tests` field is now included which contains a matrix with three
-  columns, "test", "call", "depth" and "i" which specify the test number
-  (corresponding to the index of the test in `attr(,"tests")`, the
-  number of times the test expression was evaluated to produce the trace
-  hit, the stack depth into the target code where the trace was
-  executed, and the order of execution for each test.
+  `$tests` field is now included which contains a matrix with four
+  columns, "test", "call", "depth" and "i". "test" is the test number
+  (corresponding to the index of the test in `attr(,"tests")`), "call"
+  is the number of times the test expression was evaluated to produce
+  the trace hit, "depth" is the stack depth into the target code where
+  the trace was executed, and "i" is the order of execution for each
+  test.
 
 ## Test traces
 
@@ -50,6 +51,16 @@ These calls are subsequently subset for only those up until the call to
 `count` function, and will always include the last call in the call
 stack prior to a call to `count`.
 
+Functions in the recorded calls, such as the function of an R6 active
+binding or a function passed to
+[`do.call()`](https://rdrr.io/r/base/do.call.html), have their
+environment replaced with
+[`emptyenv()`](https://rdrr.io/r/base/environment.html), so that the
+objects they enclose aren't saved with the coverage.
+
+To find which tests ran each line of code, use
+[`tally_tests()`](https://covr.r-lib.org/reference/tally_tests.md).
+
 ## Examples
 
 ``` r
@@ -61,8 +72,10 @@ f <- function(x) {
     FALSE
 }'
 
-options(covr.record_tests = TRUE)
-cov <- code_coverage(fcode, "f(TRUE)")
+cov <- withr::with_options(
+  list(covr.record_tests = TRUE),
+  code_coverage(fcode, "f(TRUE)")
+)
 
 # extract executed test code for the first test
 tail(attr(cov, "tests")[[1L]], 1L)
@@ -91,15 +104,15 @@ cov[[3]][c("srcref", "tests")]
 
 # reconstruct the code path of a test by ordering test traces by [,"i"]
 lapply(cov, `[[`, "tests")
-#> $`source.R18fb2263cc08:6:5:6:9:5:9:6:6`
+#> $`source.R186064728c35:6:5:6:9:5:9:6:6`
 #>      test call depth i
 #> [1,]    1    1     2 4
 #> 
-#> $`source.R18fb2263cc08:4:5:4:9:5:9:4:4`
+#> $`source.R186064728c35:4:5:4:9:5:9:4:4`
 #>      test call depth i
 #> [1,]    1    1     1 2
 #> 
-#> $`source.R18fb2263cc08:3:7:3:7:7:7:3:3`
+#> $`source.R186064728c35:3:7:3:7:7:7:3:3`
 #>      test call depth i
 #> [1,]    1    1     1 1
 #> [2,]    1    1     2 3

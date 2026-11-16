@@ -1,8 +1,9 @@
 # Determine if code is being run in covr
 
-covr functions set the environment variable `R_COVR` when they are
-running. `in_covr()` returns `TRUE` if this environment variable is set
-and `FALSE` otherwise.
+covr functions set the environment variable `R_COVR` to `"true"` while
+they are running. `in_covr()` returns `TRUE` if the environment variable
+is exactly `"true"` and `FALSE` otherwise, e.g. to skip tests that don't
+work while measuring coverage.
 
 ## Usage
 
@@ -10,11 +11,12 @@ and `FALSE` otherwise.
 in_covr()
 ```
 
+## Value
+
+A single `TRUE` or `FALSE`.
+
 ## Examples
 
 ``` r
-if (require(testthat)) {
-  testthat::skip_if(in_covr())
-}
-#> Loading required package: testthat
+testthat::skip_if(in_covr())
 ```
