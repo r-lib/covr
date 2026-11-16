@@ -636,18 +636,31 @@ run_commands <- function(pkg, lib, commands, show_output = FALSE) {
 }
 
 # Run the R script `infile` with `R -f`, saving its stdout and stderr to
-# `outfile` in the order they are read, like `R CMD BATCH` does (which can't
-# run scripts with a space in their path, #770). With `show`, also show them on
-# the console (on stdout and stderr respectively) as it runs. Returns the exit
-# status.
+# `outfile`. `R CMD BATCH` can't run scripts with a space in their path (#770).
+# Returns the exit status.
 run_r <- function(infile, outfile, show = FALSE) {
+  if (isTRUE(show)) {
+    return(run_r_live(infile, outfile))
+  }
+  # Both streams go to the same file (`2>&1`), so their output stays in order
+  system2(
+    r_binary(),
+    c("--vanilla", "--quiet", "-f", shQuote(infile)),
+    stdout = outfile,
+    stderr = outfile
+  )
+}
+
+# Like `run_r()`, but also show stdout and stderr on the console (on stdout and
+# stderr respectively) as it runs. They are read from separate pipes, so in
+# `outfile` they are in the order they are read, not the order they were
+# written.
+run_r_live <- function(infile, outfile) {
   out <- file(outfile, "wb")
   on.exit(close(out))
-  write_to <- function(con) {
+  show <- function(con) {
     function(x) {
-      if (isTRUE(show)) {
-        cat(rawToChar(x), file = con)
-      }
+      cat(rawToChar(x), file = con)
       writeBin(x, out)
     }
   }
@@ -655,13 +668,13 @@ run_r <- function(infile, outfile, show = FALSE) {
     sys::exec_wait(
       r_binary(),
       c("--vanilla", "--quiet", "-f", infile),
-      std_out = write_to(stdout()),
-      std_err = write_to(stderr())
+      std_out = show(stdout()),
+      std_err = show(stderr())
     ),
     # sys signals an error if the process is killed, e.g. by a segfault; report
     # it as a failure.
     error = function(e) {
-      write_to(stderr())(charToRaw(paste0(conditionMessage(e), "\n")))
+      show(stderr())(charToRaw(paste0(conditionMessage(e), "\n")))
       1L
     }
   )

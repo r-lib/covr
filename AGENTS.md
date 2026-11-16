@@ -32,7 +32,7 @@ If you do shim your working tree, run `sh unshim_package.sh` before committing. 
 When covr measures itself you will see `Can't find coverage from 2 R processes that loaded covrShim`. Both are expected, and both are tests that deliberately kill a child R that loads the inner `TestSummary`/`TestS4` hooks. Those hooks load the outer, instrumented `covrShim` (writing a `covr_pending_<pid>_*` marker to the outer install dir) before the child is killed, so that child's `covrShim` coverage is lost by design:
 
 - the SIGKILL test in `test-package_coverage.R` ("package_coverage warns about processes that did not save a trace"), which kills a child R running `dont_test_me(1, 2)` from `TestSummary`.
-- the "package_coverage reports killed code shown while it runs" test in `test-package_coverage.R`, which runs `tools::pskill(Sys.getpid(), tools::SIGKILL)` as `code` with `show_code_output = TRUE` (the `--vanilla --quiet -f TestS4-commands.Rout` child started by `run_r()`) after `library('TestS4')`.
+- the "package_coverage reports killed code shown while it runs" test in `test-package_coverage.R`, which runs `tools::pskill(Sys.getpid(), tools::SIGKILL)` as `code` with `show_code_output = TRUE` (the `--vanilla --quiet -f TestS4-commands.Rout` child started by `run_r_live()`) after `library('TestS4')`.
 
 A different count means a new process that loads covrShim and doesn't save its trace. To find it, temporarily make `register_trace()` and `save_trace_and_clear()` in the throwaway copy append `Sys.getpid()` and `commandArgs()` to a log file, and look for the pids that registered but never saved.
 

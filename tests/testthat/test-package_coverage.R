@@ -122,6 +122,22 @@ test_that("package_coverage works with a space in install_path (#770)", {
   expect_gt(percent_coverage(cov), 0)
 })
 
+test_that("run_r keeps stdout and stderr in order", {
+  dir <- withr::local_tempdir()
+  infile <- file.path(dir, "x.R")
+  outfile <- file.path(dir, "x.Rout")
+  writeLines(
+    "for (i in 1:100) { cat('out', i, '\\n'); message('err ', i) }",
+    infile
+  )
+
+  expect_equal(run_r(infile, outfile), 0L)
+  expect_equal(
+    trimws(grep("^(out|err)", readLines(outfile), value = TRUE)),
+    paste(c("out", "err"), rep(1:100, each = 2))
+  )
+})
+
 test_that("package_coverage can show the output of code while it runs", {
   out <- capture_streams(
     cov <- package_coverage(
