@@ -516,11 +516,12 @@ test_that("in_installed_tests only matches files in packages in the library", {
     file.path(lib, "pkg-tests/testthat/test-a.R"),
     file.path(dirname(lib), "pkg/tests/test-a.R"),
     # outside the library, though the part after the library's length is `pkg`
-    paste0("/", strrep("o", nchar(lib) - 1L), "/pkg/tests/test-a.R")
+    paste0("/", strrep("o", nchar(lib) - 1L), "/pkg/tests/test-a.R"),
+    NA
   )
   expect_equal(
     in_installed_tests(files),
-    c(TRUE, TRUE, FALSE, FALSE, FALSE, FALSE)
+    c(TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE)
   )
 })
 
