@@ -197,6 +197,26 @@ test_that("traced_files skips traces without a source file", {
   expect_named(traced_files(cov), "<text>")
 })
 
+test_that("traced_files puts sections at the line numbers of their directives", {
+  cov <- code_coverage(
+    paste(
+      c(
+        '#line 1 "a.R"',
+        "g <- function() 1",
+        '#line 3 "a.R"',
+        "f <- function() 2"
+      ),
+      collapse = "\n"
+    ),
+    "f()"
+  )
+  expect_equal(
+    traced_files(cov)[["a.R"]]$file_lines,
+    c("g <- function() 1", "", "f <- function() 2")
+  )
+  expect_equal(zero_coverage(cov)$line, 1)
+})
+
 test_that("read_description errors if there is no DESCRIPTION file", {
   expect_snapshot(read_description("no-such-dir/DESCRIPTION"), error = TRUE)
 })
