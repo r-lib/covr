@@ -503,6 +503,22 @@ test_that("count_test ignores traces hit before a test is known", {
   expect_equal(unname(.counters[[key]]$tests$tally[1, ]), rep(NA_integer_, 4))
 })
 
+test_that("in_installed_tests only matches the tests copied into the library", {
+  lib <- withr::local_tempdir()
+  withr::local_libpaths(lib)
+  lib <- normalizePath(lib)
+  files <- file.path(
+    c(lib, lib, lib, tempdir()),
+    c(
+      "pkg-tests/testthat/test-a.R",
+      "tests/testthat/test-a.R",
+      "pkg/R/a.R",
+      "pkg-tests/test-a.R"
+    )
+  )
+  expect_equal(in_installed_tests(files), c(TRUE, FALSE, FALSE, FALSE))
+})
+
 test_that("in_caller_body is FALSE for the first frame", {
   expect_false(in_caller_body(1L, quote(f())))
 })

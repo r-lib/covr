@@ -1,5 +1,10 @@
 # covr (development version)
 
+* With `covr.record_tests = TRUE`, tests run from a directory inside the first
+  library, such as `<pkg>.Rcheck/tests` when `R CMD check` is run with
+  `_R_CHECK_SUGGESTS_ONLY_=false`, are now recorded separately rather than all
+  as the call that started coverage.
+
 # covr 4.0.0
 
 This is a major release. It changes how coverage is counted in several places,
