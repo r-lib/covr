@@ -1,5 +1,10 @@
 # covr (development version)
 
+* `package_coverage()` now works when `install_path` (which defaults to a
+  directory in `tempdir()`) contains a space. The vignettes and `code` are now
+  run with `R -f` rather than `R CMD BATCH`, which can't run a script with a
+  space in its path (#770).
+
 * With `covr.record_tests = TRUE`, tests run from a directory inside the first
   library, such as `<pkg>.Rcheck/tests` when `R CMD check` is run with
   `_R_CHECK_SUGGESTS_ONLY_=false`, are now recorded separately rather than all

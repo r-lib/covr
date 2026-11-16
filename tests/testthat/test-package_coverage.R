@@ -101,6 +101,27 @@ test_that("package_coverage runs additional test code", {
   expect_gt(percent_coverage(cov), 0.00)
 })
 
+test_that("package_coverage works with a space in install_path (#770)", {
+  install_path <- file.path(withr::local_tempdir(), "with space")
+
+  cov <- package_coverage(
+    "TestS4",
+    type = c("tests", "vignettes"),
+    combine_types = FALSE,
+    install_path = install_path
+  )
+  expect_equal(names(cov), c("tests", "vignettes"))
+  expect_gt(percent_coverage(cov$tests), 0)
+
+  cov <- package_coverage(
+    "TestS4",
+    type = "none",
+    code = "a(1)",
+    install_path = install_path
+  )
+  expect_gt(percent_coverage(cov), 0)
+})
+
 test_that("package_coverage can show the output of code while it runs", {
   out <- capture_streams(
     cov <- package_coverage(

@@ -518,13 +518,7 @@ run_vignettes <- function(pkg, lib) {
     file = outfile,
     sep = ""
   )
-  cmd <- paste(
-    shQuote(r_binary()),
-    "CMD BATCH --vanilla --no-timing",
-    shQuote(outfile),
-    shQuote(failfile)
-  )
-  res <- system(cmd)
+  res <- run_r(outfile, failfile)
   if (res != 0) {
     show_failures(dirname(failfile))
   } else {
@@ -633,17 +627,7 @@ run_commands <- function(pkg, lib, commands, show_output = FALSE) {
     ),
     con = outfile
   )
-  if (isTRUE(show_output)) {
-    res <- run_r_live(outfile, failfile)
-  } else {
-    cmd <- paste(
-      shQuote(r_binary()),
-      "CMD BATCH --vanilla --no-timing",
-      shQuote(outfile),
-      shQuote(failfile)
-    )
-    res <- system(cmd)
-  }
+  res <- run_r(outfile, failfile, show = show_output)
   if (res != 0L) {
     show_failures(dirname(failfile))
   } else {
@@ -651,16 +635,19 @@ run_commands <- function(pkg, lib, commands, show_output = FALSE) {
   }
 }
 
-# Run the R script `infile` like `R CMD BATCH` does, but also show its stdout
-# and stderr on the console (on stdout and stderr respectively) as it runs.
-# Both are saved to `outfile`, in the order they are read. Returns the exit
+# Run the R script `infile` with `R -f`, saving its stdout and stderr to
+# `outfile` in the order they are read, like `R CMD BATCH` does (which can't
+# run scripts with a space in their path, #770). With `show`, also show them on
+# the console (on stdout and stderr respectively) as it runs. Returns the exit
 # status.
-run_r_live <- function(infile, outfile) {
+run_r <- function(infile, outfile, show = FALSE) {
   out <- file(outfile, "wb")
   on.exit(close(out))
-  show <- function(con) {
+  write_to <- function(con) {
     function(x) {
-      cat(rawToChar(x), file = con)
+      if (isTRUE(show)) {
+        cat(rawToChar(x), file = con)
+      }
       writeBin(x, out)
     }
   }
@@ -668,13 +655,13 @@ run_r_live <- function(infile, outfile) {
     sys::exec_wait(
       r_binary(),
       c("--vanilla", "--quiet", "-f", infile),
-      std_out = show(stdout()),
-      std_err = show(stderr())
+      std_out = write_to(stdout()),
+      std_err = write_to(stderr())
     ),
     # sys signals an error if the process is killed, e.g. by a segfault; report
-    # it as a failure, as `R CMD BATCH` does.
+    # it as a failure.
     error = function(e) {
-      show(stderr())(charToRaw(paste0(conditionMessage(e), "\n")))
+      write_to(stderr())(charToRaw(paste0(conditionMessage(e), "\n")))
       1L
     }
   )
