@@ -38,6 +38,25 @@ test_that("get_parse_data caches the files of each srcfile (#768)", {
   )
 })
 
+test_that("get_parse_data parses a file again for another srcfile with its name", {
+  clean_parse_data()
+  withr::defer(clean_parse_data())
+  first <- srcfilecopy("a.R", c('#line 1 "a.R"', "x <- 1"))
+  second <- srcfilecopy("a.R", c('#line 1 "a.R"', "y <- 1"))
+  expect_equal(subset(get_parse_data(first), token == "SYMBOL")$text, "x")
+  expect_equal(subset(get_parse_data(second), token == "SYMBOL")$text, "y")
+})
+
+test_that("get_parse_data returns NULL for files that can't be parsed on their own", {
+  clean_parse_data()
+  withr::defer(clean_parse_data())
+  expect_null(get_parse_data(srcfilecopy("a.R", c('#line 2 "a.R"', "x <- 1"))))
+  expect_null(get_parse_data(srcfilecopy(
+    "b.R",
+    c('#line 1 "b.R"', "f <- function() {", '#line 3 "b.R"', "}")
+  )))
+})
+
 test_that("get_parse_data returns NULL for srcfiles without a filename", {
   expect_null(get_parse_data(srcfilecopy("", "x <- 1")))
 })

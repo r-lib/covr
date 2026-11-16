@@ -46,9 +46,10 @@ to_title <- function(x) {
   )
 }
 
-# Split lines into a list based on the line directives in the file.
-split_on_line_directives <- function(lines) {
-  matches <- rex::re_matches(
+# The `line_number` and `filename` of the `#line` directives in `lines`, `NA`
+# for other lines.
+match_line_directives <- function(lines) {
+  rex::re_matches(
     lines,
     rex::rex(
       start,
@@ -62,6 +63,13 @@ split_on_line_directives <- function(lines) {
       quotes
     )
   )
+}
+
+# Split lines into a list based on the line directives in the file.
+split_on_line_directives <- function(
+  lines,
+  matches = match_line_directives(lines)
+) {
   directive_lines <- which(!is.na(matches$line_number))
   if (!length(directive_lines)) {
     return(NULL)

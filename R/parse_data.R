@@ -259,35 +259,57 @@ is_conditional_or_loop <- function(x) {
     as.character(x[[1L]]) %in% c("if", "for", "while", "switch")
 }
 
+# The parse data of each file of the concatenated source of an installed
+# package, which has a `#line` directive at the start of each file, keyed by
+# file name. Each entry also has the srcfile it is from, as `source`, so a file
+# of another srcfile with the same name, e.g. one that was edited and sourced
+# again, is parsed again. The files of a srcfile are parsed the first time one
+# of them is asked for, so the srcfiles of other packages, e.g. of the `clone()`
+# method R6 adds to a class, don't stop the files of the package from being
+# cached (#768).
 package_parse_data <- new.env()
 
-# The parse data of each file, from the lines of the srcfile of a package
-# installed with `--with-keep.source`, which concatenates its files with `#line`
-# directives. Each srcfile is split and parsed once, the first time one of its
-# files is asked for, so the srcfiles of other packages, e.g. of the `clone()`
-# method R6 adds to a class, don't stop the files of the package from being
-# cached (#768). Files without parse data are cached as `NULL`.
 get_parse_data <- function(srcfile) {
   filename <- srcfile[["filename"]]
   if (!nzchar(filename)) {
     return(NULL)
   }
-  if (!exists(filename, envir = package_parse_data, inherits = FALSE)) {
-    lines <- getSrcLines(srcfile, 1L, Inf)
-    lines_split <- split_on_line_directives(lines)
-    res <- lapply(lines_split, function(x) {
-      withr::with_options(c(keep.parse.data = TRUE), {
-        getParseData(parse(text = x, keep.source = TRUE), includeText = NA)
-      })
-    })
-    for (i in seq_along(res)) {
-      assign(names(res)[[i]], res[[i]], envir = package_parse_data)
-    }
-    if (!exists(filename, envir = package_parse_data, inherits = FALSE)) {
-      assign(filename, NULL, envir = package_parse_data)
+  source <- srcfile[["original"]] %||% srcfile
+  cached <- package_parse_data[[filename]]
+  if (!identical(cached$source, source)) {
+    cache_parse_data(source)
+    cached <- package_parse_data[[filename]]
+    if (!identical(cached$source, source)) {
+      # No parse data, so `get_tokens()` uses `getParseData()`
+      cached <- list(source = source, data = NULL)
+      assign(filename, cached, envir = package_parse_data)
     }
   }
-  package_parse_data[[filename]]
+  cached$data
+}
+
+cache_parse_data <- function(source) {
+  lines <- getSrcLines(source, 1L, Inf)
+  matches <- match_line_directives(lines)
+  lines_split <- split_on_line_directives(lines, matches)
+  # A file can only be parsed on its own if it starts at line 1 and isn't split
+  # in several parts, as in the source of an installed package
+  files <- names(lines_split)
+  starts_at_1 <- na.omit(matches$line_number) == "1"
+  whole <- starts_at_1 & !files %in% files[duplicated(files)]
+  for (i in which(whole)) {
+    data <- withr::with_options(c(keep.parse.data = TRUE), {
+      getParseData(
+        parse(text = lines_split[[i]], keep.source = TRUE),
+        includeText = NA
+      )
+    })
+    assign(
+      files[[i]],
+      list(source = source, data = data),
+      envir = package_parse_data
+    )
+  }
 }
 
 clean_parse_data <- function() {
