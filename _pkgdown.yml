@@ -12,6 +12,11 @@ destination: docs
 development:
   mode: auto
 
+news:
+  releases:
+  - text: "covr 4.0.0"
+    href: https://www.jimhester.com/post/covr-4-0-0/
+
 reference:
   - title: Measure coverage
     desc: Run code or tests and record which expressions were evaluated.
