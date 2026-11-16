@@ -3,7 +3,9 @@
 * With `covr.record_tests = TRUE`, tests run from a directory inside the first
   library, such as `<pkg>.Rcheck/tests` when `R CMD check` is run with
   `_R_CHECK_SUGGESTS_ONLY_=false`, are now recorded separately rather than all
-  as the call that started coverage.
+  as the call that started coverage. On Windows, the calls recorded for tests
+  now start at the test rather than at the top of the call stack, as on other
+  platforms.
 
 # covr 4.0.0
 
