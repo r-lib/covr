@@ -2,6 +2,8 @@
 
 ## covr (development version)
 
+## covr 4.0.0
+
 This is a major release. It changes how coverage is counted in several
 places, which can lower the coverage covr reports for the same tests;
 see “Changes to reported coverage” below.
@@ -139,9 +141,6 @@ see “Changes to reported coverage” below.
   supported CI service, and the git committer fields are now named as
   Coveralls expects (`committer_name`, `committer_email`)
   ([\#535](https://github.com/r-lib/covr/issues/535)).
-
-- `display_name()` is no longer exported. It was only meant for covr’s
-  own use ([\#758](https://github.com/r-lib/covr/issues/758)).
 
 - [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   no longer accepts the `exclusions` argument, deprecated in favor of

@@ -415,6 +415,8 @@ Run code or tests and record which expressions were evaluated.
   : Provide locations of zero coverage
 - [`value()`](https://covr.r-lib.org/dev/reference/value.md) : Retrieve
   the execution counts from a coverage object
+- [`display_name()`](https://covr.r-lib.org/dev/reference/display_name.md)
+  : The source file of each trace
 - [`annotate_coverage()`](https://covr.r-lib.org/dev/reference/annotate_coverage.md)
   : Annotate source code with line and branch coverage
 

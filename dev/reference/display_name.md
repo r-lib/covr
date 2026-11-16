@@ -1,6 +1,8 @@
-# Retrieve the path name (filename) for each coverage object
+# The source file of each trace
 
-Retrieve the path name (filename) for each coverage object
+`display_name()` returns the path of the source file of each trace of a
+coverage object, relative to the package root, e.g. to keep the coverage
+of some files with `x[display_name(x) %in% files]`.
 
 ## Usage
 
@@ -12,4 +14,18 @@ display_name(x)
 
 - x:
 
-  A coverage object
+  A [coverage](https://covr.r-lib.org/dev/reference/coverage.md) object.
+
+## Value
+
+A character vector with one path for each trace of `x`, or `NULL` if `x`
+has no traces.
+
+## Examples
+
+``` r
+cov <- code_coverage("f <- function(x) x + 1", "f(1)")
+display_name(cov)
+#> source.R186462bd9030:1:6:1:22:6:22:1:1 
+#> "/tmp/Rtmpuk27rI/source.R186462bd9030" 
+```
