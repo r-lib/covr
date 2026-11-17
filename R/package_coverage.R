@@ -169,9 +169,15 @@ package_coverage <- function(
     root <- NULL
   }
 
-  # tools::testInstalledPackage requires normalized install_path (#517)
-  install_path <- normalize_path(install_path)
+  if (!installed) {
+    check_source_paths(pkg)
+  }
+
+  # tools::testInstalledPackage requires normalized install_path (#517), and
+  # `normalizePath()` leaves relative paths that don't exist relative on Unix
   dir.create(install_path)
+  install_path <- normalize_path(install_path)
+  check_library_path(install_path)
 
   flags <- getOption("covr.flags")
 
@@ -187,7 +193,7 @@ package_coverage <- function(
         }
         clean_parse_data()
         if (succeeded) {
-          unlink(install_path, recursive = TRUE)
+          unlink(install_path, recursive = TRUE, expand = FALSE)
         }
       },
       add = TRUE
@@ -275,8 +281,8 @@ package_coverage <- function(
       c(
         R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
         R_LIBS = libs,
-        R_LIBS_USER = libs,
-        R_LIBS_SITE = site_libs,
+        R_LIBS_USER = r_libs_env_value(libs),
+        R_LIBS_SITE = r_libs_env_value(site_libs),
         R_COVR = "true",
         R_TESTS = file.path(R.home("share"), "R", "tests-startup.R"),
         rust$env
@@ -512,19 +518,13 @@ run_vignettes <- function(pkg, lib) {
   outfile <- file.path(lib, paste0(pkg$package, "-Vignette.Rout"))
   failfile <- paste(outfile, "fail", sep = ".")
   cat(
-    "tools::buildVignettes(dir = '",
-    pkg$path,
-    "')\n",
+    "tools::buildVignettes(dir = ",
+    encodeString(pkg$path, quote = '"'),
+    ")\n",
     file = outfile,
     sep = ""
   )
-  cmd <- paste(
-    shQuote(r_binary()),
-    "CMD BATCH --vanilla --no-timing",
-    shQuote(outfile),
-    shQuote(failfile)
-  )
-  res <- system(cmd)
+  res <- run_r(outfile, failfile)
   if (res != 0) {
     show_failures(dirname(failfile))
   } else {
@@ -543,12 +543,95 @@ r_libs_site <- function(site = .Library.site) {
   site_libs
 }
 
+# Escape the value of R_LIBS_USER or R_LIBS_SITE so R processes read `x`. R
+# expands `%v`, `%V`, `%p` and others in them and reads `%%` as `%` (see
+# `?.libPaths`), and on Unix `R_HOME/etc/Renviron` sets them from themselves,
+# which removes quotes (#774). A quote is kept in quotes of the other kind; R
+# 4.1 doesn't read `\'` as `'`. `tools::testInstalledPackage()` clears R_LIBS
+# to run the examples, so they only find the package through these.
+r_libs_env_value <- function(x) {
+  x <- gsub("%", "%%", x, fixed = TRUE)
+  if (!is_windows()) {
+    chars <- strsplit(x, "", fixed = TRUE)[[1]]
+    chars[chars == "'"] <- "\"'\""
+    chars[chars == "\""] <- "'\"'"
+    x <- paste(chars, collapse = "")
+  }
+  x
+}
+
+# R can't use a library whose path contains the separator of the libraries in
+# R_LIBS, nor `[` or (on Unix) `\`, as `.libPaths()` globs the paths (#774).
+check_library_path <- function(path) {
+  chars <- c(.Platform$path.sep, "[", if (!is_windows()) "\\")
+  found <- chars[vapply(chars, grepl, logical(1), x = path, fixed = TRUE)]
+  if (length(found) > 0) {
+    covr_abort(c(
+      "Can't use {.path {path}} as a library.",
+      x = "R can't use libraries whose path contains {.val {found}}.",
+      i = "Set {.arg install_path}, or {.envvar TMPDIR} for the default, to a path without them."
+    ))
+  }
+}
+
+# On Unix, `R CMD INSTALL` writes the paths of the R files into `#line`
+# directives without escaping them, so R reads wrong file names for paths that
+# contain `"` or `\`, and the coverage of their code would be lost or reported
+# for files that don't exist (#774).
+check_source_paths <- function(pkg) {
+  if (is_windows()) {
+    return(invisible()) # nocov
+  }
+  r_dir <- file.path(pkg$path, "R")
+  paths <- c(pkg$path, file.path(r_dir, list.files(r_dir, recursive = TRUE)))
+  bad <- paths[
+    grepl("\"", paths, fixed = TRUE) | grepl("\\", paths, fixed = TRUE)
+  ]
+  if (length(bad) > 0) {
+    covr_abort(c(
+      "Can't measure the coverage of {.pkg {pkg$package}}.",
+      x = "{.code R CMD INSTALL} records wrong file names for R code whose path contains a double quote or a backslash, such as {.path {bad[[1]]}}.",
+      i = "Move the package or rename the file."
+    ))
+  }
+}
+
+# The R front end, to run `R CMD`.
 r_binary <- function() {
   name <- "R"
   if (is_windows()) {
     name <- "R.exe" # nocov
   }
   file.path(R.home("bin"), name)
+}
+
+# The binary to run R code with. On Windows, `R.exe` starts `Rterm.exe` with
+# the same arguments through `cmd.exe`, which expands environment variables
+# such as `%PATH%` in them, even in quoted paths (#774), so `Rterm.exe` is run
+# directly.
+rterm_binary <- function() {
+  if (is_windows()) {
+    return(file.path(R.home("bin"), "Rterm.exe")) # nocov
+  }
+  r_binary()
+}
+
+# Quote a path for `system2(r_binary(), c("CMD", ...))`. `R CMD` on Windows
+# also runs R through `cmd.exe`, which has no escape for `%` in quoted
+# arguments, so each `%` is written as `%COVR_PERCENT%`, an environment variable
+# that `r_cmd_env()` sets to `%`. `cmd.exe` doesn't expand its value again.
+r_cmd_path <- function(path) {
+  if (is_windows()) {
+    path <- gsub("%", "%COVR_PERCENT%", path, fixed = TRUE) # nocov
+  }
+  shQuote(path)
+}
+
+r_cmd_env <- function() {
+  if (is_windows()) {
+    return(c(COVR_PERCENT = "%")) # nocov
+  }
+  character()
 }
 
 # Install the package source with the options covr needs. With `quiet`, the
@@ -562,14 +645,18 @@ install_package <- function(
   byte_compile = TRUE
 ) {
   output <- withr::with_envvar(
-    c(R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep), env),
+    c(
+      R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep),
+      r_cmd_env(),
+      env
+    ),
     withr::with_makevars(flags, assignment = "+=", {
       args <- c(
         "--vanilla",
         "CMD",
         "INSTALL",
         "-l",
-        shQuote(install_path),
+        r_cmd_path(install_path),
         "--example",
         "--install-tests",
         "--with-keep.source",
@@ -577,7 +664,7 @@ install_package <- function(
         "--no-staged-install",
         "--no-multiarch",
         if (!byte_compile) "--no-byte-compile",
-        shQuote(pkg$path)
+        r_cmd_path(pkg$path)
       )
 
       path <- r_binary()
@@ -633,17 +720,7 @@ run_commands <- function(pkg, lib, commands, show_output = FALSE) {
     ),
     con = outfile
   )
-  if (isTRUE(show_output)) {
-    res <- run_r_live(outfile, failfile)
-  } else {
-    cmd <- paste(
-      shQuote(r_binary()),
-      "CMD BATCH --vanilla --no-timing",
-      shQuote(outfile),
-      shQuote(failfile)
-    )
-    res <- system(cmd)
-  }
+  res <- run_r(outfile, failfile, show = show_output)
   if (res != 0L) {
     show_failures(dirname(failfile))
   } else {
@@ -651,10 +728,28 @@ run_commands <- function(pkg, lib, commands, show_output = FALSE) {
   }
 }
 
-# Run the R script `infile` like `R CMD BATCH` does, but also show its stdout
-# and stderr on the console (on stdout and stderr respectively) as it runs.
-# Both are saved to `outfile`, in the order they are read. Returns the exit
-# status.
+# Run the R script `infile` with `R --file=`, saving its stdout and stderr to
+# `outfile`. `R CMD BATCH` can't run scripts with a space in their path (#770).
+# Unlike `-f <infile>`, `--file=<infile>` is not read as an environment variable
+# by `Rterm.exe` when the path contains `=`, nor globbed by the `R` shell script
+# when it contains `*`, `?` or `[` (#774). Returns the exit status.
+run_r <- function(infile, outfile, show = FALSE) {
+  if (isTRUE(show)) {
+    return(run_r_live(infile, outfile))
+  }
+  # Both streams go to the same file (`2>&1`), so their output stays in order
+  system2(
+    rterm_binary(),
+    c("--vanilla", "--quiet", shQuote(paste0("--file=", infile))),
+    stdout = outfile,
+    stderr = outfile
+  )
+}
+
+# Like `run_r()`, but also show stdout and stderr on the console (on stdout and
+# stderr respectively) as it runs. They are read from separate pipes, so in
+# `outfile` they are in the order they are read, not the order they were
+# written.
 run_r_live <- function(infile, outfile) {
   out <- file(outfile, "wb")
   on.exit(close(out))
@@ -666,13 +761,13 @@ run_r_live <- function(infile, outfile) {
   }
   tryCatch(
     sys::exec_wait(
-      r_binary(),
-      c("--vanilla", "--quiet", "-f", infile),
+      rterm_binary(),
+      c("--vanilla", "--quiet", paste0("--file=", infile)),
       std_out = show(stdout()),
       std_err = show(stderr())
     ),
     # sys signals an error if the process is killed, e.g. by a segfault; report
-    # it as a failure, as `R CMD BATCH` does.
+    # it as a failure.
     error = function(e) {
       show(stderr())(charToRaw(paste0(conditionMessage(e), "\n")))
       1L
@@ -707,7 +802,11 @@ add_hooks <- function(
   branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE)),
   counters_file = NULL
 ) {
-  trace_dir <- paste0("Sys.getenv(\"COVERAGE_DIR\", \"", lib, "\")")
+  trace_dir <- paste0(
+    "Sys.getenv(\"COVERAGE_DIR\", ",
+    encodeString(lib, quote = '"'),
+    ")"
+  )
 
   load_script <- file.path(lib, pkg_name, "R", pkg_name)
   lines <- readLines(load_script)
@@ -767,7 +866,10 @@ add_hooks <- function(
   )
 
   if (fix_mcexit) {
-    lines <- append(lines, sprintf("covr:::fix_mcexit('%s')", trace_dir))
+    lines <- append(
+      lines,
+      paste0("covr:::fix_mcexit(", encodeString(trace_dir, quote = '"'), ")")
+    )
   }
 
   writeLines(text = lines, con = load_script)

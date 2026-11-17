@@ -576,6 +576,23 @@ test_that("report() and file_report() open the report in the viewer", {
   expect_length(opened, 2)
 })
 
+test_that("report() opens a percent-encoded file URL without a viewer", {
+  skip_if_not_installed("htmltools")
+  skip_on_os("windows")
+  cov <- code_coverage("f <- function(x) x + 1", "f(1)")
+
+  opened <- character()
+  withr::local_options(viewer = NULL)
+  local_mocked_bindings(browse_url = function(url) opened <<- c(opened, url))
+
+  dir <- file.path(withr::local_tempdir(), "a`touch X` b%20c")
+  file <- report(cov, file = file.path(dir, "r.html"), browse = TRUE)
+
+  expect_match(opened, "^file:///")
+  expect_no_match(opened, "[` ]")
+  expect_equal(utils::URLdecode(sub("^file://", "", opened)), file)
+})
+
 test_that("report() and file_report() create the directory and return the absolute path", {
   skip_if_not_installed("htmltools")
   cov <- code_coverage("f <- function(x) x + 1", "f(1)")

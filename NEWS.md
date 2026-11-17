@@ -3,11 +3,53 @@
 * Instrumented functions with a braceless `if` branch before an `else`, e.g.
   `x <- if (cond) a else b`, now give the same results when they are deparsed
   and parsed again. Previously the `else` attached to covr's counter (#776).
+* `package_coverage()` is no longer very slow for packages whose namespace has
+  functions with source references to another package, e.g. the `clone()`
+  method of R6 classes when R6 was installed with `--with-keep.source`, or
+  functions created by `memoise::memoise()`. covr reparsed the whole package
+  for each conditional in such packages (#768).
+
+* `package_coverage()` now works when `install_path` (which defaults to a
+  directory in `tempdir()`) contains a space. The vignettes and `code` are now
+  run with `R --file=` rather than `R CMD BATCH`, which can't run a script with
+  a space in its path (#770).
+* `package_coverage()` now works with more characters in the paths of the
+  package, `install_path` and `tempdir()` (#774):
+  * Quotes and backslashes, e.g. a `tempdir()` under a user named `O'Brien`,
+    in the code it writes to run the vignettes and to load the package.
+  * `%`, e.g. `%PATH%`, on Windows, where `R.exe` expanded environment
+    variables in its arguments. R code is now run with `Rterm.exe`, and `%` is
+    escaped for `R CMD INSTALL`.
+  * `=` on Windows and `*`, `?` and `[` on Unix in the path of the scripts run
+    for the vignettes and `code`, now run with `--file=` rather than `-f`.
+  * `'`, `"` and `%` in `install_path` when running examples, which R removed
+    or expanded in `R_LIBS_USER`.
+  * A relative `install_path` on Unix, for which the tests silently didn't
+    run.
+* `package_coverage()` now errors clearly when `install_path` contains a
+  character R can't have in the path of a library (`[`, the path separator, or
+  `\` on Unix), and on Unix when the path of the package or its R files
+  contains `"` or `\`, for which `R CMD INSTALL` records wrong file names,
+  rather than failing later or reporting no coverage (#774).
+* covr no longer deletes files or directories whose names match the paths it
+  cleans up as a glob, e.g. a `lib1` next to an `install_path` of `lib[1]`, and
+  now cleans up those paths themselves (#774).
+* `report()` and `file_report()` no longer run shell commands contained in the
+  path of the report when opening it with `browseURL()` on Unix (#774).
+* `lcov()` now writes non-ASCII file names in UTF-8, and `to_cobertura()` no
+  longer fails for them, when the native encoding isn't UTF-8, e.g. with R 4.1
+  on Windows (#774).
+* Rust coverage now works when the paths of the profiles contain a comma, or
+  the paths of the libraries it links contain `$` or `#`, and warns rather
+  than silently losing the coverage when the profiles' directory contains `%`
+  (#774).
 
 * With `covr.record_tests = TRUE`, tests run from a directory inside the first
   library, such as `<pkg>.Rcheck/tests` when `R CMD check` is run with
   `_R_CHECK_SUGGESTS_ONLY_=false`, are now recorded separately rather than all
-  as the call that started coverage.
+  as the call that started coverage. On Windows, the calls recorded for tests
+  now start at the test rather than at the top of the call stack, as on other
+  platforms.
 
 # covr 4.0.0
 

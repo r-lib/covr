@@ -22,6 +22,49 @@ test_that("impute_srcref returns NULL for calls that are not conditionals or loo
   expect_null(impute_srcref(p$exprs[[1]], p$refs[[1]]))
 })
 
+test_that("get_parse_data caches the files of each srcfile (#768)", {
+  clean_parse_data()
+  withr::defer(clean_parse_data())
+  other <- srcfilecopy("other/R/a.R", c('#line 1 "other/R/a.R"', "a <- 1"))
+  own <- srcfilecopy(
+    "pkg/R/b.R",
+    c('#line 1 "pkg/R/a.R"', "x <- 1", '#line 1 "pkg/R/b.R"', "y <- 2")
+  )
+  expect_equal(subset(get_parse_data(other), token == "SYMBOL")$text, "a")
+  expect_equal(subset(get_parse_data(own), token == "SYMBOL")$text, "y")
+  expect_setequal(
+    ls(package_parse_data),
+    c("other/R/a.R", "pkg/R/a.R", "pkg/R/b.R")
+  )
+})
+
+test_that("get_parse_data parses a file again for another srcfile with its name", {
+  clean_parse_data()
+  withr::defer(clean_parse_data())
+  first <- srcfilecopy("a.R", c('#line 1 "a.R"', "x <- 1"))
+  second <- srcfilecopy("a.R", c('#line 1 "a.R"', "y <- 1"))
+  expect_equal(subset(get_parse_data(first), token == "SYMBOL")$text, "x")
+  expect_equal(subset(get_parse_data(second), token == "SYMBOL")$text, "y")
+})
+
+test_that("get_parse_data returns NULL for files that can't be parsed on their own", {
+  clean_parse_data()
+  withr::defer(clean_parse_data())
+  expect_null(get_parse_data(srcfilecopy("a.R", c('#line 2 "a.R"', "x <- 1"))))
+  expect_null(get_parse_data(srcfilecopy(
+    "b.R",
+    c('#line 1 "b.R"', "f <- function() {", '#line 3 "b.R"', "}")
+  )))
+  expect_null(get_parse_data(srcfilecopy(
+    "c.R",
+    c('#line 1 "c.R"', "x <- 1", '#line 12 "c.R"', "y <- 1")
+  )))
+})
+
+test_that("get_parse_data returns NULL for srcfiles without a filename", {
+  expect_null(get_parse_data(srcfilecopy("", "x <- 1")))
+})
+
 test_that("imputing srcrefs without a srcref or without matching parse data returns NULL", {
   expect_null(impute_child_srcrefs(quote(f(x)), NULL))
   expect_null(impute_body_srcref(NULL))

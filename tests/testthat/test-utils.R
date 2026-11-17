@@ -2,6 +2,20 @@ test_that("it throws error if no package", {
   expect_snapshot(as_package("arst11234"), error = TRUE)
 })
 
+test_that("clean_objects() doesn't expand glob characters in the path", {
+  root <- withr::local_tempdir()
+  own <- file.path(root, "pkg[1]", "src")
+  sibling <- file.path(root, "pkg1", "src")
+  dir.create(own, recursive = TRUE)
+  dir.create(sibling, recursive = TRUE)
+  file.create(file.path(own, "a.o"), file.path(sibling, "a.o"))
+
+  clean_objects(file.path(root, "pkg[1]"))
+
+  expect_equal(list.files(own), character())
+  expect_equal(list.files(sibling), "a.o")
+})
+
 test_that("it returns the package if given the root or child directory", {
   expect_equal(as_package("TestS4")$package, "TestS4")
   expect_equal(as_package("TestS4/")$package, "TestS4")
@@ -104,6 +118,15 @@ test_that("split_on_line_directives does not simplify the result (#588)", {
   )
 })
 
+test_that("split_on_line_directives splits on line numbers with several digits", {
+  expect_identical(
+    split_on_line_directives(
+      c('#line 1 "foo.R"', "abc", '#line 12 "bar.R"', "def")
+    ),
+    list("foo.R" = "abc", "bar.R" = "def")
+  )
+})
+
 test_that("split_on_line_directives handles empty files (#522)", {
   expect_identical(
     split_on_line_directives(
@@ -186,6 +209,26 @@ test_that("traced_files skips traces without a source file", {
     class = "coverage"
   )
   expect_named(traced_files(cov), "<text>")
+})
+
+test_that("traced_files puts sections at the line numbers of their directives", {
+  cov <- code_coverage(
+    paste(
+      c(
+        '#line 1 "a.R"',
+        "g <- function() 1",
+        '#line 3 "a.R"',
+        "f <- function() 2"
+      ),
+      collapse = "\n"
+    ),
+    "f()"
+  )
+  expect_equal(
+    traced_files(cov)[["a.R"]]$file_lines,
+    c("g <- function() 1", "", "f <- function() 2")
+  )
+  expect_equal(zero_coverage(cov)$line, 1)
 })
 
 test_that("read_description errors if there is no DESCRIPTION file", {

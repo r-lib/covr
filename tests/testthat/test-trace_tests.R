@@ -357,7 +357,7 @@ test_that("covr.record_tests: records multiple calls to the same test expr", {
 })
 
 test_that("covr.record_tests: records repeated calls of tests without srcrefs once (#627)", {
-  # The code is run with `R CMD BATCH`, without srcrefs, so the tests are
+  # The code is run with `R -f`, without srcrefs, so the tests are
   # identified by their calls
   cov <- withr::with_options(
     c("covr.record_tests" = TRUE),
@@ -503,20 +503,26 @@ test_that("count_test ignores traces hit before a test is known", {
   expect_equal(unname(.counters[[key]]$tests$tally[1, ]), rep(NA_integer_, 4))
 })
 
-test_that("in_installed_tests only matches the tests copied into the library", {
+test_that("in_installed_tests only matches files in packages in the library", {
   lib <- withr::local_tempdir()
   withr::local_libpaths(lib)
-  lib <- normalizePath(lib)
-  files <- file.path(
-    c(lib, lib, lib, tempdir()),
-    c(
-      "pkg-tests/testthat/test-a.R",
-      "tests/testthat/test-a.R",
-      "pkg/R/a.R",
-      "pkg-tests/test-a.R"
-    )
+  lib <- normalize_path(lib)
+  dir.create(file.path(lib, "pkg"))
+  file.create(file.path(lib, "pkg", "DESCRIPTION"))
+  files <- c(
+    file.path(lib, "pkg/pkg-tests/testthat/test-a.R"),
+    file.path(lib, "pkg/tests/testthat/test-a.R"),
+    file.path(lib, "tests/testthat/test-a.R"),
+    file.path(lib, "pkg-tests/testthat/test-a.R"),
+    file.path(dirname(lib), "pkg/tests/test-a.R"),
+    # outside the library, though the part after the library's length is `pkg`
+    paste0("/", strrep("o", nchar(lib) - 1L), "/pkg/tests/test-a.R"),
+    NA
   )
-  expect_equal(in_installed_tests(files), c(TRUE, FALSE, FALSE, FALSE))
+  expect_equal(
+    in_installed_tests(files),
+    c(TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE)
+  )
 })
 
 test_that("in_caller_body is FALSE for the first frame", {

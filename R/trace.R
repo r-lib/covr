@@ -64,7 +64,7 @@ reset_traces <- function() {
 save_trace <- function(directory) {
   final_file <- temp_file("covr_trace_", tmpdir = directory)
   tmp_file <- temp_file(".covr_tmp_", tmpdir = directory)
-  on.exit(unlink(tmp_file), add = TRUE)
+  on.exit(unlink(tmp_file, expand = FALSE), add = TRUE)
 
   sync_counts()
   tryCatch(
@@ -231,11 +231,14 @@ register_trace <- function(ns, directory) {
 # forking creates its own marker, which is removed here.
 save_trace_and_clear <- function(directory) {
   res <- save_trace(directory)
-  unlink(list.files(
-    directory,
-    pattern = pending_pattern(Sys.getpid()),
-    full.names = TRUE
-  ))
+  unlink(
+    list.files(
+      directory,
+      pattern = pending_pattern(Sys.getpid()),
+      full.names = TRUE
+    ),
+    expand = FALSE
+  )
   invisible(res)
 }
 
