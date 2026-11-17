@@ -105,7 +105,12 @@ e.g. `/mnt/c/Users/<user>/.local/bin/Rscript.exe` and `R.exe`
   Windows filesystem; UNC paths to the WSL filesystem don’t work as
   working directories.
 - Copy the source to the Windows filesystem first,
-  e.g. `git archive HEAD | tar -x -C /mnt/c/Users/<user>/AppData/Local/Temp/covr-win/src`.
+  e.g. `git archive HEAD | tar -x -C /mnt/c/Users/<user>/AppData/Local/Temp/covr-win/src`,
+  or `git ls-files -z | xargs -0 tar -c | tar -x -C <dir>` to include
+  uncommitted changes. Don’t copy the working tree as it is: the objects
+  a Linux `R CMD INSTALL .` leaves in `src/` get linked into `covr.dll`,
+  and loading it pops up a modal “Bad Image” dialog that blocks until
+  someone clicks OK.
 - Its library may not have covr’s dependencies; install them (and
   testthat and devtools) into a temporary library with
   [`install.packages()`](https://rdrr.io/r/utils/install.packages.html),
@@ -119,6 +124,12 @@ e.g. `/mnt/c/Users/<user>/.local/bin/Rscript.exe` and `R.exe`
   instead.
 - `Rscript -e` can segfault on multiline or complex code on Windows;
   write the code to a `.R` file instead.
+- `R.exe`, `Rscript.exe` and `R CMD` start `Rterm.exe` through
+  `cmd.exe`, which expands environment variables such as `%PATH%` in
+  their arguments, even quoted ones. To test paths with `%`, build them
+  inside the `.R` script rather than passing them on the command line.
+  covr itself runs R code with `Rterm.exe` and escapes `%` for
+  `R CMD INSTALL` (#774).
 - Don’t set options such as `covr.record_tests` globally in a script
   that then runs the test suite; some tests rely on them being unset.
   Use

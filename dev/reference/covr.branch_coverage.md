@@ -79,8 +79,8 @@ withr::with_options(list(covr.branch_coverage = TRUE), {
 })
 tally_coverage(cov, by = "branch")
 #>                               filename functions line column branch label value
-#> 1 /tmp/Rtmp9qpioK/source.R192274f2af9d         f    2      3      1  TRUE     1
-#> 2 /tmp/Rtmp9qpioK/source.R192274f2af9d         f    2      3      2 FALSE     0
+#> 1 /tmp/Rtmpp9k8XT/source.R19692e45f066         f    2      3      1  TRUE     1
+#> 2 /tmp/Rtmpp9k8XT/source.R19692e45f066         f    2      3      2 FALSE     0
 percent_coverage(cov, by = "branch")
 #> [1] 50
 ```
