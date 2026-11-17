@@ -2,6 +2,11 @@
 
 ## covr (development version)
 
+- Instrumented functions with a braceless `if` branch before an `else`,
+  e.g. `x <- if (cond) a else b`, now give the same results when they
+  are deparsed and parsed again. Previously the `else` attached to
+  covr’s counter ([\#776](https://github.com/r-lib/covr/issues/776)).
+
 - [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   is no longer very slow for packages whose namespace has functions with
   source references to another package, e.g. the `clone()` method of R6
