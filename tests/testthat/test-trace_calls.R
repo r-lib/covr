@@ -497,6 +497,25 @@ test_that("if nested in other calls (#279)", {
   expect_equal(res$first_column[res$value == 0], c(5, 20, 51, 32, 11, 42))
 })
 
+test_that("traced if/else gives the same results after deparsing (#776)", {
+  src <- "function(a, b) {
+  x <- if (!is.null(a)) a else b
+  y <- character()
+  if (is.null(a))
+    for (i in 1) y <- 'loop'
+  else
+    y <- 'else'
+  c(x, y)
+}"
+  f <- eval(parse(text = src, keep.source = TRUE)[[1]], new.env())
+  traced <- trace_calls(f)
+  reparsed <- eval(str2lang(paste(deparse(traced), collapse = "\n")))
+
+  for (a in list(NULL, "a")) {
+    expect_identical(reparsed(a, "b"), f(a, "b"))
+  }
+})
+
 test_that("switch", {
   f <-
     'f <- function(x) {

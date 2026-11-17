@@ -123,6 +123,12 @@ trace_calls <- function(
         src_ref,
         MoreArgs = list(parent_functions = parent_functions)
       ))
+      # The counters are `if` calls without `else`, so if the first branch of
+      # an `if` with an `else` ends with one, `deparse()` writes code that
+      # gives that `else` to the counter when it is parsed again (#776).
+      if (is_if_else(x) && !is_brace_call(res[[3L]])) {
+        res[[3L]] <- call("{", res[[3L]])
+      }
       # Branch coverage is opt-in, and only changes the instrumentation when
       # it is enabled (#279).
       if (!is.null(own_ref) && isTRUE(getOption("covr.branch_coverage"))) {
@@ -262,6 +268,14 @@ is_traced <- function(fun) {
   any(c("count_and_record", "covr_count") %in% nms) &&
     "covr" %in% nms &&
     has_count_call(x)
+}
+
+is_if_else <- function(x) {
+  length(x) == 4L && identical(x[[1L]], as.name("if"))
+}
+
+is_brace_call <- function(x) {
+  is.call(x) && is_brace(x[[1L]])
 }
 
 # Whether `x` is `if (TRUE) { <count call>; expr }`, as added by

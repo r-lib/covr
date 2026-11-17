@@ -1,5 +1,9 @@
 # covr (development version)
 
+* Instrumented functions with a braceless `if` branch before an `else`, e.g.
+  `x <- if (cond) a else b`, now give the same results when they are deparsed
+  and parsed again. Previously the `else` attached to covr's counter (#776).
+
 * With `covr.record_tests = TRUE`, tests run from a directory inside the first
   library, such as `<pkg>.Rcheck/tests` when `R CMD check` is run with
   `_R_CHECK_SUGGESTS_ONLY_=false`, are now recorded separately rather than all
