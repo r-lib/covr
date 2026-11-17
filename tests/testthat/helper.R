@@ -75,6 +75,23 @@ local_installed_package <- function(name, args, frame = parent.frame()) {
   file.path(lib, name)
 }
 
+# A directory name with characters that are special to `sh`, `cmd.exe` (which
+# `R.exe` runs `Rterm.exe` with), the `R` shell script, `Rterm.exe`, R strings,
+# R_LIBS_USER (`%v` and `%%`, and quotes on Unix), regular expressions and
+# globs, and a non-ASCII one (#774). It leaves out what R itself can't handle:
+# library paths are globbed (`[`, and `\` on Unix) and split on the path
+# separator; on Unix, `R CMD INSTALL` splits paths at whitespace and globs each
+# piece, so runs of spaces and pieces that are glob patterns matching files
+# break, and it records broken source paths for packages in paths with `"` or
+# `\`.
+special_path_name <- function() {
+  name <- "O'Brien %PATH% %v %% & ^ (x) {y} , ! # = + ~ \u00e9"
+  if (!is_windows()) {
+    name <- paste(name, "$HOME `x` ; | a*b?c")
+  }
+  name
+}
+
 # Don't let the settings of the environment that runs the tests change how
 # `package_coverage()` instruments packages.
 local_install_defaults <- function(env = parent.frame()) {

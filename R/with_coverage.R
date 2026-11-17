@@ -13,7 +13,7 @@ collect_coverage <- function(code) {
   restore_forks <- trace_forks(trace_dir)
   on.exit({
     restore_forks()
-    unlink(trace_dir, recursive = TRUE)
+    unlink(trace_dir, recursive = TRUE, expand = FALSE)
   })
 
   withr::with_envvar(c("R_COVR" = "true"), code)

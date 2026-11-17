@@ -15,6 +15,24 @@ test_that("large counts are not written in scientific notation", {
   )
 })
 
+test_that("non-ASCII file names are written as UTF-8", {
+  file <- file.path(withr::local_tempdir(), "\u00e9.R")
+  writeLines("f <- function() 1", file, useBytes = TRUE)
+  cov <- file_coverage(file, local_r_file("f()"))
+
+  tmp <- withr::local_tempfile(fileext = ".info")
+  lcov(cov, file = tmp)
+  bytes <- readBin(tmp, "raw", file.size(tmp))
+  expected <- charToRaw(enc2utf8("\u00e9.R"))
+  n <- length(expected)
+  found <- vapply(
+    seq_len(length(bytes) - n + 1),
+    function(i) identical(bytes[i:(i + n - 1)], expected),
+    logical(1)
+  )
+  expect_gt(sum(found), 0)
+})
+
 test_that("functions sharing a line give a single line record", {
   cov <- code_coverage("f <- function() 1; g <- function() 2", "f()")
   out <- lcov(cov, withr::local_tempfile())

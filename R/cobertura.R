@@ -195,7 +195,7 @@ cobertura_classes <- function(df, file_lines, branches, branch_rate) {
       '<class name="%s" filename="%s" line-rate="%s" branch-rate="%s"',
       ' complexity="0"><methods>%s</methods><lines>%s</lines></class>'
     ),
-    xml_escape(basename(files)),
+    xml_escape(sub("^.*/", "", files)),
     xml_escape(files),
     line_rates(file_lines$value, file, n_files),
     branch_rates(branch_file, n_files),

@@ -51,6 +51,19 @@ rust_coverage_setup <- function(path, dir) {
     return(NULL)
   }
 
+  # The runtime expands `%p`, `%m` and the like in `LLVM_PROFILE_FILE`, and
+  # drops other `%` specifiers, with no way to escape a literal `%`. It would
+  # write the counts somewhere else, and they would be lost.
+  if (grepl("%", dir, fixed = TRUE)) {
+    covr_warn(c(
+      "Can't measure the coverage of Rust code.",
+      x = "The path {.path {dir}} contains {.code %}, which LLVM's profiler
+      runtime can't write counts to.",
+      i = "Use an {.arg install_path} or {.envvar TMPDIR} without {.code %}."
+    ))
+    return(NULL)
+  }
+
   # Packages run cargo in `src/`, so a `rust-toolchain.toml` there or above
   # selects the toolchain that builds the code.
   toolchain <- rust_toolchain(file.path(path, "src"))
@@ -88,7 +101,7 @@ rust_coverage_setup <- function(path, dir) {
   # The runtime that writes the counts isn't included in the static library.
   # On Linux the instrumented code doesn't refer to it either, so the linker
   # needs to be told to include it.
-  libs <- shQuote(toolchain$profiler_runtime)
+  libs <- shell_quote_make(toolchain$profiler_runtime)
   if (identical(Sys.info()[["sysname"]], "Linux")) {
     libs <- c("-Wl,-u,__llvm_profile_runtime", libs)
   }
@@ -115,6 +128,13 @@ rust_coverage_setup <- function(path, dir) {
     profiles = profiles,
     env = c(LLVM_PROFILE_FILE = file.path(profiles, "%p-%m.profraw"))
   )
+}
+
+# Quote a path for the shell that runs the linker, in a `PKG_LIBS` flag of a
+# Makevars, which make reads first: `$` starts a variable and `#` a comment.
+shell_quote_make <- function(path) {
+  path <- gsub("$", "$$", shQuote(path), fixed = TRUE)
+  gsub("#", "\\#", path, fixed = TRUE)
 }
 
 # Write a script in `dir` that cargo runs instead of rustc for the crates of
@@ -162,7 +182,11 @@ rust_coverage_wrapper <- function(dir, sysroot) {
 # pkgload::load_all(), where cargo only compiles the crates that changed, so
 # the crate compiled last tells how they were built.
 rust_check_build <- function(rust) {
-  unlink(file.path(rust$build_dir, "build_profiles"), recursive = TRUE)
+  unlink(
+    file.path(rust$build_dir, "build_profiles"),
+    recursive = TRUE,
+    expand = FALSE
+  )
   log <- file.path(rust$build_dir, "rustc.log")
   compiled <- if (file.exists(log)) readLines(log) else character()
   last <- c("", compiled)[[length(compiled) + 1]]
@@ -224,7 +248,7 @@ add_llvm_profile_writer <- function(rust) {
     system_output(r_binary(), c("CMD", "COMPILE", source), quiet = TRUE)
   }
   # Before the profiler runtime, which defines the functions it calls
-  rust$libs <- paste(shQuote(object), rust$libs)
+  rust$libs <- paste(shell_quote_make(object), rust$libs)
   rust
 }
 
@@ -378,7 +402,9 @@ run_llvm_cov <- function(rust, path, objects, quiet = TRUE) {
   }
 
   inputs <- file.path(rust$profiles, "inputs.txt")
-  writeLines(profiles, inputs)
+  # Lines are `weight,path`, with the weight optional, so a path with a comma
+  # needs one.
+  writeLines(paste0("1,", profiles), inputs)
   profdata <- file.path(rust$profiles, "coverage.profdata")
   merged <- llvm_tool_run(
     rust$llvm_profdata,

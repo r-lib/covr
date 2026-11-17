@@ -204,7 +204,7 @@ clean_gcov <- function(path) {
     recursive = TRUE
   )
 
-  unlink(gcov_files)
+  unlink(gcov_files, expand = FALSE)
 }
 
 # The marker `gcov -a` uses for a basic block that never ran on a normal
@@ -387,7 +387,7 @@ run_gcov <- function(
     }
 
     if (clean) {
-      on.exit(unlink(gcov_outputs))
+      on.exit(unlink(gcov_outputs, expand = FALSE))
     } else {
       gcov_output_base <- file.path("..", "covr", src)
       gcov_output_targets <- sub(".", gcov_output_base, gcov_outputs)

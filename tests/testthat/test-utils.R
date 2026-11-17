@@ -2,6 +2,20 @@ test_that("it throws error if no package", {
   expect_snapshot(as_package("arst11234"), error = TRUE)
 })
 
+test_that("clean_objects() doesn't expand glob characters in the path", {
+  root <- withr::local_tempdir()
+  own <- file.path(root, "pkg[1]", "src")
+  sibling <- file.path(root, "pkg1", "src")
+  dir.create(own, recursive = TRUE)
+  dir.create(sibling, recursive = TRUE)
+  file.create(file.path(own, "a.o"), file.path(sibling, "a.o"))
+
+  clean_objects(file.path(root, "pkg[1]"))
+
+  expect_equal(list.files(own), character())
+  expect_equal(list.files(sibling), "a.o")
+})
+
 test_that("it returns the package if given the root or child directory", {
   expect_equal(as_package("TestS4")$package, "TestS4")
   expect_equal(as_package("TestS4/")$package, "TestS4")

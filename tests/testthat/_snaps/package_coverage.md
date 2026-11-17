@@ -56,6 +56,26 @@
       Error:
       ! Can't find where the loader script of pkg reads the package.
 
+# package_coverage errors for libraries R can't use (#774)
+
+    Code
+      check_library_path("/x/a[1]b/lib")
+    Condition
+      Error:
+      ! Can't use '/x/a[1]b/lib' as a library.
+      x R can't use libraries whose path contains "[".
+      i Set `install_path`, or `TMPDIR` for the default, to a path without them.
+
+# package_coverage errors for R files R CMD INSTALL misnames (#774)
+
+    Code
+      check_source_paths(list(package = "pkg", path = "pkg"))
+    Condition
+      Error:
+      ! Can't measure the coverage of pkg.
+      x `R CMD INSTALL` records wrong file names for R code whose path contains a double quote or a backslash, such as 'pkg/R/a"b.R'.
+      i Move the package or rename the file.
+
 # package_coverage needs tests and srcrefs of installed packages
 
     Code

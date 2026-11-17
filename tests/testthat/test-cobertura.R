@@ -88,6 +88,20 @@ test_that("names with XML special characters are escaped", {
   )
 })
 
+test_that("non-ASCII file names work", {
+  file <- file.path(withr::local_tempdir(), "\u00e9.R")
+  writeLines("f <- function() 1", file, useBytes = TRUE)
+  cov <- file_coverage(file, local_r_file("f()"))
+
+  tmp <- withr::local_tempfile(fileext = ".xml")
+  cobertura(cov, file = tmp)
+  doc <- xml2::read_xml(tmp)
+  expect_equal(
+    xml2::xml_attr(xml2::xml_find_all(doc, "//class"), "name"),
+    "\u00e9.R"
+  )
+})
+
 test_that("lines with branches have their condition coverage", {
   tmp <- withr::local_tempfile()
   cov <- branch_coverage(
