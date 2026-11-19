@@ -98,6 +98,12 @@ base_r_compiled_coverage <- function(
     recursive = TRUE,
     full.names = TRUE
   )
+  # The standalone Rmath library that `make check-devel` builds compiles the
+  # sources of `src/nmath` again, as static and shared objects in the same
+  # directory, whose notes don't match their counts, which gcov can't read.
+  objects <- objects[
+    !startsWith(objects, file.path(build_dir, "src", "nmath", "standalone", ""))
+  ]
   counts <- list.files(
     build_dir,
     pattern = "[.]gcda$",

@@ -209,17 +209,27 @@ instrument_base_r <- function(
   invisible(info)
 }
 
-# Functions whose code the regression tests of R (`make check`) inspect, so
-# they fail if it has counters: `reg-tests-1c.R` looks up the name of the
-# native routine in `body(pbinom)[[2]]`, `reg-tests-1d.R` compares `dump()` and
-# `dput()` of `simplify2array()`, which warn that the deparse of the counters
-# may be incomplete, and `rematchDefinition()` builds the body of rematched S4
-# methods from its own code, which `isRematched()` (`reg-tests-1e.R`) checks.
-base_r_uninstrumented <- list(
-  base = "simplify2array",
-  methods = "rematchDefinition",
-  stats = "pbinom"
-)
+# Functions whose code R's tests inspect, so they fail if it has counters:
+# `reg-tests-1c.R` looks up the name of the native routine in
+# `body(pbinom)[[2]]`, `reg-tests-1d.R` compares `dump()` and `dput()` of
+# `simplify2array()`, which warn that the deparse of the counters may be
+# incomplete, `rematchDefinition()` builds the body of rematched S4 methods from
+# its own code, which `isRematched()` (`reg-tests-1e.R`) checks, and the tests
+# of compiler check that the base functions it inlines are simple `.Internal()`
+# calls. The compiler inlines these in byte-compiled callers, so they are rarely
+# called anyway.
+base_r_uninstrumented <- function(pkg) {
+  switch(
+    pkg,
+    base = c(
+      "simplify2array",
+      get("safeBaseInternals", envir = asNamespace("compiler"))
+    ),
+    methods = "rematchDefinition",
+    stats = "pbinom",
+    character()
+  )
+}
 
 # Instrument the functions in `env`, which holds the code of `pkg`, and
 # byte-compile them in place. Adds the counters to `counters`, an environment.
@@ -230,14 +240,15 @@ instrument_base_r_package <- function(env, pkg, counters) {
   # TRUE`, and `isS3stdGeneric()` does for generic functions, which are
   # `function(x, ...) UseMethod("f")`. Functions like that have no code to
   # cover, so they are left as they are, as are the functions whose code R's
-  # own tests inspect (see `base_r_uninstrumented`).
+  # own tests inspect (see `base_r_uninstrumented()`).
+  uninstrumented <- base_r_uninstrumented(pkg)
   fixed <- list()
   for (name in ls(env, all.names = TRUE)) {
     fun <- env[[name]]
     if (
       is.function(fun) &&
         !is.primitive(fun) &&
-        (is_fixed_body(body(fun)) || name %in% base_r_uninstrumented[[pkg]])
+        (is_fixed_body(body(fun)) || name %in% uninstrumented)
     ) {
       fixed[[name]] <- fun
       rm(list = name, envir = env)
@@ -595,7 +606,8 @@ base_r_hook <- function(dll_path, counters_file, trace_dir) {
 #'
 #' Undoes [instrument_base_r()]: the loader scripts of the packages are
 #' restored and the instrumented code is removed. Run it with the same R as
-#' `instrument_base_r()`.
+#' `instrument_base_r()`, after [base_r_code_coverage()], which reads the
+#' counters that this removes.
 #'
 #' @inheritParams instrument_base_r
 #' @return `NULL`, invisibly.
@@ -644,9 +656,25 @@ base_r_code_coverage <- function(trace_dir, source_dir) {
   if (!dir.exists(source_dir)) {
     covr_abort("Can't find the source directory {.path {source_dir}}.")
   }
+  traces <- merge_traces(trace_dir)
+  normalize_srcfile_names(traces)
   as_coverage(
-    merge_traces(trace_dir),
+    traces,
     package = list(package = "R", path = source_dir),
     root = source_dir
   )
+}
+
+# The file names in the source references of the base packages are the paths
+# R was configured with, e.g. `build/../R-devel/src/library/stats/R/lm.R` for a
+# build out of the source tree, so they are normalized to be under the source
+# directory.
+normalize_srcfile_names <- function(traces) {
+  for (trace in traces) {
+    srcfile <- attr(trace$srcref, "srcfile")
+    if (is.environment(srcfile) && is.character(srcfile$filename)) {
+      srcfile$filename <- normalize_path(srcfile$filename)
+    }
+  }
+  invisible()
 }
