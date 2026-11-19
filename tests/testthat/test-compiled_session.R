@@ -331,6 +331,16 @@ test_that("compiled coverage requires the package to have compiled code", {
   expect_snapshot(start_compiled_coverage(ns, required = TRUE), error = TRUE)
 })
 
+test_that("compiled coverage requires pkgbuild (#780)", {
+  skip_if_not_installed("pkgload")
+  local_compiled_package("TestSummary")
+  ns <- asNamespace("TestSummary")
+  local_mocked_bindings(is_installed = function(pkg) pkg != "pkgbuild")
+
+  expect_null(start_compiled_coverage(ns))
+  expect_snapshot(start_compiled_coverage(ns, required = TRUE), error = TRUE)
+})
+
 test_that("compiled coverage handles a build without the package's DLLs", {
   skip_on_cran()
   skip_if(is_win_r41())
@@ -704,4 +714,9 @@ test_that("compiled coverage is rebuilt when covr.flags change", {
   Sys.sleep(1.1)
   environment_coverage(ns, script)
   expect_gt(file.mtime(dll), first)
+})
+
+test_that("with_build_tools() runs code without pkgbuild (#780)", {
+  local_mocked_bindings(is_installed = function(pkg) FALSE)
+  expect_equal(with_build_tools(1 + 1), 2)
 })
