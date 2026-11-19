@@ -705,3 +705,8 @@ test_that("compiled coverage is rebuilt when covr.flags change", {
   environment_coverage(ns, script)
   expect_gt(file.mtime(dll), first)
 })
+
+test_that("with_build_tools() runs code without pkgbuild (#780)", {
+  local_mocked_bindings(is_installed = function(pkg) FALSE)
+  expect_equal(with_build_tools(1 + 1), 2)
+})
