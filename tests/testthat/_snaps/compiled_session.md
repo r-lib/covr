@@ -47,6 +47,14 @@
       Error:
       ! Can't find compiled code loaded by TestSummary.
 
+# compiled coverage requires pkgbuild (#780)
+
+    Code
+      start_compiled_coverage(ns, required = TRUE)
+    Condition
+      Error:
+      ! Measuring the compiled code of TestSummary requires pkgbuild.
+
 # compiled coverage handles a build without the package's DLLs
 
     Code
