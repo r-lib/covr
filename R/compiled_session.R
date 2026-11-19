@@ -197,7 +197,12 @@ add_compiled_coverage <- function(coverage, state) {
   coverage
 }
 
+# pkgbuild is only suggested; without it, use the tools already on the PATH
+# (#780).
 with_build_tools <- function(code) {
+  if (!is_installed("pkgbuild")) {
+    return(code)
+  }
   pkgbuild::with_build_tools(code, required = FALSE)
 }
 

@@ -1,5 +1,8 @@
 # covr (development version)
 
+* `package_coverage()` no longer fails when pkgbuild, which is only suggested,
+  isn't installed (#780).
+
 * Instrumented functions with a braceless `if` branch before an `else`, e.g.
   `x <- if (cond) a else b`, now give the same results when they are deparsed
   and parsed again. Previously the `else` attached to covr's counter (#776).
