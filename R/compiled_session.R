@@ -30,6 +30,16 @@ start_compiled_coverage <- function(
   if (!isNamespaceLoaded("pkgload") || !pkgload::is_dev_package(package)) {
     return(NULL)
   }
+  # The instrumented copy is built with pkgbuild, which is only suggested.
+  # pkgload imports it, so this only matters in an incomplete library (#780).
+  if (!is_installed("pkgbuild")) {
+    if (required) {
+      covr_abort(
+        "Measuring the compiled code of {.pkg {package}} requires {.pkg pkgbuild}."
+      )
+    }
+    return(NULL)
+  }
   # The DLLs loaded by `useDynLib()`, which can be named differently than the
   # package, e.g. data.table's `data_table`
   dlls <- names(env[[".__NAMESPACE__."]][["DLLs"]])
