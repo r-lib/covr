@@ -354,7 +354,7 @@ compile_in_place_checked <- function(r) {
 # functions that are the same in the source files in `source_dir`, which are
 # found by parsing the files in the order they are put together to make the
 # code of base. Functions that are not instrumented (see
-# `base_r_uninstrumented`) are left without them, as in R, since tests deparse
+# `base_r_uninstrumented()`) are left without them, as in R, since tests deparse
 # them. Returns the number of functions and of functions with source
 # references.
 add_base_srcrefs <- function(env, source_dir) {
@@ -386,7 +386,7 @@ add_base_srcrefs <- function(env, source_dir) {
       }
       for (name in setdiff(
         intersect(defined$names, names[is_closure]),
-        base_r_uninstrumented$base
+        base_r_uninstrumented("base")
       )) {
         new <- eval(defined$fun, baseenv())
         old <- env[[name]]

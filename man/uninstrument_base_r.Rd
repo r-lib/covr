@@ -17,7 +17,8 @@ uninstrument_base_r(lib = R.home("library"), packages = base_r_packages(lib))
 \description{
 Undoes \code{\link[=instrument_base_r]{instrument_base_r()}}: the loader scripts of the packages are
 restored and the instrumented code is removed. Run it with the same R as
-\code{instrument_base_r()}.
+\code{instrument_base_r()}, after \code{\link[=base_r_code_coverage]{base_r_code_coverage()}}, which reads the
+counters that this removes.
 }
 \seealso{
 Other base R coverage:
