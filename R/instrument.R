@@ -319,9 +319,12 @@ trace_unforced_environment <- function(ns) {
 
 # Whether `name` in `env` is a promise, that hasn't been forced, to read a
 # value from a lazy-load database, as made by `lazyLoad()`, rather than one
-# that was made by the package, e.g. with `delayedAssign()`.
+# that was made by the package, e.g. with `delayedAssign()`. Before R 4.6,
+# forced promises can't be told apart from unforced ones, and skipping them
+# would miss functions that `.onLoad()` added to the objects they read (e.g.
+# with R6's `$set()`), so all lazy-load promises are read, which is slower.
 is_lazy_load_promise <- function(env, name) {
-  is_unforced_promise(env, name) &&
+  isTRUE(binding_is_unforced_promise(env, name)) &&
     {
       # The expression of a promise, without forcing it
       expr <- do.call(substitute, list(as.name(name), env))

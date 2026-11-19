@@ -136,7 +136,25 @@ address <- function(x) {
 }
 
 is_unforced_promise <- function(env, name) {
+  binding_is_unforced_promise(env, name) %||% may_be_promise(env, name)
+}
+
+# `TRUE` or `FALSE`, or `NULL` before R 4.6, which has no API to tell an
+# unforced promise from a forced one.
+binding_is_unforced_promise <- function(env, name) {
   .Call(covr_is_unforced_promise, env, name)
+}
+
+# Before R 4.6, `substitute()` gives the expression of a promise without
+# forcing it, and the value of other bindings, so a binding whose expression is
+# code is taken to be an unforced promise. This also skips forced promises and
+# bindings holding code, but never forces a promise. `substitute()` leaves the
+# symbols of the global environment alone, where promises are rare, so its
+# bindings aren't, and `...` would be expanded rather than looked up.
+may_be_promise <- function(env, name) {
+  name != "..." &&
+    !identical(env, globalenv()) &&
+    is.language(do.call(substitute, list(as.name(name), env)))
 }
 
 # Never walk namespaces (including other packages and the lazydata

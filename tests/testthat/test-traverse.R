@@ -147,3 +147,19 @@ test_that("active bindings in a package are not read", {
     expect_contains(cov$functions, "api")
   }
 })
+
+test_that("may_be_promise() finds promises without forcing them", {
+  make <- function(a, b) {
+    force(b)
+    environment()
+  }
+  forced <- FALSE
+  e <- make(a = stop("forced"), b = c(forced, 1))
+  e$value <- 1
+  assign("...", 1, envir = e)
+
+  expect_true(may_be_promise(e, "a"))
+  expect_true(may_be_promise(e, "b"))
+  expect_false(may_be_promise(e, "value"))
+  expect_false(may_be_promise(e, "..."))
+})

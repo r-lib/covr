@@ -1,5 +1,13 @@
 # covr (development version)
 
+* covr no longer calls the non-API C entry points `PRVALUE` and
+  `Rf_findVarInFrame3` on R < 4.6, which `R CMD check` reported. R < 4.6 has
+  no API to tell an unevaluated promise from an evaluated one, so on those
+  versions an instrumented package reads all of its lazy-loaded objects when it
+  is loaded, and with `covr.full_traversal = TRUE`, functions only reachable
+  through evaluated promises, e.g. arguments of function factories, aren't
+  traced.
+  
 * `package_coverage()` no longer fails when pkgbuild, which is only suggested,
   isn't installed (#780).
 
