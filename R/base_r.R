@@ -209,6 +209,18 @@ instrument_base_r <- function(
   invisible(info)
 }
 
+# Functions whose code the regression tests of R (`make check`) inspect, so
+# they fail if it has counters: `reg-tests-1c.R` looks up the name of the
+# native routine in `body(pbinom)[[2]]`, `reg-tests-1d.R` compares `dump()` and
+# `dput()` of `simplify2array()`, which warn that the deparse of the counters
+# may be incomplete, and `rematchDefinition()` builds the body of rematched S4
+# methods from its own code, which `isRematched()` (`reg-tests-1e.R`) checks.
+base_r_uninstrumented <- list(
+  base = "simplify2array",
+  methods = "rematchDefinition",
+  stats = "pbinom"
+)
+
 # Instrument the functions in `env`, which holds the code of `pkg`, and
 # byte-compile them in place. Adds the counters to `counters`, an environment.
 # Returns the names of the functions that couldn't be byte-compiled.
@@ -217,11 +229,16 @@ instrument_base_r_package <- function(env, pkg, counters) {
   # does for the `test` of the extensions of S4 classes, `function(object)
   # TRUE`, and `isS3stdGeneric()` does for generic functions, which are
   # `function(x, ...) UseMethod("f")`. Functions like that have no code to
-  # cover, so they are left as they are.
+  # cover, so they are left as they are, as are the functions whose code R's
+  # own tests inspect (see `base_r_uninstrumented`).
   fixed <- list()
   for (name in ls(env, all.names = TRUE)) {
     fun <- env[[name]]
-    if (is.function(fun) && !is.primitive(fun) && is_fixed_body(body(fun))) {
+    if (
+      is.function(fun) &&
+        !is.primitive(fun) &&
+        (is_fixed_body(body(fun)) || name %in% base_r_uninstrumented[[pkg]])
+    ) {
       fixed[[name]] <- fun
       rm(list = name, envir = env)
     }
@@ -325,7 +342,9 @@ compile_in_place_checked <- function(r) {
 # The functions of `env`, the code of base, with the source references of the
 # functions that are the same in the source files in `source_dir`, which are
 # found by parsing the files in the order they are put together to make the
-# code of base. Returns the number of functions and of functions with source
+# code of base. Functions that are not instrumented (see
+# `base_r_uninstrumented`) are left without them, as in R, since tests deparse
+# them. Returns the number of functions and of functions with source
 # references.
 add_base_srcrefs <- function(env, source_dir) {
   dir <- file.path(source_dir, "src", "library", "base", "R")
@@ -354,7 +373,10 @@ add_base_srcrefs <- function(env, source_dir) {
       if (is.null(defined)) {
         next
       }
-      for (name in intersect(defined$names, names[is_closure])) {
+      for (name in setdiff(
+        intersect(defined$names, names[is_closure]),
+        base_r_uninstrumented$base
+      )) {
         new <- eval(defined$fun, baseenv())
         old <- env[[name]]
         if (same_function(old, new)) {
