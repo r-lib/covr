@@ -32,6 +32,14 @@ reference:
       - covr-package
       - in_covr
 
+  - title: Coverage of R itself
+    desc: Measure the code of base R, e.g. while running its own checks.
+    contents:
+      - instrument_base_r
+      - uninstrument_base_r
+      - base_r_code_coverage
+      - base_r_compiled_coverage
+
   - title: Inspect and combine results
     contents:
       - coverage

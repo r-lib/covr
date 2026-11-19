@@ -1,5 +1,10 @@
 # covr (development version)
 
+* New `instrument_base_r()`, `uninstrument_base_r()`, `base_r_code_coverage()`
+  and `base_r_compiled_coverage()` measure the coverage of base R itself, both
+  its R code and its C and Fortran code, e.g. while running `make check` on a
+  build of R from source (#782).
+
 * covr no longer calls the non-API C entry points `PRVALUE` and
   `Rf_findVarInFrame3` on R < 4.6, which `R CMD check` reported. R < 4.6 has
   no API to tell an unevaluated promise from an evaluated one, so on those

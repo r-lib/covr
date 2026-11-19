@@ -162,6 +162,29 @@ SEXP covr_count(SEXP key) {
   return R_NilValue;
 }
 
+// Like `covr_count()`, but a key that has no count yet gets one, so a process
+// doesn't need to register the keys of all the traces in the code it runs
+// before it can count them. Used by the instrumented code of base R (see
+// `instrument_base_r()`), which has hundreds of thousands of them.
+SEXP covr_count_auto(SEXP key) {
+  SEXP x = STRING_ELT(key, 0);
+  int i = find(x);
+  if (i < 0) {
+    add_key(x);
+    i = find(x);
+    if (i < 0) {
+      // The key was added as its UTF-8 form
+      SEXP u = PROTECT(utf8_key(x));
+      i = find(u);
+      UNPROTECT(1);
+    }
+  }
+  if (i >= 0) {
+    counts[i]++;
+  }
+  return R_NilValue;
+}
+
 // A named numeric vector of the non-zero counts (named by key), which are reset.
 SEXP covr_counter_take(void) {
   int n = 0;
