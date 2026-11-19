@@ -1,9 +1,12 @@
 # covr (development version)
 
 * covr no longer calls the non-API C entry points `PRVALUE` and
-  `Rf_findVarInFrame3` on R < 4.6, which `R CMD check` reported. On those
-  versions, bindings that may be unevaluated promises are now found with
-  `substitute()`, which also skips evaluated ones.
+  `Rf_findVarInFrame3` on R < 4.6, which `R CMD check` reported. R < 4.6 has
+  no API to tell an unevaluated promise from an evaluated one, so on those
+  versions an instrumented package reads all of its lazy-loaded objects when it
+  is loaded, and with `covr.full_traversal = TRUE`, functions only reachable
+  through evaluated promises, e.g. arguments of function factories, aren't
+  traced.
 
 * Instrumented functions with a braceless `if` branch before an `else`, e.g.
   `x <- if (cond) a else b`, now give the same results when they are deparsed
