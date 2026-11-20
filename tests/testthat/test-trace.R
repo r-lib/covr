@@ -4,7 +4,7 @@ test_that("re-tracing an already traced namespace keeps the counts (#641)", {
     type = "none",
     code = c(
       "invisible(TestSummary::test_me(1, 2))",
-      "covr:::trace_environment(asNamespace('TestSummary'))"
+      "covr:::trace_environment(asNamespace('TestSummary'), scope = 'TestSummary')"
     )
   )
   expect_equal(percent_coverage(cov), 50)
@@ -95,4 +95,33 @@ test_that("unsaved_traces ignores the markers of the current process", {
   file.create(file.path(dir, paste0("covr_pending_", pid, "0_b")))
 
   expect_equal(unsaved_traces(dir), paste0("covr_pending_", pid, "0_b"))
+})
+
+test_that("process_trace() of a scope only saves the traces of that scope", {
+  local_clean_traces()
+  src <- srcfilecopy("a.R", "x")
+  ref <- srcref(src, c(1, 1, 1, 1))
+  counter <- list(value = 0, srcref = ref, functions = "f")
+  .counters[["A/a.R:1"]] <- counter
+  .counters[["A/b.R:1"]] <- counter
+  .counters[["B/a.R:1"]] <- counter
+  .counters[["c.R:1"]] <- counter
+  register_count(c("A/a.R:1", "B/a.R:1"))
+  entry <- scope_entry("A")
+  entry$counters_file <- "counters_A.rds"
+  entry$counters_keys <- "A/a.R:1"
+  .Call(covr_count, "A/a.R:1")
+  .Call(covr_count, "B/a.R:1")
+  sync_counts()
+
+  trace <- process_trace("A")
+  expect_s3_class(trace, "covr_counts")
+  expect_equal(trace$counters_file, "counters_A.rds")
+  expect_equal(trace$counts, c("A/a.R:1" = 1))
+  expect_named(trace$counters, "A/b.R:1")
+
+  # Without restored counters all the traces of the scope are saved
+  expect_named(process_trace("B"), "B/a.R:1")
+  expect_named(process_trace(""), "c.R:1")
+  expect_setequal(names(process_trace()), ls(.counters))
 })

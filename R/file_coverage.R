@@ -135,8 +135,8 @@ file_coverage <- function(
   trace_environment(env)
   on.exit(
     {
-      reset_traces()
-      clear_counters()
+      reset_traces("")
+      clear_counters("")
     },
     add = TRUE
   )

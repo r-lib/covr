@@ -730,3 +730,60 @@ test_that("corner-cases are handled as expected", {
 
   expect_equal(as.data.frame(cov), readRDS("corner-cases.Rds"))
 })
+
+test_that("scopes count the same key separately and as_coverage() strips the prefix", {
+  local_clean_traces()
+  src <- srcfilecopy("utils.R", c("a", "b"))
+  ref <- srcref(src, c(1, 1, 1, 1))
+  new_counter_in <- function(scope, fun) {
+    old <- the$scope
+    the$scope <- scope
+    on.exit(the$scope <- old)
+    new_counter(ref, fun)
+  }
+  anonymous <- new_counter_in("", "f")
+  pkg <- new_counter_in("pkg", "g")
+  expect_equal(pkg, paste0("pkg/", anonymous))
+
+  .Call(covr_count, anonymous)
+  .Call(covr_count, anonymous)
+  .Call(covr_count, pkg)
+  sync_counts()
+  expect_equal(.counters[[anonymous]]$value, 2)
+  expect_equal(.counters[[pkg]]$value, 1)
+
+  expect_equal(names(scope_counters("pkg")), pkg)
+  cov <- as_coverage(scope_counters("pkg"))
+  expect_named(cov, anonymous)
+  expect_equal(cov[[1]]$value, 1)
+  expect_equal(as_coverage(scope_counters(""))[[1]]$value, 2)
+  # The prefix is kept where it tells traces with the same key apart
+  expect_setequal(names(as_coverage(.counters)), c(anonymous, pkg))
+})
+
+test_that("clear_counters() of a scope keeps the synced counts of other scopes", {
+  local_clean_traces()
+  .counters[["a.R:1"]] <- list(value = 0)
+  .counters[["pkg/a.R:1"]] <- list(value = 0)
+  register_count(c("a.R:1", "pkg/a.R:1"))
+  .Call(covr_count, "a.R:1")
+  .Call(covr_count, "pkg/a.R:1")
+
+  clear_counters("")
+  expect_equal(ls(.counters), "pkg/a.R:1")
+  sync_counts()
+  expect_equal(.counters[["pkg/a.R:1"]]$value, 1)
+
+  .counters$branches <- new.env(parent = emptyenv())
+  .counters$branches[["pkg/a.R:1"]] <- list(value = c(2, 1))
+  zero_counters("")
+  expect_equal(.counters[["pkg/a.R:1"]]$value, 1)
+  expect_equal(.counters$branches[["pkg/a.R:1"]]$value, c(2, 1))
+  zero_counters("pkg")
+  expect_equal(.counters[["pkg/a.R:1"]]$value, 0)
+  expect_equal(.counters$branches[["pkg/a.R:1"]]$value, c(0, 0))
+
+  # Without other traces, everything is cleared
+  clear_counters("pkg")
+  expect_length(ls(.counters), 0)
+})

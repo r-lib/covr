@@ -28,7 +28,7 @@ function_coverage <- function(
     )
   }
 
-  clear_counters()
+  clear_counters("")
 
   replacement <- if (!is.null(env)) {
     replacement(fun, env)
@@ -38,7 +38,7 @@ function_coverage <- function(
 
   on.exit({
     reset(replacement)
-    clear_counters()
+    clear_counters("")
   })
 
   replace(replacement)

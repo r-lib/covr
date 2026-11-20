@@ -166,7 +166,7 @@ is_missing_arg <- function(x) {
 }
 
 new_branch <- function(src_ref, parent_functions, labels) {
-  key <- key(src_ref)
+  key <- paste0(scope_prefix(the$scope), key(src_ref))
   if (is.null(.counters$branches)) {
     .counters$branches <- new.env(parent = emptyenv())
   }
@@ -267,12 +267,16 @@ record_branch <- function(key, i) {
   invisible()
 }
 
-zero_branches <- function() {
+zero_branches <- function(scope = NULL) {
   branches <- .counters$branches
   if (is.null(branches)) {
     return()
   }
-  for (key in ls(branches, all.names = TRUE)) {
+  keys <- ls(branches, all.names = TRUE)
+  if (!is.null(scope)) {
+    keys <- keys[in_scope(keys, scope)]
+  }
+  for (key in keys) {
     branches[[key]]$value[] <- 0
   }
 }

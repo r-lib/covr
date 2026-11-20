@@ -221,7 +221,7 @@ sync_counts <- function() {
 # @param src_ref a `srcref()`
 # @param parent_functions the functions that this srcref is contained in.
 new_counter <- function(src_ref, parent_functions) {
-  key <- key(src_ref)
+  key <- paste0(scope_prefix(the$scope), key(src_ref))
   # Keep the counts of a trace that already exists, e.g. when a function is
   # replaced in an environment that is traced again (#641).
   if (is.null(.counters[[key]]$value)) {
@@ -310,25 +310,90 @@ has_count_call <- function(x) {
   FALSE
 }
 
-# Clear all previous counters
-clear_counters <- function() {
+# Clear the traces of one scope, or all traces of all scopes if `scope` is
+# `NULL`. The traces of a package are cleared when it is traced again, which
+# must not touch the traces of other packages loaded in the process (#786).
+clear_counters <- function(scope = NULL) {
+  if (!is.null(scope)) {
+    # Counts in C that belong to other scopes are only added to their traces
+    # by `sync_counts()`, and the reset of a full clear would lose them.
+    sync_counts()
+    keys <- ls(.counters, all.names = TRUE)
+    rm(envir = .counters, list = keys[in_scope(keys, scope)])
+    branches <- .counters[["branches"]]
+    if (is.environment(branches)) {
+      keys <- ls(branches, all.names = TRUE)
+      rm(envir = branches, list = keys[in_scope(keys, scope)])
+    }
+    # Without other traces there is nothing to keep, so clear it all, as this
+    # also drops the recorded tests.
+    if (
+      length(setdiff(ls(.counters, all.names = TRUE), c("tests", "branches")))
+    ) {
+      return(invisible())
+    }
+  }
   .Call(covr_counter_reset)
-  rm(envir = .counters, list = ls(envir = .counters))
+  rm(envir = .counters, list = ls(envir = .counters, all.names = TRUE))
   rm(envir = .current_test, list = ls(envir = .current_test))
-  the$counters_file <- NULL
-  the$counters_keys <- NULL
+  invisible()
 }
 
-# Set the counts of all traces to zero, keeping the traces themselves.
-zero_counters <- function() {
-  .Call(covr_counter_reset)
-  for (key in setdiff(
-    ls(.counters, all.names = TRUE),
-    c("tests", "branches")
-  )) {
+# Set the counts of the traces of one scope, or of all scopes, to zero,
+# keeping the traces themselves.
+zero_counters <- function(scope = NULL) {
+  keys <- ls(.counters, all.names = TRUE)
+  if (is.null(scope)) {
+    .Call(covr_counter_reset)
+    keys <- setdiff(keys, c("tests", "branches"))
+  } else {
+    # Add the counts of other scopes to their traces before they are reset
+    sync_counts()
+    keys <- keys[in_scope(keys, scope)]
+  }
+  for (key in keys) {
     .counters[[key]]$value <- 0
   }
-  zero_branches()
+  zero_branches(scope)
+}
+
+# Whether each of `keys` is the key of a trace in `scope`. Keys of a package
+# start with "<package>/", and keys of the anonymous scope "" have no "/", as
+# they only have the base name of a file.
+in_scope <- function(keys, scope) {
+  trace <- !(keys %in% c("tests", "branches"))
+  if (nzchar(scope)) {
+    trace & startsWith(keys, scope_prefix(scope))
+  } else {
+    trace & !grepl("/", keys, fixed = TRUE)
+  }
+}
+
+scope_prefix <- function(scope) {
+  if (nzchar(scope)) paste0(scope, "/") else ""
+}
+
+# The traces of `scope` as a list, with the recorded tests, which are shared
+# by all scopes, and an environment with the branches of the scope.
+scope_counters <- function(scope) {
+  counters <- as.list(.counters, all.names = TRUE)
+  keys <- names(counters) %||% character()
+  res <- counters[in_scope(keys, scope)]
+  if (!is.null(counters[["tests"]])) {
+    res[["tests"]] <- counters[["tests"]]
+  }
+  branches <- counters[["branches"]]
+  if (is.environment(branches)) {
+    keys <- ls(branches, all.names = TRUE)
+    keys <- keys[in_scope(keys, scope)]
+    if (length(keys)) {
+      res[["branches"]] <- list2env(
+        mget(keys, envir = branches),
+        parent = emptyenv()
+      )
+    }
+  }
+  res
 }
 
 # Generate a key for a call

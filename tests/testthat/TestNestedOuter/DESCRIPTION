@@ -1,0 +1,9 @@
+Package: TestNestedOuter
+Title: Measures the Coverage of a Package that Imports It
+Version: 0.0.1
+Description: Its tests measure the coverage of TestNestedInner, which
+    imports it.
+License: GPL-3
+Suggests:
+    covr,
+    testthat

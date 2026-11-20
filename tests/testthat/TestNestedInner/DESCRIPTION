@@ -1,0 +1,10 @@
+Package: TestNestedInner
+Title: Imports TestNestedOuter
+Version: 0.0.1
+Description: Its R file has the same name and an expression at the same
+    position as one in TestNestedOuter.
+License: GPL-3
+Imports:
+    TestNestedOuter
+Suggests:
+    testthat

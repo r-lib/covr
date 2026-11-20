@@ -1,5 +1,15 @@
 # covr (development version)
 
+* `package_coverage()` now works when the package's tests measure the coverage
+  of a package that imports it, e.g. with `package_coverage()`. It failed with
+  "Can't read coverage trace file", as an R process that loaded both
+  instrumented packages saved the counts of the last one for both of them.
+  Each instrumented package loaded in a process now has its own counts, so the
+  counts of the package from the processes of the inner run are kept too.
+  Likewise, `file_coverage()`, `code_coverage()`, `function_coverage()`,
+  `with_coverage()` and `environment_coverage()` no longer reset the coverage
+  of a package whose tests call them (#786).
+
 * covr no longer calls the non-API C entry points `PRVALUE` and
   `Rf_findVarInFrame3` on R < 4.6, which `R CMD check` reported. R < 4.6 has
   no API to tell an unevaluated promise from an evaluated one, so on those
