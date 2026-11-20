@@ -526,8 +526,13 @@ test_that("package_coverage works if its tests measure a package that imports it
   # The tests of TestNestedOuter call `outer_fun()` twice, and measure the
   # coverage of TestNestedInner, whose test calls it once more, and whose file
   # has an expression at the same position as one of TestNestedOuter.
+  # Under rcmdcheck, R_PROFILE is callr's site profile, which sets
+  # `.libPaths()` to the libraries of the check. `R CMD INSTALL` of R 4.1 on
+  # Windows reads it, so it can't find TestNestedOuter in its install library.
   withr::local_envvar(
-    COVR_NESTED_INNER = normalizePath(test_path("TestNestedInner"))
+    COVR_NESTED_INNER = normalizePath(test_path("TestNestedInner")),
+    R_ENVIRON = NA,
+    R_PROFILE = NA
   )
   cov <- package_coverage(test_path("TestNestedOuter"))
   expect_equal(tally_coverage(cov)$value, c(3, 3))
