@@ -9,7 +9,7 @@ uninstrument_base_r(lib = R.home("library"), packages = base_r_packages(lib))
 \arguments{
 \item{lib}{The library of the base packages of R.}
 
-\item{packages}{The packages to instrument.}
+\item{packages}{The packages to restore.}
 }
 \value{
 \code{NULL}, invisibly.
@@ -18,7 +18,8 @@ uninstrument_base_r(lib = R.home("library"), packages = base_r_packages(lib))
 Undoes \code{\link[=instrument_base_r]{instrument_base_r()}}: the loader scripts of the packages are
 restored and the instrumented code is removed. Run it with the same R as
 \code{instrument_base_r()}, after \code{\link[=base_r_code_coverage]{base_r_code_coverage()}}, which reads the
-counters that this removes.
+counters that this removes once no package is instrumented. base can only
+be restored with all the other instrumented packages.
 }
 \seealso{
 The article \href{https://covr.r-lib.org/articles/base-r.html}{Coverage of R itself}.

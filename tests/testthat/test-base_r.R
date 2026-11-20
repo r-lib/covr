@@ -259,6 +259,39 @@ test_that("instrument_base_r validates `exclusions`", {
   })
 })
 
+test_that("instrument_base_r needs base", {
+  lib <- withr::local_tempdir()
+  expect_snapshot(error = TRUE, {
+    instrument_base_r(tempdir(), lib = lib, packages = "stats")
+  })
+})
+
+test_that("uninstrument_base_r keeps what the instrumented packages need", {
+  lib <- withr::local_tempdir()
+  for (pkg in c("base", "stats")) {
+    dir.create(file.path(lib, pkg, "R"), recursive = TRUE)
+    file.create(file.path(lib, pkg, "R", paste0(pkg, c(".rdb", ".covr.rdb"))))
+    writeLines("instrumented", base_r_loader(lib, pkg))
+    writeLines("original", base_r_loader_original(lib, pkg))
+  }
+  counters <- base_r_counters_file(lib)
+  file.create(counters)
+
+  expect_snapshot(error = TRUE, uninstrument_base_r(lib, packages = "base"))
+  expect_equal(readLines(base_r_loader(lib, "base")), "instrumented")
+
+  uninstrument_base_r(lib, packages = "stats")
+  expect_equal(readLines(base_r_loader(lib, "stats")), "original")
+  expect_false(file.exists(base_r_loader_original(lib, "stats")))
+  expect_false(file.exists(file.path(lib, "stats", "R", "stats.covr.rdb")))
+  # base is still instrumented and its traces refer to the counters
+  expect_true(file.exists(counters))
+
+  uninstrument_base_r(lib, packages = "base")
+  expect_equal(readLines(base_r_loader(lib, "base")), "original")
+  expect_false(file.exists(counters))
+})
+
 test_that("base_r_exclusions lists functions by package", {
   x <- base_r_exclusions()
   expect_named(x, c("base", "methods", "stats"))

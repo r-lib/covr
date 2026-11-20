@@ -242,7 +242,12 @@ base_r_gcov_batch <- function(
           unblock = unblock
         )
       }
-      sum_gcov_lines(do.call(rbind, lines))
+      lines <- do.call(rbind, lines)
+      # The text reports are only restricted to `source_dir`
+      if (NROW(lines)) {
+        lines <- lines[keep(lines$file), , drop = FALSE]
+      }
+      sum_gcov_lines(lines)
     },
     silent = TRUE
   )

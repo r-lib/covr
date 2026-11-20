@@ -102,7 +102,8 @@ base_r_counters_file <- function(lib) {
 #' @param lib The library of the base packages of R.
 #' @param trace_dir The directory the counts are saved in, if the environment
 #'   variable `COVERAGE_DIR` is not set when a process of R exits.
-#' @param packages The packages to instrument.
+#' @param packages The packages to instrument, which must include base, whose
+#'   loader counts the code that runs and saves the counts.
 #' @param cores The number of packages to instrument in parallel, in forked
 #'   processes. Instrumenting byte-compiles the code, which takes long in a
 #'   build of R without optimization, e.g. one built for the coverage of its
@@ -143,7 +144,11 @@ instrument_base_r <- function(
     covr_abort("Can't find the source directory {.path {source_dir}}.")
   }
   lib <- normalize_path(lib)
-  trace_dir <- normalize_path(trace_dir)
+  # The hook in the loader of base binds what the instrumented code of the other
+  # packages counts with, and saves the counts.
+  if (!"base" %in% packages) {
+    covr_abort("{.arg packages} must include {.pkg base}.")
+  }
   if (
     !all(file.exists(file.path(lib, packages, "R", paste0(packages, ".rdb"))))
   ) {
@@ -228,10 +233,13 @@ instrument_base_r <- function(
     uncompiled = unlist(lapply(results, `[[`, "uncompiled"), use.names = FALSE)
   )
 
+  # The directory is created first, so that a relative path is made absolute:
+  # processes save their counts there, whatever their working directory.
+  dir.create(trace_dir, showWarnings = FALSE, recursive = TRUE)
+  trace_dir <- normalize_path(trace_dir)
   counters_file <- base_r_counters_file(lib)
   saveRDS(portable_srcfiles(counters), counters_file)
   written <- c(written, counters_file)
-  dir.create(trace_dir, showWarnings = FALSE, recursive = TRUE)
 
   # The running R can't run the instrumented code, which counts with bindings
   # that only the loader of base adds, so if it is the R being instrumented it
@@ -242,18 +250,34 @@ instrument_base_r <- function(
     }
   }
 
-  # The loaders are changed last, so that R is as it was if anything fails.
-  for (pkg in packages) {
-    loader <- base_r_loader(lib, pkg)
-    file.copy(loader, base_r_loader_original(lib, pkg))
-    lines <- readLines(loader)
-    lines <- if (pkg == "base") {
+  # The loaders are changed last, so that R is as it was if anything fails:
+  # all the new loaders are made before any is changed, and the ones that were
+  # changed are restored if writing another one fails.
+  loaders <- lapply(packages, function(pkg) {
+    lines <- readLines(base_r_loader(lib, pkg))
+    if (pkg == "base") {
       add_base_r_hook(lines, dll_path, counters_file, trace_dir)
     } else {
       add_pkg_r_hook(lines)
     }
-    writeLines(lines, loader)
-  }
+  })
+  changed <- character()
+  tryCatch(
+    for (i in seq_along(packages)) {
+      pkg <- packages[[i]]
+      if (
+        !file.copy(base_r_loader(lib, pkg), base_r_loader_original(lib, pkg))
+      ) {
+        covr_abort("Can't back up the loader of {.pkg {pkg}}.")
+      }
+      changed <- c(changed, pkg)
+      writeLines(loaders[[i]], base_r_loader(lib, pkg))
+    },
+    error = function(e) {
+      restore_base_r_loaders(lib, changed)
+      stop(e)
+    }
+  )
   written <- character()
 
   invisible(info)
@@ -710,7 +734,10 @@ base_r_hook <- function(dll_path, counters_file, trace_dir) {
 #' Undoes [instrument_base_r()]: the loader scripts of the packages are
 #' restored and the instrumented code is removed. Run it with the same R as
 #' `instrument_base_r()`, after [base_r_code_coverage()], which reads the
-#' counters that this removes.
+#' counters that this removes once no package is instrumented. base can only
+#' be restored with all the other instrumented packages.
+#'
+#' @param packages The packages to restore.
 #'
 #' @inheritParams instrument_base_r
 #' @return `NULL`, invisibly.
@@ -725,19 +752,56 @@ uninstrument_base_r <- function(
   if (!dir.exists(lib)) {
     covr_abort("Can't find the library {.path {lib}}.")
   }
-  for (pkg in packages) {
-    original <- base_r_loader_original(lib, pkg)
-    if (file.exists(original)) {
-      file.copy(original, base_r_loader(lib, pkg), overwrite = TRUE)
-      unlink(original, expand = FALSE)
+  instrumented <- function() {
+    pkgs <- base_r_packages(lib)
+    pkgs[file.exists(base_r_loader_original(lib, pkgs))]
+  }
+  # The other packages count with the bindings of the loader of base
+  if ("base" %in% packages && length(setdiff(instrumented(), packages))) {
+    covr_abort(c(
+      "Can't restore {.pkg base} while other packages are instrumented.",
+      i = "Restore {.pkg {setdiff(instrumented(), packages)}} too."
+    ))
+  }
+  # The running R may still read the instrumented code of the namespaces it has
+  # loaded, through promises to read it when it is first used, so these are
+  # read before it is removed.
+  if (identical(lib, normalize_path(.Library))) {
+    for (pkg in intersect(packages, loadedNamespaces())) {
+      invisible(as.list(asNamespace(pkg), all.names = TRUE))
     }
+  }
+  restore_base_r_loaders(lib, packages)
+  for (pkg in packages) {
     unlink(
       paste0(base_r_loader(lib, pkg), c(".covr.rdb", ".covr.rdx")),
       expand = FALSE
     )
   }
-  unlink(base_r_counters_file(lib), expand = FALSE)
+  # The counters are used by the packages that are still instrumented
+  if (!length(instrumented())) {
+    unlink(base_r_counters_file(lib), expand = FALSE)
+  }
   invisible()
+}
+
+# Restore the loaders of `packages` from their backups, which are only removed
+# once they are restored, so that a package whose loader can't be restored can
+# still be restored later.
+restore_base_r_loaders <- function(lib, packages) {
+  for (pkg in packages) {
+    original <- base_r_loader_original(lib, pkg)
+    if (!file.exists(original)) {
+      next
+    }
+    if (!file.copy(original, base_r_loader(lib, pkg), overwrite = TRUE)) {
+      covr_abort(c(
+        "Can't restore the loader of {.pkg {pkg}}.",
+        i = "Its backup is {.path {original}}."
+      ))
+    }
+    unlink(original, expand = FALSE)
+  }
 }
 
 #' Coverage of the R code of base R

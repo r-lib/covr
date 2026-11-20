@@ -21,7 +21,8 @@ instrument_base_r(
 \item{trace_dir}{The directory the counts are saved in, if the environment
 variable \code{COVERAGE_DIR} is not set when a process of R exits.}
 
-\item{packages}{The packages to instrument.}
+\item{packages}{The packages to instrument, which must include base, whose
+loader counts the code that runs and saves the counts.}
 
 \item{exclusions}{A named list of the functions not to instrument, by
 package, e.g. \code{list(stats = "pbinom")}. Use \code{NULL} to instrument all of
