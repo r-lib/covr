@@ -757,6 +757,8 @@ test_that("scopes count the same key separately and as_coverage() strips the pre
   expect_named(cov, anonymous)
   expect_equal(cov[[1]]$value, 1)
   expect_equal(as_coverage(scope_counters(""))[[1]]$value, 2)
+  # The prefix is kept where it tells traces with the same key apart
+  expect_setequal(names(as_coverage(.counters)), c(anonymous, pkg))
 })
 
 test_that("clear_counters() of a scope keeps the synced counts of other scopes", {

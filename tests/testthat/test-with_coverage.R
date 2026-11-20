@@ -45,6 +45,19 @@ test_that("current_coverage() returns the counts so far, and resets them", {
   expect_equal(as.data.frame(cov)$value, c(1, 0, 1))
 })
 
+test_that("current_coverage() includes and resets the package in package_coverage()", {
+  cov <- package_coverage(
+    test_path("TestSummary"),
+    type = "none",
+    code = c(
+      "invisible(TestSummary::test_me(1, 2))",
+      "cov <- covr::current_coverage(reset = TRUE)",
+      "stopifnot(covr::percent_coverage(cov) > 0, !any(grepl('/', names(cov))))"
+    )
+  )
+  expect_equal(percent_coverage(cov), 0)
+})
+
 test_that("with_coverage() supports exclusions", {
   env <- local_fixture_env()
 

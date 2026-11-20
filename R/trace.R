@@ -322,16 +322,29 @@ as_coverage <- function(counters, ...) {
   counters <- as.list(counters)
   counters <- as_coverage_with_tests(counters)
 
-  # The keys of the traces of a package start with its name (see
-  # `scope_prefix()`), which isn't part of the names of a coverage object.
-  names(counters) <- sub("^[^/]*/", "", names(counters))
+  names(counters) <- unscope_keys(names(counters))
   branches <- attr(counters, "branches")
   if (!is.null(branches)) {
-    names(branches) <- sub("^[^/]*/", "", names(branches))
+    names(branches) <- unscope_keys(names(branches))
     attr(counters, "branches") <- branches
   }
 
   structure(counters, ..., class = "coverage")
+}
+
+# The keys of the traces of a package start with its name (see
+# `scope_prefix()`), which isn't part of the names of a coverage object. The
+# prefix is kept on keys that would otherwise have the same name as another
+# trace, e.g. of a file with the same name in another package loaded in the
+# process, as traces are merged by name.
+unscope_keys <- function(keys) {
+  if (is.null(keys)) {
+    return(keys)
+  }
+  stripped <- sub("^[^/]*/", "", keys)
+  same <- duplicated(stripped) | duplicated(stripped, fromLast = TRUE)
+  keys[!same] <- stripped[!same]
+  keys
 }
 
 # Clean and restructure counter tests for a coverage object
