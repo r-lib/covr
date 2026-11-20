@@ -174,6 +174,7 @@ instrument_base_r <- function(
   # Keys have the full names of files, as many of them have the same name in
   # different packages
   old_routine <- the$count_routine
+  old_count_call <- the$count_call
   old_trace_formals <- the$trace_formals
   old_options <- options(
     covr.record_tests = FALSE,
@@ -183,12 +184,14 @@ instrument_base_r <- function(
   on.exit(
     {
       the$count_routine <- old_routine
+      the$count_call <- old_count_call
       the$trace_formals <- old_trace_formals
       options(old_options)
     },
     add = TRUE
   )
   the$count_routine <- as.symbol(".covr_count")
+  the$count_call <- as.symbol(".covr_call")
   the$trace_formals <- FALSE
 
   # Each package is instrumented on its own, the largest first, so that with
@@ -578,16 +581,19 @@ patch_parallel_forks <- function(env) {
     env$mcfork <- insert(
       env$mcfork,
       2L,
-      # The native routines are bound by the loader of base, so they are not
-      # written as `.Call(.covr_zero)`, which R CMD check looks up in covr.
-      list(call("if", quote(!r[1L]), call(".Call", as.name(".covr_zero"))))
+      # `.covr_call` is `.Call` (see `base_r_hook()`), so that neither covr's
+      # R CMD check nor that of parallel looks up the routine.
+      list(call("if", quote(!r[1L]), call(".covr_call", as.name(".covr_zero"))))
     )
   }
   if (is.function(env$mcexit)) {
     env$mcexit <- insert(
       env$mcexit,
       1L,
-      list(quote(.covr$save()), call(".Call", as.name(".covr_gcov_dump")))
+      list(
+        quote(.covr$save()),
+        call(".covr_call", as.name(".covr_gcov_dump"))
+      )
     )
   }
   invisible()
@@ -702,6 +708,9 @@ base_r_hook <- function(dll_path, counters_file, trace_dir) {
   c(
     "",
     "## covr: count the code of base R that runs, see covr:::instrument_base_r()",
+    "## The counters call `.Call` by another name, as R CMD check of the base",
+    "## packages would report each of them, as the routine isn't theirs.",
+    ".covr_call <- .Call",
     paste0(".covr_count <- ", symbol("covr_count_auto")),
     paste0(".covr_take <- ", symbol("covr_counter_take")),
     paste0(".covr_zero <- ", symbol("covr_counter_reset")),

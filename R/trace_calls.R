@@ -37,7 +37,7 @@ trace_calls <- function(
       # process where the key isn't registered, e.g. one that a traced
       # function was sent to, the call runs but doesn't count.
       as.call(list(
-        the$dot_call %||% as.symbol(".Call"),
+        the$count_call %||% the$dot_call %||% as.symbol(".Call"),
         count_routine(),
         key
       ))
@@ -200,7 +200,9 @@ trace_calls <- function(
 # The expression for the native routine that the counters call: by default
 # `covr:::covr_count`, or `the$count_routine`, which `instrument_base_r()` sets
 # to a symbol that is bound in the base environment, as the instrumented code of
-# base R can't call `:::`.
+# base R can't call `:::`. It also sets `the$count_call` to the name it binds
+# `.Call` to, as `R CMD check` of the base packages would report every counter
+# that calls `.Call` with a routine it can't find.
 count_routine <- function() {
   the$count_routine %||% call(":::", as.symbol("covr"), as.symbol("covr_count"))
 }

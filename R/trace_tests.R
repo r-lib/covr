@@ -635,7 +635,8 @@ in_caller_body <- function(n, call) {
 is_covr_count_call <- function(expr) {
   if (
     identical(expr[[1]], as.symbol(".Call")) ||
-      identical(expr[[1]], quote(base::.Call))
+      identical(expr[[1]], quote(base::.Call)) ||
+      (!is.null(the$count_call) && identical(expr[[1]], the$count_call))
   ) {
     return(
       length(expr) > 1L &&
