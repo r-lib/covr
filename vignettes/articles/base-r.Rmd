@@ -23,7 +23,7 @@ This article explains what it does and why.
 R code and compiled code are measured differently.
 
 * **R code.** `instrument_base_r()` rewrites the lazy-load databases of the base packages so that every function counts the expressions it evaluates, and adds a hook to the base package loader.
-  The hook makes every R process that loads base, including the many R processes that the tests start, count in a shared counter file and write its traces to the directory in the `COVERAGE_DIR` environment variable when it exits.
+  The hook makes every R process that loads base, including the many R processes that the tests start, count the code it runs and write its counts to the directory in the `COVERAGE_DIR` environment variable when it exits.
   `base_r_code_coverage()` then combines all the traces.
 * **C, C++ and Fortran code.** R is compiled with gcov instrumentation (`--coverage`), so the programs write `.gcda` files as they run.
   `base_r_compiled_coverage()` runs gcov on the build directory and maps the results to the source files.
@@ -42,14 +42,14 @@ Both return an ordinary covr coverage object, so `lcov()`, `percent_coverage()`,
 
 ## Workflow
 
-The commands use these variables.
+The commands use these variables, exported so that the R code below can read them.
 
 ```sh
-SRC=$HOME/r-svn                  # R sources
-BUILD=$HOME/build/gcov           # R with gcov instrumentation
-BUILD_FAST=$HOME/build/fast      # R at normal optimization, only runs covr
-COVR_LIB=$HOME/build/covr-lib    # covr and its dependencies, installed by BUILD_FAST
-TRACES=$HOME/build/traces        # where the R processes write their traces
+export SRC=$HOME/r-svn                  # R sources
+export BUILD=$HOME/build/gcov           # R with gcov instrumentation
+export BUILD_FAST=$HOME/build/fast      # R at normal optimization, only runs covr
+export COVR_LIB=$HOME/build/covr-lib    # covr and its dependencies, installed by BUILD_FAST
+export TRACES=$HOME/build/traces        # where the R processes write their counts
 ```
 
 ### 1. Build R with gcov
