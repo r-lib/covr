@@ -167,15 +167,19 @@ trace_calls <- function(
       fun_body <- trace_calls(fun_body, parent_functions)
     }
 
-    new_formals <- trace_formals(
-      formals(x),
-      parent_functions,
-      attr(x, "srcref")
-    )
-    if (is.null(new_formals)) {
-      new_formals <- list()
+    # The default arguments of the base packages aren't traced (see
+    # `instrument_base_r()`), as `R CMD check` compares them with the docs.
+    if (!isFALSE(the$trace_formals)) {
+      new_formals <- trace_formals(
+        formals(x),
+        parent_functions,
+        attr(x, "srcref")
+      )
+      if (is.null(new_formals)) {
+        new_formals <- list()
+      }
+      formals(x) <- new_formals
     }
-    formals(x) <- new_formals
     body(x) <- fun_body
     x
   } else if (is.pairlist(x)) {

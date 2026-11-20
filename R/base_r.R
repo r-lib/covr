@@ -139,6 +139,7 @@ instrument_base_r <- function(
   # Keys have the full names of files, as many of them have the same name in
   # different packages
   old_routine <- the$count_routine
+  old_trace_formals <- the$trace_formals
   old_options <- options(
     covr.record_tests = FALSE,
     covr.full_traversal = FALSE,
@@ -147,11 +148,13 @@ instrument_base_r <- function(
   on.exit(
     {
       the$count_routine <- old_routine
+      the$trace_formals <- old_trace_formals
       options(old_options)
     },
     add = TRUE
   )
   the$count_routine <- as.symbol(".covr_count")
+  the$trace_formals <- FALSE
 
   counters <- new.env(parent = emptyenv())
   info <- list(
@@ -214,16 +217,18 @@ instrument_base_r <- function(
 # `body(pbinom)[[2]]`, `reg-tests-1d.R` compares `dump()` and `dput()` of
 # `simplify2array()`, which warn that the deparse of the counters may be
 # incomplete, `rematchDefinition()` builds the body of rematched S4 methods from
-# its own code, which `isRematched()` (`reg-tests-1e.R`) checks, and the tests
-# of compiler check that the base functions it inlines are simple `.Internal()`
-# calls. The compiler inlines these in byte-compiled callers, so they are rarely
-# called anyway.
+# its own code, which `isRematched()` (`reg-tests-1e.R`) checks, the tests of
+# compiler check that the base functions it inlines are simple `.Internal()`
+# calls (the compiler inlines these in byte-compiled callers, so they are rarely
+# called anyway), and those of tools that the internal generics call
+# `.Internal()`.
 base_r_uninstrumented <- function(pkg) {
   switch(
     pkg,
     base = c(
       "simplify2array",
-      get("safeBaseInternals", envir = asNamespace("compiler"))
+      get("safeBaseInternals", envir = asNamespace("compiler")),
+      .internalGenerics
     ),
     methods = "rematchDefinition",
     stats = "pbinom",
@@ -462,7 +467,7 @@ patch_parallel_forks <- function(env) {
     env$mcexit <- insert(
       env$mcexit,
       1L,
-      list(quote(.covr_save()), call(".Call", as.name(".covr_gcov_dump")))
+      list(quote(.covr$save()), call(".Call", as.name(".covr_gcov_dump")))
     )
   }
   invisible()
@@ -557,10 +562,12 @@ add_lazy_environments <- function(lines) {
 # can't count until `.covr_count` is bound, so until then these only use
 # primitives and `.Internal()`; base is not locked while it is loaded.
 #
-# A process saves the counts it has when it exits (`.covr_save()`), or when a
+# A process saves the counts it has when it exits (`.covr$save()`), or when a
 # forked process exits (see `patch_parallel_forks()`), by the name that
 # `merge_traces()` reads. The counts are taken first, so what the function itself
-# runs is not counted, and nothing is printed or signaled if it fails.
+# runs is not counted, and nothing is printed or signaled if it fails. It is in
+# a list rather than a function in base, which `R CMD check` of base would
+# report as undocumented.
 base_r_hook <- function(dll_path, counters_file, trace_dir) {
   quote_string <- function(x) encodeString(x, quote = '"')
   symbol <- function(name) {
@@ -579,7 +586,7 @@ base_r_hook <- function(dll_path, counters_file, trace_dir) {
     paste0(".covr_take <- ", symbol("covr_counter_take")),
     paste0(".covr_zero <- ", symbol("covr_counter_reset")),
     paste0(".covr_gcov_dump <- ", symbol("covr_gcov_dump")),
-    ".covr_save <- function() {",
+    ".covr <- list(save = function() {",
     "    counts <- .Call(.covr_take)",
     "    if (length(counts) > 0L) {",
     "        tryCatch({",
@@ -597,8 +604,8 @@ base_r_hook <- function(dll_path, counters_file, trace_dir) {
     "    }",
     "    .Call(.covr_zero)",
     "    invisible()",
-    "}",
-    "invisible(.Internal(reg.finalizer(.BaseNamespaceEnv, function(e) .covr_save(), TRUE)))"
+    "})",
+    "invisible(.Internal(reg.finalizer(.BaseNamespaceEnv, function(e) .covr$save(), TRUE)))"
   )
 }
 
