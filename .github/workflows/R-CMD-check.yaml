@@ -57,9 +57,10 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           cran: ${{ matrix.config.rspm }}
 
+      # S7 needs R >= 4.2, so the R 4.1 jobs check covr without it.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck${{ matrix.config.s7 == 'dev' && ', github::RConsortium/S7' || '' }}
+          extra-packages: any::rcmdcheck${{ matrix.config.s7 == 'dev' && ', github::RConsortium/S7' || ', S7=?ignore-before-r=4.2.0' }}
           needs: check
 
       # Lets the tests measure the coverage of Rust code. rustup's Rust for
