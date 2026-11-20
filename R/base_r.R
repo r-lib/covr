@@ -103,6 +103,10 @@ base_r_counters_file <- function(lib) {
 #' @param trace_dir The directory the counts are saved in, if the environment
 #'   variable `COVERAGE_DIR` is not set when a process of R exits.
 #' @param packages The packages to instrument.
+#' @param cores The number of packages to instrument in parallel, in forked
+#'   processes. Instrumenting byte-compiles the code, which takes long in a
+#'   build of R without optimization, e.g. one built for the coverage of its
+#'   compiled code.
 #' @param exclusions A named list of the functions not to instrument, by
 #'   package, e.g. `list(stats = "pbinom")`. Use `NULL` to instrument all of
 #'   them, which makes some of R's checks fail.
@@ -121,7 +125,8 @@ instrument_base_r <- function(
   lib = R.home("library"),
   trace_dir = file.path(dirname(lib), "covr-traces"),
   packages = base_r_packages(lib),
-  exclusions = base_r_exclusions()
+  exclusions = base_r_exclusions(),
+  cores = getOption("Ncpus", 1L)
 ) {
   if (
     !is.null(exclusions) &&
@@ -181,51 +186,61 @@ instrument_base_r <- function(
   the$count_routine <- as.symbol(".covr_count")
   the$trace_formals <- FALSE
 
-  counters <- new.env(parent = emptyenv())
-  info <- list(
-    packages = character(),
-    excluded = list(),
-    no_srcref = character(),
-    uncompiled = character()
-  )
-  written <- character()
+  # Each package is instrumented on its own, the largest first, so that with
+  # several `cores` the last ones to start are the quickest.
+  sizes <- file.size(file.path(lib, packages, "R", paste0(packages, ".rdb")))
+  order <- packages[order(sizes, decreasing = TRUE)]
+  bases <- file.path(lib, order, "R", order)
+  written <- as.vector(outer(paste0(bases, ".covr"), c(".rdb", ".rdx"), paste0))
   on.exit(unlink(written, expand = FALSE), add = TRUE)
 
-  for (pkg in packages) {
-    base <- file.path(lib, pkg, "R", pkg)
-    env <- new.env(hash = TRUE, parent = emptyenv())
-    lazyLoad(base, env)
-    if (pkg == "base") {
-      info$no_srcref <- add_base_srcrefs(
-        env,
-        source_dir,
-        exclude = exclusions[["base"]]
-      )
-    }
-    res <- instrument_base_r_package(
-      env,
-      pkg,
-      counters,
-      exclude = exclusions[[pkg]]
-    )
-    force_srcfiles(env)
-    new_base <- paste0(base, ".covr")
-    written <- c(written, paste0(new_base, c(".rdb", ".rdx")))
-    make_lazy_load_db <- get("makeLazyLoadDB", envir = asNamespace("tools"))
-    make_lazy_load_db(
-      env,
-      new_base,
-      compress = readRDS(paste0(base, ".rdx"))$compressed
-    )
-    info$uncompiled <- c(info$uncompiled, res$uncompiled)
-    info$excluded[[pkg]] <- res$excluded
-    info$packages <- c(info$packages, pkg)
+  instrument_one <- function(pkg) {
+    instrument_base_r_one(pkg, lib, source_dir, exclusions[[pkg]])
   }
+  results <- if (cores > 1L && length(order) > 1L) {
+    parallel::mclapply(
+      order,
+      instrument_one,
+      mc.cores = cores,
+      mc.preschedule = FALSE
+    )
+  } else {
+    lapply(order, instrument_one)
+  }
+  names(results) <- order
+  failed <- vlapply(results, inherits, "try-error")
+  if (any(failed)) {
+    covr_abort(c(
+      "Can't instrument {.pkg {order[failed]}}.",
+      x = conditionMessage(attr(results[failed][[1]], "condition"))
+    ))
+  }
+  results <- results[packages]
+
+  counters <- new.env(parent = emptyenv())
+  for (res in results) {
+    list2env(res$counters, counters)
+  }
+  info <- list(
+    packages = packages,
+    excluded = lapply(results, `[[`, "excluded"),
+    no_srcref = results[["base"]]$no_srcref %||% character(),
+    uncompiled = unlist(lapply(results, `[[`, "uncompiled"), use.names = FALSE)
+  )
 
   counters_file <- base_r_counters_file(lib)
   saveRDS(portable_srcfiles(counters), counters_file)
   written <- c(written, counters_file)
   dir.create(trace_dir, showWarnings = FALSE, recursive = TRUE)
+
+  # The running R can't run the instrumented code, which counts with bindings
+  # that only the loader of base adds, so if it is the R being instrumented it
+  # loads the packages it hasn't loaded yet before their loaders are changed.
+  if (identical(lib, normalize_path(.Library))) {
+    for (pkg in packages) {
+      suppressWarnings(requireNamespace(pkg, quietly = TRUE))
+    }
+  }
 
   # The loaders are changed last, so that R is as it was if anything fails.
   for (pkg in packages) {
@@ -242,6 +257,36 @@ instrument_base_r <- function(
   written <- character()
 
   invisible(info)
+}
+
+# Instrument the installed package `pkg` in `lib`, writing its instrumented
+# code next to the installed one. Run in a forked process with several cores,
+# so it returns what the main process needs: the functions that were left out
+# (see `instrument_base_r_package()`), the functions of base without source
+# references, and the counters, with copies of their srcfiles that can be sent
+# back.
+instrument_base_r_one <- function(pkg, lib, source_dir, exclude) {
+  base <- file.path(lib, pkg, "R", pkg)
+  env <- new.env(hash = TRUE, parent = emptyenv())
+  lazyLoad(base, env)
+  no_srcref <- if (pkg == "base") {
+    add_base_srcrefs(env, source_dir, exclude = exclude)
+  }
+  counters <- new.env(parent = emptyenv())
+  res <- instrument_base_r_package(env, pkg, counters, exclude = exclude)
+  force_srcfiles(env)
+  make_lazy_load_db <- get("makeLazyLoadDB", envir = asNamespace("tools"))
+  make_lazy_load_db(
+    env,
+    paste0(base, ".covr"),
+    compress = readRDS(paste0(base, ".rdx"))$compressed
+  )
+  list(
+    excluded = res$excluded,
+    uncompiled = res$uncompiled,
+    no_srcref = no_srcref,
+    counters = portable_srcfiles(as.list(counters, all.names = TRUE))
+  )
 }
 
 #' The functions that are not instrumented by default

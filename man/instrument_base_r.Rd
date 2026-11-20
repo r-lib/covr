@@ -9,7 +9,8 @@ instrument_base_r(
   lib = R.home("library"),
   trace_dir = file.path(dirname(lib), "covr-traces"),
   packages = base_r_packages(lib),
-  exclusions = base_r_exclusions()
+  exclusions = base_r_exclusions(),
+  cores = getOption("Ncpus", 1L)
 )
 }
 \arguments{
@@ -25,6 +26,11 @@ variable \code{COVERAGE_DIR} is not set when a process of R exits.}
 \item{exclusions}{A named list of the functions not to instrument, by
 package, e.g. \code{list(stats = "pbinom")}. Use \code{NULL} to instrument all of
 them, which makes some of R's checks fail.}
+
+\item{cores}{The number of packages to instrument in parallel, in forked
+processes. Instrumenting byte-compiles the code, which takes long in a
+build of R without optimization, e.g. one built for the coverage of its
+compiled code.}
 }
 \value{
 A list, invisibly, with:
