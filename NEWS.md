@@ -12,6 +12,9 @@
   is loaded, and with `covr.full_traversal = TRUE`, functions only reachable
   through evaluated promises, e.g. arguments of function factories, aren't
   traced.
+  
+* `package_coverage()` no longer fails when pkgbuild, which is only suggested,
+  isn't installed (#780).
 
 * Instrumented functions with a braceless `if` branch before an `else`, e.g.
   `x <- if (cond) a else b`, now give the same results when they are deparsed
