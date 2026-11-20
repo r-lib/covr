@@ -18,7 +18,7 @@ jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.config.s7 == 'dev' && ' S7 dev' || '' }}
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
 
     strategy:
       fail-fast: false
@@ -32,8 +32,6 @@ jobs:
 
           - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
-          # Remove once the development S7 changes are released to CRAN
-          - {os: ubuntu-latest,   r: 'release', s7: 'dev'}
           - {os: ubuntu-latest,   r: 'oldrel-1'}
           - {os: ubuntu-latest,   r: 'oldrel-2'}
           - {os: ubuntu-latest,   r: 'oldrel-3'}
@@ -60,7 +58,7 @@ jobs:
       # S7 needs R >= 4.2, so the R 4.1 jobs check covr without it.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck${{ matrix.config.s7 == 'dev' && ', github::RConsortium/S7' || ', S7=?ignore-before-r=4.2.0' }}
+          extra-packages: any::rcmdcheck, S7=?ignore-before-r=4.2.0
           needs: check
 
       # Lets the tests measure the coverage of Rust code. rustup's Rust for
