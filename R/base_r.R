@@ -228,7 +228,8 @@ base_r_uninstrumented <- function(pkg) {
     base = c(
       "simplify2array",
       get("safeBaseInternals", envir = asNamespace("compiler")),
-      .internalGenerics
+      # Not in R 4.2
+      get0(".internalGenerics", envir = baseenv(), ifnotfound = character())
     ),
     methods = "rematchDefinition",
     stats = "pbinom",
