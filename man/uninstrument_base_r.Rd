@@ -21,6 +21,8 @@ restored and the instrumented code is removed. Run it with the same R as
 counters that this removes.
 }
 \seealso{
+The article \href{https://covr.r-lib.org/articles/base-r.html}{Coverage of R itself}.
+
 Other base R coverage:
 \code{\link[=base_r_code_coverage]{base_r_code_coverage()}},
 \code{\link[=base_r_compiled_coverage]{base_r_compiled_coverage()}},

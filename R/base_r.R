@@ -100,6 +100,7 @@ base_r_counters_file <- function(lib) {
 #'   of them have source references (`base_functions`, `base_srcrefs`), the
 #'   functions that could not be byte-compiled (`uncompiled`) and the packages
 #'   that were instrumented.
+#' @seealso The article [Coverage of R itself](https://covr.r-lib.org/articles/base-r.html).
 #' @family base R coverage
 #' @export
 instrument_base_r <- function(
@@ -619,6 +620,7 @@ base_r_hook <- function(dll_path, counters_file, trace_dir) {
 #'
 #' @inheritParams instrument_base_r
 #' @return `NULL`, invisibly.
+#' @seealso The article [Coverage of R itself](https://covr.r-lib.org/articles/base-r.html).
 #' @family base R coverage
 #' @export
 uninstrument_base_r <- function(
@@ -653,6 +655,7 @@ uninstrument_base_r <- function(
 #' @param source_dir The directory of the source of R, which the files in the
 #'   coverage are in.
 #' @return A coverage object. File names are absolute paths in `source_dir`.
+#' @seealso The article [Coverage of R itself](https://covr.r-lib.org/articles/base-r.html).
 #' @family base R coverage
 #' @export
 base_r_code_coverage <- function(trace_dir, source_dir) {

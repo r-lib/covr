@@ -54,6 +54,7 @@
 #' @param gcov_args Extra arguments for gcov.
 #' @return A coverage object of the lines of the files in `source_dir`, with
 #'   absolute file names.
+#' @seealso The article [Coverage of R itself](https://covr.r-lib.org/articles/base-r.html).
 #' @family base R coverage
 #' @export
 base_r_compiled_coverage <- function(

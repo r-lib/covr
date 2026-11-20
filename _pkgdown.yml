@@ -17,6 +17,14 @@ news:
   - text: "covr 4.0.0"
     href: https://www.jimhester.com/post/covr-4-0-0/
 
+articles:
+  - title: Articles
+    navbar: ~
+    contents:
+      - how_it_works
+      - shiny
+      - articles/base-r
+
 reference:
   - title: Measure coverage
     desc: Run code or tests and record which expressions were evaluated.

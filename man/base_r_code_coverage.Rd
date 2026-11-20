@@ -20,6 +20,8 @@ Merges the counts that the processes of an instrumented R (see
 \code{\link[=instrument_base_r]{instrument_base_r()}}) saved in \code{trace_dir}.
 }
 \seealso{
+The article \href{https://covr.r-lib.org/articles/base-r.html}{Coverage of R itself}.
+
 Other base R coverage:
 \code{\link[=base_r_compiled_coverage]{base_r_compiled_coverage()}},
 \code{\link[=instrument_base_r]{instrument_base_r()}},

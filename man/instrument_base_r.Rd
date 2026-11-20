@@ -79,6 +79,8 @@ uninstrument_base_r(lib = "build/library")
 }
 
 \seealso{
+The article \href{https://covr.r-lib.org/articles/base-r.html}{Coverage of R itself}.
+
 Other base R coverage:
 \code{\link[=base_r_code_coverage]{base_r_code_coverage()}},
 \code{\link[=base_r_compiled_coverage]{base_r_compiled_coverage()}},

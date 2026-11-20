@@ -79,6 +79,8 @@ report(cov)
 }
 
 \seealso{
+The article \href{https://covr.r-lib.org/articles/base-r.html}{Coverage of R itself}.
+
 Other base R coverage:
 \code{\link[=base_r_code_coverage]{base_r_code_coverage()}},
 \code{\link[=instrument_base_r]{instrument_base_r()}},
