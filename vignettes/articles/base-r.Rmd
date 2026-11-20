@@ -34,9 +34,7 @@ Both return an ordinary covr coverage object, so `lcov()`, `percent_coverage()`,
 
 * A Unix-like system with the tools to build R, `gcc` and `gcov`, and, for the tests that need a display, `xvfb-run`.
 * The R sources, for example a checkout of r-svn.
-* A second, normally optimized, build of R from the same sources, with covr and its dependencies installed in a separate library.
-  Instrumenting needs to byte-compile all of base, which is about ten times slower in the unoptimized gcov build (19 minutes instead of 2).
-  The byte code does not depend on the compiler flags, so the fast R can instrument the library of the gcov build.
+* covr and its dependencies, installed with the R you build, in a library of their own.
 * covr must stay installed at the same path as long as R is instrumented, because the path of its `covr.so` is baked into the loader of base.
 * Optionally `genhtml` from lcov for an HTML report.
 
@@ -47,8 +45,7 @@ The commands use these variables, exported so that the R code below can read the
 ```sh
 export SRC=$HOME/r-svn                  # R sources
 export BUILD=$HOME/build/gcov           # R with gcov instrumentation
-export BUILD_FAST=$HOME/build/fast      # R at normal optimization, only runs covr
-export COVR_LIB=$HOME/build/covr-lib    # covr and its dependencies, installed by BUILD_FAST
+export COVR_LIB=$HOME/build/covr-lib    # covr and its dependencies
 export TRACES=$HOME/build/traces        # where the R processes write their counts
 ```
 
@@ -67,26 +64,24 @@ $SRC/configure --enable-R-shlib --with-blas --with-lapack --disable-java \
 make -j$(nproc)
 ```
 
-### 2. Build a fast R and install covr
+### 2. Install covr
 
 ```sh
-mkdir -p $BUILD_FAST $COVR_LIB && cd $BUILD_FAST
-$SRC/configure --enable-R-shlib --with-blas --with-lapack --disable-java \
-  --without-recommended-packages
-make -j$(nproc)
-R_LIBS=$COVR_LIB bin/Rscript -e 'install.packages("covr", lib = Sys.getenv("R_LIBS"))'
+mkdir -p $COVR_LIB
+R_LIBS=$COVR_LIB $BUILD/bin/Rscript -e 'install.packages("covr", lib = Sys.getenv("R_LIBS"))'
 ```
 
 ### 3. Instrument
 
-Run this with the fast R, pointing it at the library of the gcov build.
+Instrumenting byte-compiles the instrumented code, which is slow with R built without optimization, so use several cores: with 4 it takes about 7 minutes, instead of 19 with one.
 
 ```sh
-R_LIBS=$COVR_LIB $BUILD_FAST/bin/Rscript -e '
+R_LIBS=$COVR_LIB $BUILD/bin/Rscript -e '
   covr::instrument_base_r(
     Sys.getenv("SRC"),
     lib = file.path(Sys.getenv("BUILD"), "library"),
-    trace_dir = Sys.getenv("TRACES")
+    trace_dir = Sys.getenv("TRACES"),
+    cores = parallel::detectCores()
   )'
 ```
 
@@ -109,11 +104,11 @@ COVERAGE_DIR=$TRACES xvfb-run -a make -k check-all || true
 
 ### 5. Collect and report
 
-Collect the coverage with the fast R, before calling `uninstrument_base_r()`, which deletes the counter file.
+Collect the coverage before calling `uninstrument_base_r()`, which deletes the counter file.
 The paths in the files are relative to the sources, such as `src/main/eval.c`, which is what Codecov needs to match them to the repository.
 
 ```sh
-R_LIBS=$COVR_LIB $BUILD_FAST/bin/Rscript -e '
+R_LIBS=$COVR_LIB $BUILD/bin/Rscript -e '
   src <- Sys.getenv("SRC")
   r <- covr::base_r_code_coverage(Sys.getenv("TRACES"), src)
   c <- covr::base_r_compiled_coverage(Sys.getenv("BUILD"), src)
@@ -131,7 +126,7 @@ When you are done, `uninstrument_base_r()` restores the library of the gcov buil
 
 * Collect before `uninstrument_base_r()`, which deletes the counter file.
 * Do not move or reinstall covr while R is instrumented.
-* Instrument with a fast R, not with the gcov build itself.
+* Instrument with several cores, as it is slow in an unoptimized build.
 * Remove the `.gcda` files after instrumenting and before the checks.
 * Build with `R_KEEP_PKG_SOURCE=yes`, otherwise there are no line numbers for the R code.
 * Do not fail the job when the checks fail.
