@@ -155,5 +155,5 @@ cat("add(1, 2) == 3", file = test_file)
 # Use file_coverage() to calculate test coverage
 file_coverage(source_files = source_file, test_files = test_file)
 #> Coverage: 100.00%
-#> /tmp/RtmpSpcsEO/file18694521c1ac.R: 100.00%
+#> /tmp/RtmpF6vo5y/file196e517e9eeb.R: 100.00%
 ```
