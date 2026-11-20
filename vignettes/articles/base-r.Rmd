@@ -164,7 +164,7 @@ On 8 cores with R-devel r90937, with no test failures:
 | Step | Time |
 |---|---|
 | Build | 18 min |
-| Instrument | 2 min |
+| Instrument (4 cores) | 7 min |
 | `make check-all` | 58 min |
 | Collect | 50 s |
 
