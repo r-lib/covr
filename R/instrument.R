@@ -131,10 +131,10 @@ instrument_installed_package <- function(pkg_name, lib) {
     loadNamespace(pkg_name, lib.loc = lib, partial = TRUE)
   )
   register_namespace(pkg_name, ns)
-  trace_environment(ns)
+  trace_environment(ns, scope = pkg_name)
   compiled <- !isFALSE(package_byte_compile(pkg_name, lib))
   if (compiled) {
-    compile_replacements(the$replacements)
+    compile_replacements(scope_entry(pkg_name)$replacements)
   }
 
   # The functions hold promises that read the original database, which is left
@@ -156,7 +156,10 @@ instrument_installed_package <- function(pkg_name, lib) {
   compress <- readRDS(paste0(base, ".rdx"))$compressed
   make_lazy_load_db <- get("makeLazyLoadDB", envir = asNamespace("tools"))
   make_lazy_load_db(ns, new_base, compress = compress)
-  counters <- portable_srcfiles(.counters)
+  # Only the traces of this package: the namespaces it imports can be
+  # instrumented packages too, whose traces are saved by their own process.
+  counters <- list2env(scope_counters(pkg_name), parent = emptyenv())
+  counters <- portable_srcfiles(counters)
   # Whether a `.Call` that `.onLoad()` defines would mask the saved counters,
   # for `restore_counters()`. Byte-compiled code calls the `.Call` primitive
   # directly, as the compiler inlines base functions that the namespace
@@ -250,6 +253,9 @@ compile_in_place <- function(fun) {
 # loaded again in the same process. Bindings that are still promises to read
 # the saved code are not forced for that, which would read all the functions
 # of the package.
+#
+# The counters are restored into the scope of the package, so the counters of
+# other packages that are restored in the same process are kept (#786).
 restore_counters <- function(ns, file) {
   # The loader script reads the instrumented code, which needs its counters.
   if (!file.exists(file)) {
@@ -257,29 +263,31 @@ restore_counters <- function(ns, file) {
       "Can't find the counters of the instrumented package at {.path {file}}."
     )
   }
+  scope <- env_scope(ns)
+  entry <- scope_entry(scope)
   # As in `trace_environment()`, the counters of a namespace that is already
   # restored are kept.
-  if (identical(the$traced_env, ns)) {
+  if (identical(entry$env, ns)) {
     return(invisible())
   }
   saved <- readRDS(file)
   check_saved_dot_call(ns, saved)
   if (file %in% the$restored) {
-    trace_unforced_environment(ns)
+    trace_unforced_environment(ns, scope)
     add_saved_counters(saved)
   } else {
-    clear_counters()
-    the$replacements <- list()
+    clear_counters(scope)
+    entry$replacements <- list()
     the$restored <- c(the$restored, file)
     add_saved_counters(saved)
     # For `process_trace()`, which only saves the counts of these counters
-    the$counters_file <- file
-    the$counters_keys <- setdiff(
+    entry$counters_file <- file
+    entry$counters_keys <- setdiff(
       ls(saved, all.names = TRUE),
       c("tests", "branches")
     )
-    the$traced_env <- ns
-    trace_unforced_environment(ns)
+    entry$env <- ns
+    trace_unforced_environment(ns, scope)
   }
   invisible()
 }
@@ -311,10 +319,10 @@ check_saved_dot_call <- function(ns, saved) {
 
 # `trace_environment()` without reading the bindings that are still promises to
 # read the saved code, which `.onLoad()` replaces rather than forces.
-trace_unforced_environment <- function(ns) {
+trace_unforced_environment <- function(ns, scope) {
   the$skip_lazy_load <- TRUE
   on.exit(the$skip_lazy_load <- NULL)
-  trace_environment(ns)
+  trace_environment(ns, scope)
 }
 
 # Whether `name` in `env` is a promise, that hasn't been forced, to read a

@@ -33,7 +33,7 @@ test_that("start_shiny_app_tracing() instruments the app's functions when shiny 
   attach_env <- new.env()
   registered <- character()
   local_mocked_bindings(
-    register_trace = function(ns, directory) {
+    register_trace = function(ns, directory, scope) {
       registered <<- c(registered, directory)
     }
   )

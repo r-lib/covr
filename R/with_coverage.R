@@ -5,7 +5,7 @@ collect_coverage <- function(code) {
   if (!should_enable_parallel_mcexit_fix()) {
     withr::with_envvar(c("R_COVR" = "true"), code)
     sync_counts()
-    return(as_coverage(.counters))
+    return(as_coverage(scope_counters("")))
   }
 
   trace_dir <- tempfile("covr_traces_")
@@ -19,7 +19,7 @@ collect_coverage <- function(code) {
   withr::with_envvar(c("R_COVR" = "true"), code)
 
   sync_counts()
-  counters <- as.list(.counters)
+  counters <- scope_counters("")
   as_coverage(merge_traces(trace_dir, counters))
 }
 
@@ -113,8 +113,8 @@ with_coverage <- function(
   trace_environment(env)
   on.exit(
     {
-      reset_traces()
-      clear_counters()
+      reset_traces("")
+      clear_counters("")
     },
     add = TRUE
   )

@@ -848,7 +848,11 @@ add_hooks <- function(
         "))"
       ),
       if (is.null(counters_file)) {
-        "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns))"
+        paste0(
+          "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns, scope = ",
+          encodeString(pkg_name, quote = '"'),
+          "))"
+        )
       } else {
         paste0(
           "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::restore_counters(ns, file.path(info$libname, pkg, \"R\", \"",
@@ -868,7 +872,13 @@ add_hooks <- function(
   if (fix_mcexit) {
     lines <- append(
       lines,
-      paste0("covr:::fix_mcexit(", encodeString(trace_dir, quote = '"'), ")")
+      paste0(
+        "covr:::fix_mcexit(",
+        encodeString(trace_dir, quote = '"'),
+        ", ",
+        encodeString(pkg_name, quote = '"'),
+        ")"
+      )
     )
   }
 

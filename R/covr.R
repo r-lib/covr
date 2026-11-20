@@ -214,9 +214,9 @@
 #' tally_coverage(second)
 current_coverage <- function(reset = FALSE) {
   sync_counts()
-  coverage <- as_coverage(.counters)
+  coverage <- as_coverage(scope_counters(""))
   if (isTRUE(reset)) {
-    zero_counters()
+    zero_counters("")
   }
   coverage
 }
