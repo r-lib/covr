@@ -26,6 +26,7 @@ The article \href{https://covr.r-lib.org/articles/base-r.html}{Coverage of R its
 Other base R coverage:
 \code{\link[=base_r_code_coverage]{base_r_code_coverage()}},
 \code{\link[=base_r_compiled_coverage]{base_r_compiled_coverage()}},
+\code{\link[=base_r_exclusions]{base_r_exclusions()}},
 \code{\link[=instrument_base_r]{instrument_base_r()}}
 }
 \concept{base R coverage}

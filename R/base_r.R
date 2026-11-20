@@ -58,9 +58,16 @@ base_r_counters_file <- function(lib) {
 #'
 #' Functions of base have no source references in a build of R, so they are
 #' read from the source files in `source_dir`, which are used for the functions
-#' whose code is the same as the installed one. Functions whose body is a
-#' constant or a call to `UseMethod()` are not instrumented, as code inspects
-#' them.
+#' whose code is the same as the installed one. Functions without source
+#' references are not measured.
+#'
+#' Some functions are not instrumented, so they are not in the coverage, not
+#' even as code that never ran: the functions in `exclusions` (by default
+#' [base_r_exclusions()], those whose code R's own checks inspect), and
+#' functions whose body is a constant or a call to `UseMethod()`, which have no
+#' code to cover and whose bodies code also compares. The default arguments of
+#' functions are not traced either, as `R CMD check` compares them with the
+#' documentation.
 #'
 #' @section Requirements:
 #' * Build R from source, with the environment variable
@@ -96,10 +103,16 @@ base_r_counters_file <- function(lib) {
 #' @param trace_dir The directory the counts are saved in, if the environment
 #'   variable `COVERAGE_DIR` is not set when a process of R exits.
 #' @param packages The packages to instrument.
-#' @return A list, invisibly, with the number of closures in base and how many
-#'   of them have source references (`base_functions`, `base_srcrefs`), the
-#'   functions that could not be byte-compiled (`uncompiled`) and the packages
-#'   that were instrumented.
+#' @param exclusions A named list of the functions not to instrument, by
+#'   package, e.g. `list(stats = "pbinom")`. Use `NULL` to instrument all of
+#'   them, which makes some of R's checks fail.
+#' @return A list, invisibly, with:
+#'   * `packages`: the packages that were instrumented.
+#'   * `excluded`: the functions that were not instrumented, by package: those
+#'     in `exclusions` and those with a constant or `UseMethod()` body.
+#'   * `no_srcref`: the functions of base that are not measured, as their code
+#'     differs from the source files, e.g. as it was created by other code.
+#'   * `uncompiled`: the functions that could not be byte-compiled.
 #' @seealso The article [Coverage of R itself](https://covr.r-lib.org/articles/base-r.html).
 #' @family base R coverage
 #' @export
@@ -107,8 +120,19 @@ instrument_base_r <- function(
   source_dir,
   lib = R.home("library"),
   trace_dir = file.path(dirname(lib), "covr-traces"),
-  packages = base_r_packages(lib)
+  packages = base_r_packages(lib),
+  exclusions = base_r_exclusions()
 ) {
+  if (
+    !is.null(exclusions) &&
+      (!is.list(exclusions) ||
+        is.null(names(exclusions)) ||
+        !all(vlapply(exclusions, is.character)))
+  ) {
+    covr_abort(
+      "{.arg exclusions} must be a named list of function names, or {.code NULL}."
+    )
+  }
   source_dir <- normalize_path(source_dir)
   if (!dir.exists(source_dir)) {
     covr_abort("Can't find the source directory {.path {source_dir}}.")
@@ -159,10 +183,10 @@ instrument_base_r <- function(
 
   counters <- new.env(parent = emptyenv())
   info <- list(
-    base_functions = 0L,
-    base_srcrefs = 0L,
-    uncompiled = character(),
-    packages = character()
+    packages = character(),
+    excluded = list(),
+    no_srcref = character(),
+    uncompiled = character()
   )
   written <- character()
   on.exit(unlink(written, expand = FALSE), add = TRUE)
@@ -172,12 +196,18 @@ instrument_base_r <- function(
     env <- new.env(hash = TRUE, parent = emptyenv())
     lazyLoad(base, env)
     if (pkg == "base") {
-      info[c("base_functions", "base_srcrefs")] <- add_base_srcrefs(
+      info$no_srcref <- add_base_srcrefs(
         env,
-        source_dir
+        source_dir,
+        exclude = exclusions[["base"]]
       )
     }
-    uncompiled <- instrument_base_r_package(env, pkg, counters)
+    res <- instrument_base_r_package(
+      env,
+      pkg,
+      counters,
+      exclude = exclusions[[pkg]]
+    )
     force_srcfiles(env)
     new_base <- paste0(base, ".covr")
     written <- c(written, paste0(new_base, c(".rdb", ".rdx")))
@@ -187,7 +217,8 @@ instrument_base_r <- function(
       new_base,
       compress = readRDS(paste0(base, ".rdx"))$compressed
     )
-    info$uncompiled <- c(info$uncompiled, uncompiled)
+    info$uncompiled <- c(info$uncompiled, res$uncompiled)
+    info$excluded[[pkg]] <- res$excluded
     info$packages <- c(info$packages, pkg)
   }
 
@@ -213,19 +244,35 @@ instrument_base_r <- function(
   invisible(info)
 }
 
-# Functions whose code R's tests inspect, so they fail if it has counters:
-# `reg-tests-1c.R` looks up the name of the native routine in
-# `body(pbinom)[[2]]`, `reg-tests-1d.R` compares `dump()` and `dput()` of
-# `simplify2array()`, which warn that the deparse of the counters may be
-# incomplete, `rematchDefinition()` builds the body of rematched S4 methods from
-# its own code, which `isRematched()` (`reg-tests-1e.R`) checks, the tests of
-# compiler check that the base functions it inlines are simple `.Internal()`
-# calls (the compiler inlines these in byte-compiled callers, so they are rarely
-# called anyway), and those of tools that the internal generics call
-# `.Internal()`.
-base_r_uninstrumented <- function(pkg) {
-  switch(
-    pkg,
+#' The functions that are not instrumented by default
+#'
+#' The functions of R that [instrument_base_r()] leaves as they are by default,
+#' as R's own checks (`make check-all`) inspect their code, so they fail if it
+#' counts what runs:
+#'
+#' * `stats::pbinom()`: a regression test reads the name of its native routine
+#'   from its body.
+#' * `base::simplify2array()`: a regression test compares its `dump()` and
+#'   `dput()`.
+#' * `methods:::rematchDefinition()`: it builds the body of rematched S4
+#'   methods from its own code, which `isRematched()` checks.
+#' * The functions of base that the byte-code compiler inlines
+#'   (`compiler:::safeBaseInternals`), whose tests check that they only call
+#'   `.Internal()`. As they are inlined, they rarely run anyway.
+#' * The internal generics of base (`.internalGenerics`), which the tests of
+#'   tools check call `.Internal()`.
+#'
+#' @return A named list of function names, by package.
+#' @family base R coverage
+#' @export
+#' @examples
+#' str(base_r_exclusions())
+#'
+#' # Also leave out lm()
+#' exclusions <- base_r_exclusions()
+#' exclusions$stats <- c(exclusions$stats, "lm")
+base_r_exclusions <- function() {
+  list(
     base = c(
       "simplify2array",
       get("safeBaseInternals", envir = asNamespace("compiler")),
@@ -233,34 +280,37 @@ base_r_uninstrumented <- function(pkg) {
       get0(".internalGenerics", envir = baseenv(), ifnotfound = character())
     ),
     methods = "rematchDefinition",
-    stats = "pbinom",
-    character()
+    stats = "pbinom"
   )
 }
 
-# Instrument the functions in `env`, which holds the code of `pkg`, and
-# byte-compile them in place. Adds the counters to `counters`, an environment.
-# Returns the names of the functions that couldn't be byte-compiled.
-instrument_base_r_package <- function(env, pkg, counters) {
+# Instrument the functions in `env`, which holds the code of `pkg`, except
+# those in `exclude`, and byte-compile them in place. Adds the counters to
+# `counters`, an environment. Returns the names of the functions that were not
+# instrumented (`excluded`) and that couldn't be byte-compiled (`uncompiled`).
+instrument_base_r_package <- function(env, pkg, counters, exclude = NULL) {
   # Some code compares the body of functions with what it expects, as methods
   # does for the `test` of the extensions of S4 classes, `function(object)
   # TRUE`, and `isS3stdGeneric()` does for generic functions, which are
   # `function(x, ...) UseMethod("f")`. Functions like that have no code to
-  # cover, so they are left as they are, as are the functions whose code R's
-  # own tests inspect (see `base_r_uninstrumented()`).
-  uninstrumented <- base_r_uninstrumented(pkg)
-  fixed <- list()
-  for (name in ls(env, all.names = TRUE)) {
+  # cover, so they are left as they are, as are the functions in `exclude`.
+  # Functions are instrumented in place, so the other names of the same
+  # function, e.g. `as.data.frame.integer <- as.data.frame.vector`, are left
+  # out too.
+  is_closure <- function(x) is.function(x) && !is.primitive(x)
+  names <- ls(env, all.names = TRUE)
+  skip <- vlapply(names, function(name) {
     fun <- env[[name]]
-    if (
-      is.function(fun) &&
-        !is.primitive(fun) &&
-        (is_fixed_body(body(fun)) || name %in% uninstrumented)
-    ) {
-      fixed[[name]] <- fun
-      rm(list = name, envir = env)
-    }
-  }
+    is_closure(fun) && (is_fixed_body(body(fun)) || name %in% exclude)
+  })
+  skipped <- vcapply(mget(names[skip], envir = env), address)
+  skip <- skip |
+    vlapply(names, function(name) {
+      fun <- env[[name]]
+      is_closure(fun) && address(fun) %in% skipped
+    })
+  fixed <- mget(names[skip], envir = env)
+  rm(list = names[skip], envir = env)
   trace_environment(env)
   list2env(fixed, env)
   for (key in ls(.counters, all.names = TRUE)) {
@@ -277,7 +327,7 @@ instrument_base_r_package <- function(env, pkg, counters) {
     drop_parse_data(counters)
     drop_function_srcrefs(env)
   }
-  compiled[!is.na(compiled)]
+  list(excluded = names(fixed), uncompiled = compiled[!is.na(compiled)])
 }
 
 # Source files of base are read when it is instrumented, with their parse data,
@@ -360,11 +410,10 @@ compile_in_place_checked <- function(r) {
 # The functions of `env`, the code of base, with the source references of the
 # functions that are the same in the source files in `source_dir`, which are
 # found by parsing the files in the order they are put together to make the
-# code of base. Functions that are not instrumented (see
-# `base_r_uninstrumented()`) are left without them, as in R, since tests deparse
-# them. Returns the number of functions and of functions with source
-# references.
-add_base_srcrefs <- function(env, source_dir) {
+# code of base. Functions in `exclude` are left without them, as in R, since
+# tests deparse them. Returns the names of the other functions that have no
+# source references.
+add_base_srcrefs <- function(env, source_dir, exclude = NULL) {
   dir <- file.path(source_dir, "src", "library", "base", "R")
   files <- c(
     sort(
@@ -393,7 +442,7 @@ add_base_srcrefs <- function(env, source_dir) {
       }
       for (name in setdiff(
         intersect(defined$names, names[is_closure]),
-        base_r_uninstrumented("base")
+        exclude
       )) {
         new <- eval(defined$fun, baseenv())
         old <- env[[name]]
@@ -405,7 +454,7 @@ add_base_srcrefs <- function(env, source_dir) {
       }
     }
   }
-  c(sum(is_closure), length(with_srcref))
+  setdiff(names[is_closure], c(with_srcref, exclude))
 }
 
 # Whether the functions have the same code, whatever their source references,

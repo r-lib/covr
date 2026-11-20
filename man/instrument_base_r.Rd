@@ -8,7 +8,8 @@ instrument_base_r(
   source_dir,
   lib = R.home("library"),
   trace_dir = file.path(dirname(lib), "covr-traces"),
-  packages = base_r_packages(lib)
+  packages = base_r_packages(lib),
+  exclusions = base_r_exclusions()
 )
 }
 \arguments{
@@ -20,12 +21,21 @@ instrument_base_r(
 variable \code{COVERAGE_DIR} is not set when a process of R exits.}
 
 \item{packages}{The packages to instrument.}
+
+\item{exclusions}{A named list of the functions not to instrument, by
+package, e.g. \code{list(stats = "pbinom")}. Use \code{NULL} to instrument all of
+them, which makes some of R's checks fail.}
 }
 \value{
-A list, invisibly, with the number of closures in base and how many
-of them have source references (\code{base_functions}, \code{base_srcrefs}), the
-functions that could not be byte-compiled (\code{uncompiled}) and the packages
-that were instrumented.
+A list, invisibly, with:
+\itemize{
+\item \code{packages}: the packages that were instrumented.
+\item \code{excluded}: the functions that were not instrumented, by package: those
+in \code{exclusions} and those with a constant or \code{UseMethod()} body.
+\item \code{no_srcref}: the functions of base that are not measured, as their code
+differs from the source files, e.g. as it was created by other code.
+\item \code{uncompiled}: the functions that could not be byte-compiled.
+}
 }
 \description{
 Instruments the installed base packages (base, stats, utils, ...) of the
@@ -39,9 +49,16 @@ Fortran code.
 \details{
 Functions of base have no source references in a build of R, so they are
 read from the source files in \code{source_dir}, which are used for the functions
-whose code is the same as the installed one. Functions whose body is a
-constant or a call to \code{UseMethod()} are not instrumented, as code inspects
-them.
+whose code is the same as the installed one. Functions without source
+references are not measured.
+
+Some functions are not instrumented, so they are not in the coverage, not
+even as code that never ran: the functions in \code{exclusions} (by default
+\code{\link[=base_r_exclusions]{base_r_exclusions()}}, those whose code R's own checks inspect), and
+functions whose body is a constant or a call to \code{UseMethod()}, which have no
+code to cover and whose bodies code also compares. The default arguments of
+functions are not traced either, as \verb{R CMD check} compares them with the
+documentation.
 }
 \section{Requirements}{
 
@@ -84,6 +101,7 @@ The article \href{https://covr.r-lib.org/articles/base-r.html}{Coverage of R its
 Other base R coverage:
 \code{\link[=base_r_code_coverage]{base_r_code_coverage()}},
 \code{\link[=base_r_compiled_coverage]{base_r_compiled_coverage()}},
+\code{\link[=base_r_exclusions]{base_r_exclusions()}},
 \code{\link[=uninstrument_base_r]{uninstrument_base_r()}}
 }
 \concept{base R coverage}

@@ -47,6 +47,7 @@ reference:
       - uninstrument_base_r
       - base_r_code_coverage
       - base_r_compiled_coverage
+      - base_r_exclusions
 
   - title: Inspect and combine results
     contents:

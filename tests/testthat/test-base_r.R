@@ -196,7 +196,8 @@ test_that("add_base_srcrefs gives functions their source references", {
   env$k <- eval(parse(text = "function(z) z + 3", keep.source = FALSE)[[1]])
   env$v <- 1
 
-  expect_equal(add_base_srcrefs(env, src), c(4L, 3L))
+  # `k` differs from the source
+  expect_equal(add_base_srcrefs(env, src), "k")
 
   expect_false(is.null(attr(env$f, "srcref")))
   expect_false(is.null(attr(body(env$f), "srcref")))
@@ -206,4 +207,61 @@ test_that("add_base_srcrefs gives functions their source references", {
     attr(attr(env$f, "srcref"), "srcfile")$filename,
     file.path(dir, "a.R")
   )
+})
+
+test_that("add_base_srcrefs leaves the functions in `exclude` alone", {
+  src <- withr::local_tempdir()
+  dir <- file.path(src, "src", "library", "base", "R")
+  dir.create(file.path(dir, "unix"), recursive = TRUE)
+  writeLines("f <- function(x) x", file.path(dir, "a.R"))
+  env <- new.env()
+  env$f <- eval(parse(text = "function(x) x", keep.source = FALSE)[[1]])
+
+  expect_equal(add_base_srcrefs(env, src, exclude = "f"), character())
+  expect_null(attr(env$f, "srcref"))
+})
+
+test_that("instrument_base_r_package reports the functions it leaves out", {
+  clear_counters()
+  on.exit(clear_counters(), add = TRUE)
+  old <- the$count_routine
+  on.exit(the$count_routine <- old, add = TRUE)
+  the$count_routine <- as.symbol(".covr_count")
+
+  src <- srcfilecopy(
+    "a.R",
+    c(
+      "f <- function(x) {",
+      "  x + 1",
+      "}",
+      "g <- function(x) UseMethod('g')",
+      "h <- function(x) {",
+      "  x + 2",
+      "}"
+    )
+  )
+  env <- new.env()
+  eval(parse(text = src$lines, srcfile = src, keep.source = TRUE), env)
+  # Another name of an excluded function is left out too
+  env$i <- env$h
+
+  res <- instrument_base_r_package(env, "pkg", new.env(), exclude = "h")
+
+  expect_setequal(res$excluded, c("g", "h", "i"))
+  expect_true(is_traced(env$f))
+  expect_false(is_traced(env$h))
+  expect_false(is_traced(env$g))
+})
+
+test_that("instrument_base_r validates `exclusions`", {
+  expect_snapshot(error = TRUE, {
+    instrument_base_r(tempdir(), exclusions = c(stats = "pbinom"))
+  })
+})
+
+test_that("base_r_exclusions lists functions by package", {
+  x <- base_r_exclusions()
+  expect_named(x, c("base", "methods", "stats"))
+  expect_all_true(vapply(x, is.character, logical(1)))
+  expect_true("pbinom" %in% x$stats)
 })

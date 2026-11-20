@@ -138,12 +138,21 @@ When you are done, `uninstrument_base_r()` restores the library of the gcov buil
 
 ## What is not instrumented
 
-Some code cannot be, or is deliberately not, instrumented, and does not show up in the coverage.
+Some code is deliberately not instrumented, and does not show up in the coverage at all, not even as code that never ran.
 
-* Functions whose body is a constant or a call to `UseMethod()`.
-* `pbinom()`, `simplify2array()` and `rematchDefinition()`.
-* The `safeBaseInternals` of the compiler, and the `.internalGenerics` of base.
-* Default arguments of functions are not traced.
+* The functions in `base_r_exclusions()`, whose code R's own checks inspect: `pbinom()`, `simplify2array()`, `rematchDefinition()`, the functions the compiler inlines (`compiler:::safeBaseInternals`) and the internal generics of base (`.internalGenerics`).
+  Pass your own list to the `exclusions` argument of `instrument_base_r()` to change this, e.g. add to `base_r_exclusions()` or use `NULL` to instrument everything, which makes some checks fail.
+* Functions whose body is a constant or a call to `UseMethod()`, which have no code to cover.
+* Default arguments of functions, which `R CMD check` compares with the documentation.
+* Functions of base whose installed code differs from its source files, e.g. as they were created by other code, as they have no source references.
+
+`instrument_base_r()` returns the functions it left out (`excluded`, by package) and the functions of base without source references (`no_srcref`), so a CI job can print them:
+
+```r
+info <- covr::instrument_base_r(src, lib = lib, trace_dir = traces)
+str(info$excluded)
+info$no_srcref
+```
 
 ## Expected warnings
 
