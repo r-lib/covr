@@ -639,10 +639,7 @@ is_covr_count_call <- function(expr) {
   ) {
     return(
       length(expr) > 1L &&
-        identical(
-          expr[[2]],
-          call(":::", as.symbol("covr"), as.symbol("covr_count"))
-        )
+        identical(expr[[2]], count_routine())
     )
   }
   # Constructed by hand like in `trace_calls()`, to avoid a NOTE from R CMD
