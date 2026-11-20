@@ -88,14 +88,14 @@ f <- function(x) {
 "
 cov <- code_coverage(source, "f(TRUE)")
 annotate_coverage(cov)
-#> /tmp/RtmpF6vo5y/source.R196e3ee1aaa8
+#> /tmp/RtmpgMQ2mt/source.R19327b7c4f52
 #>   4 |    1 |     'yes'
 #>   5 |      |   } else {
 #>   6 |  !!0 |     'no'
 #>   7 |      |   }
 #>   8 |      | }
 annotate_coverage(cov, context = Inf)
-#> /tmp/RtmpF6vo5y/source.R196e3ee1aaa8
+#> /tmp/RtmpgMQ2mt/source.R19327b7c4f52
 #>   1 |      | 
 #>   2 |      | f <- function(x) {
 #>   3 |    1 |   if (x) {
