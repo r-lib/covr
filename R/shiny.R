@@ -82,7 +82,7 @@ shiny_app_coverage <- function(
       ),
       COVR_SHINY_APP = app_dir,
       COVR_SHINY_PID = Sys.getpid(),
-      COVERAGE_DIR = trace_dir,
+      COVR_TRACE_DIR = trace_dir,
       R_COVR = "true"
     ),
     code

@@ -1,5 +1,10 @@
 # covr (development version)
 
+* The environment variable that overrides where instrumented packages save
+  their trace files is now `COVR_TRACE_DIR`; `COVERAGE_DIR` is no longer read,
+  as it collides with the variable Bazel sets for `bazel coverage`
+  (@MichaelChirico, #790).
+
 * `with_coverage()`, `file_coverage()`, `function_coverage()` and the functions
   that call them now warn (with class `covr_nested_coverage`) when one is
   called inside another, as the enclosing call's coverage is incomplete.

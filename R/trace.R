@@ -325,7 +325,7 @@ copy_srcfile <- function(srcfile, copies) {
 # pid is in their name; forked children inherit the finalizer but not the
 # parent's markers, so `save_trace_and_clear()` leaves those alone.
 #
-# `directory` (from `COVERAGE_DIR`) is fixed when the package loads, so the
+# `directory` (from `COVR_TRACE_DIR`) is fixed when the package loads, so the
 # marker and the trace end up in the same place. A marker that can't be created
 # is not worth a warning during package load; the trace save fails later too.
 register_trace <- function(ns, directory, scope = env_scope(ns)) {

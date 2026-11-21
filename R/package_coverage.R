@@ -284,6 +284,7 @@ package_coverage <- function(
         R_LIBS_USER = r_libs_env_value(libs),
         R_LIBS_SITE = r_libs_env_value(site_libs),
         R_COVR = "true",
+        COVR_TRACE_DIR = NA,
         R_TESTS = file.path(R.home("share"), "R", "tests-startup.R"),
         rust$env
       ),
@@ -803,7 +804,7 @@ add_hooks <- function(
   counters_file = NULL
 ) {
   trace_dir <- paste0(
-    "Sys.getenv(\"COVERAGE_DIR\", ",
+    "Sys.getenv(\"COVR_TRACE_DIR\", ",
     encodeString(lib, quote = '"'),
     ")"
   )
