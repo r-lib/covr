@@ -125,3 +125,58 @@ test_that("process_trace() of a scope only saves the traces of that scope", {
   expect_named(process_trace(""), "c.R:1")
   expect_setequal(names(process_trace()), ls(.counters))
 })
+
+test_that("untrace_scope() releases the traced environment", {
+  local_clean_traces()
+  freed <- FALSE
+  local({
+    env <- new.env(parent = globalenv())
+    reg.finalizer(env, function(e) freed <<- TRUE)
+    eval(parse(text = "f <- function(x) x + 1", keep.source = TRUE), env)
+    with_coverage(env$f(1), env = env)
+  })
+  gc()
+  expect_identical(freed, TRUE)
+})
+
+test_that("untrace_scope() of an untraced scope leaves other tracing alone", {
+  local_clean_traces()
+  env <- new.env(parent = globalenv())
+  eval(parse(text = "f <- function(x) x + 1", keep.source = TRUE), env)
+  orig <- body(env$f)
+
+  trace_environment(env, scope = "a")
+  untrace_scope("a")
+  expect_identical(body(env$f), orig)
+
+  trace_environment(env, scope = "b")
+  untrace_scope("a")
+  expect_identical(is_traced(env$f), TRUE)
+
+  untrace_scope()
+  expect_identical(body(env$f), orig)
+})
+
+test_that("untracing the anonymous scope leaves the Shiny scope traced", {
+  local_clean_traces()
+  app <- new.env(parent = globalenv())
+  eval(parse(text = "f <- function(x) x + 1", keep.source = TRUE), app)
+  local({
+    local_scope(shiny_scope)
+    trace_replacement(replacement("f", env = app), shiny_scope)
+  })
+  other <- new.env(parent = globalenv())
+  eval(parse(text = "g <- function(x) x", keep.source = TRUE), other)
+
+  with_coverage(other$g(1), env = other)
+  expect_identical(is_traced(app$f), TRUE)
+  app$f(1)
+  sync_counts()
+  expect_equal(
+    unname(unlist(lapply(scope_counters(shiny_scope), `[[`, "value"))),
+    1
+  )
+
+  untrace_scope(shiny_scope)
+  expect_identical(is_traced(app$f), FALSE)
+})

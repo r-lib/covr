@@ -320,7 +320,7 @@ test_that("a `.Call` where the traced functions live doesn't mask the counter", 
     env
   )
   trace_environment(env)
-  withr::defer(reset_traces())
+  withr::defer(untrace_scope())
   expect_equal(env$f(1), 2)
   # Tracing again doesn't instrument the traced function again
   trace_environment(env)

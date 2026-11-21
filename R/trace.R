@@ -1,22 +1,29 @@
 the <- new.env(parent = emptyenv())
 
 # The traces of one traced unit are a "scope": a package namespace (named like
-# the package) or the anonymous scope "" of the in-process APIs such as
-# `with_coverage()`. A process can load several instrumented packages, e.g. a
+# the package), the Shiny app of `shiny_app_coverage()` (`shiny_scope`), or
+# the anonymous scope of the in-process APIs such as `with_coverage()`
+# (`anonymous_scope`). A process can load several instrumented packages, e.g. a
 # package and one that imports it, so each scope has its own traced
 # environment, replacements and counters file in `the$scopes`, and the keys of
 # its traces are prefixed with its name (see `scope_prefix()`), as files of
 # different packages can have the same name. `the$scope` is the scope being
 # traced.
 the$scopes <- new.env(parent = emptyenv())
-the$scope <- ""
+
+# The scope of `with_coverage()`, `file_coverage()`, `function_coverage()` and
+# the other in-process APIs. Its keys have no prefix.
+anonymous_scope <- ""
+# The scope of the functions of a Shiny app, which can't be a package name.
+shiny_scope <- "<shiny>"
+
+the$scope <- anonymous_scope
 
 # The state of `scope`: `env`, the environment that is traced, `replacements`,
 # and `counters_file` and `counters_keys`, from which the counters were
-# restored (see `restore_counters()`).
+# restored (see `restore_counters()`). `untrace_scope()` removes it.
 scope_entry <- function(scope) {
-  # An environment can't have a binding with an empty name
-  id <- if (nzchar(scope)) scope else "<anonymous>"
+  id <- scope_id(scope)
   entry <- the$scopes[[id]]
   if (is.null(entry)) {
     entry <- new.env(parent = emptyenv())
@@ -25,18 +32,27 @@ scope_entry <- function(scope) {
   entry
 }
 
-# The scope of the traces of the functions in `env`
-env_scope <- function(env) {
-  if (isNamespace(env)) unname(getNamespaceName(env)) else ""
+# An environment can't have a binding with an empty name
+scope_id <- function(scope) {
+  if (identical(scope, anonymous_scope)) "<anonymous>" else scope
 }
 
-# Trace the functions in `env` into `scope`, the name of its package or "" for
-# an environment that is not a package.
-trace_environment <- function(env, scope = "") {
-  # The counters of the functions are named by the scope they are created in
+# The scope of the traces of the functions in `env`
+env_scope <- function(env) {
+  if (isNamespace(env)) unname(getNamespaceName(env)) else anonymous_scope
+}
+
+# Name the counters created until the calling function returns by `scope`
+local_scope <- function(scope, frame = parent.frame()) {
   old_scope <- the$scope
   the$scope <- scope
-  on.exit(the$scope <- old_scope)
+  withr::defer(the$scope <- old_scope, envir = frame)
+}
+
+# Trace the functions in `env` into `scope`, the name of its package or
+# `anonymous_scope` for an environment that is not a package.
+trace_environment <- function(env, scope = anonymous_scope) {
+  local_scope(scope)
 
   # Tracing an environment that is already traced, e.g. when
   # `pkgload::load_all()` re-fires the onLoad hook, keeps the counts and only
@@ -82,20 +98,60 @@ dot_call <- function(env) {
   }
 }
 
-# Undo the tracing of one scope, or of all scopes if `scope` is `NULL`.
-reset_traces <- function(scope = NULL) {
-  entries <- if (is.null(scope)) {
-    as.list(the$scopes, all.names = TRUE)
-  } else {
-    list(scope_entry(scope))
+# Replace one function, outside `trace_environment()`, recording it in `scope`
+# so `untrace_scope()` restores it. Create `replacement` in the same scope
+# (see `local_scope()`), which names its counters.
+trace_replacement <- function(replacement, scope) {
+  entry <- scope_entry(scope)
+  entry$replacements <- c(entry$replacements, list(replacement))
+  replace(replacement)
+}
+
+# The in-process APIs all trace into `anonymous_scope`, whose record only
+# exists while one of them runs (see `untrace_scope()`). One that runs inside
+# another would clear the outer call's counts and restore its functions when
+# it ends, so the outer call's tracing is undone first, with a warning. Its
+# record is gone after that, so later nested calls in the same outer call
+# don't warn again.
+untrace_nested_anonymous_scope <- function() {
+  id <- scope_id(anonymous_scope)
+  if (is.null(get0(id, envir = the$scopes, inherits = FALSE))) {
+    return(invisible())
   }
-  for (entry in entries) {
-    entry$env <- NULL
+  covr_warn(
+    c(
+      "Coverage is already being measured by an enclosing call.",
+      i = "{.fn with_coverage}, {.fn file_coverage}, {.fn function_coverage}
+        and the functions that call them can't be nested; the enclosing
+        call's coverage is incomplete."
+    ),
+    class = "covr_nested_coverage"
+  )
+  untrace_scope(anonymous_scope)
+}
+
+# Undo the tracing of one scope, or of all scopes if `scope` is `NULL`: restore
+# the original functions, clear the counters and forget the scope, so nothing
+# keeps the traced environment alive and untracing again does nothing.
+untrace_scope <- function(scope = NULL) {
+  ids <- if (is.null(scope)) {
+    ls(the$scopes, all.names = TRUE)
+  } else {
+    scope_id(scope)
+  }
+  for (id in ids) {
+    entry <- get0(id, envir = the$scopes, inherits = FALSE)
+    if (is.null(entry)) {
+      next
+    }
+    rm(list = id, envir = the$scopes)
     # Undo in reverse order, so a function replaced more than once ends up
     # with the original from its first replacement.
-    lapply(rev(entry$replacements), reset)
+    replacements <- entry$replacements
+    entry$replacements <- list()
+    lapply(rev(replacements), reset)
   }
-  invisible()
+  clear_counters(scope)
 }
 
 # Trace files are written under a temporary name and renamed into place, so

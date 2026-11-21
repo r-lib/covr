@@ -9,11 +9,9 @@ local_shiny_tracing_state <- function(env = parent.frame()) {
 
   withr::defer(
     {
-      lapply(rev(the$shiny_replacements), reset)
-      the$shiny_replacements <- list()
       the$shiny_app_dir <- NULL
       the$shiny_trace_dir <- NULL
-      clear_counters()
+      untrace_scope()
       the$shiny_trace_registered <- NULL
       replace_binding("shiny", "sourceUTF8", source_utf8)
       # parallel has no mcfork() on Windows, where forks aren't traced

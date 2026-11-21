@@ -1,5 +1,13 @@
 # covr (development version)
 
+* `with_coverage()`, `file_coverage()`, `function_coverage()` and the functions
+  that call them now warn (with class `covr_nested_coverage`) when one is
+  called inside another, as the enclosing call's coverage is incomplete.
+
+* `with_coverage()`, `file_coverage()` and the functions that use them no
+  longer keep the traced environment and copies of its functions in memory
+  after they return (@MichaelChirico, #789).
+
 * `lcov()` writes the `FN` record of each function on its first line that has
   a `DA` record, so `genhtml` from lcov >= 2.1 no longer fails with "unexpected
   category UNK" when a function's first expression is on a line without one,
