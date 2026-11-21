@@ -787,3 +787,15 @@ test_that("clear_counters() of a scope keeps the synced counts of other scopes",
   clear_counters("pkg")
   expect_length(ls(.counters), 0)
 })
+
+test_that("clear_counters() removes dot-prefixed keys", {
+  clear_counters()
+  withr::defer(clear_counters())
+
+  .counters[[".hidden.R:1:1"]] <- list(value = 1, functions = "f")
+  .current_test[[".hidden"]] <- "test"
+
+  clear_counters()
+
+  expect_length(ls(.counters, all.names = TRUE), 0L)
+})
