@@ -6,7 +6,7 @@
 
 * `with_coverage()`, `file_coverage()` and the functions that use them no
   longer keep the traced environment and copies of its functions in memory
-  after they return (#789).
+  after they return (@MichaelChirico, #789).
 
 * `lcov()` writes the `FN` record of each function on its first line that has
   a `DA` record, so `genhtml` from lcov >= 2.1 no longer fails with "unexpected
