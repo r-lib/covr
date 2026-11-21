@@ -2,6 +2,13 @@
 
 ## covr (development version)
 
+- [`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md) writes the
+  `FN` record of each function on its first line that has a `DA` record,
+  so `genhtml` from lcov \>= 2.1 no longer fails with “unexpected
+  category UNK” when a function’s first expression is on a line without
+  one, e.g. a doc string
+  ([\#791](https://github.com/r-lib/covr/issues/791)).
+
 - [`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
   now works when the package’s tests measure the coverage of a package
   that imports it, e.g. with
