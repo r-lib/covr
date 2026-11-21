@@ -26,6 +26,6 @@ has no traces.
 ``` r
 cov <- code_coverage("f <- function(x) x + 1", "f(1)")
 display_name(cov)
-#> source.R1b137c8a7fee:1:6:1:22:6:22:1:1 
-#> "/tmp/RtmpEczCaO/source.R1b137c8a7fee" 
+#> source.R19015f3d19f0:1:6:1:22:6:22:1:1 
+#> "/tmp/RtmpO0zbwd/source.R19015f3d19f0" 
 ```

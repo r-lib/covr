@@ -2,6 +2,20 @@
 
 ## covr (development version)
 
+- [`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md),
+  [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md),
+  [`function_coverage()`](https://covr.r-lib.org/dev/reference/function_coverage.md)
+  and the functions that call them now warn (with class
+  `covr_nested_coverage`) when one is called inside another, as the
+  enclosing call’s coverage is incomplete.
+
+- [`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md),
+  [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md)
+  and the functions that use them no longer keep the traced environment
+  and copies of its functions in memory after they return
+  ([@MichaelChirico](https://github.com/MichaelChirico),
+  [\#789](https://github.com/r-lib/covr/issues/789)).
+
 - [`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md) writes the
   `FN` record of each function on its first line that has a `DA` record,
   so `genhtml` from lcov \>= 2.1 no longer fails with “unexpected
