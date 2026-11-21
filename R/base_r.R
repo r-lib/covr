@@ -6,8 +6,8 @@
 # is read into an environment, instrumented and byte-compiled like the code of
 # `package_coverage()`, and written next to the original as `<pkg>.covr.rdb`,
 # which the loader script of the package is edited to read. The counters call a
-# native routine of covr by the symbol `.covr_count`, which the loader script of
-# base binds in the base environment, as instrumented base code can't call
+# native routine of covr as `.covr$call(.covr$count, key)`, which the loader
+# script of base binds in the base environment, as instrumented base code can't call
 # `covr:::` (`:::` is itself a base closure) and loading covr in every process
 # would change what the checks do. The loader script of base also registers a
 # finalizer that saves the counts when the process exits (see
@@ -190,8 +190,8 @@ instrument_base_r <- function(
     },
     add = TRUE
   )
-  the$count_routine <- as.symbol(".covr_count")
-  the$count_call <- as.symbol(".covr_call")
+  the$count_routine <- quote(.covr$count)
+  the$count_call <- quote(.covr$call)
   the$trace_formals <- FALSE
 
   # Each package is instrumented on its own, the largest first, so that with
@@ -581,9 +581,9 @@ patch_parallel_forks <- function(env) {
     env$mcfork <- insert(
       env$mcfork,
       2L,
-      # `.covr_call` is `.Call` (see `base_r_hook()`), so that neither covr's
+      # `.covr$call` is `.Call` (see `base_r_hook()`), so that neither covr's
       # R CMD check nor that of parallel looks up the routine.
-      list(call("if", quote(!r[1L]), call(".covr_call", as.name(".covr_zero"))))
+      list(call("if", quote(!r[1L]), quote(.covr$call(.covr$zero))))
     )
   }
   if (is.function(env$mcexit)) {
@@ -592,7 +592,7 @@ patch_parallel_forks <- function(env) {
       1L,
       list(
         quote(.covr$save()),
-        call(".covr_call", as.name(".covr_gcov_dump"))
+        quote(.covr$call(.covr$gcov_dump))
       )
     )
   }
@@ -685,7 +685,7 @@ add_lazy_environments <- function(lines) {
 }
 
 # The lines that are added to the loader script of base. Instrumented code
-# can't count until `.covr_count` is bound, so until then these only use
+# can't count until `.covr` is bound, so until then these only use
 # primitives and `.Internal()`; base is not locked while it is loaded.
 #
 # A process saves the counts it has when it exits (`.covr$save()`), or when a
@@ -708,32 +708,39 @@ base_r_hook <- function(dll_path, counters_file, trace_dir) {
   c(
     "",
     "## covr: count the code of base R that runs, see covr:::instrument_base_r()",
-    "## The counters call `.Call` by another name, as R CMD check of the base",
-    "## packages would report each of them, as the routine isn't theirs.",
-    ".covr_call <- .Call",
-    paste0(".covr_count <- ", symbol("covr_count_auto")),
-    paste0(".covr_take <- ", symbol("covr_counter_take")),
-    paste0(".covr_zero <- ", symbol("covr_counter_reset")),
-    paste0(".covr_gcov_dump <- ", symbol("covr_gcov_dump")),
-    ".covr <- list(save = function() {",
-    "    counts <- .Call(.covr_take)",
-    "    if (length(counts) > 0L) {",
-    "        tryCatch({",
-    '            dir <- Sys.getenv("COVERAGE_DIR")',
-    paste0("            if (!nzchar(dir)) dir <- ", quote_string(trace_dir)),
-    "            if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)",
-    '            tmp <- tempfile(".covr_tmp_", dir)',
-    "            on.exit(unlink(tmp))",
-    "            saveRDS(structure(list(counters_file = ",
-    paste0("                ", quote_string(counters_file), ","),
-    "                counts = counts, counters = list()),",
-    '                class = "covr_counts"), tmp)',
-    '            file.rename(tmp, tempfile("covr_trace_", dir))',
-    "        }, error = function(e) NULL, warning = function(w) NULL)",
+    "## Everything is in one list, as R's checks look at the functions in base:",
+    "## the counters call `.Call` by another name, as R CMD check would report",
+    "## each of them as calling a routine that isn't base's, and the tests",
+    "## check that the primitives in base are the known ones.",
+    ".covr <- list(",
+    "    call = .Call,",
+    paste0("    count = ", symbol("covr_count_auto"), ","),
+    paste0("    take = ", symbol("covr_counter_take"), ","),
+    paste0("    zero = ", symbol("covr_counter_reset"), ","),
+    paste0("    gcov_dump = ", symbol("covr_gcov_dump"), ","),
+    "    save = function() {",
+    "        counts <- .Call(.covr$take)",
+    "        if (length(counts) > 0L) {",
+    "            tryCatch({",
+    '                dir <- Sys.getenv("COVERAGE_DIR")',
+    paste0(
+      "                if (!nzchar(dir)) dir <- ",
+      quote_string(trace_dir)
+    ),
+    "                if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)",
+    '                tmp <- tempfile(".covr_tmp_", dir)',
+    "                on.exit(unlink(tmp))",
+    "                saveRDS(structure(list(counters_file = ",
+    paste0("                    ", quote_string(counters_file), ","),
+    "                    counts = counts, counters = list()),",
+    '                    class = "covr_counts"), tmp)',
+    '                file.rename(tmp, tempfile("covr_trace_", dir))',
+    "            }, error = function(e) NULL, warning = function(w) NULL)",
+    "        }",
+    "        .Call(.covr$zero)",
+    "        invisible()",
     "    }",
-    "    .Call(.covr_zero)",
-    "    invisible()",
-    "})",
+    ")",
     "invisible(.Internal(reg.finalizer(.BaseNamespaceEnv, function(e) .covr$save(), TRUE)))"
   )
 }

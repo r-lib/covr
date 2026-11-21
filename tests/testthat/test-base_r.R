@@ -154,10 +154,12 @@ test_that("add_base_r_hook reads the instrumented code and counts it", {
 
   # The hook is after the code of base is read, and before the rest of the script
   end <- grep("baseenv()))", lines, fixed = TRUE)
-  count <- grep("^[.]covr_count <- ", lines)
+  count <- grep("^[.]covr <- list[(]", lines)
   expect_gt(count, end)
   expect_lt(count, grep("^as.numeric", lines))
-  expect_true(any(grepl("/lib/covr/libs/covr.so", lines[count], fixed = TRUE)))
+  expect_true(any(grepl("/lib/covr/libs/covr.so", lines, fixed = TRUE)))
+  # The base namespace can't have complex assignments while it is loaded
+  expect_false(any(grepl("^[.]covr[$[]", lines)))
   expect_true(any(grepl('"/traces"', lines, fixed = TRUE)))
   expect_true(any(grepl(
     "reg.finalizer(.BaseNamespaceEnv",
