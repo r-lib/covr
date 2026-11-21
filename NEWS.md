@@ -1,5 +1,10 @@
 # covr (development version)
 
+* `lcov()` writes the `FN` record of each function on its first line that has
+  a `DA` record, so `genhtml` from lcov >= 2.1 no longer fails with "unexpected
+  category UNK" when a function's first expression is on a line without one,
+  e.g. a doc string (#791).
+
 * `package_coverage()` now works when the package's tests measure the coverage
   of a package that imports it, e.g. with `package_coverage()`. It failed with
   "Can't read coverage trace file", as an R process that loaded both

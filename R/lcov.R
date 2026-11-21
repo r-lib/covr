@@ -53,10 +53,13 @@ lcov <- function(x, file = "lcov.info") {
   out <- unlist(lapply(files, function(f) {
     file_lines <- lines[lines$filename == f, , drop = FALSE]
     file_funs <- funs[funs$filename == f, , drop = FALSE]
+    fun_lines <- lcov_function_lines(file_funs, file_lines$line)
+    file_funs <- file_funs[!is.na(fun_lines), , drop = FALSE]
+    fun_lines <- fun_lines[!is.na(fun_lines)]
     c(
       "TN:",
       paste0("SF:", f),
-      lcov_records("FN", file_funs$first_line, file_funs$functions),
+      lcov_records("FN", fun_lines, file_funs$functions),
       lcov_records("FNDA", file_funs$value, file_funs$functions),
       paste0("FNF:", NROW(file_funs)),
       paste0("FNH:", sum(file_funs$value > 0)),
@@ -87,6 +90,25 @@ lcov_records <- function(key, count, value) {
 
 lcov_count <- function(x) {
   sprintf("%.0f", x)
+}
+
+# The line of each function's `FN` record: its first line that has a `DA`
+# record, or `NA` if it has none, and is left out. A function's first
+# expression can be on a line that has none, e.g. a doc string at the start of
+# its body, which line coverage leaves out, and `genhtml` from lcov >= 2.1
+# fails with "unexpected category UNK" for a function on a line without one.
+lcov_function_lines <- function(funs, lines) {
+  lines <- sort(lines)
+  vapply(
+    seq_len(NROW(funs)),
+    function(i) {
+      inside <- lines[
+        lines >= funs$first_line[[i]] & lines <= funs$last_line[[i]]
+      ]
+      if (length(inside)) as.numeric(inside[[1]]) else NA_real_
+    },
+    numeric(1)
+  )
 }
 
 # The `BRDA`, `BRF` and `BRH` records of the branches of one file, from
