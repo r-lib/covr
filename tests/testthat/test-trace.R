@@ -126,30 +126,57 @@ test_that("process_trace() of a scope only saves the traces of that scope", {
   expect_setequal(names(process_trace()), ls(.counters))
 })
 
-test_that("reset_traces() clears recorded replacements", {
+test_that("untrace_scope() releases the traced environment", {
   local_clean_traces()
-  withr::defer(reset_traces())
+  freed <- FALSE
+  local({
+    env <- new.env(parent = globalenv())
+    reg.finalizer(env, function(e) freed <<- TRUE)
+    eval(parse(text = "f <- function(x) x + 1", keep.source = TRUE), env)
+    with_coverage(env$f(1), env = env)
+  })
+  gc()
+  expect_identical(freed, TRUE)
+})
 
+test_that("untrace_scope() of an untraced scope leaves other tracing alone", {
+  local_clean_traces()
   env <- new.env(parent = globalenv())
-  src <- srcfilecopy("f.R", c("f <- function(x) {", "  x + 1", "}"))
-  eval(parse(text = src$lines, keep.source = TRUE, srcfile = src), env)
+  eval(parse(text = "f <- function(x) x + 1", keep.source = TRUE), env)
   orig <- body(env$f)
 
   trace_environment(env, scope = "a")
-  expect_gt(length(scope_entry("a")$replacements), 0L)
-
-  reset_traces("a")
+  untrace_scope("a")
   expect_identical(body(env$f), orig)
-  expect_length(scope_entry("a")$replacements, 0L)
 
-  # A second reset_traces("a") must not re-apply stale replacements and clobber
-  # subsequent in-place modifications to env$f.
   trace_environment(env, scope = "b")
-  expect_true(is_traced(env$f))
-  reset_traces("a")
-  expect_true(is_traced(env$f))
+  untrace_scope("a")
+  expect_identical(is_traced(env$f), TRUE)
 
-  reset_traces()
+  untrace_scope()
   expect_identical(body(env$f), orig)
-  expect_length(scope_entry("b")$replacements, 0L)
+})
+
+test_that("untracing the anonymous scope leaves the Shiny scope traced", {
+  local_clean_traces()
+  app <- new.env(parent = globalenv())
+  eval(parse(text = "f <- function(x) x + 1", keep.source = TRUE), app)
+  local({
+    local_scope(shiny_scope)
+    trace_replacement(replacement("f", env = app), shiny_scope)
+  })
+  other <- new.env(parent = globalenv())
+  eval(parse(text = "g <- function(x) x", keep.source = TRUE), other)
+
+  with_coverage(other$g(1), env = other)
+  expect_identical(is_traced(app$f), TRUE)
+  app$f(1)
+  sync_counts()
+  expect_equal(
+    unname(unlist(lapply(scope_counters(shiny_scope), `[[`, "value"))),
+    1
+  )
+
+  untrace_scope(shiny_scope)
+  expect_identical(is_traced(app$f), FALSE)
 })

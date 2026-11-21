@@ -57,21 +57,19 @@ shiny_app_coverage <- function(
   trace_dir <- temp_file("covr_shiny_")
   dir.create(trace_dir)
 
-  clear_counters("")
+  clear_counters(shiny_scope)
   the$shiny_app_dir <- app_dir
   untrace_source <- trace_shiny_source()
   restore_forks <- if (should_enable_parallel_mcexit_fix()) {
-    trace_forks(trace_dir)
+    trace_forks(trace_dir, shiny_scope)
   } else {
     function() invisible()
   }
   on.exit({
     restore_forks()
     untrace_source()
-    lapply(rev(the$shiny_replacements), reset)
-    the$shiny_replacements <- list()
     the$shiny_app_dir <- NULL
-    clear_counters("")
+    untrace_scope(shiny_scope)
     clean_parse_data()
     unlink(trace_dir, recursive = TRUE, expand = FALSE)
   })
@@ -91,7 +89,7 @@ shiny_app_coverage <- function(
   )
 
   sync_counts()
-  counters <- scope_counters("")
+  counters <- scope_counters(shiny_scope)
   counters <- merge_traces(trace_dir, counters)
 
   warn_unsaved_traces(
@@ -235,22 +233,26 @@ instrument_shiny_function <- function(
   ) {
     return(invisible())
   }
+  local_scope(shiny_scope)
   replacement <- replacement(name, env = env, target_value = fun)
   if (is.null(replacement)) {
     return(invisible())
   }
 
   if (!is.null(the$shiny_trace_dir) && !isTRUE(the$shiny_trace_registered)) {
-    register_trace(asNamespace("covr"), the$shiny_trace_dir, scope = "")
+    register_trace(
+      asNamespace("covr"),
+      the$shiny_trace_dir,
+      scope = shiny_scope
+    )
     # Forked processes, e.g. from `parallel::mclapply()`, exit without running
     # the finalizer that saves the trace.
     if (should_enable_parallel_mcexit_fix()) {
-      trace_forks(the$shiny_trace_dir)
+      trace_forks(the$shiny_trace_dir, shiny_scope)
     }
     the$shiny_trace_registered <- TRUE
   }
-  the$shiny_replacements <- c(the$shiny_replacements, list(replacement))
-  replace(replacement)
+  trace_replacement(replacement, shiny_scope)
   invisible()
 }
 

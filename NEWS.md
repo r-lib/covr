@@ -1,5 +1,13 @@
 # covr (development version)
 
+* `with_coverage()`, `file_coverage()`, `function_coverage()` and the functions
+  that call them now warn (with class `covr_nested_coverage`) when one is
+  called inside another, as the enclosing call's coverage is incomplete.
+
+* `with_coverage()`, `file_coverage()` and the functions that use them no
+  longer keep the traced environment and copies of its functions in memory
+  after they return (#789).
+
 * `package_coverage()` now works when the package's tests measure the coverage
   of a package that imports it, e.g. with `package_coverage()`. It failed with
   "Can't read coverage trace file", as an R process that loaded both

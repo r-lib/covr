@@ -5,12 +5,12 @@ collect_coverage <- function(code) {
   if (!should_enable_parallel_mcexit_fix()) {
     withr::with_envvar(c("R_COVR" = "true"), code)
     sync_counts()
-    return(as_coverage(scope_counters("")))
+    return(as_coverage(scope_counters(anonymous_scope)))
   }
 
   trace_dir <- tempfile("covr_traces_")
   dir.create(trace_dir)
-  restore_forks <- trace_forks(trace_dir)
+  restore_forks <- trace_forks(trace_dir, anonymous_scope)
   on.exit({
     restore_forks()
     unlink(trace_dir, recursive = TRUE, expand = FALSE)
@@ -19,7 +19,7 @@ collect_coverage <- function(code) {
   withr::with_envvar(c("R_COVR" = "true"), code)
 
   sync_counts()
-  counters <- scope_counters("")
+  counters <- scope_counters(anonymous_scope)
   as_coverage(merge_traces(trace_dir, counters))
 }
 
@@ -110,14 +110,9 @@ with_coverage <- function(
   compiled <- start_compiled_coverage(env)
   on.exit(stop_compiled_coverage(compiled), add = TRUE)
 
+  untrace_nested_anonymous_scope()
   trace_environment(env)
-  on.exit(
-    {
-      reset_traces("")
-      clear_counters("")
-    },
-    add = TRUE
-  )
+  on.exit(untrace_scope(anonymous_scope), add = TRUE)
 
   coverage <- collect_coverage(code)
   coverage <- add_compiled_coverage(coverage, compiled)
