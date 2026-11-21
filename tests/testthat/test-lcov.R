@@ -114,3 +114,18 @@ test_that("code without function names has no function records", {
     c("FNF:0", "FNH:0", "DA:1,1", "LF:1", "LH:1")
   )
 })
+
+test_that("functions are written on a line that has a line record (#791)", {
+  cov <- code_coverage(
+    "f <- function() {\n  1\n  2\n}\ng <- function() 3",
+    "f(); g()"
+  )
+  # The first expression of `f` is on a line that has no line record, e.g. a
+  # doc string, and `g` has none
+  excluded <- list(c(2, 5))
+  names(excluded) <- attr(cov[[1]]$srcref, "srcfile")$filename
+  attr(cov, "excluded_lines") <- excluded
+  out <- lcov(cov, withr::local_tempfile())
+  expect_equal(grep("^FN:", out, value = TRUE), "FN:3,f")
+  expect_equal(grep("^DA:", out, value = TRUE), "DA:3,1")
+})
