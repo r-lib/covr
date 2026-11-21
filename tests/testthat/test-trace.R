@@ -125,3 +125,31 @@ test_that("process_trace() of a scope only saves the traces of that scope", {
   expect_named(process_trace(""), "c.R:1")
   expect_setequal(names(process_trace()), ls(.counters))
 })
+
+test_that("reset_traces() clears recorded replacements", {
+  local_clean_traces()
+  withr::defer(reset_traces())
+
+  env <- new.env(parent = globalenv())
+  src <- srcfilecopy("f.R", c("f <- function(x) {", "  x + 1", "}"))
+  eval(parse(text = src$lines, keep.source = TRUE, srcfile = src), env)
+  orig <- body(env$f)
+
+  trace_environment(env, scope = "a")
+  expect_gt(length(scope_entry("a")$replacements), 0L)
+
+  reset_traces("a")
+  expect_identical(body(env$f), orig)
+  expect_length(scope_entry("a")$replacements, 0L)
+
+  # A second reset_traces("a") must not re-apply stale replacements and clobber
+  # subsequent in-place modifications to env$f.
+  trace_environment(env, scope = "b")
+  expect_true(is_traced(env$f))
+  reset_traces("a")
+  expect_true(is_traced(env$f))
+
+  reset_traces()
+  expect_identical(body(env$f), orig)
+  expect_length(scope_entry("b")$replacements, 0L)
+})

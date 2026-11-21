@@ -93,7 +93,9 @@ reset_traces <- function(scope = NULL) {
     entry$env <- NULL
     # Undo in reverse order, so a function replaced more than once ends up
     # with the original from its first replacement.
-    lapply(rev(entry$replacements), reset)
+    replacements <- entry$replacements
+    entry$replacements <- list()
+    lapply(rev(replacements), reset)
   }
   invisible()
 }
