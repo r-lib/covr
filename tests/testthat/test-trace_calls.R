@@ -320,7 +320,7 @@ test_that("a `.Call` where the traced functions live doesn't mask the counter", 
     env
   )
   trace_environment(env)
-  withr::defer(reset_traces())
+  withr::defer(untrace_scope())
   expect_equal(env$f(1), 2)
   # Tracing again doesn't instrument the traced function again
   trace_environment(env)
@@ -786,4 +786,16 @@ test_that("clear_counters() of a scope keeps the synced counts of other scopes",
   # Without other traces, everything is cleared
   clear_counters("pkg")
   expect_length(ls(.counters), 0)
+})
+
+test_that("clear_counters() removes dot-prefixed keys", {
+  clear_counters()
+  withr::defer(clear_counters())
+
+  .counters[[".hidden.R:1:1"]] <- list(value = 1, functions = "f")
+  .current_test[[".hidden"]] <- "test"
+
+  clear_counters()
+
+  expect_length(ls(.counters, all.names = TRUE), 0L)
 })

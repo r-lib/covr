@@ -357,20 +357,20 @@ zero_counters <- function(scope = NULL) {
   zero_branches(scope)
 }
 
-# Whether each of `keys` is the key of a trace in `scope`. Keys of a package
-# start with "<package>/", and keys of the anonymous scope "" have no "/", as
-# they only have the base name of a file.
+# Whether each of `keys` is the key of a trace in `scope`. Keys of other scopes
+# start with "<scope>/", and keys of `anonymous_scope` have no "/", as they
+# only have the base name of a file.
 in_scope <- function(keys, scope) {
   trace <- !(keys %in% c("tests", "branches"))
-  if (nzchar(scope)) {
-    trace & startsWith(keys, scope_prefix(scope))
-  } else {
+  if (identical(scope, anonymous_scope)) {
     trace & !grepl("/", keys, fixed = TRUE)
+  } else {
+    trace & startsWith(keys, scope_prefix(scope))
   }
 }
 
 scope_prefix <- function(scope) {
-  if (nzchar(scope)) paste0(scope, "/") else ""
+  if (identical(scope, anonymous_scope)) "" else paste0(scope, "/")
 }
 
 # The traces of `scope` as a list, with the recorded tests, which are shared
