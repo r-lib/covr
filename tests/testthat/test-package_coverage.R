@@ -292,7 +292,7 @@ test_that("add_hooks() quotes library paths containing quotes (#774)", {
   dir.create(file.path(lib, "pkg", "R"), recursive = TRUE)
   load_script <- file.path(lib, "pkg", "R", "pkg")
   writeLines(c("local({", "})"), load_script)
-  withr::local_envvar(COVERAGE_DIR = NA)
+  withr::local_envvar(COVR_TRACE_DIR = NA, COVERAGE_DIR = NA)
 
   add_hooks("pkg", lib, fix_mcexit = TRUE)
 
@@ -305,6 +305,45 @@ test_that("add_hooks() quotes library paths containing quotes (#774)", {
   expect_equal(fix[[3]], "pkg")
   trace <- parse(text = grep("trace_environment", lines, value = TRUE))[[1]]
   expect_equal(trace[[3]][[3]][["scope"]], "pkg")
+})
+
+test_that("trace_directory() prefers COVR_TRACE_DIR over COVERAGE_DIR and default", {
+  withr::local_envvar(COVR_TRACE_DIR = NA, COVERAGE_DIR = NA)
+  expect_equal(trace_directory("/default"), "/default")
+
+  withr::with_envvar(c(COVERAGE_DIR = "/cov"), {
+    expect_equal(trace_directory("/default"), "/cov")
+  })
+  withr::with_envvar(c(COVR_TRACE_DIR = "/trace", COVERAGE_DIR = "/cov"), {
+    expect_equal(trace_directory("/default"), "/trace")
+  })
+  withr::with_envvar(c(COVR_TRACE_DIR = "", COVERAGE_DIR = "/cov"), {
+    expect_equal(trace_directory("/default"), "/cov")
+  })
+  withr::with_envvar(c(COVR_TRACE_DIR = "", COVERAGE_DIR = ""), {
+    expect_equal(trace_directory("/default"), "/default")
+  })
+
+  lib <- withr::local_tempdir()
+  dir.create(file.path(lib, "pkg", "R"), recursive = TRUE)
+  load_script <- file.path(lib, "pkg", "R", "pkg")
+  writeLines(c("local({", "})"), load_script)
+  add_hooks("pkg", lib, fix_mcexit = TRUE)
+
+  lines <- readLines(load_script)
+  hook <- parse(text = grep("register_trace", lines, value = TRUE))[[1]]
+  hook_expr <- hook[[3]][[3]][[3]]
+  fix <- parse(text = grep("fix_mcexit", lines, value = TRUE))[[1]]
+  fix_expr <- parse(text = fix[[2]])[[1]]
+
+  withr::with_envvar(c(COVR_TRACE_DIR = "/trace", COVERAGE_DIR = "/cov"), {
+    expect_equal(eval(hook_expr), "/trace")
+    expect_equal(eval(fix_expr), "/trace")
+  })
+  withr::with_envvar(c(COVR_TRACE_DIR = NA, COVERAGE_DIR = "/cov"), {
+    expect_equal(eval(hook_expr), "/cov")
+    expect_equal(eval(fix_expr), "/cov")
+  })
 })
 
 test_that("run_vignettes reports failures to build the vignettes", {

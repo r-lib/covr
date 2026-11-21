@@ -284,6 +284,8 @@ package_coverage <- function(
         R_LIBS_USER = r_libs_env_value(libs),
         R_LIBS_SITE = r_libs_env_value(site_libs),
         R_COVR = "true",
+        COVERAGE_DIR = NA,
+        COVR_TRACE_DIR = NA,
         R_TESTS = file.path(R.home("share"), "R", "tests-startup.R"),
         rust$env
       ),
@@ -775,6 +777,15 @@ run_r_live <- function(infile, outfile) {
   )
 }
 
+# Resolve the directory where trace files are written. `COVR_TRACE_DIR` takes
+# precedence over `COVERAGE_DIR` so callers running under harnesses that own
+# `COVERAGE_DIR` (such as Bazel) can isolate covr's private trace files.
+trace_directory <- function(default = "") {
+  non_empty(Sys.getenv("COVR_TRACE_DIR", "")) %||%
+    non_empty(Sys.getenv("COVERAGE_DIR", "")) %||%
+    default
+}
+
 # Add hooks to the installed package
 # Installed packages have lazy loading code to setup the lazy load database at
 # pkg_name/R/pkg_name. This function adds a user level onLoad Hook to the
@@ -803,7 +814,7 @@ add_hooks <- function(
   counters_file = NULL
 ) {
   trace_dir <- paste0(
-    "Sys.getenv(\"COVERAGE_DIR\", ",
+    "covr:::trace_directory(",
     encodeString(lib, quote = '"'),
     ")"
   )
