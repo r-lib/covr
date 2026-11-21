@@ -153,16 +153,25 @@ base_r_compiled_coverage <- function(
   } else {
     lapply(batches, run_batch)
   }
-  failed <- vlapply(lines, inherits, "try-error")
+  # A worker that was killed, e.g. when it ran out of memory, gives `NULL`
+  # rather than an error, and its objects would be missing from the coverage.
+  failed <- vlapply(lines, function(x) {
+    inherits(x, "try-error") || !is.list(x)
+  })
   if (any(failed)) {
+    reason <- lines[failed][[1]]
     covr_abort(c(
       "Can't run gcov on {sum(failed)} batch{?es} of objects.",
-      x = as.character(lines[failed][[1]])
+      x = if (inherits(reason, "try-error")) {
+        as.character(reason)
+      } else {
+        "The process running gcov was killed."
+      }
     ))
   }
   step("gcov")
 
-  lines <- sum_gcov_lines(do.call(rbind, lines))
+  lines <- sum_gcov_lines(do.call(rbind, lapply(lines, `[[`, "lines")))
   step("sum")
 
   files <- split(lines, factor(lines$file, unique(lines$file)))
@@ -247,7 +256,7 @@ base_r_gcov_batch <- function(
       if (NROW(lines)) {
         lines <- lines[keep(lines$file), , drop = FALSE]
       }
-      sum_gcov_lines(lines)
+      list(lines = sum_gcov_lines(lines))
     },
     silent = TRUE
   )

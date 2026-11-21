@@ -216,11 +216,20 @@ instrument_base_r <- function(
     lapply(order, instrument_one)
   }
   names(results) <- order
-  failed <- vlapply(results, inherits, "try-error")
+  # A worker that was killed, e.g. when it ran out of memory, gives `NULL`
+  # rather than an error.
+  failed <- vlapply(results, function(x) {
+    inherits(x, "try-error") || !is.list(x)
+  })
   if (any(failed)) {
+    reason <- results[failed][[1]]
     covr_abort(c(
       "Can't instrument {.pkg {order[failed]}}.",
-      x = conditionMessage(attr(results[failed][[1]], "condition"))
+      x = if (inherits(reason, "try-error")) {
+        conditionMessage(attr(reason, "condition"))
+      } else {
+        "The process instrumenting it was killed."
+      }
     ))
   }
   results <- results[packages]
@@ -803,8 +812,10 @@ uninstrument_base_r <- function(
 
 # Restore the loaders of `packages` from their backups, which are only removed
 # once they are restored, so that a package whose loader can't be restored can
-# still be restored later.
+# still be restored later. base is restored last, as the others count with the
+# bindings of its instrumented loader: it stays instrumented if another fails.
 restore_base_r_loaders <- function(lib, packages) {
+  packages <- c(setdiff(packages, "base"), intersect(packages, "base"))
   for (pkg in packages) {
     original <- base_r_loader_original(lib, pkg)
     if (!file.exists(original)) {
