@@ -2,6 +2,13 @@
 
 ## covr (development version)
 
+- The environment variable that overrides where instrumented packages
+  save their trace files is now `COVR_TRACE_DIR`; `COVERAGE_DIR` is no
+  longer read, as it collides with the variable Bazel sets for
+  `bazel coverage`
+  ([@MichaelChirico](https://github.com/MichaelChirico),
+  [\#790](https://github.com/r-lib/covr/issues/790)).
+
 - [`with_coverage()`](https://covr.r-lib.org/dev/reference/with_coverage.md),
   [`file_coverage()`](https://covr.r-lib.org/dev/reference/file_coverage.md),
   [`function_coverage()`](https://covr.r-lib.org/dev/reference/function_coverage.md)
