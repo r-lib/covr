@@ -292,7 +292,7 @@ test_that("add_hooks() quotes library paths containing quotes (#774)", {
   dir.create(file.path(lib, "pkg", "R"), recursive = TRUE)
   load_script <- file.path(lib, "pkg", "R", "pkg")
   writeLines(c("local({", "})"), load_script)
-  withr::local_envvar(COVR_TRACE_DIR = NA, COVERAGE_DIR = NA)
+  withr::local_envvar(COVR_TRACE_DIR = NA)
 
   add_hooks("pkg", lib, fix_mcexit = TRUE)
 
@@ -307,23 +307,7 @@ test_that("add_hooks() quotes library paths containing quotes (#774)", {
   expect_equal(trace[[3]][[3]][["scope"]], "pkg")
 })
 
-test_that("trace_directory() prefers COVR_TRACE_DIR over COVERAGE_DIR and default", {
-  withr::local_envvar(COVR_TRACE_DIR = NA, COVERAGE_DIR = NA)
-  expect_equal(trace_directory("/default"), "/default")
-
-  withr::with_envvar(c(COVERAGE_DIR = "/cov"), {
-    expect_equal(trace_directory("/default"), "/cov")
-  })
-  withr::with_envvar(c(COVR_TRACE_DIR = "/trace", COVERAGE_DIR = "/cov"), {
-    expect_equal(trace_directory("/default"), "/trace")
-  })
-  withr::with_envvar(c(COVR_TRACE_DIR = "", COVERAGE_DIR = "/cov"), {
-    expect_equal(trace_directory("/default"), "/cov")
-  })
-  withr::with_envvar(c(COVR_TRACE_DIR = "", COVERAGE_DIR = ""), {
-    expect_equal(trace_directory("/default"), "/default")
-  })
-
+test_that("add_hooks() saves traces to COVR_TRACE_DIR, not COVERAGE_DIR", {
   lib <- withr::local_tempdir()
   dir.create(file.path(lib, "pkg", "R"), recursive = TRUE)
   load_script <- file.path(lib, "pkg", "R", "pkg")
@@ -341,8 +325,8 @@ test_that("trace_directory() prefers COVR_TRACE_DIR over COVERAGE_DIR and defaul
     expect_equal(eval(fix_expr), "/trace")
   })
   withr::with_envvar(c(COVR_TRACE_DIR = NA, COVERAGE_DIR = "/cov"), {
-    expect_equal(eval(hook_expr), "/cov")
-    expect_equal(eval(fix_expr), "/cov")
+    expect_equal(eval(hook_expr), lib)
+    expect_equal(eval(fix_expr), lib)
   })
 })
 
@@ -503,7 +487,7 @@ test_that("covr.allow_failures returns coverage despite test failures", {
 test_that("package_coverage reports bad trace files", {
   code <- paste0(
     "writeBin(as.raw(1:5), file.path(",
-    "Sys.getenv('COVERAGE_DIR', .libPaths()[1]), 'covr_trace_corrupt'))"
+    "Sys.getenv('COVR_TRACE_DIR', .libPaths()[1]), 'covr_trace_corrupt'))"
   )
   pkg <- test_path("TestSummary")
 

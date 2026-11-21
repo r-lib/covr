@@ -51,7 +51,7 @@
   ) {
     start_shiny_app_tracing(
       app_dir,
-      Sys.getenv("COVERAGE_DIR"),
+      Sys.getenv("COVR_TRACE_DIR"),
       as.environment(paste0("package:", pkgname))
     )
   }

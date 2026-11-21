@@ -1,5 +1,9 @@
 # covr (development version)
 
+* The environment variable that overrides where instrumented packages save
+  their trace files is now `COVR_TRACE_DIR`; `COVERAGE_DIR` is no longer read,
+  as it collides with the variable Bazel sets for `bazel coverage` (#790).
+
 * `package_coverage()` now works when the package's tests measure the coverage
   of a package that imports it, e.g. with `package_coverage()`. It failed with
   "Can't read coverage trace file", as an R process that loaded both
