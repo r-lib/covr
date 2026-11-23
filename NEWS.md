@@ -1,5 +1,11 @@
 # covr (development version)
 
+* New `instrument_base_r()`, `uninstrument_base_r()`, `base_r_code_coverage()`
+  and `base_r_compiled_coverage()` measure the coverage of base R itself, both
+  its R code and its C and Fortran code, e.g. while running `make check` on a
+  build of R from source (#782). `base_r_exclusions()` lists the functions
+  that are not instrumented by default, as R's own checks inspect their code.
+  
 * The environment variable that overrides where instrumented packages save
   their trace files is now `COVR_TRACE_DIR`; `COVERAGE_DIR` is no longer read,
   as it collides with the variable Bazel sets for `bazel coverage`

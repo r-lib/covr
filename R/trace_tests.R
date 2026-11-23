@@ -635,14 +635,12 @@ in_caller_body <- function(n, call) {
 is_covr_count_call <- function(expr) {
   if (
     identical(expr[[1]], as.symbol(".Call")) ||
-      identical(expr[[1]], quote(base::.Call))
+      identical(expr[[1]], quote(base::.Call)) ||
+      (!is.null(the$count_call) && identical(expr[[1]], the$count_call))
   ) {
     return(
       length(expr) > 1L &&
-        identical(
-          expr[[2]],
-          call(":::", as.symbol("covr"), as.symbol("covr_count"))
-        )
+        identical(expr[[2]], count_routine())
     )
   }
   # Constructed by hand like in `trace_calls()`, to avoid a NOTE from R CMD

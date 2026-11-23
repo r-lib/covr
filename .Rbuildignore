@@ -24,3 +24,4 @@ _dev\.R$
 ^\.covrignore$
 ^\.git$
 ^CODE_OF_CONDUCT\.md$
+^vignettes/articles$

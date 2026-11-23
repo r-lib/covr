@@ -17,6 +17,14 @@ news:
   - text: "covr 4.0.0"
     href: https://www.jimhester.com/post/covr-4-0-0/
 
+articles:
+  - title: Articles
+    navbar: ~
+    contents:
+      - how_it_works
+      - shiny
+      - articles/base-r
+
 reference:
   - title: Measure coverage
     desc: Run code or tests and record which expressions were evaluated.
@@ -31,6 +39,15 @@ reference:
       - shiny_app_coverage
       - covr-package
       - in_covr
+
+  - title: Coverage of R itself
+    desc: Measure the code of base R, e.g. while running its own checks.
+    contents:
+      - instrument_base_r
+      - uninstrument_base_r
+      - base_r_code_coverage
+      - base_r_compiled_coverage
+      - base_r_exclusions
 
   - title: Inspect and combine results
     contents:

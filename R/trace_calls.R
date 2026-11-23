@@ -37,8 +37,8 @@ trace_calls <- function(
       # process where the key isn't registered, e.g. one that a traced
       # function was sent to, the call runs but doesn't count.
       as.call(list(
-        the$dot_call %||% as.symbol(".Call"),
-        call(":::", as.symbol("covr"), as.symbol("covr_count")),
+        the$count_call %||% the$dot_call %||% as.symbol(".Call"),
+        count_routine(),
         key
       ))
     }
@@ -167,15 +167,19 @@ trace_calls <- function(
       fun_body <- trace_calls(fun_body, parent_functions)
     }
 
-    new_formals <- trace_formals(
-      formals(x),
-      parent_functions,
-      attr(x, "srcref")
-    )
-    if (is.null(new_formals)) {
-      new_formals <- list()
+    # The default arguments of the base packages aren't traced (see
+    # `instrument_base_r()`), as `R CMD check` compares them with the docs.
+    if (!isFALSE(the$trace_formals)) {
+      new_formals <- trace_formals(
+        formals(x),
+        parent_functions,
+        attr(x, "srcref")
+      )
+      if (is.null(new_formals)) {
+        new_formals <- list()
+      }
+      formals(x) <- new_formals
     }
-    formals(x) <- new_formals
     body(x) <- fun_body
     x
   } else if (is.pairlist(x)) {
@@ -192,6 +196,16 @@ trace_calls <- function(
 
 .counters <- new.env(parent = emptyenv())
 .current_test <- new.env(parent = emptyenv())
+
+# The expression for the native routine that the counters call: by default
+# `covr:::covr_count`, or `the$count_routine`, which `instrument_base_r()` sets
+# to an expression for a routine that the loader of base binds, as the
+# instrumented code of base R can't call `:::`. It also sets `the$count_call` to
+# an expression for `.Call`, as `R CMD check` of the base packages would report
+# every counter that calls `.Call` with a routine it can't find.
+count_routine <- function() {
+  the$count_routine %||% call(":::", as.symbol("covr"), as.symbol("covr_count"))
+}
 
 # Make `covr_count()` count the evaluations of `key` (see src/count.c). A key
 # keeps its count for the life of the process, also after `clear_counters()`,
@@ -398,9 +412,14 @@ scope_counters <- function(scope) {
 
 # Generate a key for a call
 #
+# The keys are made with the base name of the file, except for the code of base
+# R (see `count_routine()`), which has many files with the same name in
+# different packages.
+#
 # @param x the srcref of the call to create a key for
 key <- function(x) {
-  paste(collapse = ":", c(get_source_filename(x), x))
+  full_names <- !is.null(the$count_routine)
+  paste(collapse = ":", c(get_source_filename(x, full.names = full_names), x))
 }
 
 # Trace the default values of the arguments of a function whose srcref is
