@@ -561,6 +561,50 @@ test_that("package_coverage works if its tests measure a package that imports it
   expect_equal(tally_coverage(cov)$value, c(3, 3))
 })
 
+test_that("package_coverage measures several packages together", {
+  # TestNestedInner imports TestNestedOuter, so it is installed after it, and
+  # its test runs `outer_fun()` once more than the two calls of
+  # TestNestedOuter's tests. Both files have an expression at the same
+  # position.
+  withr::local_envvar(R_ENVIRON = NA, R_PROFILE = NA)
+  cov <- package_coverage(
+    test_path(c("TestNestedInner", "TestNestedOuter"))
+  )
+  df <- tally_coverage(cov)
+  expect_equal(
+    df$filename,
+    rep(c("TestNestedInner/R/utils.R", "TestNestedOuter/R/utils.R"), each = 2)
+  )
+  expect_equal(df$value, c(1, 1, 3, 3))
+  expect_equal(attr(cov, "root"), normalizePath(test_path(".")))
+  expect_equal(
+    attr(cov, "package")$package,
+    c("TestNestedInner", "TestNestedOuter")
+  )
+})
+
+test_that("package_coverage records the test files of several packages in their directories", {
+  withr::local_envvar(R_ENVIRON = NA, R_PROFILE = NA)
+  withr::local_options(covr.record_tests = TRUE)
+  cov <- package_coverage(
+    test_path(c("TestNestedInner", "TestNestedOuter"))
+  )
+  expect_setequal(
+    tally_tests(cov)$test_file,
+    c(
+      "TestNestedInner/tests/testthat/test-inner.R",
+      "TestNestedOuter/tests/testthat/test-nested.R"
+    )
+  )
+})
+
+test_that("package_coverage errors for the same package twice", {
+  expect_snapshot(
+    package_coverage(test_path(c("TestSummary", "TestSummary"))),
+    error = TRUE
+  )
+})
+
 test_that("package_coverage works if the site libraries are removed (#560)", {
   # As renv does when it activates its sandbox, e.g. if the package imports
   # renv in an renv project, where this session has no site libraries. Site

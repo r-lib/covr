@@ -1,5 +1,19 @@
 # covr (development version)
 
+* `package_coverage()` measures several packages together when `path` has
+  several paths, e.g. the packages of a monorepo. They are installed and
+  instrumented in the same library, the tests of each are run, and file names
+  are relative to the directory that contains them, e.g. `pkgA/R/utils.R`
+  (#783).
+
+* New `instrument_packages()`, `uninstrument_packages()`,
+  `local_instrumented_packages()` and `trace_coverage()` measure the coverage
+  of installed packages whose code is run by something other than covr, e.g.
+  a test runner or build system. Every R process that loads an instrumented
+  package saves its counts in `COVR_TRACE_DIR` (or `trace_dir`), and
+  `trace_coverage()` reads them into one coverage object for all the
+  packages (#783).
+
 * New `instrument_base_r()`, `uninstrument_base_r()`, `base_r_code_coverage()`
   and `base_r_compiled_coverage()` measure the coverage of base R itself, both
   its R code and its C and Fortran code, e.g. while running `make check` on a

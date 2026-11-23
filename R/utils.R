@@ -429,7 +429,21 @@ temp_file <- function(pattern = "file", tmpdir = temp_dir(), fileext = "") {
 }
 
 get_package_name <- function(x) {
-  attr(x, "package")$package %||% "coverage"
+  package_label(x, sep = "-") %||% "coverage"
+}
+
+# The name of the package of the coverage `x`, the names of its packages
+# separated by `sep` if it has several (see `coverage_package()`), or `NULL`.
+package_label <- function(x, sep = ", ") {
+  pkg <- attr(x, "package")$package
+  if (!is.null(pkg)) paste(pkg, collapse = sep)
+}
+
+# The directory of the package of the coverage `x`, or for the coverage of
+# several packages, the directory its file names are relative to.
+coverage_base_path <- function(x) {
+  path <- attr(x, "package")$path
+  if (length(path) > 1L) attr(x, "root") else path
 }
 
 get_source_filename <- function(

@@ -21,8 +21,9 @@
 #' branches and the number of branches taken.
 #'
 #' Source file paths (`SF`) are written as covr reports them, for a package
-#' relative to the package root, so tools such as `genhtml` should be run from
-#' that directory.
+#' relative to the package root, and for several packages relative to the
+#' directory that contains all of them, so tools such as `genhtml` should be
+#' run from that directory.
 #'
 #' @param x the coverage object returned from [package_coverage()]
 #' @param file the name of the LCOV file

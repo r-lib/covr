@@ -381,7 +381,7 @@ zero_coverage <- function(x, ...) {
   ) {
     rstudio_source_markers(
       source_markers(coverage_data),
-      attr(x, "package")$path
+      coverage_base_path(x)
     )
     invisible(res)
   } else {

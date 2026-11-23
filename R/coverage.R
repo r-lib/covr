@@ -113,7 +113,7 @@ c.coverage <- function(...) {
     )
   }
   packages <- unique(vcapply(covs, function(x) {
-    attr(x, "package")$package %||% NA_character_
+    package_label(x) %||% NA_character_
   }))
   if (length(packages) > 1L) {
     covr_abort(

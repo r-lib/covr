@@ -21,7 +21,8 @@ package_coverage(
 )
 }
 \arguments{
-\item{path}{file path to the package, or to an installed package.}
+\item{path}{file path to the package, or to an installed package. Several
+paths measure the coverage of several packages together (see below).}
 
 \item{type}{run the package \sQuote{tests}, \sQuote{vignettes},
 \sQuote{examples}, \sQuote{all}, or \sQuote{none}. The default is
@@ -32,8 +33,9 @@ is simply summed into one coverage object. If \code{FALSE} separate objects
 are used for each type of coverage.}
 
 \item{relative_path}{whether to output the paths as relative or absolute
-paths. If a string, it is interpreted as a root path and all paths will be
-relative to that root.}
+paths, relative to the package root, or for several packages, to the
+directory that contains all of them. If a string, it is interpreted as a
+root path and all paths will be relative to that root.}
 
 \item{quiet}{whether to load and compile the package quietly, useful for
 debugging errors.}
@@ -133,6 +135,18 @@ global option \code{covr.fix_parallel_mcexit} or the environment variable
 \code{COVR_FIX_PARALLEL_MCEXIT}.
 #endif
 }
+\section{Several packages}{
+
+With several \code{path}s, e.g. the packages of a monorepo, all the packages are
+installed and instrumented in the same library, the tests (and other
+\code{type}s) of each are run in turn, and \code{code} is run once with all of them
+attached. The coverage of each package includes the code that the tests of
+the others run, e.g. of a package that they import. File names are
+relative to the directory that contains all the packages, e.g.
+\code{pkgA/R/utils.R}. To run the code some other way, e.g. with a test runner
+or build system, see \code{\link[=instrument_packages]{instrument_packages()}}.
+}
+
 \seealso{
 \code{\link[=exclusions]{exclusions()}} For details on excluding parts of the
 package from the coverage calculations.

@@ -234,6 +234,36 @@ therefore also works with parallel code.
 However a process which is killed (e.g. a Shiny app or worker process stopped with `SIGKILL`) never runs its finalizer, so its coverage is lost.
 Each process therefore also leaves a marker file when it loads the package, which it removes once its coverage is saved; **covr** warns about any markers left over.
 
+## Several packages ##
+
+A process can load more than one instrumented package, e.g. a package and one
+that imports it.
+Each package keeps its own counters, whose keys start with the package's name,
+so files with the same name in different packages don't collide, and each
+saves its own trace.
+`package_coverage()` uses this to measure several packages at once, e.g. those
+of a monorepo: `package_coverage(c("pkgA", "pkgB"))` installs and instruments
+all of them in the same library, runs the tests of each, and gives the file
+names relative to the directory that contains them, e.g. `pkgA/R/utils.R`.
+
+The same steps are available on their own, for code that is run by something
+other than **covr**, e.g. a test runner or build system:
+
+```r
+# With pkgA and pkgB installed in `lib` with `R CMD INSTALL --with-keep.source`
+instrument_packages(c("pkgA", "pkgB"), lib = "lib", trace_dir = "traces")
+
+# Run anything that loads the packages from `lib`. Processes save their counts
+# in the directory in `COVR_TRACE_DIR`, or in `trace_dir` if it isn't set.
+
+cov <- trace_coverage("traces")
+lcov(cov, "lcov.info")
+uninstrument_packages(c("pkgA", "pkgB"), lib = "lib")
+```
+
+`local_instrumented_packages()` instruments packages until the function that
+calls it returns.
+
 ## Packages loaded with `load_all()` ##
 
 `package_coverage()` isn't the only way to measure compiled code.

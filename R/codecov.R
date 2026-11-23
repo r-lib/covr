@@ -234,7 +234,7 @@ codecov <- function(
 codecov_token <- function(token, coverage) {
   token <- token %||% Sys.getenv("CODECOV_TOKEN")
   if (!nzchar(token)) {
-    token <- extract_from_yaml(attr(coverage, "package")$path)
+    token <- extract_from_yaml(coverage_base_path(coverage))
   }
   if (nzchar(token)) token
 }

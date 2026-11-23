@@ -219,6 +219,27 @@ add_rust_flags <- function(flags, rust) {
   )
 }
 
+# The R processes that run the code write the counts of all the packages'
+# Rust code to the profiles directory of the first of the `rust` setups (from
+# `rust_coverage_setup()`, by package), as a process can load several of them.
+# Each package's coverage is read from all of the counts.
+share_rust_profiles <- function(rust) {
+  rust <- compact(rust)
+  if (length(rust) > 1L) {
+    for (name in names(rust)[-1]) {
+      rust[[name]]$profiles <- rust[[1]]$profiles
+      rust[[name]]$env <- rust[[1]]$env
+    }
+  }
+  rust
+}
+
+# The environment of the R processes that run the code, for the `rust`
+# setups.
+rust_env <- function(rust) {
+  if (length(rust)) rust[[1]]$env
+}
+
 # The counts of Rust code are written when the process exits, or when its DLL
 # is unloaded, which doesn't happen on macOS, as Rust's thread-local variables
 # keep the DLL loaded, nor on Linux once the code used thread-local variables

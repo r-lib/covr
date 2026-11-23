@@ -55,7 +55,18 @@
 #' `COVR_FIX_PARALLEL_MCEXIT`.
 #' #endif
 #'
-#' @param path file path to the package, or to an installed package.
+#' @section Several packages:
+#' With several `path`s, e.g. the packages of a monorepo, all the packages are
+#' installed and instrumented in the same library, the tests (and other
+#' `type`s) of each are run in turn, and `code` is run once with all of them
+#' attached. The coverage of each package includes the code that the tests of
+#' the others run, e.g. of a package that they import. File names are
+#' relative to the directory that contains all the packages, e.g.
+#' `pkgA/R/utils.R`. To run the code some other way, e.g. with a test runner
+#' or build system, see [instrument_packages()].
+#'
+#' @param path file path to the package, or to an installed package. Several
+#'   paths measure the coverage of several packages together (see below).
 #' @param type run the package \sQuote{tests}, \sQuote{vignettes},
 #' \sQuote{examples}, \sQuote{all}, or \sQuote{none}. The default is
 #' \sQuote{tests}.
@@ -63,8 +74,9 @@
 #' is simply summed into one coverage object. If `FALSE` separate objects
 #' are used for each type of coverage.
 #' @param relative_path whether to output the paths as relative or absolute
-#'   paths. If a string, it is interpreted as a root path and all paths will be
-#'   relative to that root.
+#'   paths, relative to the package root, or for several packages, to the
+#'   directory that contains all of them. If a string, it is interpreted as a
+#'   root path and all paths will be relative to that root.
 #' @param quiet whether to load and compile the package quietly, useful for
 #' debugging errors.
 #' @param clean whether to clean temporary output files after running, mainly
@@ -116,8 +128,17 @@ package_coverage <- function(
   allow_failures = getOption("covr.allow_failures", FALSE),
   show_code_output = FALSE
 ) {
-  pkg <- as_package(path)
-  installed <- is_installed_package(pkg$path)
+  if (!is.character(path) || length(path) == 0) {
+    covr_abort("{.arg path} must be a character vector of package paths.")
+  }
+  pkgs <- lapply(path, as_package)
+  pkg_names <- vcapply(pkgs, `[[`, "package")
+  if (anyDuplicated(pkg_names)) {
+    covr_abort(
+      "{.arg path} has the package {.pkg {unique(pkg_names[duplicated(pkg_names)])}} more than once."
+    )
+  }
+  installed <- vlapply(pkgs, function(pkg) is_installed_package(pkg$path))
 
   if (missing(type)) {
     type <- "tests"
@@ -125,15 +146,15 @@ package_coverage <- function(
 
   type <- parse_type(type)
 
-  if (
-    installed &&
-      "tests" %in% type &&
-      !dir.exists(file.path(pkg$path, "tests"))
-  ) {
-    covr_abort(c(
-      "Can't find tests in the installed package {.pkg {pkg$package}}.",
-      i = "Install it with {.code R CMD INSTALL --install-tests}."
-    ))
+  if ("tests" %in% type) {
+    for (pkg in pkgs[installed]) {
+      if (!dir.exists(file.path(pkg$path, "tests"))) {
+        covr_abort(c(
+          "Can't find tests in the installed package {.pkg {pkg$package}}.",
+          i = "Install it with {.code R CMD INSTALL --install-tests}."
+        ))
+      }
+    }
   }
 
   run_separately <- !isTRUE(combine_types) && length(type) > 1
@@ -150,26 +171,19 @@ package_coverage <- function(
       attr(res[[t]], "type") <- t
     }
 
-    attr(res, "package") <- pkg
+    attr(res, "package") <- coverage_package(pkgs)
     class(res) <- "coverages"
     return(res)
   }
 
-  if (is.character(relative_path)) {
-    if (length(relative_path) != 1L) {
-      covr_abort(c(
-        "{.arg relative_path} must be {.code TRUE}, {.code FALSE}, or a single string.",
-        x = "It is a character vector of length {length(relative_path)}."
-      ))
-    }
-    root <- normalize_path(relative_path)
-  } else if (isTRUE(relative_path)) {
-    root <- pkg$path
-  } else {
-    root <- NULL
+  if (is.character(relative_path) && length(relative_path) != 1L) {
+    covr_abort(c(
+      "{.arg relative_path} must be {.code TRUE}, {.code FALSE}, or a single string.",
+      x = "It is a character vector of length {length(relative_path)}."
+    ))
   }
 
-  if (!installed) {
+  for (pkg in pkgs[!installed]) {
     check_source_paths(pkg)
   }
 
@@ -187,7 +201,7 @@ package_coverage <- function(
     succeeded <- FALSE
     on.exit(
       {
-        if (!installed) {
+        for (pkg in pkgs[!installed]) {
           clean_objects(pkg$path)
           clean_gcov(pkg$path)
         }
@@ -201,57 +215,57 @@ package_coverage <- function(
   }
 
   # clean any dlls prior to trying to install
-  if (!installed) {
+  for (pkg in pkgs[!installed]) {
     clean_objects(pkg$path)
   }
 
-  # Measure the coverage of Rust code, if the package has any
-  manifests <- if (!installed) rust_manifests(pkg$path)
-  rust <- if (length(manifests)) {
-    rust_coverage_setup(pkg$path, file.path(install_path, "rust_coverage"))
+  # Measure the coverage of Rust code, if the packages have any. Each package
+  # builds its code in its own directory, but all write their counts to the
+  # same one, as a process can load several of them.
+  rust <- list()
+  for (pkg in pkgs[!installed]) {
+    if (length(rust_manifests(pkg$path))) {
+      dir <- file.path(install_path, "rust_coverage")
+      if (length(pkgs) > 1L) {
+        dir <- file.path(dir, pkg$package)
+      }
+      rust[[pkg$package]] <- rust_coverage_setup(pkg$path, dir)
+    }
   }
+  rust <- share_rust_profiles(rust)
 
-  full_traversal <- getOption(
-    "covr.full_traversal",
-    # DESCRIPTION field names are lowercased by `read_description()`
-    isTRUE(as.logical(pkg[[tolower("Config/covr/full_traversal")]]))
-  )
-  counters_file <- NULL
-  if (installed) {
-    # `R CMD INSTALL` fails to reinstall an installed package on Windows, and
-    # only copies it elsewhere, so copy it directly (#638).
-    copy_installed_package(pkg, install_path)
-  } else {
-    # The package is instrumented and byte-compiled once after it is
-    # installed, so there is no point byte-compiling the original code.
-    instrument <- isTRUE(install_instrument())
-    install_package(
-      pkg,
-      install_path,
-      add_rust_flags(flags, rust),
-      quiet,
-      env = rust$build_env,
-      byte_compile = !instrument
-    )
-    if (instrument) {
-      counters_file <- instrument_package(
+  # Packages are installed before the packages that depend on them, and only
+  # instrumented once all are installed: instrumenting a package loads the
+  # packages it imports, which would save their traces if they were
+  # instrumented already.
+  instrument <- isTRUE(install_instrument())
+  for (pkg in sort_by_dependencies(pkgs)) {
+    if (is_installed_package(pkg$path)) {
+      # `R CMD INSTALL` fails to reinstall an installed package on Windows, and
+      # only copies it elsewhere, so copy it directly (#638).
+      copy_installed_package(pkg, install_path)
+    } else {
+      # The package is instrumented and byte-compiled once after it is
+      # installed, so there is no point byte-compiling the original code.
+      pkg_rust <- rust[[pkg$package]]
+      install_package(
         pkg,
         install_path,
-        full_traversal = full_traversal
+        add_rust_flags(flags, pkg_rust),
+        quiet,
+        env = pkg_rust$build_env,
+        byte_compile = !instrument
       )
-    }
-    if (!is.null(rust)) {
-      rust <- rust_check_build(rust)
+      if (!is.null(pkg_rust)) {
+        rust[[pkg$package]] <- rust_check_build(pkg_rust)
+      }
     }
   }
-
-  # add hooks to the package startup
-  add_hooks(
-    pkg$package,
+  # The code of installed packages is instrumented when they are loaded
+  instrument_library_packages(
+    pkgs,
     install_path,
-    fix_mcexit = should_enable_parallel_mcexit_fix(pkg),
-    full_traversal = full_traversal,
-    counters_file = counters_file
+    ahead_of_time = instrument & !installed
   )
 
   libs <- env_path(install_path, .libPaths())
@@ -286,50 +300,19 @@ package_coverage <- function(
         R_COVR = "true",
         COVR_TRACE_DIR = NA,
         R_TESTS = file.path(R.home("share"), "R", "tests-startup.R"),
-        rust$env
+        rust_env(rust)
       ),
       {
         withCallingHandlers(
           {
-            if ("vignettes" %in% type) {
-              type <- type[type != "vignettes"]
-              run_vignettes(pkg, install_path)
+            for (pkg in pkgs) {
+              run_package_types(pkg, install_path, type, ...)
             }
 
-            test_installed <- function(
-              types,
-              outDir = file.path(install_path, pkg$package),
-              ...
-            ) {
-              dir.create(outDir, showWarnings = FALSE, recursive = TRUE)
-              outDir <- normalize_path(outDir)
-              result <- tools::testInstalledPackage(
-                pkg$package,
-                outDir = outDir,
-                types = types,
-                lib.loc = install_path,
-                ...
-              )
-              if (result != 0L) {
-                show_failures(outDir)
-              }
-            }
-            if ("examples" %in% type) {
-              type <- type[type != "examples"]
-              # testInstalledPackage explicitly sets R_LIBS="" on windows, and does
-              # not restore it after, so we need to reset it ourselves.
-              withr::with_envvar(c(R_LIBS = Sys.getenv("R_LIBS")), {
-                test_installed("examples", ...)
-              })
-            }
-            if ("tests" %in% type) {
-              test_installed("tests", ...)
-            }
-
-            # We always run the commands file (even if empty) to load the package and
-            # initialize all the counters to 0.
+            # We always run the commands file (even if empty) to load the
+            # packages and initialize all the counters to 0.
             run_commands(
-              pkg,
+              pkgs,
               install_path,
               code,
               show_output = show_code_output
@@ -377,101 +360,107 @@ package_coverage <- function(
 
   warn_unsaved_traces(
     install_path,
-    cli::format_inline("loaded {.pkg {pkg$package}}"),
+    cli::format_inline("loaded {.pkg {pkg_names}}"),
     "Did a test leave a Shiny app, callr session, or future worker running?"
   )
 
-  if (installed) {
-    # `R CMD INSTALL` copies an installed package rather than building it, so
-    # its R code is only available from the srcrefs kept when it was
-    # installed, whose file names are in the source it was installed from.
-    # Its compiled code isn't instrumented (#638).
-    pkg$path <- installed_source_path(coverage)
-    if (is.null(pkg$path)) {
-      covr_abort(c(
-        "Can't find source references in the installed package {.pkg {pkg$package}}.",
-        i = "Install it with {.code R CMD INSTALL --with-keep.source}."
-      ))
-    }
-    if (isTRUE(relative_path)) {
-      root <- pkg$path
-    }
-    res <- NULL
-  } else {
-    res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
-  }
+  # `R CMD INSTALL` copies an installed package rather than building it, so
+  # its R code is only available from the srcrefs kept when it was installed,
+  # whose file names are in the source it was installed from. Its compiled
+  # code isn't instrumented (#638), and the files in its `.covrignore` aren't
+  # excluded.
+  pkgs <- Map(
+    function(pkg, installed) {
+      if (installed) {
+        pkg["path"] <- list(NULL)
+      }
+      pkg$ignore <- !installed
+      pkg
+    },
+    pkgs,
+    installed
+  )
+  pkgs <- trace_source_paths(coverage, pkgs)
 
-  if (!is.null(rust)) {
+  res <- NULL
+  for (pkg in pkgs[!installed]) {
+    res <- c(res, run_gcov(pkg$path, quiet = quiet, clean = clean))
+  }
+  for (name in names(rust)) {
+    pkg <- pkgs[[match(name, pkg_names)]]
     objects <- list.files(
-      file.path(install_path, pkg$package, "libs"),
+      file.path(install_path, name, "libs"),
       pattern = "[.](so|dll|dylib)$",
       recursive = TRUE,
       full.names = TRUE
     )
-    res <- c(res, run_llvm_cov(rust, pkg$path, objects, quiet = quiet))
+    res <- c(res, run_llvm_cov(rust[[name]], pkg$path, objects, quiet = quiet))
   }
-  if (length(manifests)) {
+  rust_paths <- vcapply(pkgs[!installed], `[[`, "path")
+  rust_paths <- rust_paths[vlapply(
+    rust_paths,
+    function(x) length(rust_manifests(x)) > 0
+  )]
+  if (length(rust_paths)) {
     res <- drop_rust_dependencies(
       res,
-      roots = c(pkg$path, getOption("covr.gcov_additional_paths", NULL))
+      roots = c(rust_paths, getOption("covr.gcov_additional_paths", NULL))
     )
   }
 
-  coverage <- as_coverage(
-    c(coverage, res),
-    package = pkg,
-    root = root
+  coverage <- coverage_of_packages(
+    coverage,
+    pkgs,
+    root = coverage_root(relative_path, pkgs),
+    compiled = res,
+    line_exclusions = line_exclusions,
+    function_exclusions = function_exclusions
   )
 
   if (!clean) {
     attr(coverage, "library") <- install_path
   }
 
-  if (getOption("covr.filter_non_package", TRUE)) {
-    coverage <- filter_non_package_files(coverage)
-  }
-
-  # Exclude generated files from Rcpp and cpp11 to avoid redundant coverage
-  # information, and the files in `.covrignore`. Rcpp replaces dots in the
-  # package name with underscores in the interfaces header. These paths are in
-  # the package, so they are resolved against its root rather than the root
-  # used for the output paths, which is `NULL` with `relative_path = FALSE`.
-  generated_files <- file.path(
-    pkg$path,
-    c(
-      "src/RcppExports.cpp",
-      "R/RcppExports.R",
-      file.path(
-        "inst",
-        "include",
-        paste0(gsub(".", "_", pkg$package, fixed = TRUE), "_RcppExports.h")
-      ),
-      "src/cpp11.cpp",
-      "R/cpp11.R"
-    )
-  )
-  line_exclusions <- c(
-    generated_files,
-    line_exclusions,
-    if (!installed) {
-      withr::with_dir(
-        pkg$path,
-        normalize_path(as.character(parse_covr_ignore()))
-      )
-    }
-  )
-
-  coverage <- exclude(
-    coverage,
-    line_exclusions = line_exclusions,
-    function_exclusions = function_exclusions,
-    path = root
-  )
-
   # Keep the install directory if any failures were reported as warnings, as
   # their messages refer to output files in it.
   succeeded <- length(failures) == 0L
   coverage
+}
+
+# Run the vignettes, examples and tests of `pkg` that are in `type`.
+run_package_types <- function(pkg, install_path, type, ...) {
+  if ("vignettes" %in% type) {
+    run_vignettes(pkg, install_path)
+  }
+
+  test_installed <- function(
+    types,
+    outDir = file.path(install_path, pkg$package),
+    ...
+  ) {
+    dir.create(outDir, showWarnings = FALSE, recursive = TRUE)
+    outDir <- normalize_path(outDir)
+    result <- tools::testInstalledPackage(
+      pkg$package,
+      outDir = outDir,
+      types = types,
+      lib.loc = install_path,
+      ...
+    )
+    if (result != 0L) {
+      show_failures(outDir)
+    }
+  }
+  if ("examples" %in% type) {
+    # testInstalledPackage explicitly sets R_LIBS="" on windows, and does
+    # not restore it after, so we need to reset it ourselves.
+    withr::with_envvar(c(R_LIBS = Sys.getenv("R_LIBS")), {
+      test_installed("examples", ...)
+    })
+  }
+  if ("tests" %in% type) {
+    test_installed("tests", ...)
+  }
 }
 
 parse_type <- function(type) {
@@ -711,12 +700,15 @@ copy_installed_package <- function(pkg, install_path) {
   }
 }
 
-run_commands <- function(pkg, lib, commands, show_output = FALSE) {
-  outfile <- file.path(lib, paste0(pkg$package, "-commands.Rout"))
+# Run `commands` in a process that attaches the packages `pkgs`. The output is
+# saved in a file named after the first one.
+run_commands <- function(pkgs, lib, commands, show_output = FALSE) {
+  pkg_names <- vcapply(pkgs, `[[`, "package")
+  outfile <- file.path(lib, paste0(pkg_names[[1]], "-commands.Rout"))
   failfile <- paste(outfile, "fail", sep = ".")
   writeLines(
     c(
-      paste0("library('", pkg$package, "')"),
+      paste0("library('", pkg_names, "')"),
       commands
     ),
     con = outfile
@@ -794,6 +786,8 @@ run_r_live <- function(infile, outfile) {
 # @param counters_file the file with the counters of a package that was
 #   instrumented by `instrument_package()`, which are restored when the package
 #   is loaded instead of tracing its namespace.
+# @param trace_dir the directory traces are saved in if `COVR_TRACE_DIR` isn't
+#   set when the package is loaded.
 add_hooks <- function(
   pkg_name,
   lib,
@@ -801,11 +795,12 @@ add_hooks <- function(
   record_tests = isTRUE(getOption("covr.record_tests", FALSE)),
   full_traversal = FALSE,
   branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE)),
-  counters_file = NULL
+  counters_file = NULL,
+  trace_dir = lib
 ) {
   trace_dir <- paste0(
     "Sys.getenv(\"COVR_TRACE_DIR\", ",
-    encodeString(lib, quote = '"'),
+    encodeString(trace_dir, quote = '"'),
     ")"
   )
 

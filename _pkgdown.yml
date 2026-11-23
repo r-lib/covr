@@ -40,6 +40,13 @@ reference:
       - covr-package
       - in_covr
 
+  - title: Measure instrumented packages
+    desc: >
+      Instrument installed packages, run their code any way you like, then
+      read the coverage of all of them.
+    contents:
+      - instrument_packages
+
   - title: Coverage of R itself
     desc: Measure the code of base R, e.g. while running its own checks.
     contents:

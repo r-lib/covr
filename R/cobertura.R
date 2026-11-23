@@ -73,7 +73,7 @@ cobertura <- function(x, file = "cobertura.xml") {
 
   # Add sources
   sources <- xml2::xml_add_child(top, "sources")
-  source_pth <- attr(x, "package")$path %||% attr(x, "root")
+  source_pth <- coverage_base_path(x) %||% attr(x, "root")
   if (!is.null(source_pth)) {
     xml2::xml_add_child(sources, "source", xml2::xml_cdata(source_pth))
   }
@@ -83,7 +83,7 @@ cobertura <- function(x, file = "cobertura.xml") {
   package <- xml2::xml_add_child(
     packages,
     "package",
-    name = attr(x, "package")$package,
+    name = package_label(x),
     "line-rate" = as.character(percent_overall),
     "branch-rate" = branch_rate(branches$value),
     complexity = "0"

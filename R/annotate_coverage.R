@@ -83,7 +83,7 @@ annotate_coverage <- function(
   }
 
   sources <- traced_files(x)
-  root <- attr(x, "package")$path
+  root <- coverage_base_path(x)
 
   chunks <- list()
   for (filename in filenames) {
