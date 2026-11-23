@@ -20,6 +20,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/how_it_works.html">How does covr work anyway?</a></li>
     <li><a class="dropdown-item" href="../articles/shiny.html">Coverage of Shiny apps</a></li>
+    <li><a class="dropdown-item" href="../articles/base-r.html">Coverage of R itself</a></li>
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-news" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">News</button>
@@ -120,6 +121,50 @@
 
         </dt>
         <dd>Determine if code is being run in covr</dd>
+      </dl></div><div class="section level2">
+      <h2 id="coverage-of-r-itself">Coverage of R itself<a class="anchor" aria-label="anchor" href="#coverage-of-r-itself"></a></h2>
+
+      <div class="section-desc"><p>Measure the code of base R, e.g. while running its own checks.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="instrument_base_r.html">instrument_base_r()</a></code>
+
+        </dt>
+        <dd>Instrument the R code of the base packages of R</dd>
+
+        <dt>
+
+          <code><a href="uninstrument_base_r.html">uninstrument_base_r()</a></code>
+
+        </dt>
+        <dd>Restore the base packages that were instrumented</dd>
+
+        <dt>
+
+          <code><a href="base_r_code_coverage.html">base_r_code_coverage()</a></code>
+
+        </dt>
+        <dd>Coverage of the R code of base R</dd>
+
+        <dt>
+
+          <code><a href="base_r_compiled_coverage.html">base_r_compiled_coverage()</a></code>
+
+        </dt>
+        <dd>Coverage of the compiled code of R</dd>
+
+        <dt>
+
+          <code><a href="base_r_exclusions.html">base_r_exclusions()</a></code>
+
+        </dt>
+        <dd>The functions that are not instrumented by default</dd>
       </dl></div><div class="section level2">
       <h2 id="inspect-and-combine-results">Inspect and combine results<a class="anchor" aria-label="anchor" href="#inspect-and-combine-results"></a></h2>
 

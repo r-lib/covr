@@ -4,6 +4,7 @@
 <url><loc>https://covr.r-lib.org/dev/LICENSE-text.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/LICENSE.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/SECURITY.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/articles/base-r.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/articles/how_it_works.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/articles/index.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/articles/shiny.html</loc></url>
@@ -13,6 +14,9 @@
 <url><loc>https://covr.r-lib.org/dev/reference/annotate_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/as.data.frame.coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/badge.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/base_r_code_coverage.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/base_r_compiled_coverage.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/base_r_exclusions.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/c.coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/cobertura.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/code_coverage.html</loc></url>
@@ -36,6 +40,7 @@
 <url><loc>https://covr.r-lib.org/dev/reference/gitlab.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/in_covr.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/index.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/instrument_base_r.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/lcov.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/package_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/percent_coverage.html</loc></url>
@@ -46,6 +51,7 @@
 <url><loc>https://covr.r-lib.org/dev/reference/sonarqube.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/tally_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/tally_tests.html</loc></url>
+<url><loc>https://covr.r-lib.org/dev/reference/uninstrument_base_r.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/value.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/with_coverage.html</loc></url>
 <url><loc>https://covr.r-lib.org/dev/reference/zero_coverage.html</loc></url>

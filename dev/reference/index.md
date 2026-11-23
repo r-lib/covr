@@ -26,6 +26,21 @@ Run code or tests and record which expressions were evaluated.
 - [`in_covr()`](https://covr.r-lib.org/dev/reference/in_covr.md) :
   Determine if code is being run in covr
 
+## Coverage of R itself
+
+Measure the code of base R, e.g. while running its own checks.
+
+- [`instrument_base_r()`](https://covr.r-lib.org/dev/reference/instrument_base_r.md)
+  : Instrument the R code of the base packages of R
+- [`uninstrument_base_r()`](https://covr.r-lib.org/dev/reference/uninstrument_base_r.md)
+  : Restore the base packages that were instrumented
+- [`base_r_code_coverage()`](https://covr.r-lib.org/dev/reference/base_r_code_coverage.md)
+  : Coverage of the R code of base R
+- [`base_r_compiled_coverage()`](https://covr.r-lib.org/dev/reference/base_r_compiled_coverage.md)
+  : Coverage of the compiled code of R
+- [`base_r_exclusions()`](https://covr.r-lib.org/dev/reference/base_r_exclusions.md)
+  : The functions that are not instrumented by default
+
 ## Inspect and combine results
 
 - [`coverage`](https://covr.r-lib.org/dev/reference/coverage.md) :

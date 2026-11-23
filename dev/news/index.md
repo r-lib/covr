@@ -2,6 +2,19 @@
 
 ## covr (development version)
 
+- New
+  [`instrument_base_r()`](https://covr.r-lib.org/dev/reference/instrument_base_r.md),
+  [`uninstrument_base_r()`](https://covr.r-lib.org/dev/reference/uninstrument_base_r.md),
+  [`base_r_code_coverage()`](https://covr.r-lib.org/dev/reference/base_r_code_coverage.md)
+  and
+  [`base_r_compiled_coverage()`](https://covr.r-lib.org/dev/reference/base_r_compiled_coverage.md)
+  measure the coverage of base R itself, both its R code and its C and
+  Fortran code, e.g. while running `make check` on a build of R from
+  source ([\#782](https://github.com/r-lib/covr/issues/782)).
+  [`base_r_exclusions()`](https://covr.r-lib.org/dev/reference/base_r_exclusions.md)
+  lists the functions that are not instrumented by default, as R’s own
+  checks inspect their code.
+
 - The environment variable that overrides where instrumented packages
   save their trace files is now `COVR_TRACE_DIR`; `COVERAGE_DIR` is no
   longer read, as it collides with the variable Bazel sets for

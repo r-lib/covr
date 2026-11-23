@@ -1,0 +1,251 @@
+# Coverage of R itself
+
+covr can measure the coverage of R itself: the R code of base and the
+other packages that ship with R, and the C, C++ and Fortran code of the
+R executable, its shared libraries and the compiled code of those
+packages. The coverage comes from running R’s own test suite,
+`make check-all`.
+
+## Who this is for
+
+This is for people who build R, such as R core and the maintainers of
+the continuous integration (CI) of the
+[r-svn](https://github.com/r-devel/r-svn) mirror, and for developers who
+want to know what R’s tests do and do not exercise. It is not for
+measuring the coverage of your own package, see
+[`package_coverage()`](https://covr.r-lib.org/dev/reference/package_coverage.md)
+for that.
+
+A ready-made GitHub Actions workflow lives in
+[r-devel/actions](https://github.com/r-devel/actions). That workflow is
+the maintained version of what is described here, so use it rather than
+copying the commands below. This article explains what it does and why.
+
+## How it works
+
+R code and compiled code are measured differently.
+
+- **R code.**
+  [`instrument_base_r()`](https://covr.r-lib.org/dev/reference/instrument_base_r.md)
+  rewrites the lazy-load databases of the base packages so that every
+  function counts the expressions it evaluates, and adds a hook to the
+  base package loader. The hook makes every R process that loads base,
+  including the many R processes that the tests start, count the code it
+  runs and write its counts to the directory in the `COVERAGE_DIR`
+  environment variable when it exits.
+  [`base_r_code_coverage()`](https://covr.r-lib.org/dev/reference/base_r_code_coverage.md)
+  then combines all the traces.
+- **C, C++ and Fortran code.** R is compiled with gcov instrumentation
+  (`--coverage`), so the programs write `.gcda` files as they run.
+  [`base_r_compiled_coverage()`](https://covr.r-lib.org/dev/reference/base_r_compiled_coverage.md)
+  runs gcov on the build directory and maps the results to the source
+  files.
+
+Both return an ordinary covr coverage object, so
+[`lcov()`](https://covr.r-lib.org/dev/reference/lcov.md),
+[`percent_coverage()`](https://covr.r-lib.org/dev/reference/percent_coverage.md),
+[`report()`](https://covr.r-lib.org/dev/reference/report.md) and the
+other functions work on them.
+
+## Requirements
+
+- A Unix-like system with the tools to build R, `gcc` and `gcov`, and,
+  for the tests that need a display, `xvfb-run`.
+- The R sources, for example a checkout of r-svn.
+- covr and its dependencies, installed with the R you build, in a
+  library of their own.
+- covr must stay installed at the same path as long as R is
+  instrumented, because the path of its `covr.so` is baked into the
+  loader of base.
+- Optionally `genhtml` from lcov for an HTML report.
+
+## Workflow
+
+The commands use these variables, exported so that the R code below can
+read them.
+
+``` sh
+export SRC=$HOME/r-svn                  # R sources
+export BUILD=$HOME/build/gcov           # R with gcov instrumentation
+export COVR_LIB=$HOME/build/covr-lib    # covr and its dependencies
+export TRACES=$HOME/build/traces        # where the R processes write their counts
+```
+
+### 1. Build R with gcov
+
+Keep the source references of the packages, which the line numbers of
+the coverage come from, and turn off optimization so that the line
+counts make sense. Use the same configure options as the regular build,
+here those of the r-svn Linux job, and build with the recommended
+packages.
+
+``` sh
+export R_KEEP_PKG_SOURCE=yes
+FLAGS='-g -O0 --coverage'
+mkdir -p $BUILD && cd $BUILD
+$SRC/configure --enable-R-shlib --with-blas --with-lapack --disable-java \
+  CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" FFLAGS="$FLAGS" FCFLAGS="$FLAGS" \
+  LDFLAGS=--coverage
+make -j$(nproc)
+```
+
+### 2. Install covr
+
+``` sh
+mkdir -p $COVR_LIB
+R_LIBS=$COVR_LIB $BUILD/bin/Rscript -e 'install.packages("covr", lib = Sys.getenv("R_LIBS"))'
+```
+
+### 3. Instrument
+
+Instrumenting byte-compiles the instrumented code, which is slow with R
+built without optimization, so use several cores: with 4 it takes about
+7 minutes, instead of 19 with one.
+
+``` sh
+R_LIBS=$COVR_LIB $BUILD/bin/Rscript -e '
+  covr::instrument_base_r(
+    Sys.getenv("SRC"),
+    lib = file.path(Sys.getenv("BUILD"), "library"),
+    trace_dir = Sys.getenv("TRACES"),
+    cores = parallel::detectCores()
+  )'
+```
+
+Delete the `.gcda` files afterwards so that building and instrumenting
+do not count.
+
+``` sh
+find $BUILD -name '*.gcda' -delete
+```
+
+### 4. Run the checks
+
+Set `COVERAGE_DIR` to the trace directory for all the processes the
+tests start. Use `make -k` so that one failing test does not stop the
+others, and do not fail the job on test failures, because the coverage
+is still useful. Setting `TEST_MC_CORES` runs some of the tests in
+parallel.
+
+``` sh
+mkdir -p $TRACES && cd $BUILD
+COVERAGE_DIR=$TRACES xvfb-run -a make -k check-all || true
+```
+
+### 5. Collect and report
+
+Collect the coverage before calling
+[`uninstrument_base_r()`](https://covr.r-lib.org/dev/reference/uninstrument_base_r.md),
+which deletes the counter file. The paths in the files are relative to
+the sources, such as `src/main/eval.c`, which is what Codecov needs to
+match them to the repository.
+
+``` sh
+R_LIBS=$COVR_LIB $BUILD/bin/Rscript -e '
+  src <- Sys.getenv("SRC")
+  r <- covr::base_r_code_coverage(Sys.getenv("TRACES"), src)
+  c <- covr::base_r_compiled_coverage(Sys.getenv("BUILD"), src)
+  covr::lcov(r, "lcov-r.info")
+  covr::lcov(c, "lcov-c.info")
+  covr::percent_coverage(c(r, c))'
+```
+
+Upload the two files to Codecov with the flags `r` and `c`, for example
+with `codecov/codecov-action`, so that the coverage of the R and
+compiled code are reported separately. To get an HTML report, run
+`genhtml --ignore-errors source -o html lcov-r.info lcov-c.info` in
+`$SRC`.
+
+When you are done,
+[`uninstrument_base_r()`](https://covr.r-lib.org/dev/reference/uninstrument_base_r.md)
+restores the library of the gcov build.
+
+## Pitfalls
+
+- Collect before
+  [`uninstrument_base_r()`](https://covr.r-lib.org/dev/reference/uninstrument_base_r.md),
+  which deletes the counter file.
+- Do not move or reinstall covr while R is instrumented.
+- Instrument with several cores, as it is slow in an unoptimized build.
+- Remove the `.gcda` files after instrumenting and before the checks.
+- Build with `R_KEEP_PKG_SOURCE=yes`, otherwise there are no line
+  numbers for the R code.
+- Do not fail the job when the checks fail.
+
+## What is not instrumented
+
+Some code is deliberately not instrumented, and does not show up in the
+coverage at all, not even as code that never ran.
+
+- The functions in
+  [`base_r_exclusions()`](https://covr.r-lib.org/dev/reference/base_r_exclusions.md),
+  whose code R’s own checks inspect:
+  [`pbinom()`](https://rdrr.io/r/stats/Binomial.html),
+  [`simplify2array()`](https://rdrr.io/r/base/lapply.html),
+  [`rematchDefinition()`](https://rdrr.io/r/methods/RMethodUtils.html),
+  the functions the compiler inlines (`compiler:::safeBaseInternals`)
+  and the internal generics of base (`.internalGenerics`). Pass your own
+  list to the `exclusions` argument of
+  [`instrument_base_r()`](https://covr.r-lib.org/dev/reference/instrument_base_r.md)
+  to change this, e.g. add to
+  [`base_r_exclusions()`](https://covr.r-lib.org/dev/reference/base_r_exclusions.md)
+  or use `NULL` to instrument everything, which makes some checks fail.
+- Functions whose body is a constant or a call to
+  [`UseMethod()`](https://rdrr.io/r/base/UseMethod.html), which have no
+  code to cover.
+- Default arguments of functions, which `R CMD check` compares with the
+  documentation.
+- Functions of base whose installed code differs from its source files,
+  e.g. as they were created by other code, as they have no source
+  references.
+
+[`instrument_base_r()`](https://covr.r-lib.org/dev/reference/instrument_base_r.md)
+returns the functions it left out (`excluded`, by package) and the
+functions of base without source references (`no_srcref`), so a CI job
+can print them:
+
+``` r
+
+info <- covr::instrument_base_r(src, lib = lib, trace_dir = traces)
+str(info$excluded)
+info$no_srcref
+```
+
+## Expected warnings
+
+The checks report a few warnings with an instrumented R, which you can
+ignore.
+
+- In base, “undocumented code objects” for the bindings starting with
+  `.covr`.
+- `abort` in compiled code, from libgcov.
+- `__sprintf_chk` in compiled code, from the toolchain.
+
+## Typical numbers
+
+On 8 cores with R-devel r90937, with no test failures:
+
+| Step                 | Time   |
+|----------------------|--------|
+| Build                | 18 min |
+| Instrument (4 cores) | 7 min  |
+| `make check-all`     | 58 min |
+| Collect              | 50 s   |
+
+| Code      | Coverage |
+|-----------|----------|
+| R         | 67.3%    |
+| C and C++ | 75.3%    |
+| Fortran   | 71.8%    |
+| Total     | 72.3%    |
+
+## Reference
+
+- [`instrument_base_r()`](https://covr.r-lib.org/dev/reference/instrument_base_r.md)
+  and
+  [`uninstrument_base_r()`](https://covr.r-lib.org/dev/reference/uninstrument_base_r.md)
+  instrument and restore the base packages.
+- [`base_r_code_coverage()`](https://covr.r-lib.org/dev/reference/base_r_code_coverage.md)
+  collects the coverage of the R code.
+- [`base_r_compiled_coverage()`](https://covr.r-lib.org/dev/reference/base_r_compiled_coverage.md)
+  collects the coverage of the compiled code.

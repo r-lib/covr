@@ -26,6 +26,7 @@ lines."><meta property="og:image" content="https://covr.r-lib.org/logo.png"><met
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/how_it_works.html">How does covr work anyway?</a></li>
     <li><a class="dropdown-item" href="../articles/shiny.html">Coverage of Shiny apps</a></li>
+    <li><a class="dropdown-item" href="../articles/base-r.html">Coverage of R itself</a></li>
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-news" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">News</button>
@@ -134,14 +135,14 @@ its count if it was run.</p>
 <span class="r-in"><span><span class="st">"</span></span></span>
 <span class="r-in"><span><span class="va">cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="code_coverage.html">code_coverage</a></span><span class="op">(</span><span class="va">source</span>, <span class="st">"f(TRUE)"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">annotate_coverage</span><span class="op">(</span><span class="va">cov</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> /tmp/RtmpNlMjSQ/source.R18fa1d6e4e26</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> /tmp/RtmpSgGT3a/source.R19a116a78333</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   4 |    1 |     'yes'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   5 |      |   } else {</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   6 |  !!0 |     'no'</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   7 |      |   }</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   8 |      | }</span>
 <span class="r-in"><span><span class="fu">annotate_coverage</span><span class="op">(</span><span class="va">cov</span>, context <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> /tmp/RtmpNlMjSQ/source.R18fa1d6e4e26</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> /tmp/RtmpSgGT3a/source.R19a116a78333</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   1 |      | </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   2 |      | f &lt;- function(x) {</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   3 |    1 |   if (x) {</span>
