@@ -5,6 +5,34 @@
   its R code and its C and Fortran code, e.g. while running `make check` on a
   build of R from source (#782). `base_r_exclusions()` lists the functions
   that are not instrumented by default, as R's own checks inspect their code.
+  
+* The environment variable that overrides where instrumented packages save
+  their trace files is now `COVR_TRACE_DIR`; `COVERAGE_DIR` is no longer read,
+  as it collides with the variable Bazel sets for `bazel coverage`
+  (@MichaelChirico, #790).
+
+* `with_coverage()`, `file_coverage()`, `function_coverage()` and the functions
+  that call them now warn (with class `covr_nested_coverage`) when one is
+  called inside another, as the enclosing call's coverage is incomplete.
+
+* `with_coverage()`, `file_coverage()` and the functions that use them no
+  longer keep the traced environment and copies of its functions in memory
+  after they return (@MichaelChirico, #789).
+
+* `lcov()` writes the `FN` record of each function on its first line that has
+  a `DA` record, so `genhtml` from lcov >= 2.1 no longer fails with "unexpected
+  category UNK" when a function's first expression is on a line without one,
+  e.g. a doc string (#791).
+
+* `package_coverage()` now works when the package's tests measure the coverage
+  of a package that imports it, e.g. with `package_coverage()`. It failed with
+  "Can't read coverage trace file", as an R process that loaded both
+  instrumented packages saved the counts of the last one for both of them.
+  Each instrumented package loaded in a process now has its own counts, so the
+  counts of the package from the processes of the inner run are kept too.
+  Likewise, `file_coverage()`, `code_coverage()`, `function_coverage()`,
+  `with_coverage()` and `environment_coverage()` no longer reset the coverage
+  of a package whose tests call them (#786).
 
 * covr no longer calls the non-API C entry points `PRVALUE` and
   `Rf_findVarInFrame3` on R < 4.6, which `R CMD check` reported. R < 4.6 has

@@ -292,7 +292,7 @@ test_that("add_hooks() quotes library paths containing quotes (#774)", {
   dir.create(file.path(lib, "pkg", "R"), recursive = TRUE)
   load_script <- file.path(lib, "pkg", "R", "pkg")
   writeLines(c("local({", "})"), load_script)
-  withr::local_envvar(COVERAGE_DIR = NA)
+  withr::local_envvar(COVR_TRACE_DIR = NA)
 
   add_hooks("pkg", lib, fix_mcexit = TRUE)
 
@@ -302,6 +302,32 @@ test_that("add_hooks() quotes library paths containing quotes (#774)", {
   expect_equal(eval(hook[[3]][[3]][[3]]), lib)
   fix <- parse(text = grep("fix_mcexit", lines, value = TRUE))[[1]]
   expect_equal(eval(parse(text = fix[[2]])[[1]]), lib)
+  expect_equal(fix[[3]], "pkg")
+  trace <- parse(text = grep("trace_environment", lines, value = TRUE))[[1]]
+  expect_equal(trace[[3]][[3]][["scope"]], "pkg")
+})
+
+test_that("add_hooks() saves traces to COVR_TRACE_DIR, not COVERAGE_DIR", {
+  lib <- withr::local_tempdir()
+  dir.create(file.path(lib, "pkg", "R"), recursive = TRUE)
+  load_script <- file.path(lib, "pkg", "R", "pkg")
+  writeLines(c("local({", "})"), load_script)
+  add_hooks("pkg", lib, fix_mcexit = TRUE)
+
+  lines <- readLines(load_script)
+  hook <- parse(text = grep("register_trace", lines, value = TRUE))[[1]]
+  hook_expr <- hook[[3]][[3]][[3]]
+  fix <- parse(text = grep("fix_mcexit", lines, value = TRUE))[[1]]
+  fix_expr <- parse(text = fix[[2]])[[1]]
+
+  withr::with_envvar(c(COVR_TRACE_DIR = "/trace", COVERAGE_DIR = "/cov"), {
+    expect_equal(eval(hook_expr), "/trace")
+    expect_equal(eval(fix_expr), "/trace")
+  })
+  withr::with_envvar(c(COVR_TRACE_DIR = NA, COVERAGE_DIR = "/cov"), {
+    expect_equal(eval(hook_expr), lib)
+    expect_equal(eval(fix_expr), lib)
+  })
 })
 
 test_that("run_vignettes reports failures to build the vignettes", {
@@ -461,7 +487,7 @@ test_that("covr.allow_failures returns coverage despite test failures", {
 test_that("package_coverage reports bad trace files", {
   code <- paste0(
     "writeBin(as.raw(1:5), file.path(",
-    "Sys.getenv('COVERAGE_DIR', .libPaths()[1]), 'covr_trace_corrupt'))"
+    "Sys.getenv('COVR_TRACE_DIR', .libPaths()[1]), 'covr_trace_corrupt'))"
   )
   pkg <- test_path("TestSummary")
 
@@ -517,6 +543,22 @@ test_that("package_coverage warns about processes that did not save a trace", {
   )
   expect_gt(values[["test_me"]], 0)
   expect_equal(values[["dont_test_me"]], 0)
+})
+
+test_that("package_coverage works if its tests measure a package that imports it (#786)", {
+  # The tests of TestNestedOuter call `outer_fun()` twice, and measure the
+  # coverage of TestNestedInner, whose test calls it once more, and whose file
+  # has an expression at the same position as one of TestNestedOuter.
+  # Under rcmdcheck, R_PROFILE is callr's site profile, which sets
+  # `.libPaths()` to the libraries of the check. `R CMD INSTALL` of R 4.1 on
+  # Windows reads it, so it can't find TestNestedOuter in its install library.
+  withr::local_envvar(
+    COVR_NESTED_INNER = normalizePath(test_path("TestNestedInner")),
+    R_ENVIRON = NA,
+    R_PROFILE = NA
+  )
+  cov <- package_coverage(test_path("TestNestedOuter"))
+  expect_equal(tally_coverage(cov)$value, c(3, 3))
 })
 
 test_that("package_coverage works if the site libraries are removed (#560)", {

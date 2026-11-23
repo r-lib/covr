@@ -4,7 +4,7 @@ test_that("re-tracing an already traced namespace keeps the counts (#641)", {
     type = "none",
     code = c(
       "invisible(TestSummary::test_me(1, 2))",
-      "covr:::trace_environment(asNamespace('TestSummary'))"
+      "covr:::trace_environment(asNamespace('TestSummary'), scope = 'TestSummary')"
     )
   )
   expect_equal(percent_coverage(cov), 50)
@@ -95,4 +95,88 @@ test_that("unsaved_traces ignores the markers of the current process", {
   file.create(file.path(dir, paste0("covr_pending_", pid, "0_b")))
 
   expect_equal(unsaved_traces(dir), paste0("covr_pending_", pid, "0_b"))
+})
+
+test_that("process_trace() of a scope only saves the traces of that scope", {
+  local_clean_traces()
+  src <- srcfilecopy("a.R", "x")
+  ref <- srcref(src, c(1, 1, 1, 1))
+  counter <- list(value = 0, srcref = ref, functions = "f")
+  .counters[["A/a.R:1"]] <- counter
+  .counters[["A/b.R:1"]] <- counter
+  .counters[["B/a.R:1"]] <- counter
+  .counters[["c.R:1"]] <- counter
+  register_count(c("A/a.R:1", "B/a.R:1"))
+  entry <- scope_entry("A")
+  entry$counters_file <- "counters_A.rds"
+  entry$counters_keys <- "A/a.R:1"
+  .Call(covr_count, "A/a.R:1")
+  .Call(covr_count, "B/a.R:1")
+  sync_counts()
+
+  trace <- process_trace("A")
+  expect_s3_class(trace, "covr_counts")
+  expect_equal(trace$counters_file, "counters_A.rds")
+  expect_equal(trace$counts, c("A/a.R:1" = 1))
+  expect_named(trace$counters, "A/b.R:1")
+
+  # Without restored counters all the traces of the scope are saved
+  expect_named(process_trace("B"), "B/a.R:1")
+  expect_named(process_trace(""), "c.R:1")
+  expect_setequal(names(process_trace()), ls(.counters))
+})
+
+test_that("untrace_scope() releases the traced environment", {
+  local_clean_traces()
+  freed <- FALSE
+  local({
+    env <- new.env(parent = globalenv())
+    reg.finalizer(env, function(e) freed <<- TRUE)
+    eval(parse(text = "f <- function(x) x + 1", keep.source = TRUE), env)
+    with_coverage(env$f(1), env = env)
+  })
+  gc()
+  expect_identical(freed, TRUE)
+})
+
+test_that("untrace_scope() of an untraced scope leaves other tracing alone", {
+  local_clean_traces()
+  env <- new.env(parent = globalenv())
+  eval(parse(text = "f <- function(x) x + 1", keep.source = TRUE), env)
+  orig <- body(env$f)
+
+  trace_environment(env, scope = "a")
+  untrace_scope("a")
+  expect_identical(body(env$f), orig)
+
+  trace_environment(env, scope = "b")
+  untrace_scope("a")
+  expect_identical(is_traced(env$f), TRUE)
+
+  untrace_scope()
+  expect_identical(body(env$f), orig)
+})
+
+test_that("untracing the anonymous scope leaves the Shiny scope traced", {
+  local_clean_traces()
+  app <- new.env(parent = globalenv())
+  eval(parse(text = "f <- function(x) x + 1", keep.source = TRUE), app)
+  local({
+    local_scope(shiny_scope)
+    trace_replacement(replacement("f", env = app), shiny_scope)
+  })
+  other <- new.env(parent = globalenv())
+  eval(parse(text = "g <- function(x) x", keep.source = TRUE), other)
+
+  with_coverage(other$g(1), env = other)
+  expect_identical(is_traced(app$f), TRUE)
+  app$f(1)
+  sync_counts()
+  expect_equal(
+    unname(unlist(lapply(scope_counters(shiny_scope), `[[`, "value"))),
+    1
+  )
+
+  untrace_scope(shiny_scope)
+  expect_identical(is_traced(app$f), FALSE)
 })

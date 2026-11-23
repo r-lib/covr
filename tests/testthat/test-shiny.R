@@ -33,7 +33,7 @@ test_that("start_shiny_app_tracing() instruments the app's functions when shiny 
   attach_env <- new.env()
   registered <- character()
   local_mocked_bindings(
-    register_trace = function(ns, directory) {
+    register_trace = function(ns, directory, scope) {
       registered <<- c(registered, directory)
     }
   )
@@ -45,16 +45,16 @@ test_that("start_shiny_app_tracing() instruments the app's functions when shiny 
   writeLines("x <- function() 1", outside)
   env <- new.env()
   shiny:::sourceUTF8(outside, env)
-  expect_equal(length(the$shiny_replacements), 0)
+  expect_length(scope_entry(shiny_scope)$replacements, 0)
 
   attach_env$registerShinyDebugHook(list(name = "x", where = env))
-  expect_equal(length(the$shiny_replacements), 0)
+  expect_length(scope_entry(shiny_scope)$replacements, 0)
   expect_equal(registered, character())
 
   env <- new.env()
   shiny:::sourceUTF8(file.path(app_dir, "R", "helpers.R"), env)
   expect_equal(registered, trace_dir)
-  expect_equal(length(the$shiny_replacements), 2)
+  expect_length(scope_entry(shiny_scope)$replacements, 2)
   expect_identical(the$shiny_trace_registered, TRUE)
 })
 

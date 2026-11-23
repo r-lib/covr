@@ -132,14 +132,9 @@ file_coverage <- function(
     on.exit(stop_compiled_coverage(state), add = TRUE)
   }
 
+  untrace_nested_anonymous_scope()
   trace_environment(env)
-  on.exit(
-    {
-      reset_traces()
-      clear_counters()
-    },
-    add = TRUE
-  )
+  on.exit(untrace_scope(anonymous_scope), add = TRUE)
 
   coverage <- collect_coverage(
     lapply(test_files, runner, env = env)

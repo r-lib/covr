@@ -9,9 +9,10 @@ replace_binding <- function(package, name, value) {
 }
 
 
-# patch parallel:::mcexit to force it to save the covr trace on exit, and to
-# clear the pending marker of the worker, since it doesn't run finalizers
-fix_mcexit <- function(trace_dir) {
+# patch parallel:::mcexit to force it to save the covr trace of the package
+# `scope` on exit, and to clear the pending marker of the worker, since it
+# doesn't run finalizers
+fix_mcexit <- function(trace_dir, scope) {
   get_from_ns <- `:::` # trick to fool R CMD check
   mcexit <- get_from_ns('parallel', 'mcexit')
 
@@ -23,7 +24,8 @@ fix_mcexit <- function(trace_dir) {
     as.list(body(mcexit)),
     as.call(list(
       call(":::", as.symbol("covr"), as.symbol("save_trace_and_clear")),
-      trace_dir
+      trace_dir,
+      scope
     ))
   ))
 
@@ -34,8 +36,8 @@ fix_mcexit <- function(trace_dir) {
 # forked by mclapply(), mcparallel() etc. save their counts to `trace_dir` when
 # they exit. Each child zeroes its counts after forking, so the counts the
 # parent had at that point are not counted twice. Returns a function that
-# restores the original functions.
-trace_forks <- function(trace_dir) {
+# restores the original functions. The children save the traces of `scope`.
+trace_forks <- function(trace_dir, scope) {
   ns <- asNamespace("parallel")
   mcfork <- ns$mcfork
   mcexit <- ns$mcexit
@@ -51,7 +53,7 @@ trace_forks <- function(trace_dir) {
     # An error here would keep the child from exiting, e.g. if it outlives
     # `trace_dir`. Forked children don't run finalizers, so this also removes
     # the pending marker of a child that registered its own trace (#277).
-    try(save_trace_and_clear(trace_dir), silent = TRUE)
+    try(save_trace_and_clear(trace_dir, scope), silent = TRUE)
     mcexit(...)
   })
 

@@ -136,9 +136,7 @@ test_that("bad trace files can be skipped with the covr_continue restart", {
 })
 
 test_that("traces of processes that restored saved counters are merged with them", {
-  clear_counters()
-  withr::defer(clear_counters())
-  withr::defer(the$traced_env <- NULL)
+  local_clean_traces()
   src <- srcfilecopy("a.R", c("x", "y"))
   counters <- new.env()
   counters[["a.R:1"]] <- list(
@@ -161,11 +159,11 @@ test_that("traces of processes that restored saved counters are merged with them
   key_b <- new_counter(srcref(b, c(1, 1, 1, 1)), "g")
   .Call(covr_count, "a.R:1")
   .Call(covr_count, key_b)
-  save_trace(dir)
+  save_trace(dir, "")
   zero_counters()
   .Call(covr_count, "a.R:1")
   .Call(covr_count, "a.R:1")
-  save_trace(dir)
+  save_trace(dir, "")
 
   merged <- merge_coverage(list.files(dir, full.names = TRUE))
   values <- vapply(merged, function(x) x$value, numeric(1))
@@ -181,9 +179,7 @@ test_that("traces of processes that restored saved counters are merged with them
 })
 
 test_that("saved counters are merged if no process counted any of them", {
-  clear_counters()
-  withr::defer(clear_counters())
-  withr::defer(the$traced_env <- NULL)
+  local_clean_traces()
   src <- srcfilecopy("a.R", "x")
   counters <- new.env()
   counters[["a.R:1"]] <- list(
@@ -195,21 +191,19 @@ test_that("saved counters are merged if no process counted any of them", {
   saveRDS(portable_srcfiles(counters), file)
   restore_counters(new.env(), file)
 
-  merged <- merge_coverage(save_trace(withr::local_tempdir()))
+  merged <- merge_coverage(save_trace(withr::local_tempdir(), ""))
   expect_named(merged, "a.R:1")
   expect_equal(merged[["a.R:1"]]$value, 0)
 })
 
 test_that("merge_coverage reports a missing file of saved counters", {
-  clear_counters()
-  withr::defer(clear_counters())
-  withr::defer(the$traced_env <- NULL)
+  local_clean_traces()
   counters <- new.env()
   counters[["a.R:1"]] <- list(value = 0, functions = "f")
   file <- withr::local_tempfile()
   saveRDS(counters, file)
   restore_counters(new.env(), file)
-  trace <- save_trace(withr::local_tempdir())
+  trace <- save_trace(withr::local_tempdir(), "")
   unlink(file)
 
   expect_error(merge_coverage(trace), "incomplete", class = "covr_error")

@@ -1,0 +1,2 @@
+export(inner_fun)
+importFrom(TestNestedOuter, outer_fun)

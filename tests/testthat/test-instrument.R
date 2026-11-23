@@ -40,7 +40,7 @@ test_that("package_coverage() instruments functions that .onLoad() creates", {
         "stopifnot(TestInstrument:::made(1) == 2)",
         "stopifnot(TestInstrument:::made_lazy(1) == 23)",
         "covr:::sync_counts()",
-        "keys <- grep('^<text>', ls(covr:::.counters), value = TRUE)",
+        "keys <- grep('^TestInstrument/<text>', ls(covr:::.counters), value = TRUE)",
         "stopifnot(length(keys) > 0)",
         "stopifnot(sum(vapply(keys, function(k) covr:::.counters[[k]]$value, numeric(1))) > 0)",
         "TestInstrument::f(1)"
@@ -120,9 +120,7 @@ test_that("instrument_installed_package() leaves the installed package if it fai
   lib <- withr::local_tempdir()
   pkg <- as_package(test_path("TestInstrument"))
   install_package(pkg, lib, getOption("covr.flags"), TRUE, byte_compile = FALSE)
-  clear_counters()
-  withr::defer(clear_counters())
-  withr::defer(the$traced_env <- NULL)
+  local_clean_traces()
   withr::defer(unloadNamespace("TestInstrument"))
   local_mocked_bindings(
     portable_srcfiles = function(...) {
@@ -199,9 +197,7 @@ test_that("restore_counters() errors without the saved counters", {
 })
 
 test_that("restore_counters() keeps the counts of a namespace that is restored again", {
-  clear_counters()
-  withr::defer(clear_counters())
-  withr::defer(the$traced_env <- NULL)
+  local_clean_traces()
   ns <- new.env()
   file <- withr::local_tempfile()
   counters <- new.env()
@@ -218,9 +214,7 @@ test_that("restore_counters() keeps the counts of a namespace that is restored a
 })
 
 test_that("restore_counters() instruments a package that is loaded again", {
-  clear_counters()
-  withr::defer(clear_counters())
-  withr::defer(the$traced_env <- NULL)
+  local_clean_traces()
   file <- withr::local_tempfile()
   counters <- new.env()
   counters[["a.R:1:1"]] <- list(value = 0, functions = "a")
@@ -239,9 +233,7 @@ test_that("restore_counters() instruments a package that is loaded again", {
 })
 
 test_that("restore_counters() errors if `.onLoad()` defined a `.Call` that masks the saved counters", {
-  clear_counters()
-  withr::defer(clear_counters())
-  withr::defer(the$traced_env <- NULL)
+  local_clean_traces()
   withr::defer(the$trace_error <- NULL)
   file <- withr::local_tempfile()
   counters <- new.env()
@@ -420,4 +412,32 @@ test_that("instrumenting after installing gives the traces of instrumenting when
   }
   expect_gt(nrow(traces(after_install)), 4L)
   expect_equal(traces(after_install), traces(when_loaded), ignore_attr = TRUE)
+})
+
+test_that("restore_counters() keeps the counters and counts of other packages", {
+  local_clean_traces()
+  local_mocked_bindings(env_scope = function(env) attr(env, "scope"))
+  save_counters <- function(key) {
+    file <- withr::local_tempfile(.local_envir = parent.frame())
+    counters <- new.env()
+    counters[[key]] <- list(value = 0, functions = "f")
+    saveRDS(counters, file)
+    file
+  }
+  file_a <- save_counters("A/a.R:1:1")
+  file_b <- save_counters("B/a.R:1:1")
+  ns_a <- structure(new.env(), scope = "A")
+  ns_b <- structure(new.env(), scope = "B")
+
+  restore_counters(ns_a, file_a)
+  .Call(covr_count, "A/a.R:1:1")
+  restore_counters(ns_b, file_b)
+  sync_counts()
+
+  expect_equal(.counters[["A/a.R:1:1"]]$value, 1)
+  expect_equal(.counters[["B/a.R:1:1"]]$value, 0)
+  expect_equal(scope_entry("A")$counters_file, file_a)
+  expect_equal(scope_entry("B")$counters_file, file_b)
+  expect_equal(scope_entry("A")$counters_keys, "A/a.R:1:1")
+  expect_equal(process_trace("B")$counters_file, file_b)
 })

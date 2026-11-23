@@ -45,6 +45,19 @@ test_that("current_coverage() returns the counts so far, and resets them", {
   expect_equal(as.data.frame(cov)$value, c(1, 0, 1))
 })
 
+test_that("current_coverage() includes and resets the package in package_coverage()", {
+  cov <- package_coverage(
+    test_path("TestSummary"),
+    type = "none",
+    code = c(
+      "invisible(TestSummary::test_me(1, 2))",
+      "cov <- covr::current_coverage(reset = TRUE)",
+      "stopifnot(covr::percent_coverage(cov) > 0, !any(grepl('/', names(cov))))"
+    )
+  )
+  expect_equal(percent_coverage(cov), 0)
+})
+
 test_that("with_coverage() supports exclusions", {
   env <- local_fixture_env()
 
@@ -204,8 +217,7 @@ test_that("traces can be reset and reused after tracing env again with record_te
 
   trace_environment(env)
   trace_environment(env)
-  reset_traces()
-  clear_counters()
+  untrace_scope()
   expect_identical(body(env$add), original)
 
   cov <- with_coverage(
@@ -296,4 +308,24 @@ test_that("with_coverage() cleans up when a test file fails", {
 
   expect_identical(body(ns$covered), original)
   expect_length(ls(.counters), 0)
+})
+
+test_that("nested in-process coverage warns and restores the functions", {
+  outer <- new.env(parent = globalenv())
+  eval(parse(text = "f <- function(x) x + 1", keep.source = TRUE), outer)
+  inner <- new.env(parent = globalenv())
+  eval(parse(text = "g <- function(x) x", keep.source = TRUE), inner)
+  original <- body(outer$f)
+
+  expect_snapshot(
+    cov <- with_coverage(
+      {
+        with_coverage(inner$g(1), env = inner)
+        function_coverage("g", inner$g(1), env = inner)
+      },
+      env = outer
+    )
+  )
+  expect_identical(body(outer$f), original)
+  expect_length(ls(the$scopes, all.names = TRUE), 0)
 })
