@@ -432,6 +432,14 @@ is_string <- function(x) {
   is.character(x) && length(x) == 1L && !is.na(x) && nzchar(x)
 }
 
+# `normalize_path()`, which leaves relative paths that don't exist relative on
+# Unix, but relative to the working directory.
+absolute_path <- function(path) {
+  relative <- !grepl("^(/|\\\\|[A-Za-z]:)", path)
+  path[relative] <- file.path(getwd(), path[relative])
+  normalize_path(path)
+}
+
 # The name of the files of reports: the package's name, or "coverage" for the
 # coverage of none or of several packages, whose names can be too long for a
 # file name.
@@ -464,12 +472,26 @@ file_packages <- function(x, files) {
   if (length(pkg$package) <= 1L) {
     return(stats::setNames(list(files), pkg$package %||% ""))
   }
-  dirs <- to_relative_path(pkg$path, attr(x, "root"))
-  groups <- lapply(dirs, function(dir) {
-    files[startsWith(files, paste0(dir, "/"))]
-  })
+  root <- attr(x, "root")
+  dirs <- paste0(to_relative_path(pkg$path, root), "/")
+  # A package in the root directory contains all the files relative to it
+  if (!is.null(root)) {
+    dirs[sub("/+$", "", pkg$path) == sub("/+$", "", root)] <- ""
+  }
+  # Each file is in the deepest package that contains it, as packages can be
+  # in the directory of another
+  owner <- vapply(
+    files,
+    function(file) {
+      inside <- which(startsWith(file, dirs))
+      if (length(inside)) inside[[which.max(nchar(dirs[inside]))]] else 0L
+    },
+    integer(1),
+    USE.NAMES = FALSE
+  )
+  groups <- lapply(seq_along(dirs), function(i) files[owner == i])
   names(groups) <- pkg$package
-  groups[[length(groups) + 1L]] <- setdiff(files, unlist(groups))
+  groups[[length(groups) + 1L]] <- files[owner == 0L]
   names(groups)[[length(groups)]] <- ""
   groups[lengths(groups) > 0]
 }

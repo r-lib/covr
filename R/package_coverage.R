@@ -131,7 +131,7 @@ package_coverage <- function(
   if (!is.character(path) || length(path) == 0 || anyNA(path)) {
     covr_abort("{.arg path} must be a character vector of package paths.")
   }
-  pkgs <- lapply(path, as_package)
+  pkgs <- lapply(unname(path), as_package)
   pkg_names <- vcapply(pkgs, `[[`, "package")
   if (anyDuplicated(pkg_names)) {
     covr_abort(
@@ -824,42 +824,35 @@ add_hooks <- function(
       fixed = TRUE
     )
   }
+  # The hooks are marked, so `remove_covr_hooks()` can tell them apart from
+  # those of the package or the user.
+  hook <- function(...) {
+    paste0(
+      "setHook(packageEvent(pkg, \"onLoad\"), structure(function(...) ",
+      ...,
+      ", covr_hook = TRUE))"
+    )
+  }
   lines <- append(
     lines,
     c(
-      paste0(
-        "setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.record_tests = ",
-        record_tests,
-        "))"
-      ),
-      paste0(
-        "setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.full_traversal = ",
-        isTRUE(full_traversal),
-        "))"
-      ),
-      paste0(
-        "setHook(packageEvent(pkg, \"onLoad\"), function(...) options(covr.branch_coverage = ",
-        isTRUE(branch_coverage),
-        "))"
-      ),
+      hook("options(covr.record_tests = ", record_tests, ")"),
+      hook("options(covr.full_traversal = ", isTRUE(full_traversal), ")"),
+      hook("options(covr.branch_coverage = ", isTRUE(branch_coverage), ")"),
       if (is.null(counters_file)) {
-        paste0(
-          "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::trace_environment(ns, scope = ",
+        hook(
+          "covr:::trace_environment(ns, scope = ",
           encodeString(pkg_name, quote = '"'),
-          "))"
+          ")"
         )
       } else {
-        paste0(
-          "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::restore_counters(ns, file.path(info$libname, pkg, \"R\", \"",
+        hook(
+          "covr:::restore_counters(ns, file.path(info$libname, pkg, \"R\", \"",
           basename(counters_file),
-          "\")))"
+          "\"))"
         )
       },
-      paste0(
-        "setHook(packageEvent(pkg, \"onLoad\"), function(...) covr:::register_trace(ns, ",
-        trace_dir,
-        "))"
-      )
+      hook("covr:::register_trace(ns, ", trace_dir, ")")
     ),
     length(lines) - 1L
   )

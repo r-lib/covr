@@ -216,6 +216,40 @@ test_that("trace_coverage(paths =) keeps the lines of each file of a package", {
   )
 })
 
+test_that("file_packages() puts each file in the deepest package that has it", {
+  x <- structure(
+    list(),
+    package = list(
+      package = c("parent", "child"),
+      path = c("/repo", "/repo/child")
+    ),
+    root = "/repo",
+    class = "coverage"
+  )
+  expect_equal(
+    file_packages(x, c("R/a.R", "child/R/b.R")),
+    list(parent = "R/a.R", child = "child/R/b.R")
+  )
+  attr(x, "root") <- NULL
+  expect_equal(
+    file_packages(x, c("/repo/R/a.R", "/repo/child/R/b.R", "/other/c.R")),
+    list(parent = "/repo/R/a.R", child = "/repo/child/R/b.R", "/other/c.R")
+  )
+})
+
+test_that("keep_counters_file() keeps the counters of a loaded package", {
+  local_clean_traces()
+  file <- withr::local_tempfile(fileext = ".rds")
+  saveRDS(list(), file)
+  entry <- scope_entry("pkg")
+  entry$counters_file <- file
+
+  keep_counters_file("pkg", file)
+  unlink(file)
+
+  expect_true(file.exists(scope_entry("pkg")$counters_file))
+})
+
 test_that("trace_coverage() gives the file names in the source directories in `paths`", {
   skip_on_cran()
   local_install_defaults()
@@ -238,6 +272,19 @@ test_that("trace_coverage() gives the file names in the source directories in `p
     expect_equal(traced_files(cov)[[file]]$file_lines, lines)
   }
 
+  # A relative path that doesn't exist is relative to the working directory
+  withr::with_dir(pkgs$src, {
+    cov <- trace_coverage(
+      traces,
+      paths = c(TestNestedOuter = "missing/pkg"),
+      relative_path = FALSE
+    )
+    expect_equal(
+      unique(tally_coverage(cov)$filename),
+      file.path(normalize_path(getwd()), "missing", "pkg", "R", "utils.R")
+    )
+  })
+
   # A function that maps each file, e.g. of a build that flattened them
   root <- normalize_path(withr::local_tempdir())
   cov <- trace_coverage(
@@ -258,12 +305,20 @@ test_that("trace_coverage() gives the file names in the source directories in `p
 })
 
 test_that("remove_covr_hooks() removes only the onLoad hooks of covr", {
+  lib <- withr::local_tempdir()
+  dir.create(file.path(lib, "covrHooksTest", "R"), recursive = TRUE)
+  load_script <- file.path(lib, "covrHooksTest", "R", "covrHooksTest")
+  writeLines(c("local({", "})"), load_script)
+  add_hooks("covrHooksTest", lib)
   event <- packageEvent("covrHooksTest", "onLoad")
   withr::defer(setHook(event, NULL, "replace"))
-  other <- function(...) "other"
+  other <- function(...) covr::in_covr()
   setHook(event, other)
-  setHook(event, function(...) options(covr.record_tests = FALSE))
-  setHook(event, function(...) covr:::register_trace(ns, "dir"))
+  pkg <- "covrHooksTest"
+  for (line in grep("^setHook", readLines(load_script), value = TRUE)) {
+    eval(parse(text = line))
+  }
+  expect_length(getHook(event), 6)
 
   remove_covr_hooks("covrHooksTest")
 
@@ -342,6 +397,11 @@ test_that("common_path() is the deepest directory that contains all paths", {
   expect_equal(common_path(c("C:/a/b", "C:/a/c")), "C:/a")
   expect_equal(common_path(c("C:/a", "C:/b")), "C:/")
   expect_null(common_path(c("C:/a", "D:/b")))
+  expect_null(common_path(c("//serverA/share/a", "//serverB/share/b")))
+  expect_equal(
+    common_path(c("//server/share/a", "//server/share/b")),
+    "//server/share"
+  )
 })
 
 test_that("sort_by_dependencies() puts packages after those they need", {

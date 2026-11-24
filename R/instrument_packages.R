@@ -202,6 +202,7 @@ uninstrument_packages <- function(packages, lib = .libPaths()[[1]]) {
         for (name in names[!vlapply(names, bindingIsActive, env = ns)]) {
           try(get(name, envir = ns, inherits = FALSE), silent = TRUE)
         }
+        keep_counters_file(pkg, instrumented_counters_file(pkg, lib))
       }
     }
     if (!file.copy(original, loader(lib, pkg), overwrite = TRUE)) {
@@ -230,12 +231,28 @@ uninstrument_packages <- function(packages, lib = .libPaths()[[1]]) {
 remove_covr_hooks <- function(pkg) {
   event <- packageEvent(pkg, "onLoad")
   hooks <- getHook(event)
-  covr <- vlapply(hooks, function(hook) {
-    any(grepl("covr", deparse(body(hook)), fixed = TRUE))
-  })
+  covr <- vlapply(hooks, function(hook) isTRUE(attr(hook, "covr_hook")))
   if (any(covr)) {
     setHook(event, hooks[!covr], "replace")
   }
+}
+
+# This session saves the trace of the loaded package `pkg` when it exits,
+# which refers to the counters `file` it restored (see `process_trace()`), so
+# a copy of them is kept until then if they are removed.
+keep_counters_file <- function(pkg, file) {
+  entry <- get0(scope_id(pkg), envir = the$scopes, inherits = FALSE)
+  if (
+    is.null(entry$counters_file) ||
+      !identical(normalize_path(entry$counters_file), normalize_path(file))
+  ) {
+    return(invisible())
+  }
+  copy <- temp_file("covr_counters_", fileext = ".rds")
+  if (file.copy(file, copy)) {
+    entry$counters_file <- copy
+  }
+  invisible()
 }
 
 #' @rdname instrument_packages
@@ -426,6 +443,10 @@ instrument_library_packages <- function(
     results <- parallel::mclapply(
       todo,
       function(i) {
+        # The fork has the counts of the session, which it would save again
+        # if the session's packages are instrumented with the fix of
+        # `mcexit()` (see `fix_mcexit()`)
+        zero_counters()
         warnings <- list()
         file <- withCallingHandlers(
           instrument_one(i),
@@ -523,7 +544,7 @@ trace_source_paths <- function(traces, pkgs, paths = NULL) {
   branches <- as.list(traces[["branches"]])
   lapply(pkgs, function(pkg) {
     if (!is.null(pkg$path) && is.null(paths)) {
-      pkg$path <- normalize_path(pkg$path)
+      pkg$path <- absolute_path(pkg$path)
       return(pkg)
     }
     pkg_traces <- package_traces(traces, pkg$package)
@@ -552,7 +573,7 @@ trace_source_paths <- function(traces, pkgs, paths = NULL) {
       }
       pkg$path <- installed_from
     } else {
-      pkg$path <- normalize_path(pkg$path)
+      pkg$path <- absolute_path(pkg$path)
       if (!is.null(installed_from)) {
         move_srcfiles(srcfile_traces, move_directory(installed_from, pkg$path))
       }
@@ -626,7 +647,7 @@ coverage_root <- function(relative_path, pkgs) {
         x = "It is a character vector of length {length(relative_path)}."
       ))
     }
-    normalize_path(relative_path)
+    absolute_path(relative_path)
   } else if (isTRUE(relative_path)) {
     common_path(vcapply(pkgs, `[[`, "path"))
   } else {
@@ -649,7 +670,10 @@ common_path <- function(paths) {
     n <- if (all(same)) n else which(!same)[[1]] - 1L
     common <- common[seq_len(n)]
   }
-  if (length(common) == 0) {
+  # Packages on different Windows drives or network shares (`//server/share`)
+  # have none
+  unc <- all(startsWith(paths, "//"))
+  if (length(common) == 0 || (unc && length(common) < 4L)) {
     return(NULL)
   }
   # The root of a file system: `/`, or a Windows drive like `C:/`
@@ -701,7 +725,7 @@ coverage_of_packages <- function(
   # package name with underscores in the interfaces header. These paths are in
   # the package, so they are resolved against its root rather than the root
   # used for the output paths, which is `NULL` with `relative_path = FALSE`.
-  package_exclusions <- unlist(lapply(pkgs, function(pkg) {
+  package_exclusions <- unlist(lapply(unname(pkgs), function(pkg) {
     c(
       file.path(
         pkg$path,

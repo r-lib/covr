@@ -299,12 +299,12 @@ test_that("add_hooks() quotes library paths containing quotes (#774)", {
   lines <- readLines(load_script)
   expect_no_error(parse(text = lines))
   hook <- parse(text = grep("register_trace", lines, value = TRUE))[[1]]
-  expect_equal(eval(hook[[3]][[3]][[3]]), lib)
+  expect_equal(eval(hook[[3]][[2]][[3]][[3]]), lib)
   fix <- parse(text = grep("fix_mcexit", lines, value = TRUE))[[1]]
   expect_equal(eval(parse(text = fix[[2]])[[1]]), lib)
   expect_equal(fix[[3]], "pkg")
   trace <- parse(text = grep("trace_environment", lines, value = TRUE))[[1]]
-  expect_equal(trace[[3]][[3]][["scope"]], "pkg")
+  expect_equal(trace[[3]][[2]][[3]][["scope"]], "pkg")
 })
 
 test_that("add_hooks() saves traces to COVR_TRACE_DIR, not COVERAGE_DIR", {
@@ -316,7 +316,7 @@ test_that("add_hooks() saves traces to COVR_TRACE_DIR, not COVERAGE_DIR", {
 
   lines <- readLines(load_script)
   hook <- parse(text = grep("register_trace", lines, value = TRUE))[[1]]
-  hook_expr <- hook[[3]][[3]][[3]]
+  hook_expr <- hook[[3]][[2]][[3]][[3]]
   fix <- parse(text = grep("fix_mcexit", lines, value = TRUE))[[1]]
   fix_expr <- parse(text = fix[[2]])[[1]]
 
