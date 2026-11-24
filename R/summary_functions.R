@@ -454,6 +454,10 @@ print.coverage <- function(
     return(invisible())
   }
 
+  if (group == "functions") {
+    df <- qualify_functions(x, df)
+  }
+
   # Each line counts once for its file, but once for each function on it.
   counted <- if (group == "filename" && !is.null(df$line)) {
     collapse_lines(df)
@@ -468,6 +472,9 @@ print.coverage <- function(
   branches <- tally_coverage(x, by = "branch")
   if (!NROW(branches)) {
     branches <- NULL
+  }
+  if (group == "functions") {
+    branches <- qualify_functions(x, branches)
   }
   header <- paste0(
     cli::style_bold(

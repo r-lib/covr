@@ -474,6 +474,24 @@ file_packages <- function(x, files) {
   groups[lengths(groups) > 0]
 }
 
+# The tally `df` of the coverage `x` (see `tally_coverage()`), with the
+# functions of the coverage of several packages named `pkg::fun`, as functions
+# of different packages can have the same name.
+qualify_functions <- function(x, df) {
+  if (is.null(df) || length(attr(x, "package")$package) < 2L) {
+    return(df)
+  }
+  groups <- file_packages(x, unique(as.character(df$filename)))
+  pkg <- rep(names(groups), lengths(groups))[
+    match(df$filename, unlist(groups))
+  ]
+  functions <- as.character(df$functions)
+  named <- !is.na(pkg) & nzchar(pkg) & !is.na(functions)
+  functions[named] <- paste0(pkg[named], "::", functions[named])
+  df$functions <- functions
+  df
+}
+
 get_source_filename <- function(
   x,
   full.names = FALSE,

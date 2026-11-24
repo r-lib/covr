@@ -72,6 +72,8 @@
 #'   save the counts when `COVR_TRACE_DIR` is set. For `trace_coverage()`, the
 #'   directories the counts were saved in, e.g. one for each shard of a CI
 #'   run.
+#' @param cores The number of packages to instrument at once, each in its own
+#'   R process. On Windows they are instrumented one at a time.
 #' @return `instrument_packages()` and `local_instrumented_packages()` return
 #'   a logical vector, invisibly, named by package: `TRUE` for a package that
 #'   was instrumented when it was installed, and `FALSE` for one that is
@@ -84,7 +86,8 @@
 instrument_packages <- function(
   packages,
   lib = .libPaths()[[1]],
-  trace_dir = file.path(lib, "covr_traces")
+  trace_dir = file.path(lib, "covr_traces"),
+  cores = getOption("Ncpus", 1L)
 ) {
   check_packages(packages)
   if (!is_string(lib) || !dir.exists(lib)) {
@@ -140,7 +143,8 @@ instrument_packages <- function(
     pkgs,
     lib,
     trace_dir,
-    ahead_of_time = isTRUE(install_instrument())
+    ahead_of_time = isTRUE(install_instrument()),
+    cores = cores
   )
   # The packages that no process loads are in the coverage, with none of their
   # code covered
@@ -241,10 +245,11 @@ local_instrumented_packages <- function(
   packages,
   lib = .libPaths()[[1]],
   trace_dir = file.path(lib, "covr_traces"),
+  cores = getOption("Ncpus", 1L),
   .local_envir = parent.frame()
 ) {
   lib <- normalize_path(lib)
-  res <- instrument_packages(packages, lib, trace_dir)
+  res <- instrument_packages(packages, lib, trace_dir, cores = cores)
   withr::defer(uninstrument_packages(packages, lib), envir = .local_envir)
   invisible(res)
 }
@@ -378,12 +383,20 @@ loader_original <- function(lib, pkg) {
 # them when they are loaded and save their traces (see `add_hooks()`). The
 # counts are saved in `trace_dir`, unless `COVR_TRACE_DIR` is set. The hooks are
 # only added once all are instrumented, as instrumenting a package loads the
-# packages it imports, which would save their traces.
+# packages it imports, which would save their traces. Returns the counters
+# file of each package, or `NULL` for one that is instrumented when it is
+# loaded.
+#
+# Each package is instrumented by its own R process, which are independent, so
+# with several `cores` they run in parallel (on Unix-alikes, in forked
+# processes), the largest first, so that the last ones to start are the
+# quickest.
 instrument_library_packages <- function(
   pkgs,
   lib,
   trace_dir = lib,
-  ahead_of_time = TRUE
+  ahead_of_time = TRUE,
+  cores = getOption("Ncpus", 1L)
 ) {
   ahead_of_time <- rep_len(ahead_of_time, length(pkgs))
   full_traversal <- lapply(pkgs, function(pkg) {
@@ -393,16 +406,66 @@ instrument_library_packages <- function(
       isTRUE(as.logical(pkg[[tolower("Config/covr/full_traversal")]]))
     )
   })
-  counters_files <- Map(
-    function(pkg, ahead_of_time, full_traversal) {
-      if (ahead_of_time) {
-        instrument_package(pkg, lib, full_traversal = full_traversal)
+  instrument_one <- function(i) {
+    if (ahead_of_time[[i]]) {
+      instrument_package(pkgs[[i]], lib, full_traversal = full_traversal[[i]])
+    }
+  }
+  todo <- which(ahead_of_time)
+  counters_files <- vector("list", length(pkgs))
+  if (length(todo) > 1L && cores > 1L && !is_windows()) {
+    sizes <- vapply(
+      pkgs[todo],
+      function(pkg) {
+        file.size(file.path(lib, pkg$package, "R", paste0(pkg$package, ".rdb")))
+      },
+      numeric(1)
+    )
+    todo <- todo[order(sizes, decreasing = TRUE)]
+    # The warnings of the forked processes are returned, and given here
+    results <- parallel::mclapply(
+      todo,
+      function(i) {
+        warnings <- list()
+        file <- withCallingHandlers(
+          instrument_one(i),
+          warning = function(w) {
+            warnings[[length(warnings) + 1L]] <<- w
+            invokeRestart("muffleWarning")
+          }
+        )
+        list(file = file, warnings = warnings)
+      },
+      mc.cores = cores,
+      mc.preschedule = FALSE
+    )
+    for (j in seq_along(todo)) {
+      result <- results[[j]]
+      # A process that was killed, e.g. when it ran out of memory, gives `NULL`
+      # or an error, and its package is instrumented when it is loaded.
+      if (!is.list(result)) {
+        failed <- pkgs[[todo[[j]]]]$package
+        covr_warn(
+          "Can't instrument the installed package {.pkg {failed}} ahead of time.",
+          class = "covr_instrument_failed"
+        )
+        next
       }
-    },
-    pkgs,
-    ahead_of_time,
-    full_traversal
-  )
+      for (w in result$warnings) {
+        warning(w)
+      }
+      if (!is.null(result$file)) {
+        counters_files[[todo[[j]]]] <- result$file
+      }
+    }
+  } else {
+    for (i in todo) {
+      file <- instrument_one(i)
+      if (!is.null(file)) {
+        counters_files[[i]] <- file
+      }
+    }
+  }
   # A package's code can run in the forked workers of another package that
   # uses parallel, so the fix is added to all of them if any needs it.
   fix_mcexit <- any(vlapply(pkgs, should_enable_parallel_mcexit_fix))

@@ -114,6 +114,7 @@ rust_coverage_setup <- function(path, dir) {
 
   list(
     sysroot = toolchain$sysroot,
+    llvm_version = toolchain$llvm_version %||% NA_character_,
     llvm_cov = llvm_cov,
     llvm_profdata = llvm_profdata,
     libs = paste(libs, collapse = " "),
@@ -222,10 +223,24 @@ add_rust_flags <- function(flags, rust) {
 # The R processes that run the code write the counts of all the packages'
 # Rust code to the profiles directory of the first of the `rust` setups (from
 # `rust_coverage_setup()`, by package), as a process can load several of them.
-# Each package's coverage is read from all of the counts.
+# Each package's coverage is read from all of the counts. `llvm-profdata` can
+# only merge the counts of code built with the same LLVM, so packages whose
+# toolchain has another version (e.g. pinned by a `rust-toolchain.toml`) are
+# built without coverage, with a warning.
 share_rust_profiles <- function(rust) {
   rust <- compact(rust)
   if (length(rust) > 1L) {
+    version <- rust[[1]]$llvm_version
+    other <- vlapply(rust, function(x) !identical(x$llvm_version, version))
+    if (any(other)) {
+      first <- names(rust)[[1]]
+      covr_warn(c(
+        "Can't measure the coverage of the Rust code of {.pkg {names(rust)[other]}}.",
+        x = "It's built with another LLVM version than the Rust code of {.pkg {first}} (LLVM {version}).",
+        i = "Measure the coverage of each of these packages on its own."
+      ))
+      rust <- rust[!other]
+    }
     for (name in names(rust)[-1]) {
       rust[[name]]$profiles <- rust[[1]]$profiles
       rust[[name]]$env <- rust[[1]]$env

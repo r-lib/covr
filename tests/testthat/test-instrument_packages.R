@@ -6,7 +6,8 @@ test_that("trace_coverage() reads the coverage of any processes that load instru
   instrumented <- local_instrumented_packages(
     c("TestNestedInner", "TestNestedOuter"),
     pkgs$lib,
-    traces
+    traces,
+    cores = 2
   )
   expect_equal(instrumented, c(TestNestedInner = TRUE, TestNestedOuter = TRUE))
 
@@ -29,6 +30,12 @@ test_that("trace_coverage() reads the coverage of any processes that load instru
   expect_equal(
     xml2::xml_attr(xml2::xml_find_all(xml, "//package"), "name"),
     c("TestNestedInner", "TestNestedOuter")
+  )
+
+  # Functions are named by their package
+  expect_message(
+    print(cov, group = "functions"),
+    "TestNestedOuter::outer_fun"
   )
 })
 
@@ -347,4 +354,16 @@ test_that("sort_by_dependencies() puts packages after those they need", {
     vcapply(sort_by_dependencies(pkgs), `[[`, "package"),
     c("a", "b", "c")
   )
+})
+
+test_that("share_rust_profiles() leaves out packages built with another LLVM", {
+  rust <- list(
+    a = list(llvm_version = "18", profiles = "a", env = c(X = "a")),
+    b = list(llvm_version = "19", profiles = "b", env = c(X = "b")),
+    c = list(llvm_version = "18", profiles = "c", env = c(X = "c"))
+  )
+  expect_snapshot(shared <- share_rust_profiles(rust))
+  expect_named(shared, c("a", "c"))
+  expect_equal(shared$c$profiles, "a")
+  expect_equal(rust_env(shared), c(X = "a"))
 })

@@ -10,7 +10,8 @@
 instrument_packages(
   packages,
   lib = .libPaths()[[1]],
-  trace_dir = file.path(lib, "covr_traces")
+  trace_dir = file.path(lib, "covr_traces"),
+  cores = getOption("Ncpus", 1L)
 )
 
 uninstrument_packages(packages, lib = .libPaths()[[1]])
@@ -19,6 +20,7 @@ local_instrumented_packages(
   packages,
   lib = .libPaths()[[1]],
   trace_dir = file.path(lib, "covr_traces"),
+  cores = getOption("Ncpus", 1L),
   .local_envir = parent.frame()
 )
 
@@ -45,6 +47,9 @@ instrumented package. It is created if it doesn't exist. \code{NULL} to only
 save the counts when \code{COVR_TRACE_DIR} is set. For \code{trace_coverage()}, the
 directories the counts were saved in, e.g. one for each shard of a CI
 run.}
+
+\item{cores}{The number of packages to instrument at once, each in its own
+R process. On Windows they are instrumented one at a time.}
 
 \item{.local_envir}{The environment whose exit restores the packages.}
 

@@ -31,3 +31,13 @@
       ! TestNestedOuter is already instrumented.
       i Use `uninstrument_packages()` first.
 
+# share_rust_profiles() leaves out packages built with another LLVM
+
+    Code
+      shared <- share_rust_profiles(rust)
+    Condition
+      Warning:
+      Can't measure the coverage of the Rust code of b.
+      x It's built with another LLVM version than the Rust code of a (LLVM 18).
+      i Measure the coverage of each of these packages on its own.
+
