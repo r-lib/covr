@@ -128,7 +128,7 @@ package_coverage <- function(
   allow_failures = getOption("covr.allow_failures", FALSE),
   show_code_output = FALSE
 ) {
-  if (!is.character(path) || length(path) == 0) {
+  if (!is.character(path) || length(path) == 0 || anyNA(path)) {
     covr_abort("{.arg path} must be a character vector of package paths.")
   }
   pkgs <- lapply(path, as_package)
@@ -384,37 +384,27 @@ package_coverage <- function(
 
   res <- NULL
   for (pkg in pkgs[!installed]) {
-    res <- c(
-      res,
-      scope_compiled(run_gcov(pkg$path, quiet = quiet, clean = clean), pkg)
-    )
-  }
-  for (name in names(rust)) {
-    pkg <- pkgs[[match(name, pkg_names)]]
-    objects <- list.files(
-      file.path(install_path, name, "libs"),
-      pattern = "[.](so|dll|dylib)$",
-      recursive = TRUE,
-      full.names = TRUE
-    )
-    res <- c(
-      res,
-      scope_compiled(
-        run_llvm_cov(rust[[name]], pkg$path, objects, quiet = quiet),
-        pkg
+    pkg_res <- run_gcov(pkg$path, quiet = quiet, clean = clean)
+    if (!is.null(rust[[pkg$package]])) {
+      objects <- list.files(
+        file.path(install_path, pkg$package, "libs"),
+        pattern = "[.](so|dll|dylib)$",
+        recursive = TRUE,
+        full.names = TRUE
       )
-    )
-  }
-  rust_paths <- vcapply(pkgs[!installed], `[[`, "path")
-  rust_paths <- rust_paths[vlapply(
-    rust_paths,
-    function(x) length(rust_manifests(x)) > 0
-  )]
-  if (length(rust_paths)) {
-    res <- drop_rust_dependencies(
-      res,
-      roots = c(rust_paths, getOption("covr.gcov_additional_paths", NULL))
-    )
+      pkg_res <- c(
+        pkg_res,
+        run_llvm_cov(rust[[pkg$package]], pkg$path, objects, quiet = quiet)
+      )
+    }
+    # Only the files of a package with Rust code can be its dependencies
+    if (length(rust_manifests(pkg$path))) {
+      pkg_res <- drop_rust_dependencies(
+        pkg_res,
+        roots = c(pkg$path, getOption("covr.gcov_additional_paths", NULL))
+      )
+    }
+    res <- c(res, scope_compiled(pkg_res, pkg))
   }
 
   coverage <- coverage_of_packages(
@@ -808,7 +798,7 @@ add_hooks <- function(
   trace_dir = lib
 ) {
   trace_dir <- paste0(
-    "Sys.getenv(\"COVR_TRACE_DIR\", ",
+    "covr:::trace_dir_setting(",
     encodeString(trace_dir, quote = '"'),
     ")"
   )

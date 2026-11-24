@@ -174,7 +174,14 @@ save_trace <- function(directory, scope = NULL) {
       if (!is.null(the$trace_error)) {
         stop(the$trace_error, call. = FALSE)
       }
-      save_rds(process_trace(scope), tmp_file)
+      trace <- process_trace(scope)
+      if (inherits(trace, "covr_counts")) {
+        trace$counters_file <- stage_counters_file(
+          trace$counters_file,
+          directory
+        )
+      }
+      save_rds(trace, tmp_file)
     },
     error = function(e) {
       marker <- structure(
@@ -188,6 +195,29 @@ save_trace <- function(directory, scope = NULL) {
     covr_abort("Can't write trace file {.path {final_file}}.")
   }
   invisible(final_file)
+}
+
+# A copy of the counters `file` of a package instrumented after it was
+# installed in the trace `directory`, named by its contents, so the traces in
+# the directory can be read without the library, e.g. after the package is
+# restored or in another job. Returns the name of the copy, which
+# `merge_coverage()` reads relative to the directory of the trace, or `file`
+# if it can't be copied.
+stage_counters_file <- function(file, directory) {
+  md5 <- unname(tools::md5sum(file))
+  if (is.na(md5)) {
+    return(file)
+  }
+  name <- paste0("covr_counters_", md5, ".rds")
+  dest <- file.path(directory, name)
+  if (!file.exists(dest)) {
+    tmp <- temp_file(".covr_tmp_", tmpdir = directory)
+    on.exit(unlink(tmp, expand = FALSE), add = TRUE)
+    if (!file.copy(file, tmp) || !file.rename(tmp, dest)) {
+      return(file)
+    }
+  }
+  name
 }
 
 # The trace of `scope` in this process, or of all scopes if it is `NULL`. Each
@@ -314,24 +344,34 @@ copy_srcfile <- function(srcfile, copies) {
   copy
 }
 
+# The directory instrumented packages save their traces in: the environment
+# variable `COVR_TRACE_DIR`, or `default` if it is unset or empty.
+trace_dir_setting <- function(default) {
+  dir <- Sys.getenv("COVR_TRACE_DIR")
+  if (nzchar(dir)) dir else default
+}
+
 # Called from the loader script of the instrumented package (see `add_hooks()`)
 # while its namespace is loaded. The finalizer saves the trace of the scope of
 # the package (its name) when the namespace is garbage collected or R exits
 # normally; other packages instrumented in the process have their own
 # finalizer and trace. Until then a
-# `covr_pending_<pid>_*` marker exists in `directory`, so `package_coverage()`
-# can report processes that loaded the package but never saved their trace,
-# e.g. because they were killed (#438). Markers are owned by the process whose
-# pid is in their name; forked children inherit the finalizer but not the
-# parent's markers, so `save_trace_and_clear()` leaves those alone.
+# `covr_pending_<pid>_<package>_*` marker exists in `directory`, so
+# `package_coverage()` can report processes that loaded the package but never
+# saved its trace, e.g. because they were killed (#438). Markers are owned by
+# the process whose pid is in their name; forked children inherit the
+# finalizer but not the parent's markers, so `save_trace_and_clear()` leaves
+# those alone.
 #
 # `directory` (from `COVR_TRACE_DIR`) is fixed when the package loads, so the
 # marker and the trace end up in the same place. A marker that can't be created
 # is not worth a warning during package load; the trace save fails later too.
 register_trace <- function(ns, directory, scope = env_scope(ns)) {
   force(scope)
-  pid <- Sys.getpid()
-  pending <- temp_file(paste0("covr_pending_", pid, "_"), tmpdir = directory)
+  pending <- temp_file(
+    paste0("covr_pending_", Sys.getpid(), "_", marker_scope(scope)),
+    tmpdir = directory
+  )
   suppressWarnings(file.create(pending))
   reg.finalizer(
     ns,
@@ -343,13 +383,15 @@ register_trace <- function(ns, directory, scope = env_scope(ns)) {
 
 # Also used by the patched `parallel:::mcexit()` (see `fix_mcexit()`), as forked
 # workers exit without running finalizers. A worker that loads the package after
-# forking creates its own marker, which is removed here.
+# forking creates its own marker, which is removed here. Only the markers of
+# `scope` are removed, so a process that is killed after saving the trace of
+# one package still has the markers of the others.
 save_trace_and_clear <- function(directory, scope = NULL) {
   res <- save_trace(directory, scope)
   unlink(
     list.files(
       directory,
-      pattern = pending_pattern(Sys.getpid()),
+      pattern = pending_pattern(Sys.getpid(), scope),
       full.names = TRUE
     ),
     expand = FALSE
@@ -357,8 +399,23 @@ save_trace_and_clear <- function(directory, scope = NULL) {
   invisible(res)
 }
 
-pending_pattern <- function(pid) {
-  paste0("^covr_pending_", pid, "_")
+# The part of the name of the markers of `scope`: the name of a package, or
+# nothing for other scopes, whose names can't be in file names.
+marker_scope <- function(scope) {
+  if (is.character(scope) && grepl("^[[:alnum:].]+$", scope)) {
+    paste0(scope, "_")
+  } else {
+    ""
+  }
+}
+
+pending_pattern <- function(pid, scope = NULL) {
+  paste0(
+    "^covr_pending_",
+    pid,
+    "_",
+    gsub(".", "\\.", marker_scope(scope), fixed = TRUE)
+  )
 }
 
 # The markers of processes that loaded the package but did not save their

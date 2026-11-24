@@ -204,7 +204,11 @@ test_that("merge_coverage reports a missing file of saved counters", {
   saveRDS(counters, file)
   restore_counters(new.env(), file)
   trace <- save_trace(withr::local_tempdir(), "")
-  unlink(file)
+  # The counters and the copy of them in the directory of the trace
+  unlink(c(
+    file,
+    list.files(dirname(trace), "^covr_counters_", full.names = TRUE)
+  ))
 
   expect_error(merge_coverage(trace), "incomplete", class = "covr_error")
 })

@@ -17,6 +17,14 @@
 ---
 
     Code
+      instrument_packages(c("TestNestedOuter", "TestNestedOuter"), pkgs$lib)
+    Condition
+      Error:
+      ! `packages` has TestNestedOuter more than once.
+
+---
+
+    Code
       instrument_packages(c("TestNestedInner", "TestNestedOuter"), pkgs$lib)
     Condition
       Error:

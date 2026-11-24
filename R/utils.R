@@ -428,8 +428,16 @@ temp_file <- function(pattern = "file", tmpdir = temp_dir(), fileext = "") {
   normalize_path(tempfile(pattern, tmpdir, fileext))
 }
 
+is_string <- function(x) {
+  is.character(x) && length(x) == 1L && !is.na(x) && nzchar(x)
+}
+
+# The name of the files of reports: the package's name, or "coverage" for the
+# coverage of none or of several packages, whose names can be too long for a
+# file name.
 get_package_name <- function(x) {
-  package_label(x, sep = "-") %||% "coverage"
+  pkg <- attr(x, "package")$package
+  if (length(pkg) == 1L) pkg else "coverage"
 }
 
 # The name of the package of the coverage `x`, the names of its packages
@@ -440,10 +448,11 @@ package_label <- function(x, sep = ", ") {
 }
 
 # The directory of the package of the coverage `x`, or for the coverage of
-# several packages, the directory its file names are relative to.
+# several packages, the directory its file names are relative to, or that
+# contains all of them if they are absolute.
 coverage_base_path <- function(x) {
   path <- attr(x, "package")$path
-  if (length(path) > 1L) attr(x, "root") else path
+  if (length(path) > 1L) attr(x, "root") %||% common_path(path) else path
 }
 
 get_source_filename <- function(

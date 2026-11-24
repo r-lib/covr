@@ -23,7 +23,7 @@ local_instrumented_packages(
 )
 
 trace_coverage(
-  trace_dir = Sys.getenv("COVR_TRACE_DIR", file.path(.libPaths()[[1]], "covr_traces")),
+  trace_dir = trace_dir_setting(file.path(.libPaths()[[1]], "covr_traces")),
   paths = NULL,
   relative_path = TRUE,
   line_exclusions = NULL,

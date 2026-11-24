@@ -40,6 +40,94 @@ test_that("instrumented packages save their counts in COVR_TRACE_DIR if it is se
   expect_snapshot(trace_coverage("."), error = TRUE)
 })
 
+test_that("trace_coverage() reads traces after the packages are restored", {
+  skip_on_cran()
+  local_install_defaults()
+  pkgs <- local_nested_library()
+  traces <- withr::local_tempdir()
+  local({
+    local_instrumented_packages("TestNestedOuter", pkgs$lib, traces)
+    run_with_library(pkgs$lib, "TestNestedOuter::outer_fun(1)")
+  })
+  unlink(pkgs$lib, recursive = TRUE)
+
+  expect_equal(tally_coverage(trace_coverage(traces))$value, c(1, 1))
+})
+
+test_that("instrumented packages save their counts in trace_dir if COVR_TRACE_DIR is empty", {
+  skip_on_cran()
+  local_install_defaults()
+  pkgs <- local_nested_library()
+  traces <- withr::local_tempdir()
+  local_instrumented_packages("TestNestedOuter", pkgs$lib, traces)
+
+  run_with_library(
+    pkgs$lib,
+    "TestNestedOuter::outer_fun(1)",
+    env = c(COVR_TRACE_DIR = "")
+  )
+
+  expect_equal(tally_coverage(trace_coverage(traces))$value, c(1, 1))
+})
+
+test_that("trace_coverage(paths =) keeps the lines of each file of a package", {
+  skip_on_cran()
+  local_install_defaults()
+  root <- withr::local_tempdir()
+  pkg <- file.path(root, "build", "MultiPkg")
+  moved <- file.path(root, "moved", "MultiPkg")
+  lib <- file.path(root, "lib")
+  dir.create(file.path(pkg, "R"), recursive = TRUE)
+  dir.create(lib)
+  writeLines(
+    c("Package: MultiPkg", "Version: 0.1.0", "Title: T", "Description: T."),
+    file.path(pkg, "DESCRIPTION")
+  )
+  writeLines("export(f_a, f_b)", file.path(pkg, "NAMESPACE"))
+  writeLines(
+    c("f_a <- function(x) {", "  x + 1", "}"),
+    file.path(pkg, "R", "a.R")
+  )
+  writeLines(
+    c(
+      "f_b <- function(x) {",
+      "  x * 2",
+      "  if (FALSE) {",
+      "    stop('never') # nocov",
+      "  }",
+      "}"
+    ),
+    file.path(pkg, "R", "b.R")
+  )
+  withr::with_envvar(c(R_ENVIRON = NA, R_PROFILE = NA), {
+    system2(
+      file.path(R.home("bin"), "R"),
+      c(
+        "CMD",
+        "INSTALL",
+        "--with-keep.source",
+        "-l",
+        shQuote(lib),
+        shQuote(pkg)
+      ),
+      stdout = FALSE,
+      stderr = FALSE
+    )
+  })
+  traces <- withr::local_tempdir()
+  local_instrumented_packages("MultiPkg", lib, traces)
+  run_with_library(lib, "MultiPkg::f_a(1); MultiPkg::f_b(2)")
+
+  as_installed <- tally_coverage(trace_coverage(traces))
+  moved_cov <- trace_coverage(traces, paths = c(MultiPkg = moved))
+
+  expect_equal(tally_coverage(moved_cov), as_installed)
+  expect_equal(
+    traced_files(moved_cov)[["R/b.R"]]$file_lines,
+    readLines(file.path(pkg, "R", "b.R"))
+  )
+})
+
 test_that("trace_coverage() gives the file names in the source directories in `paths`", {
   skip_on_cran()
   local_install_defaults()
@@ -124,6 +212,10 @@ test_that("instrument_packages() errors for packages that are not installed or a
       error = TRUE
     )
   })
+  expect_snapshot(
+    instrument_packages(c("TestNestedOuter", "TestNestedOuter"), pkgs$lib),
+    error = TRUE
+  )
 
   local_instrumented_packages("TestNestedOuter", pkgs$lib, traces)
   expect_snapshot(
@@ -141,6 +233,8 @@ test_that("common_path() is the deepest directory that contains all paths", {
   expect_equal(common_path(c("/a/b", "/a/b/c")), "/a/b")
   expect_equal(common_path(c("/a", "/b")), "/")
   expect_equal(common_path(c("C:/a/b", "C:/a/c")), "C:/a")
+  expect_equal(common_path(c("C:/a", "C:/b")), "C:/")
+  expect_null(common_path(c("C:/a", "D:/b")))
 })
 
 test_that("sort_by_dependencies() puts packages after those they need", {

@@ -23,7 +23,10 @@ gitlab <- function(
     print(coverage)
   }
 
-  pkg_path <- attributes(coverage)$package$path
+  pkg_path <- coverage_base_path(coverage)
+  if (!is.null(pkg_path)) {
+    file <- file.path(pkg_path, file)
+  }
 
-  invisible(report(coverage, file = file.path(pkg_path, file), browse = FALSE))
+  invisible(report(coverage, file = file, browse = FALSE))
 }

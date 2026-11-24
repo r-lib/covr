@@ -64,8 +64,11 @@ instrument_packages <- function(
   trace_dir = file.path(lib, "covr_traces")
 ) {
   check_packages(packages)
-  if (!dir.exists(lib)) {
+  if (!is_string(lib) || !dir.exists(lib)) {
     covr_abort("Can't find the library {.path {lib}}.")
+  }
+  if (!is_string(trace_dir)) {
+    covr_abort("{.arg trace_dir} must be a single path.")
   }
   installed <- file.exists(file.path(lib, packages, "Meta", "package.rds"))
   if (!all(installed)) {
@@ -74,6 +77,12 @@ instrument_packages <- function(
     )
   }
   lib <- normalize_path(lib)
+  no_code <- !file.exists(loader(lib, packages))
+  if (any(no_code)) {
+    covr_abort(
+      "{.pkg {packages[no_code]}} {?has/have} no R code to instrument."
+    )
+  }
   done <- file.exists(loader_original(lib, packages))
   if (any(done)) {
     covr_abort(c(
@@ -82,6 +91,9 @@ instrument_packages <- function(
     ))
   }
   dir.create(trace_dir, recursive = TRUE, showWarnings = FALSE)
+  if (!dir.exists(trace_dir)) {
+    covr_abort("Can't create the trace directory {.path {trace_dir}}.")
+  }
   trace_dir <- normalize_path(trace_dir)
 
   # Restore the packages if one fails
@@ -99,7 +111,12 @@ instrument_packages <- function(
     desc$path <- file.path(lib, pkg)
     desc
   })
-  instrument_library_packages(pkgs, lib, trace_dir)
+  instrument_library_packages(
+    pkgs,
+    lib,
+    trace_dir,
+    ahead_of_time = isTRUE(install_instrument())
+  )
   done <- TRUE
   invisible(packages)
 }
@@ -116,13 +133,18 @@ uninstrument_packages <- function(packages, lib = .libPaths()[[1]]) {
     }
     # The running R may still read the instrumented code of a namespace it has
     # loaded, through promises to read it when it is first used, so these are
-    # read before it is removed.
+    # read before it is removed. Active bindings are left alone, as reading
+    # them runs code, and a binding that fails to read doesn't stop the
+    # package from being restored.
     if (pkg %in% loadedNamespaces()) {
       ns <- asNamespace(pkg)
       if (
         identical(normalize_path(dirname(getNamespaceInfo(ns, "path"))), lib)
       ) {
-        invisible(as.list(ns, all.names = TRUE))
+        names <- ls(ns, all.names = TRUE)
+        for (name in names[!vlapply(names, bindingIsActive, env = ns)]) {
+          try(get(name, envir = ns, inherits = FALSE), silent = TRUE)
+        }
       }
     }
     if (!file.copy(original, loader(lib, pkg), overwrite = TRUE)) {
@@ -192,22 +214,22 @@ local_instrumented_packages <- function(
 #'   directory lists are left out.
 #' @export
 trace_coverage <- function(
-  trace_dir = Sys.getenv(
-    "COVR_TRACE_DIR",
-    file.path(.libPaths()[[1]], "covr_traces")
-  ),
+  trace_dir = trace_dir_setting(file.path(.libPaths()[[1]], "covr_traces")),
   paths = NULL,
   relative_path = TRUE,
   line_exclusions = NULL,
   function_exclusions = NULL
 ) {
-  if (!dir.exists(trace_dir)) {
+  if (!is_string(trace_dir) || !dir.exists(trace_dir)) {
     covr_abort("Can't find the trace directory {.path {trace_dir}}.")
   }
   if (
     !is.null(paths) &&
       (!is.character(paths) ||
+        anyNA(paths) ||
+        any(!nzchar(paths)) ||
         is.null(names(paths)) ||
+        anyNA(names(paths)) ||
         any(!nzchar(names(paths))))
   ) {
     covr_abort("{.arg paths} must be a character vector named by package.")
@@ -254,6 +276,11 @@ check_packages <- function(packages, empty = FALSE) {
   ) {
     covr_abort("{.arg packages} must be a character vector of package names.")
   }
+  if (anyDuplicated(packages)) {
+    covr_abort(
+      "{.arg packages} has {.pkg {unique(packages[duplicated(packages)])}} more than once."
+    )
+  }
 }
 
 loader <- function(lib, pkg) {
@@ -296,11 +323,14 @@ instrument_library_packages <- function(
     ahead_of_time,
     full_traversal
   )
+  # A package's code can run in the forked workers of another package that
+  # uses parallel, so the fix is added to all of them if any needs it.
+  fix_mcexit <- any(vlapply(pkgs, should_enable_parallel_mcexit_fix))
   for (i in seq_along(pkgs)) {
     add_hooks(
       pkgs[[i]]$package,
       lib,
-      fix_mcexit = should_enable_parallel_mcexit_fix(pkgs[[i]]),
+      fix_mcexit = fix_mcexit,
       full_traversal = full_traversal[[i]],
       counters_file = counters_files[[i]],
       trace_dir = trace_dir
@@ -308,12 +338,14 @@ instrument_library_packages <- function(
   }
 }
 
-# The packages with traces in `traces`, whose keys start with the name of their
-# package (see `scope_prefix()`).
+# The packages with traces in `traces`, in alphabetical order, whose keys start
+# with the name of their package (see `scope_prefix()`). Other scopes, such as
+# that of a Shiny app, aren't packages.
 traced_packages <- function(traces) {
   keys <- names(traces) %||% character()
   keys <- keys[grepl("/", keys, fixed = TRUE)]
-  unique(sub("/.*$", "", keys))
+  pkgs <- unique(sub("/.*$", "", keys))
+  sort(pkgs[grepl("^[[:alpha:]][[:alnum:].]*$", pkgs)], method = "radix")
 }
 
 package_traces <- function(traces, package) {
@@ -342,6 +374,10 @@ scope_compiled <- function(x, pkg) {
 # have one are changed from that directory to their `path`.
 trace_source_paths <- function(traces, pkgs, move = FALSE) {
   lapply(pkgs, function(pkg) {
+    if (!is.null(pkg$path) && !move) {
+      pkg$path <- normalize_path(pkg$path)
+      return(pkg)
+    }
     pkg_traces <- package_traces(traces, pkg$package)
     installed_from <- installed_source_path(pkg_traces)
     if (is.null(pkg$path)) {
@@ -354,8 +390,14 @@ trace_source_paths <- function(traces, pkgs, move = FALSE) {
       pkg$path <- installed_from
     } else {
       pkg$path <- normalize_path(pkg$path)
-      if (move && !is.null(installed_from)) {
-        move_srcfiles(pkg_traces, installed_from, pkg$path)
+      if (!is.null(installed_from)) {
+        # Decisions of branch coverage can have srcfiles of their own
+        branches <- as.list(traces[["branches"]])
+        move_srcfiles(
+          c(pkg_traces, package_traces(branches, pkg$package)),
+          installed_from,
+          pkg$path
+        )
       }
     }
     pkg
@@ -368,10 +410,10 @@ trace_source_paths <- function(traces, pkgs, move = FALSE) {
 # lines of all its files, which start with `#line` directives naming them, by
 # which `traced_files()` finds the lines of each file, so these are moved too.
 move_srcfiles <- function(traces, from, to) {
-  from <- paste0(from, "/")
-  to <- paste0(to, "/")
+  from <- sub("/*$", "/", from)
+  to <- sub("/*$", "/", to)
   move <- function(x) {
-    inside <- startsWith(x, from)
+    inside <- startsWith(x, from) %in% TRUE
     x[inside] <- paste0(to, substring(x[inside], nchar(from) + 1))
     x
   }
@@ -432,8 +474,9 @@ coverage_root <- function(relative_path, pkgs) {
   }
 }
 
-# The deepest directory that contains all the (normalized) `paths`, or the
-# path itself for one path.
+# The deepest directory that contains all the (normalized, absolute) `paths`,
+# the path itself for one path, or `NULL` if there is none, e.g. for paths on
+# different Windows drives.
 common_path <- function(paths) {
   if (length(paths) == 1L) {
     return(paths)
@@ -446,9 +489,14 @@ common_path <- function(paths) {
     n <- if (all(same)) n else which(!same)[[1]] - 1L
     common <- common[seq_len(n)]
   }
-  path <- paste(common, collapse = "/")
-  # The root of a Unix file system
-  if (!nzchar(path)) "/" else path
+  if (length(common) == 0) {
+    return(NULL)
+  }
+  # The root of a file system: `/`, or a Windows drive like `C:/`
+  if (length(common) == 1L) {
+    return(paste0(common, "/"))
+  }
+  paste(common, collapse = "/")
 }
 
 # The `package` attribute of the coverage of `pkgs`: the package of one, or the

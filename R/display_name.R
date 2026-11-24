@@ -70,5 +70,9 @@ filter_non_package_files <- function(x) {
     keep <- keep |
       (is_native_file(filenames) & path_in_roots(filenames, additional))
   }
+  # Subsetting also subsets the branches, which is slow for large packages
+  if (all(keep %in% TRUE)) {
+    return(x)
+  }
   x[which(keep)]
 }

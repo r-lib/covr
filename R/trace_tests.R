@@ -241,7 +241,7 @@ test_info <- function(tests, x) {
   # the tests of each are in the `tests` directory of its source.
   pkgs <- attr(x, "package")
   for (i in seq_along(pkgs$package)) {
-    pkg <- pkgs$package[[i]]
+    pkg <- gsub(".", "\\.", pkgs$package[[i]], fixed = TRUE)
     tests_dir <- if (length(pkgs$package) > 1L) {
       paste0(pkgs$path[[i]], "/tests/")
     } else {

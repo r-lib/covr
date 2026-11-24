@@ -51,7 +51,11 @@ merge_coverage.character <- function(x) {
   for (file in x) {
     trace <- read_trace(file)
     if (inherits(trace, "covr_counts")) {
+      # A copy in the directory of the trace (see `stage_counters_file()`)
       counters_file <- trace$counters_file
+      if (!grepl("/", counters_file, fixed = TRUE)) {
+        counters_file <- file.path(dirname(file), counters_file)
+      }
       counts[[counters_file]] <- add_counts(
         counts[[counters_file]],
         trace$counts

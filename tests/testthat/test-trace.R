@@ -97,6 +97,50 @@ test_that("unsaved_traces ignores the markers of the current process", {
   expect_equal(unsaved_traces(dir), paste0("covr_pending_", pid, "0_b"))
 })
 
+test_that("save_trace_and_clear() only clears the markers of its package", {
+  dir <- withr::local_tempdir()
+  local_mocked_bindings(save_trace = function(...) NULL)
+  register_trace(new.env(), dir, scope = "pkg")
+  register_trace(new.env(), dir, scope = "pkg2")
+
+  save_trace_and_clear(dir, "pkg")
+
+  expect_match(list.files(dir), "^covr_pending_[0-9]+_pkg2_")
+})
+
+test_that("traces are read with the counters they copied to their directory", {
+  dir <- withr::local_tempdir()
+  lib <- withr::local_tempdir()
+  src <- srcfilecopy("a.R", "x")
+  counters <- list(
+    "pkg/a.R:1:1:1:1:1:1:1:1" = list(
+      value = 0,
+      srcref = srcref(src, c(1, 1, 1, 1)),
+      functions = "f"
+    )
+  )
+  counters_file <- file.path(lib, "covr_counters.rds")
+  saveRDS(counters, counters_file)
+  local_mocked_bindings(
+    process_trace = function(scope) {
+      structure(
+        list(
+          counters_file = counters_file,
+          counts = c("pkg/a.R:1:1:1:1:1:1:1:1" = 2),
+          counters = list()
+        ),
+        class = "covr_counts"
+      )
+    }
+  )
+  save_trace(dir, "pkg")
+  save_trace(dir, "pkg")
+  unlink(lib, recursive = TRUE)
+
+  expect_length(list.files(dir, pattern = "^covr_counters_"), 1)
+  expect_equal(merge_traces(dir)[[1]]$value, 4)
+})
+
 test_that("process_trace() of a scope only saves the traces of that scope", {
   local_clean_traces()
   src <- srcfilecopy("a.R", "x")
