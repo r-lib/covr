@@ -435,6 +435,7 @@ is_string <- function(x) {
 # `normalize_path()`, which leaves relative paths that don't exist relative on
 # Unix, but relative to the working directory.
 absolute_path <- function(path) {
+  path <- path.expand(path)
   relative <- !grepl("^(/|\\\\|[A-Za-z]:)", path)
   path[relative] <- file.path(getwd(), path[relative])
   normalize_path(path)

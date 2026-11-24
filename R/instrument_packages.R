@@ -149,22 +149,25 @@ instrument_packages <- function(
   # The packages that no process loads are in the coverage, with none of their
   # code covered
   if (!is.null(trace_dir)) {
-    for (file in compact(counters_files)) {
-      save_baseline_trace(file, trace_dir)
+    for (i in which(!vlapply(counters_files, is.null))) {
+      save_baseline_trace(counters_files[[i]], trace_dir, packages[[i]])
     }
   }
   done <- TRUE
   invisible(stats::setNames(!vlapply(counters_files, is.null), packages))
 }
 
-# A trace with no counts of the counters `file` of a package instrumented
-# after it was installed, in the trace `directory`, named like the copy of the
-# counters it refers to (see `stage_counters_file()`).
-save_baseline_trace <- function(file, directory) {
+# A trace with no counts of the counters `file` of the package `pkg`,
+# instrumented after it was installed, in the trace `directory`. There is one
+# for each package, which replaces that of an earlier instrumentation of the
+# package into the directory, whose code can have changed since.
+save_baseline_trace <- function(file, directory, pkg) {
   counters_file <- stage_counters_file(file, directory)
   if (counters_file == file) {
     return(invisible())
   }
+  tmp <- temp_file(".covr_tmp_", tmpdir = directory)
+  on.exit(unlink(tmp, expand = FALSE), add = TRUE)
   saveRDS(
     structure(
       list(
@@ -174,8 +177,10 @@ save_baseline_trace <- function(file, directory) {
       ),
       class = "covr_counts"
     ),
-    file.path(directory, sub("^covr_counters_", "covr_trace_", counters_file))
+    tmp
   )
+  file.rename(tmp, file.path(directory, paste0("covr_trace_baseline_", pkg)))
+  invisible()
 }
 
 #' @rdname instrument_packages

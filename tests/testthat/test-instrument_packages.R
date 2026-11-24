@@ -237,6 +237,28 @@ test_that("file_packages() puts each file in the deepest package that has it", {
   )
 })
 
+test_that("instrumenting a package again replaces its baseline trace", {
+  dir <- withr::local_tempdir()
+  old <- withr::local_tempfile(fileext = ".rds")
+  new <- withr::local_tempfile(fileext = ".rds")
+  saveRDS(list(a = 1), old)
+  saveRDS(list(b = 2), new)
+
+  save_baseline_trace(old, dir, "pkg")
+  save_baseline_trace(new, dir, "pkg")
+
+  baselines <- list.files(dir, pattern = "^covr_trace_", full.names = TRUE)
+  expect_length(baselines, 1)
+  expect_equal(
+    readRDS(baselines)$counters_file,
+    paste0("covr_counters_", unname(tools::md5sum(new)), ".rds")
+  )
+})
+
+test_that("absolute_path() expands the home directory", {
+  expect_equal(absolute_path("~/x"), normalize_path(path.expand("~/x")))
+})
+
 test_that("keep_counters_file() keeps the counters of a loaded package", {
   local_clean_traces()
   file <- withr::local_tempfile(fileext = ".rds")
