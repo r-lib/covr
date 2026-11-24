@@ -47,17 +47,47 @@ test_that("trace_coverage() gives the file names in the source directories in `p
   traces <- withr::local_tempdir()
   local_instrumented_packages("TestNestedOuter", pkgs$lib, traces)
   run_with_library(pkgs$lib, "TestNestedOuter::outer_fun(1)")
-  moved <- withr::local_tempdir()
+  installed_from <- file.path(pkgs$src, "TestNestedOuter")
+  lines <- readLines(file.path(installed_from, "R", "utils.R"))
 
-  cov <- trace_coverage(
-    traces,
-    paths = c(TestNestedOuter = moved),
-    relative_path = FALSE
+  for (moved in c(withr::local_tempdir(), file.path(installed_from, "copy"))) {
+    cov <- trace_coverage(
+      traces,
+      paths = c(TestNestedOuter = moved),
+      relative_path = FALSE
+    )
+    file <- file.path(normalize_path(moved), "R", "utils.R")
+    expect_equal(unique(tally_coverage(cov)$filename), file)
+    # The lines of the file are found by its new name
+    expect_equal(traced_files(cov)[[file]]$file_lines, lines)
+  }
+})
+
+test_that("remove_covr_hooks() removes only the onLoad hooks of covr", {
+  event <- packageEvent("covrHooksTest", "onLoad")
+  withr::defer(setHook(event, NULL, "replace"))
+  other <- function(...) "other"
+  setHook(event, other)
+  setHook(event, function(...) options(covr.record_tests = FALSE))
+  setHook(event, function(...) covr:::register_trace(ns, "dir"))
+
+  remove_covr_hooks("covrHooksTest")
+
+  expect_identical(getHook(event), list(other))
+})
+
+test_that("scope_compiled() prefixes the keys of the files of the package", {
+  root <- normalize_path(withr::local_tempdir())
+  trace <- function(file) {
+    list(srcref = srcref(srcfilecopy(file, ""), c(1, 1, 1, 1)))
+  }
+  x <- list(
+    "a.c:1:1:1:1" = trace(file.path(root, "pkg", "src", "a.c")),
+    "b.c:1:1:1:1" = trace(file.path(root, "other", "b.c"))
   )
-
-  expect_equal(
-    unique(tally_coverage(cov)$filename),
-    file.path(normalizePath(moved), "R", "utils.R")
+  expect_named(
+    scope_compiled(x, list(package = "pkg", path = file.path(root, "pkg"))),
+    c("pkg/a.c:1:1:1:1", "b.c:1:1:1:1")
   )
 })
 

@@ -576,7 +576,7 @@ test_that("package_coverage measures several packages together", {
     rep(c("TestNestedInner/R/utils.R", "TestNestedOuter/R/utils.R"), each = 2)
   )
   expect_equal(df$value, c(1, 1, 3, 3))
-  expect_equal(attr(cov, "root"), normalizePath(test_path(".")))
+  expect_equal(attr(cov, "root"), normalize_path(test_path(".")))
   expect_equal(
     attr(cov, "package")$package,
     c("TestNestedInner", "TestNestedOuter")

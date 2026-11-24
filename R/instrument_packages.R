@@ -139,8 +139,24 @@ uninstrument_packages <- function(packages, lib = .libPaths()[[1]]) {
       ),
       expand = FALSE
     )
+    remove_covr_hooks(pkg)
   }
   invisible(packages)
+}
+
+# The loader script of an instrumented package sets onLoad hooks (see
+# `add_hooks()`) that stay in the session that loaded it, and would trace the
+# package and restore the deleted counters if it were loaded again after it is
+# restored, so they are removed. Other hooks are kept.
+remove_covr_hooks <- function(pkg) {
+  event <- packageEvent(pkg, "onLoad")
+  hooks <- getHook(event)
+  covr <- vlapply(hooks, function(hook) {
+    any(grepl("covr", deparse(body(hook)), fixed = TRUE))
+  })
+  if (any(covr)) {
+    setHook(event, hooks[!covr], "replace")
+  }
 }
 
 #' @rdname instrument_packages
@@ -305,6 +321,21 @@ package_traces <- function(traces, package) {
   traces[startsWith(keys, paste0(package, "/"))]
 }
 
+# Prefix the keys of the compiled traces `x` of the files of `pkg` with its
+# name, like those of its R code, as files of different packages can have the
+# same name (see `unscope_keys()`).
+scope_compiled <- function(x, pkg) {
+  if (!length(x)) {
+    return(x)
+  }
+  files <- vcapply(x, function(trace) {
+    get_source_filename(trace$srcref, full.names = TRUE)
+  })
+  inside <- path_in_roots(files, pkg$path)
+  names(x)[inside] <- paste0(pkg$package, "/", names(x)[inside])
+  x
+}
+
 # Set the `path` of the packages in `pkgs` that have none to the directory of
 # the source they were installed from, as recorded in the source references of
 # their traces. With `move`, the file names of the traces of the packages that
@@ -333,18 +364,49 @@ trace_source_paths <- function(traces, pkgs, move = FALSE) {
 
 # Change the file names of the srcrefs of `traces` in the directory `from` to
 # be in `to`. The srcfiles are environments, shared by the traces of a file.
+# The srcfiles of an installed package are aliases of one srcfile with the
+# lines of all its files, which start with `#line` directives naming them, by
+# which `traced_files()` finds the lines of each file, so these are moved too.
 move_srcfiles <- function(traces, from, to) {
   from <- paste0(from, "/")
+  to <- paste0(to, "/")
+  move <- function(x) {
+    inside <- startsWith(x, from)
+    x[inside] <- paste0(to, substring(x[inside], nchar(from) + 1))
+    x
+  }
+  moved <- new.env(parent = emptyenv())
   for (trace in traces) {
     srcfile <- attr(trace$srcref, "srcfile")
+    # Many traces share a srcfile, which is only moved once, as `to` can be in
+    # `from`.
     if (
-      is.environment(srcfile) &&
-        is.character(srcfile$filename) &&
-        startsWith(srcfile$filename, from)
+      !is.environment(srcfile) ||
+        !is.character(srcfile$filename) ||
+        !is.null(moved[[address(srcfile)]])
     ) {
-      srcfile$filename <- file.path(
-        to,
-        substring(srcfile$filename, nchar(from) + 1)
+      next
+    }
+    moved[[address(srcfile)]] <- TRUE
+    srcfile$filename <- move(srcfile$filename)
+    original <- srcfile$original
+    if (is.environment(original) && is.null(moved[[address(original)]])) {
+      moved[[address(original)]] <- TRUE
+      directives <- grepl("^#line [0-9]+ \"", original$lines)
+      original$lines[directives] <- vcapply(
+        original$lines[directives],
+        function(line) {
+          parts <- regmatches(
+            line,
+            regexec('^(#line [0-9]+ ")(.*)"$', line)
+          )[[1]]
+          if (length(parts)) {
+            paste0(parts[[2]], move(parts[[3]]), "\"")
+          } else {
+            line
+          }
+        },
+        USE.NAMES = FALSE
       )
     }
   }

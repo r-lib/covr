@@ -384,7 +384,10 @@ package_coverage <- function(
 
   res <- NULL
   for (pkg in pkgs[!installed]) {
-    res <- c(res, run_gcov(pkg$path, quiet = quiet, clean = clean))
+    res <- c(
+      res,
+      scope_compiled(run_gcov(pkg$path, quiet = quiet, clean = clean), pkg)
+    )
   }
   for (name in names(rust)) {
     pkg <- pkgs[[match(name, pkg_names)]]
@@ -394,7 +397,13 @@ package_coverage <- function(
       recursive = TRUE,
       full.names = TRUE
     )
-    res <- c(res, run_llvm_cov(rust[[name]], pkg$path, objects, quiet = quiet))
+    res <- c(
+      res,
+      scope_compiled(
+        run_llvm_cov(rust[[name]], pkg$path, objects, quiet = quiet),
+        pkg
+      )
+    )
   }
   rust_paths <- vcapply(pkgs[!installed], `[[`, "path")
   rust_paths <- rust_paths[vlapply(
