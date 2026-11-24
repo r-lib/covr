@@ -786,7 +786,7 @@ run_r_live <- function(infile, outfile) {
 #   instrumented by `instrument_package()`, which are restored when the package
 #   is loaded instead of tracing its namespace.
 # @param trace_dir the directory traces are saved in if `COVR_TRACE_DIR` isn't
-#   set when the package is loaded.
+#   set when the package is loaded, or `NULL` to only save them if it is.
 add_hooks <- function(
   pkg_name,
   lib,
@@ -799,7 +799,7 @@ add_hooks <- function(
 ) {
   trace_dir <- paste0(
     "covr:::trace_dir_setting(",
-    encodeString(trace_dir, quote = '"'),
+    if (is.null(trace_dir)) "NULL" else encodeString(trace_dir, quote = '"'),
     ")"
   )
 

@@ -345,7 +345,8 @@ copy_srcfile <- function(srcfile, copies) {
 }
 
 # The directory instrumented packages save their traces in: the environment
-# variable `COVR_TRACE_DIR`, or `default` if it is unset or empty.
+# variable `COVR_TRACE_DIR`, or `default` if it is unset or empty. `NULL` if
+# both are, when traces aren't saved.
 trace_dir_setting <- function(default) {
   dir <- Sys.getenv("COVR_TRACE_DIR")
   if (nzchar(dir)) dir else default
@@ -366,7 +367,12 @@ trace_dir_setting <- function(default) {
 # `directory` (from `COVR_TRACE_DIR`) is fixed when the package loads, so the
 # marker and the trace end up in the same place. A marker that can't be created
 # is not worth a warning during package load; the trace save fails later too.
+# Without a `directory` the package counts the code it runs, but its trace
+# isn't saved.
 register_trace <- function(ns, directory, scope = env_scope(ns)) {
+  if (is.null(directory)) {
+    return(invisible())
+  }
   force(scope)
   pending <- temp_file(
     paste0("covr_pending_", Sys.getpid(), "_", marker_scope(scope)),
@@ -387,6 +393,9 @@ register_trace <- function(ns, directory, scope = env_scope(ns)) {
 # `scope` are removed, so a process that is killed after saving the trace of
 # one package still has the markers of the others.
 save_trace_and_clear <- function(directory, scope = NULL) {
+  if (is.null(directory)) {
+    return(invisible())
+  }
   res <- save_trace(directory, scope)
   unlink(
     list.files(

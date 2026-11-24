@@ -1,10 +1,10 @@
-# instrumented packages save their counts in COVR_TRACE_DIR if it is set
+# trace_coverage() warns and returns no coverage without any traces
 
     Code
-      trace_coverage(".")
+      cov <- trace_coverage(".")
     Condition
-      Error:
-      ! Can't find the coverage of any instrumented package in '.'.
+      Warning:
+      Can't find the coverage of any instrumented package in '.'.
 
 # instrument_packages() errors for packages that are not installed or already instrumented
 

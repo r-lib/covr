@@ -12,7 +12,10 @@
   a test runner or build system. Every R process that loads an instrumented
   package saves its counts in `COVR_TRACE_DIR` (or `trace_dir`), and
   `trace_coverage()` reads them into one coverage object for all the
-  packages (#783).
+  packages, including those that no process loaded. Packages can be
+  instrumented once with `trace_dir = NULL` and measured whenever
+  `COVR_TRACE_DIR` is set, the traces of several directories (e.g. CI shards)
+  can be read together, and `paths` maps the files to their source (#783).
 
 * New `instrument_base_r()`, `uninstrument_base_r()`, `base_r_code_coverage()`
   and `base_r_compiled_coverage()` measure the coverage of base R itself, both

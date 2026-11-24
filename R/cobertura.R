@@ -78,29 +78,39 @@ cobertura <- function(x, file = "cobertura.xml") {
     xml2::xml_add_child(sources, "source", xml2::xml_cdata(source_pth))
   }
 
-  # Add packages
+  # Add packages, one for each package of the coverage of several packages.
+  # Classes are files. Packages can have thousands of lines, so the classes are
+  # written as text and parsed once, which is much faster than adding each line
+  # with xml2.
   packages <- xml2::xml_add_child(top, "packages")
-  package <- xml2::xml_add_child(
-    packages,
-    "package",
-    name = package_label(x),
-    "line-rate" = as.character(percent_overall),
-    "branch-rate" = branch_rate(branches$value),
-    complexity = "0"
-  )
-
-  # Add classes (for which we will use files for now). Packages can have
-  # thousands of lines, so the classes are written as text and parsed once,
-  # which is much faster than adding each line with xml2.
-  classes <- xml2::read_xml(paste0(
-    "<classes>",
-    paste(
-      cobertura_classes(df, file_lines, branches, branch_rate),
-      collapse = ""
-    ),
-    "</classes>"
-  ))
-  xml2::xml_add_child(package, xml2::xml_root(classes))
+  groups <- file_packages(x, unique(file_lines$filename))
+  for (i in seq_along(groups)) {
+    files <- groups[[i]]
+    pkg_df <- df[df$filename %in% files, , drop = FALSE]
+    pkg_branches <- branches[branches$filename %in% files, , drop = FALSE]
+    package <- xml2::xml_add_child(
+      packages,
+      "package",
+      name = if (nzchar(names(groups)[[i]])) names(groups)[[i]],
+      "line-rate" = as.character(percent_coverage(pkg_df, by = "line") / 100),
+      "branch-rate" = branch_rate(pkg_branches$value),
+      complexity = "0"
+    )
+    classes <- xml2::read_xml(paste0(
+      "<classes>",
+      paste(
+        cobertura_classes(
+          pkg_df,
+          file_lines[file_lines$filename %in% files, , drop = FALSE],
+          pkg_branches,
+          branch_rate
+        ),
+        collapse = ""
+      ),
+      "</classes>"
+    ))
+    xml2::xml_add_child(package, xml2::xml_root(classes))
+  }
 
   xml2::write_xml(d, file = file)
 

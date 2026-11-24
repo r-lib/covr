@@ -455,6 +455,25 @@ coverage_base_path <- function(x) {
   if (length(path) > 1L) attr(x, "root") %||% common_path(path) else path
 }
 
+# The `files` (file names as in `tally_coverage()`) of each package of the
+# coverage `x`, named by package. The files of the coverage of one package, or
+# of none, are in one group, named by the package or "", as are files of the
+# coverage of several packages that are in none of them.
+file_packages <- function(x, files) {
+  pkg <- attr(x, "package")
+  if (length(pkg$package) <= 1L) {
+    return(stats::setNames(list(files), pkg$package %||% ""))
+  }
+  dirs <- to_relative_path(pkg$path, attr(x, "root"))
+  groups <- lapply(dirs, function(dir) {
+    files[startsWith(files, paste0(dir, "/"))]
+  })
+  names(groups) <- pkg$package
+  groups[[length(groups) + 1L]] <- setdiff(files, unlist(groups))
+  names(groups)[[length(groups)]] <- ""
+  groups[lengths(groups) > 0]
+}
+
 get_source_filename <- function(
   x,
   full.names = FALSE,

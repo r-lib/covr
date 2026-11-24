@@ -263,6 +263,12 @@ uninstrument_packages(c("pkgA", "pkgB"), lib = "lib")
 
 `local_instrumented_packages()` instruments packages until the function that
 calls it returns.
+A trace directory holds everything `trace_coverage()` needs, so it can be read
+after the packages are restored, or in another job, and several of them can be
+read together, e.g. one for each shard of a CI run.
+With `trace_dir = NULL`, packages only save their counts when `COVR_TRACE_DIR`
+is set, so a build can instrument them once and measure their coverage when it
+runs their tests.
 
 ## Packages loaded with `load_all()` ##
 

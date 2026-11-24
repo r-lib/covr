@@ -24,6 +24,7 @@ local_instrumented_packages(
 
 trace_coverage(
   trace_dir = trace_dir_setting(file.path(.libPaths()[[1]], "covr_traces")),
+  lib = NULL,
   paths = NULL,
   relative_path = TRUE,
   line_exclusions = NULL,
@@ -34,11 +35,16 @@ trace_coverage(
 \item{packages}{The names of the packages to instrument, installed in
 \code{lib}.}
 
-\item{lib}{The library the packages are installed in.}
+\item{lib}{The library the packages are installed in. For
+\code{trace_coverage()}, a library of instrumented packages, whose packages
+that no process loaded are included with no coverage, or \code{NULL}.}
 
 \item{trace_dir}{The directory the counts are saved in, if the environment
 variable \code{COVR_TRACE_DIR} is not set when an R process loads an
-instrumented package. It is created if it doesn't exist.}
+instrumented package. It is created if it doesn't exist. \code{NULL} to only
+save the counts when \code{COVR_TRACE_DIR} is set. For \code{trace_coverage()}, the
+directories the counts were saved in, e.g. one for each shard of a CI
+run.}
 
 \item{.local_envir}{The environment whose exit restores the packages.}
 
@@ -47,7 +53,12 @@ instrumented package. It is created if it doesn't exist.}
 were installed from, as recorded in their source references. Give them
 if the packages were installed from somewhere else, e.g. a copy of the
 source in a sandbox, and the file names of their code are changed to be
-in these.}
+in these. Packages without coverage are ignored.
+
+Or a function of the file names (as recorded when the packages were
+installed) and the name of their package, which returns the full paths
+of the files in the source, e.g. for a build that copied files from other
+directories into \verb{R/}.}
 
 \item{relative_path}{Whether file names are relative to the source
 directory of the package, or for several packages, of the directory that
@@ -61,13 +72,17 @@ each file.}
 names to exclude. Example \verb{print\\\\\\.} to match print methods.}
 }
 \value{
-\code{instrument_packages()}, \code{uninstrument_packages()} and
-\code{local_instrumented_packages()} return \code{packages}, invisibly.
+\code{instrument_packages()} and \code{local_instrumented_packages()} return
+a logical vector, invisibly, named by package: \code{TRUE} for a package that
+was instrumented when it was installed, and \code{FALSE} for one that is
+instrumented each time it is loaded, e.g. because it stores functions in
+\code{R/sysdata.rda}. \code{uninstrument_packages()} returns \code{packages}, invisibly.
 
 \code{trace_coverage()} returns a \link{coverage} object with the coverage of
 all the instrumented packages whose counts are in \code{trace_dir}. Files of
 the packages that the \code{.covrignore} file (see \link{exclusions}) in their source
-directory lists are left out.
+directory lists are left out. If there are none, it warns (with class
+\code{covr_no_coverage}) and returns a coverage object without any.
 }
 \description{
 \code{instrument_packages()} instruments packages installed in a library, so
@@ -99,8 +114,23 @@ package but didn't save their counts.
 }
 
 The R processes save their counts in the directory in the environment
-variable \code{COVR_TRACE_DIR}, or if it is not set, in \code{trace_dir}. Compiled
-code isn't instrumented.
+variable \code{COVR_TRACE_DIR}, or if it is not set, in \code{trace_dir}. With
+\code{trace_dir = NULL} they only save them if \code{COVR_TRACE_DIR} is set, so
+packages can be instrumented once, e.g. when they are built, and their
+coverage measured whenever it is set. Compiled code isn't instrumented.
+
+The coverage includes the instrumented packages that no process loaded,
+with none of their code covered, if they were instrumented with a
+\code{trace_dir}, or if \code{trace_coverage()} is given their \code{lib}. This needs
+them to be instrumented when they are installed, which works for most
+packages (see the value of \code{instrument_packages()}).
+
+The options that change what is measured, such as
+\link{covr.branch_coverage} and \link{covr.record_tests}, and
+\code{covr.fix_parallel_mcexit} (see \code{\link[=package_coverage]{package_coverage()}}), are read when
+the packages are instrumented. Unlike \code{\link[=package_coverage]{package_coverage()}},
+\code{instrument_packages()} doesn't set the environment variable \code{R_COVR}, so
+\code{\link[=in_covr]{in_covr()}} is \code{FALSE} in the processes unless they set it.
 }
 
 \section{Example workflow}{

@@ -3,22 +3,104 @@ test_that("trace_coverage() reads the coverage of any processes that load instru
   local_install_defaults()
   pkgs <- local_nested_library()
   traces <- withr::local_tempdir()
+  instrumented <- local_instrumented_packages(
+    c("TestNestedInner", "TestNestedOuter"),
+    pkgs$lib,
+    traces
+  )
+  expect_equal(instrumented, c(TestNestedInner = TRUE, TestNestedOuter = TRUE))
+
+  run_with_library(pkgs$lib, "TestNestedInner::inner_fun(1)")
+  run_with_library(pkgs$lib, "TestNestedOuter::outer_fun(1)")
+
+  # Both files have an expression at the same position
+  cov <- trace_coverage(traces)
+  df <- tally_coverage(cov)
+  expect_equal(
+    df$filename,
+    rep(c("TestNestedInner/R/utils.R", "TestNestedOuter/R/utils.R"), each = 2)
+  )
+  expect_equal(df$value, c(1, 1, 2, 2))
+
+  # A Cobertura package for each package
+  file <- withr::local_tempfile(fileext = ".xml")
+  cobertura(cov, file)
+  xml <- xml2::read_xml(file)
+  expect_equal(
+    xml2::xml_attr(xml2::xml_find_all(xml, "//package"), "name"),
+    c("TestNestedInner", "TestNestedOuter")
+  )
+})
+
+test_that("trace_coverage() includes the instrumented packages that no process loaded", {
+  skip_on_cran()
+  local_install_defaults()
+  pkgs <- local_nested_library()
+  traces <- withr::local_tempdir()
   local_instrumented_packages(
     c("TestNestedInner", "TestNestedOuter"),
     pkgs$lib,
     traces
   )
 
-  run_with_library(pkgs$lib, "TestNestedInner::inner_fun(1)")
   run_with_library(pkgs$lib, "TestNestedOuter::outer_fun(1)")
 
-  # Both files have an expression at the same position
   df <- tally_coverage(trace_coverage(traces))
   expect_equal(
     df$filename,
     rep(c("TestNestedInner/R/utils.R", "TestNestedOuter/R/utils.R"), each = 2)
   )
-  expect_equal(df$value, c(1, 1, 2, 2))
+  expect_equal(df$value, c(0, 0, 1, 1))
+})
+
+test_that("packages instrumented without trace_dir only save their counts in COVR_TRACE_DIR", {
+  skip_on_cran()
+  local_install_defaults()
+  pkgs <- local_nested_library()
+  traces <- withr::local_tempdir()
+  local_instrumented_packages(
+    c("TestNestedInner", "TestNestedOuter"),
+    pkgs$lib,
+    trace_dir = NULL
+  )
+
+  run_with_library(pkgs$lib, "TestNestedOuter::outer_fun(1)")
+  run_with_library(
+    pkgs$lib,
+    "TestNestedOuter::outer_fun(1)",
+    env = c(COVR_TRACE_DIR = traces)
+  )
+
+  expect_length(list.files(pkgs$lib, pattern = "^covr_"), 0)
+  df <- tally_coverage(trace_coverage(traces, lib = pkgs$lib))
+  expect_equal(df$value, c(0, 0, 1, 1))
+})
+
+test_that("trace_coverage() reads several trace directories", {
+  skip_on_cran()
+  local_install_defaults()
+  pkgs <- local_nested_library()
+  shards <- c(withr::local_tempdir(), withr::local_tempdir())
+  local_instrumented_packages("TestNestedOuter", pkgs$lib, trace_dir = NULL)
+
+  for (shard in shards) {
+    run_with_library(
+      pkgs$lib,
+      "TestNestedOuter::outer_fun(1)",
+      env = c(COVR_TRACE_DIR = shard)
+    )
+  }
+
+  expect_equal(tally_coverage(trace_coverage(shards))$value, c(2, 2))
+})
+
+test_that("trace_coverage() warns and returns no coverage without any traces", {
+  traces <- withr::local_tempdir()
+  withr::local_dir(traces)
+  expect_snapshot(cov <- trace_coverage("."))
+  expect_s3_class(cov, "coverage")
+  expect_length(cov, 0)
+  expect_equal(lcov(cov, withr::local_tempfile()), character())
 })
 
 test_that("instrumented packages save their counts in COVR_TRACE_DIR if it is set", {
@@ -36,8 +118,7 @@ test_that("instrumented packages save their counts in COVR_TRACE_DIR if it is se
   )
 
   expect_equal(tally_coverage(trace_coverage(other))$value, c(1, 1))
-  withr::local_dir(traces)
-  expect_snapshot(trace_coverage("."), error = TRUE)
+  expect_equal(tally_coverage(trace_coverage(traces))$value, c(0, 0))
 })
 
 test_that("trace_coverage() reads traces after the packages are restored", {
@@ -149,6 +230,24 @@ test_that("trace_coverage() gives the file names in the source directories in `p
     # The lines of the file are found by its new name
     expect_equal(traced_files(cov)[[file]]$file_lines, lines)
   }
+
+  # A function that maps each file, e.g. of a build that flattened them
+  root <- normalize_path(withr::local_tempdir())
+  cov <- trace_coverage(
+    traces,
+    paths = function(files, package) {
+      file.path(root, package, "helpers", basename(files))
+    },
+    relative_path = root
+  )
+  expect_equal(
+    unique(tally_coverage(cov)$filename),
+    "TestNestedOuter/helpers/utils.R"
+  )
+  expect_equal(
+    traced_files(cov)[["TestNestedOuter/helpers/utils.R"]]$file_lines,
+    lines
+  )
 })
 
 test_that("remove_covr_hooks() removes only the onLoad hooks of covr", {
@@ -196,8 +295,9 @@ test_that("uninstrument_packages() restores the packages", {
   })
 
   expect_equal(tools::md5sum(list.files(r_dir, full.names = TRUE)), files)
+  before <- list.files(traces)
   run_with_library(pkgs$lib, "TestNestedOuter::outer_fun(1)")
-  expect_length(list.files(traces), 0)
+  expect_equal(list.files(traces), before)
 })
 
 test_that("instrument_packages() errors for packages that are not installed or already instrumented", {
