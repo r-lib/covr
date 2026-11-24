@@ -173,6 +173,29 @@ test_that("add_base_r_hook reads the instrumented code and counts it", {
   )
 })
 
+test_that("the base R hook saves counts in COVR_TRACE_DIR if it is set", {
+  hook <- parse(text = base_r_hook("covr.so", "counters.rds", "/default"))
+  # The list of `.covr <- list(...)`, counting with stand-ins for the routines
+  # of covr
+  covr_list <- hook[[1]][[3]]
+  covr_list$take <- quote(function() c(a = 1))
+  covr_list$zero <- quote(function() NULL)
+  covr_list$count <- NULL
+  covr_list$gcov_dump <- NULL
+  env <- new.env()
+  env$.Call <- function(f) f()
+  env$.covr <- eval(covr_list, env)
+
+  traces <- withr::local_tempdir()
+  withr::with_envvar(c(COVR_TRACE_DIR = traces, COVERAGE_DIR = "/cov"), {
+    env$.covr$save()
+  })
+
+  files <- list.files(traces, pattern = "^covr_trace_", full.names = TRUE)
+  expect_length(files, 1)
+  expect_equal(readRDS(files)$counts, c(a = 1))
+})
+
 test_that("add_base_srcrefs gives functions their source references", {
   src <- withr::local_tempdir()
   dir <- file.path(src, "src", "library", "base", "R")
