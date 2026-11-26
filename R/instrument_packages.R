@@ -478,9 +478,13 @@ instrument_library_packages <- function(
   )
   todo <- todo[order(sizes, decreasing = TRUE)]
   counters_files <- vector("list", length(pkgs))
-  running <- list()
-  while (length(todo) || length(running)) {
-    while (length(running) < cores && length(todo)) {
+  # The jobs that are running, or whose process exited (they have its
+  # `status`) but that aren't finished, by package. If an error or an
+  # interrupt stops the loop, they're cancelled.
+  jobs <- list()
+  on.exit(cancel_instrument(jobs), add = TRUE)
+  while (length(todo) || length(jobs)) {
+    while (length(jobs) < cores && length(todo)) {
       i <- todo[[1]]
       todo <- todo[-1]
       job <- start_instrument(
@@ -489,24 +493,28 @@ instrument_library_packages <- function(
         full_traversal = full_traversal[[i]]
       )
       job$index <- i
-      running[[length(running) + 1L]] <- job
+      jobs[[pkgs[[i]]$package]] <- job
     }
-    # The status of a process that is still running is `NA`
-    status <- lapply(running, function(job) {
-      process_status(job$pid, wait = length(running) == 1L)
-    })
-    done <- !vlapply(status, is.na)
-    if (!any(done)) {
+    for (name in names(jobs)) {
+      # The status of a process that is still running is `NA`
+      status <- process_status(jobs[[name]]$pid, wait = length(jobs) == 1L)
+      if (!is.na(status)) {
+        jobs[[name]]$status <- status
+      }
+    }
+    exited <- names(jobs)[!vlapply(jobs, function(job) is.null(job$status))]
+    if (!length(exited)) {
       Sys.sleep(0.05)
       next
     }
-    for (j in which(done)) {
-      file <- finish_instrument(running[[j]], status[[j]])
+    for (name in exited) {
+      job <- jobs[[name]]
+      jobs[[name]] <- NULL
+      file <- finish_instrument(job, job$status)
       if (!is.null(file)) {
-        counters_files[[running[[j]]$index]] <- file
+        counters_files[[job$index]] <- file
       }
     }
-    running <- running[!done]
   }
   # One package with the fix saves the traces of all the instrumented packages
   # in forked workers (see `fix_mcexit()`)

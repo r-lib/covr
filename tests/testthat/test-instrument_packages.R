@@ -99,6 +99,33 @@ test_that("packages instrumented without trace_dir only save their counts in COV
   expect_equal(attr(only_outer, "package")$package, "TestNestedOuter")
 })
 
+test_that("reloading an instrumented package runs only the hooks of the new load", {
+  skip_on_cran()
+  local_install_defaults()
+  pkgs <- local_nested_library()
+  traces <- withr::local_tempdir()
+  local_instrumented_packages("TestNestedOuter", pkgs$lib, trace_dir = NULL)
+
+  run_with_library(
+    pkgs$lib,
+    paste(
+      "TestNestedOuter::outer_fun(1)",
+      "unloadNamespace('TestNestedOuter')",
+      "TestNestedOuter::outer_fun(1)",
+      "unloadNamespace('TestNestedOuter')",
+      # A dormant load runs none of the hooks of the earlier ones
+      "Sys.unsetenv('COVR_TRACE_DIR')",
+      "options(covr.branch_coverage = TRUE)",
+      "TestNestedOuter::outer_fun(1)",
+      "stopifnot(isTRUE(getOption('covr.branch_coverage')))",
+      sep = "; "
+    ),
+    env = c(COVR_TRACE_DIR = traces)
+  )
+
+  expect_equal(tally_coverage(trace_coverage(traces))$value, c(2, 2))
+})
+
 test_that("trace_coverage() reads several trace directories", {
   skip_on_cran()
   local_install_defaults()
@@ -228,6 +255,27 @@ test_that("instrumented packages save their counts in trace_dir if COVR_TRACE_DI
   )
 
   expect_equal(tally_coverage(trace_coverage(traces))$value, c(1, 1))
+})
+
+test_that("instrumented packages save their counts in a relative COVR_TRACE_DIR after the working directory changes", {
+  skip_on_cran()
+  local_install_defaults()
+  pkgs <- local_nested_library()
+  dir <- withr::local_tempdir()
+  local_instrumented_packages("TestNestedOuter", pkgs$lib, trace_dir = NULL)
+  withr::local_dir(dir)
+  dir.create("traces")
+
+  run_with_library(
+    pkgs$lib,
+    "TestNestedOuter::outer_fun(1); setwd(tempdir())",
+    env = c(COVR_TRACE_DIR = "traces")
+  )
+
+  expect_equal(
+    tally_coverage(trace_coverage(file.path(dir, "traces")))$value,
+    c(1, 1)
+  )
 })
 
 test_that("trace_coverage(paths =) keeps the lines of each file of a package", {
@@ -503,6 +551,45 @@ test_that("instrument_packages() errors for packages that are not installed or a
   )
   # The package that wasn't instrumented is left as it was
   expect_false(file.exists(loader_original(pkgs$lib, "TestNestedInner")))
+})
+
+test_that("instrument_packages() stops the processes of the others if one fails", {
+  skip_on_cran()
+  # `tools::pskill()` can't tell whether a process is running on Windows
+  skip_on_os("windows")
+  local_install_defaults()
+  pkgs <- local_nested_library()
+  jobs <- list()
+  start <- start_instrument
+  finish <- finish_instrument
+  local_mocked_bindings(
+    start_instrument = function(...) {
+      job <- start(...)
+      jobs[[length(jobs) + 1L]] <<- job
+      job
+    },
+    # As a warning does with `options(warn = 2)`
+    finish_instrument = function(job, status) {
+      finish(job, status)
+      covr_abort("Can't instrument.", class = "covr_test_failure")
+    }
+  )
+
+  expect_error(
+    instrument_packages(
+      c("TestNestedInner", "TestNestedOuter"),
+      pkgs$lib,
+      cores = 2
+    ),
+    class = "covr_test_failure"
+  )
+  expect_length(jobs, 2)
+  running <- vlapply(jobs, function(job) tools::pskill(job$pid, 0L))
+  expect_equal(running, c(FALSE, FALSE))
+  files <- unlist(lapply(jobs, function(job) {
+    c(job$output, instrument_files(job))
+  }))
+  expect_equal(file.exists(files), rep(FALSE, length(files)))
 })
 
 test_that("common_path() is the deepest directory that contains all paths", {

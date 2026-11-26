@@ -863,7 +863,16 @@ add_hooks <- function(
   if (dormant) {
     hooks <- c(paste0("if (", active, ") {"), hooks, "}")
   }
-  lines <- append(lines, hooks, length(lines) - 1L)
+  # The hooks of an earlier load of the package in this process are left when
+  # it is unloaded, so they are removed first: otherwise they would trace it
+  # again, or trace a dormant one. With base R only, as a dormant package loads
+  # without covr.
+  remove_hooks <- paste0(
+    "setHook(packageEvent(pkg, \"onLoad\"), Filter(function(hook) ",
+    "!isTRUE(attr(hook, \"covr_hook\")), getHook(packageEvent(pkg, ",
+    "\"onLoad\"))), \"replace\")"
+  )
+  lines <- append(lines, c(remove_hooks, hooks), length(lines) - 1L)
 
   if (fix_mcexit) {
     lines <- append(

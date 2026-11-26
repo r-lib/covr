@@ -1,5 +1,13 @@
 # covr (development version)
 
+* `package_coverage()` no longer counts the code that a package runs after it
+  is unloaded and loaded again twice, as the hooks of its earlier load traced
+  it again (#783).
+
+* A relative `COVR_TRACE_DIR` is relative to the working directory when the
+  instrumented package loads, so its trace isn't lost if the process changes
+  directory before it exits (#783).
+
 * `package_coverage()` measures several packages together when `path` has
   several paths, e.g. the packages of a monorepo. They are installed and
   instrumented in the same library, the tests of each are run, and file names

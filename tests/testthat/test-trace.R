@@ -111,7 +111,10 @@ test_that("save_registered_traces() saves the others if one can't be saved", {
 })
 
 test_that("save_trace_and_clear() only clears the markers of its package", {
-  dir <- withr::local_tempdir()
+  # Not removed after the test, as the finalizers save the traces in it when
+  # the environments are collected
+  dir <- tempfile()
+  dir.create(dir)
   local_mocked_bindings(save_trace = function(...) NULL)
   register_trace(new.env(), dir, scope = "pkg")
   register_trace(new.env(), dir, scope = "pkg2")

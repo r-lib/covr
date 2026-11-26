@@ -101,16 +101,7 @@ finish_instrument <- function(job, status) {
   if (identical(status, 0L) && file.exists(file)) {
     return(file)
   }
-  unlink(
-    c(
-      paste0(
-        instrumented_db_base(pkg_name, job$install_path),
-        c(".rdb", ".rdx")
-      ),
-      file
-    ),
-    expand = FALSE
-  )
+  unlink(instrument_files(job), expand = FALSE)
   # The package can't be instrumented ahead of time
   if (!identical(status, instrument_skipped)) {
     covr_warn(
@@ -123,6 +114,31 @@ finish_instrument <- function(job, status) {
     )
   }
   NULL
+}
+
+# The files the process `job` of `start_instrument()` writes: the instrumented
+# lazy load database of the package and its counters.
+instrument_files <- function(job) {
+  pkg_name <- job$pkg$package
+  c(
+    paste0(instrumented_db_base(pkg_name, job$install_path), c(".rdb", ".rdx")),
+    instrumented_counters_file(pkg_name, job$install_path)
+  )
+}
+
+# Stop the processes of the `jobs` of `start_instrument()` that are still
+# running, i.e. that have no `status`, and remove what all of them wrote, when
+# an error or an interrupt stops waiting for them. Otherwise they would go on
+# to instrument a library whose packages were restored.
+cancel_instrument <- function(jobs) {
+  for (job in jobs) {
+    if (is.null(job$status)) {
+      tools::pskill(job$pid, tools::SIGKILL)
+      process_status(job$pid, wait = TRUE)
+    }
+    unlink(c(job$output, instrument_files(job)), expand = FALSE)
+  }
+  invisible()
 }
 
 # Whether a package is instrumented after it is installed, rather than when it

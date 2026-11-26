@@ -355,10 +355,12 @@ copy_srcfile <- function(srcfile, copies) {
 
 # The directory instrumented packages save their traces in: the environment
 # variable `COVR_TRACE_DIR`, or `default` if it is unset or empty. `NULL` if
-# both are, when traces aren't saved.
+# both are, when traces aren't saved. A relative `COVR_TRACE_DIR` is relative
+# to the working directory when the package loads, which the process can
+# change before it saves the trace.
 trace_dir_setting <- function(default) {
   dir <- Sys.getenv("COVR_TRACE_DIR")
-  if (nzchar(dir)) dir else default
+  if (nzchar(dir)) absolute_path(dir) else default
 }
 
 # Called from the loader script of the instrumented package (see `add_hooks()`)
@@ -405,8 +407,9 @@ save_registered_traces <- function() {
   for (id in ls(the$scopes, all.names = TRUE)) {
     directory <- the$scopes[[id]]$trace_dir
     if (!is.null(directory)) {
-      # A scope whose directory was removed doesn't stop the others
-      try(save_trace_and_clear(directory, id), silent = TRUE)
+      # A scope whose directory was removed doesn't stop the others, or warn
+      # as the worker exits
+      try(suppressWarnings(save_trace_and_clear(directory, id)), silent = TRUE)
     }
   }
   invisible()
