@@ -128,6 +128,29 @@ test_that("an instrumented package loaded again counts the code of each load onc
   expect_equal(tally_coverage(trace_coverage(traces))$value, c(3, 3))
 })
 
+test_that("the finalizer of an unloaded namespace keeps the counts of the package loaded again", {
+  skip_on_cran()
+  local_install_defaults()
+  pkgs <- local_nested_library()
+  traces <- withr::local_tempdir()
+  local_instrumented_packages("TestNestedOuter", pkgs$lib, traces)
+
+  run_with_library(
+    pkgs$lib,
+    paste(
+      "TestNestedOuter::outer_fun(1)",
+      "unloadNamespace('TestNestedOuter')",
+      "TestNestedOuter::outer_fun(1)",
+      "invisible(gc())",
+      "cov <- covr::current_coverage()",
+      "stopifnot(identical(covr::tally_coverage(cov)$value, c(1, 1)))",
+      sep = "; "
+    )
+  )
+
+  expect_equal(tally_coverage(trace_coverage(traces))$value, c(2, 2))
+})
+
 test_that("trace_coverage() reads several trace directories", {
   skip_on_cran()
   local_install_defaults()

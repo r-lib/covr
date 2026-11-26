@@ -400,7 +400,16 @@ register_trace <- function(ns, directory, scope = env_scope(ns)) {
   suppressWarnings(file.create(pending))
   reg.finalizer(
     ns,
-    function(...) save_trace_and_clear(directory, scope),
+    function(ns) {
+      # The namespace of a package that was loaded again, which saved the
+      # counts of this one (see `trace_environment()`) and has its own
+      # finalizer for those since
+      entry <- get0(scope_id(scope), envir = the$scopes, inherits = FALSE)
+      if (is.environment(entry$env) && !identical(entry$env, ns)) {
+        return(invisible())
+      }
+      save_trace_and_clear(directory, scope)
+    },
     onexit = TRUE
   )
   invisible(pending)
@@ -427,9 +436,9 @@ save_registered_traces <- function() {
 # one package still has the markers of the others.
 #
 # The counts of `scope` that are saved are zeroed, so saving it again only
-# saves what was counted since: a process that loads the package again has the
-# finalizers of both namespaces, which save the same scope (see
-# `trace_environment()`).
+# saves what was counted since: the finalizer of a package's namespace can save
+# its counts after it is unloaded, before it is loaded again, which saves them
+# again (see `trace_environment()`).
 save_trace_and_clear <- function(directory, scope = NULL) {
   if (is.null(directory)) {
     return(invisible())
