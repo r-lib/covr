@@ -244,15 +244,16 @@ process_trace <- function(scope = NULL) {
     return(portable_srcfiles(.counters))
   }
   entry <- scope_entry(scope)
-  counters <- scope_counters(scope)
   keys <- entry$counters_keys
+  branches <- .counters[["branches"]]
   if (
     is.null(keys) ||
       isTRUE(getOption("covr.record_tests", FALSE)) ||
-      !is.null(counters[["tests"]]) ||
-      !is.null(counters[["branches"]])
+      !is.null(.counters[["tests"]]) ||
+      (is.environment(branches) &&
+        any(in_scope(ls(branches, all.names = TRUE), scope)))
   ) {
-    return(portable_srcfiles(counters))
+    return(portable_srcfiles(scope_counters(scope)))
   }
   # A numeric vector named by key, without the counters that have no value
   counts <- c(
@@ -263,8 +264,11 @@ process_trace <- function(scope = NULL) {
       "value"
     ))
   )
-  # The other traces of the scope, which are saved as they are
-  others <- counters[setdiff(names(counters), keys)]
+  # The other traces of the scope, which are saved as they are. Only these
+  # are read from `.counters`, which has all the traces of the process.
+  all_keys <- ls(.counters, all.names = TRUE)
+  others <- setdiff(all_keys[in_scope(all_keys, scope)], keys)
+  others <- mget(others, envir = .counters)
   structure(
     list(
       counters_file = entry$counters_file,

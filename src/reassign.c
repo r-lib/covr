@@ -204,8 +204,8 @@ extern SEXP covr_has_closure(SEXP);
 extern SEXP covr_counter_add(SEXP);
 extern SEXP covr_count(SEXP);
 extern SEXP covr_count_auto(SEXP);
-extern SEXP covr_counter_take(void);
-extern SEXP covr_counter_reset(void);
+extern SEXP covr_counter_take(SEXP);
+extern SEXP covr_counter_reset(SEXP);
 extern SEXP covr_write_llvm_profile(SEXP);
 extern SEXP covr_gcov_dump(void);
 
@@ -220,8 +220,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"covr_counter_add", (DL_FUNC)&covr_counter_add, 1},
     {"covr_count", (DL_FUNC)&covr_count, 1},
     {"covr_count_auto", (DL_FUNC)&covr_count_auto, 1},
-    {"covr_counter_take", (DL_FUNC)&covr_counter_take, 0},
-    {"covr_counter_reset", (DL_FUNC)&covr_counter_reset, 0},
+    {"covr_counter_take", (DL_FUNC)&covr_counter_take, 1},
+    {"covr_counter_reset", (DL_FUNC)&covr_counter_reset, 1},
     {"covr_write_llvm_profile", (DL_FUNC)&covr_write_llvm_profile, 1},
     {"covr_gcov_dump", (DL_FUNC)&covr_gcov_dump, 0},
     {NULL, NULL, 0}};

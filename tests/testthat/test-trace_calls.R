@@ -209,7 +209,7 @@ test_that("the C counter counts, survives retracing and resets", {
   # still counts into its own trace once it is traced again
   env$f(1)
   clear_counters()
-  expect_length(.Call(covr_counter_take), 0L)
+  expect_length(.Call(covr_counter_take, FALSE), 0L)
   expect_length(ls(.counters), 0)
   env$g <- trace_calls(original)
   env$f(1)
@@ -220,7 +220,7 @@ test_that("the C counter counts, survives retracing and resets", {
 test_that("the C counter counts keys by their string, ignoring unknown keys", {
   clear_counters()
   withr::defer(clear_counters())
-  .Call(covr_counter_reset)
+  .Call(covr_counter_reset, FALSE)
   utf8 <- enc2utf8("R/\u00e9.R:1:1")
   latin1 <- iconv(utf8, "UTF-8", "latin1")
   expect_identical(Encoding(latin1), "latin1")
@@ -230,7 +230,7 @@ test_that("the C counter counts keys by their string, ignoring unknown keys", {
   for (key in c("a.R:1:1", "a.R:1:1", utf8, latin1, "unknown.R:1:1")) {
     expect_null(.Call(covr_count, key))
   }
-  counts <- .Call(covr_counter_take)
+  counts <- .Call(covr_counter_take, FALSE)
   expect_equal(counts[["a.R:1:1"]], 2)
   expect_equal(counts[[utf8]], 2)
   expect_length(counts, 2L)
@@ -268,9 +268,9 @@ test_that("is_traced() finds the counter at the start of the body, or anywhere",
 test_that("the C counter grows to many keys of different encodings", {
   clear_counters()
   withr::defer(clear_counters())
-  .Call(covr_counter_reset)
+  .Call(covr_counter_reset, FALSE)
   take <- function() {
-    x <- .Call(covr_counter_take)
+    x <- .Call(covr_counter_take, FALSE)
     setNames(as.numeric(x), enc2utf8(names(x)))
   }
   count <- function(key) .Call(covr_count, key)

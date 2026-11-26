@@ -129,6 +129,23 @@ test_that("trace_coverage() warns and returns no coverage without any traces", {
   expect_s3_class(cov, "coverage")
   expect_length(cov, 0)
   expect_equal(lcov(cov, withr::local_tempfile()), character())
+
+  # Tallies have the columns of coverage with traces
+  expect_named(
+    tally_coverage(cov, "line"),
+    c("filename", "functions", "line", "value")
+  )
+  expect_named(
+    tally_coverage(cov, "function"),
+    c("filename", "functions", "first_line", "last_line", "value")
+  )
+  expect_type(tally_coverage(cov, "expression")$functions, "character")
+  expect_invisible(print(cov))
+  json <- jsonlite::fromJSON(
+    to_coveralls(cov, service_name = "travis-ci"),
+    simplifyVector = FALSE
+  )
+  expect_equal(json$source_files, list())
 })
 
 test_that("instrumented packages save their counts in COVR_TRACE_DIR if it is set", {

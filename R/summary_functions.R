@@ -89,8 +89,26 @@ tally_coverage <- function(
   all_na_rows <- rowSums(is.na(df)) == ncol(df)
   df <- df[!all_na_rows, ]
 
+  # With the columns of the tally of coverage that has traces
   if (NROW(df) == 0) {
-    return(df)
+    return(switch(
+      by,
+      "line" = data.frame(
+        filename = character(),
+        functions = character(),
+        line = numeric(),
+        value = numeric(),
+        stringsAsFactors = FALSE
+      ),
+      "expression" = df,
+      "function" = df[c(
+        "filename",
+        "functions",
+        "first_line",
+        "last_line",
+        "value"
+      )]
+    ))
   }
 
   switch(

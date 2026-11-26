@@ -592,7 +592,7 @@ patch_parallel_forks <- function(env) {
       2L,
       # `.covr$call` is `.Call` (see `base_r_hook()`), so that neither covr's
       # R CMD check nor that of parallel looks up the routine.
-      list(call("if", quote(!r[1L]), quote(.covr$call(.covr$zero))))
+      list(call("if", quote(!r[1L]), quote(.covr$call(.covr$zero, TRUE))))
     )
   }
   if (is.function(env$mcexit)) {
@@ -728,7 +728,7 @@ base_r_hook <- function(dll_path, counters_file, trace_dir) {
     paste0("    zero = ", symbol("covr_counter_reset"), ","),
     paste0("    gcov_dump = ", symbol("covr_gcov_dump"), ","),
     "    save = function() {",
-    "        counts <- .Call(.covr$take)",
+    "        counts <- .Call(.covr$take, TRUE)",
     "        if (length(counts) > 0L) {",
     "            tryCatch({",
     '                dir <- Sys.getenv("COVR_TRACE_DIR")',
@@ -746,7 +746,7 @@ base_r_hook <- function(dll_path, counters_file, trace_dir) {
     '                file.rename(tmp, tempfile("covr_trace_", dir))',
     "            }, error = function(e) NULL, warning = function(w) NULL)",
     "        }",
-    "        .Call(.covr$zero)",
+    "        .Call(.covr$zero, TRUE)",
     "        invisible()",
     "    }",
     ")",

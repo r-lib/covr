@@ -217,7 +217,8 @@ register_count <- function(key) {
 # Add the counts held in C to the values of the traces and reset them. Call
 # before reading the values of `.counters`.
 sync_counts <- function() {
-  counts <- .Call(covr_counter_take)
+  # Not those of base R, which saves its own (see `instrument_base_r()`)
+  counts <- .Call(covr_counter_take, FALSE)
   keys <- names(counts)
   # By position, as looking up each count by name takes quadratic time
   for (i in seq_along(counts)) {
@@ -347,7 +348,7 @@ clear_counters <- function(scope = NULL) {
       return(invisible())
     }
   }
-  .Call(covr_counter_reset)
+  .Call(covr_counter_reset, FALSE)
   rm(envir = .counters, list = ls(envir = .counters, all.names = TRUE))
   rm(envir = .current_test, list = ls(envir = .current_test))
   invisible()
@@ -358,7 +359,7 @@ clear_counters <- function(scope = NULL) {
 zero_counters <- function(scope = NULL) {
   keys <- ls(.counters, all.names = TRUE)
   if (is.null(scope)) {
-    .Call(covr_counter_reset)
+    .Call(covr_counter_reset, FALSE)
     keys <- setdiff(keys, c("tests", "branches"))
   } else {
     # Add the counts of other scopes to their traces before they are reset
