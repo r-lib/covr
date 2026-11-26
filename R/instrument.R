@@ -24,42 +24,98 @@ instrument_package <- function(
   full_traversal = FALSE,
   branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE))
 ) {
+  job <- start_instrument(
+    pkg,
+    install_path,
+    record_tests = record_tests,
+    full_traversal = full_traversal,
+    branch_coverage = branch_coverage
+  )
+  finish_instrument(job, process_status(job$pid, wait = TRUE))
+}
+
+# The exit status of the background process `pid`, `NA` if it is still
+# running, or -1 if it was killed by a signal, for which sys signals an error.
+# On Unix, `sys::exec_status()` gives the status as `waitpid()` does, with the
+# exit status in its second byte.
+process_status <- function(pid, wait = TRUE) {
+  status <- tryCatch(
+    sys::exec_status(pid, wait = wait),
+    error = function(e) -1L
+  )
+  if (!is.na(status) && !is_windows() && status > 255L) {
+    status <- status %/% 256L
+  }
+  status
+}
+
+# Start the process of `instrument_package()` in the background, without a
+# shell. The process doesn't save traces of the instrumented packages it
+# loads, e.g. those that the package imports.
+start_instrument <- function(
+  pkg,
+  install_path,
+  record_tests = isTRUE(getOption("covr.record_tests", FALSE)),
+  full_traversal = FALSE,
+  branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE))
+) {
+  output <- temp_file("covr_instrument_", fileext = c(".out", ".err"))
   args <- c(
     "--vanilla",
     "--no-echo",
     "-e",
-    shQuote("covr:::instrument_main()"),
+    "covr:::instrument_main()",
     "--args",
-    shQuote(c(
-      pkg$package,
-      install_path,
-      record_tests,
-      isTRUE(full_traversal),
-      branch_coverage
-    ))
+    pkg$package,
+    install_path,
+    record_tests,
+    isTRUE(full_traversal),
+    branch_coverage
   )
-  output <- withr::with_envvar(
+  pid <- withr::with_envvar(
     c(
       R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
-      R_LIBS = env_path(install_path, .libPaths())
+      R_LIBS = env_path(install_path, .libPaths()),
+      COVR_TRACE_DIR = NA
     ),
-    suppressWarnings(system2(
+    sys::exec_background(
       rterm_binary(),
       args,
-      stdout = TRUE,
-      stderr = TRUE
-    ))
+      std_out = output[[1]],
+      std_err = output[[2]]
+    )
   )
-  status <- attr(output, "status") %||% 0L
-  file <- instrumented_counters_file(pkg$package, install_path)
-  if (status == 0L && file.exists(file)) {
+  list(pkg = pkg, install_path = install_path, pid = pid, output = output)
+}
+
+# The result of the process `job` of `start_instrument()` that exited with
+# `status`. Anything that a process that failed, e.g. was killed, wrote is
+# removed, so the package is left as installed.
+finish_instrument <- function(job, status) {
+  pkg_name <- job$pkg$package
+  output <- unlist(lapply(job$output, function(file) {
+    if (file.exists(file)) readLines(file, warn = FALSE)
+  }))
+  unlink(job$output, expand = FALSE)
+  file <- instrumented_counters_file(pkg_name, job$install_path)
+  if (identical(status, 0L) && file.exists(file)) {
     return(file)
   }
+  unlink(
+    c(
+      paste0(
+        instrumented_db_base(pkg_name, job$install_path),
+        c(".rdb", ".rdx")
+      ),
+      file
+    ),
+    expand = FALSE
+  )
   # The package can't be instrumented ahead of time
   if (!identical(status, instrument_skipped)) {
     covr_warn(
       c(
-        "Can't instrument the installed package {.pkg {pkg$package}} ahead of time.",
+        "Can't instrument the installed package {.pkg {pkg_name}} ahead of time.",
         i = "It is instrumented each time it is loaded instead.",
         i = "Output: {.val {utils::tail(output, failure_lines())}}"
       ),
@@ -126,10 +182,19 @@ instrument_installed_package <- function(pkg_name, lib) {
   }
 
   # Like `tools:::code2LazyLoadDB()`, this doesn't run `.onLoad()` or load
-  # the package's compiled code.
+  # the package's compiled code. It loads the packages it imports, whose
+  # loader scripts set the options of their own instrumentation if they are
+  # instrumented packages, so the options of this one are set again.
+  opts <- lapply(
+    stats::setNames(
+      nm = c("covr.record_tests", "covr.full_traversal", "covr.branch_coverage")
+    ),
+    getOption
+  )
   ns <- suppressPackageStartupMessages(
     loadNamespace(pkg_name, lib.loc = lib, partial = TRUE)
   )
+  options(opts)
   register_namespace(pkg_name, ns)
   trace_environment(ns, scope = pkg_name)
   compiled <- !isFALSE(package_byte_compile(pkg_name, lib))

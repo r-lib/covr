@@ -212,8 +212,13 @@ stage_counters_file <- function(file, directory) {
   dest <- file.path(directory, name)
   if (!file.exists(dest)) {
     tmp <- temp_file(".covr_tmp_", tmpdir = directory)
-    on.exit(unlink(tmp, expand = FALSE), add = TRUE)
-    if (!file.copy(file, tmp) || !file.rename(tmp, dest)) {
+    on.exit(unlink(tmp, force = TRUE, expand = FALSE), add = TRUE)
+    # The library can be read-only, and another process can rename its copy
+    # into place first, which fails the rename on Windows
+    copied <- suppressWarnings(
+      file.copy(file, tmp, copy.mode = FALSE) && file.rename(tmp, dest)
+    )
+    if (!copied && !file.exists(dest)) {
       return(file)
     }
   }
@@ -374,6 +379,9 @@ register_trace <- function(ns, directory, scope = env_scope(ns)) {
     return(invisible())
   }
   force(scope)
+  # For forked workers (see `fix_mcexit()`)
+  entry <- scope_entry(scope)
+  entry$trace_dir <- directory
   pending <- temp_file(
     paste0("covr_pending_", Sys.getpid(), "_", marker_scope(scope)),
     tmpdir = directory
@@ -385,6 +393,18 @@ register_trace <- function(ns, directory, scope = env_scope(ns)) {
     onexit = TRUE
   )
   invisible(pending)
+}
+
+# Save the traces of all the scopes registered by `register_trace()`, in a
+# forked worker of parallel that exits (see `fix_mcexit()`).
+save_registered_traces <- function() {
+  for (id in ls(the$scopes, all.names = TRUE)) {
+    directory <- the$scopes[[id]]$trace_dir
+    if (!is.null(directory)) {
+      save_trace_and_clear(directory, id)
+    }
+  }
+  invisible()
 }
 
 # Also used by the patched `parallel:::mcexit()` (see `fix_mcexit()`), as forked
@@ -458,13 +478,17 @@ as_coverage <- function(counters, ...) {
 # `scope_prefix()`), which isn't part of the names of a coverage object. The
 # prefix is kept on keys that would otherwise have the same name as another
 # trace, e.g. of a file with the same name in another package loaded in the
-# process, as traces are merged by name.
+# process, as traces are merged by name. Keys can be repeated, e.g. for a
+# header that gcov reports for each file that includes it, which keep no
+# prefix.
 unscope_keys <- function(keys) {
   if (is.null(keys)) {
     return(keys)
   }
   stripped <- sub("^[^/]*/", "", keys)
-  same <- duplicated(stripped) | duplicated(stripped, fromLast = TRUE)
+  distinct <- !duplicated(keys)
+  colliding <- stripped[distinct][duplicated(stripped[distinct])]
+  same <- stripped %in% colliding
   keys[!same] <- stripped[!same]
   keys
 }

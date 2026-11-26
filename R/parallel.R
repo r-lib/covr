@@ -9,32 +9,37 @@ replace_binding <- function(package, name, value) {
 }
 
 
-# patch parallel:::mcexit to force it to save the covr trace of the package
-# `scope` on exit, and to clear the pending marker of the worker, since it
-# doesn't run finalizers. An error, e.g. if the trace directory was removed
-# after the package was restored, would keep the worker from exiting.
+# Patch parallel's mcexit() so forked workers, which exit without running
+# finalizers, save the traces of all the instrumented packages loaded in the
+# process (see `register_trace()`) and clear their pending markers, and
+# mcfork() so each worker zeroes the counts it inherits, which the parent
+# saves. The functions are patched once, by the first instrumented package
+# that needs it, so a package's code that runs in the workers of another
+# package is saved too. An error, e.g. if the trace directory was removed after
+# the package was restored, would keep the worker from exiting. `trace_dir`
+# and `scope` are those of the package, which registers them when it is
+# loaded.
 fix_mcexit <- function(trace_dir, scope) {
-  get_from_ns <- `:::` # trick to fool R CMD check
-  mcexit <- get_from_ns('parallel', 'mcexit')
-
-  trace_dir <- parse(text = trace_dir)[[1]]
-
-  # directly patch mcexit
-  body(mcexit) <- as.call(append(
-    after = 1,
-    as.list(body(mcexit)),
-    call(
-      "try",
-      as.call(list(
-        call(":::", as.symbol("covr"), as.symbol("save_trace_and_clear")),
-        trace_dir,
-        scope
-      )),
-      silent = TRUE
-    )
-  ))
-
-  replace_binding('parallel', 'mcexit', mcexit)
+  ns <- asNamespace("parallel")
+  if (isTRUE(attr(ns$mcexit, "covr_fix"))) {
+    return(invisible())
+  }
+  mcfork <- ns$mcfork
+  mcexit <- ns$mcexit
+  replace_binding("parallel", "mcfork", function(...) {
+    process <- mcfork(...)
+    if (inherits(process, "masterProcess")) {
+      zero_counters()
+    }
+    process
+  })
+  patched <- function(...) {
+    try(save_registered_traces(), silent = TRUE)
+    mcexit(...)
+  }
+  attr(patched, "covr_fix") <- TRUE
+  replace_binding("parallel", "mcexit", patched)
+  invisible()
 }
 
 # Patch parallel's mcfork() and mcexit() in the current session, so processes

@@ -84,6 +84,7 @@ cobertura <- function(x, file = "cobertura.xml") {
   # with xml2.
   packages <- xml2::xml_add_child(top, "packages")
   groups <- file_packages(x, unique(file_lines$filename))
+  groups <- groups[lengths(groups) > 0]
   for (i in seq_along(groups)) {
     files <- groups[[i]]
     pkg_df <- df[df$filename %in% files, , drop = FALSE]

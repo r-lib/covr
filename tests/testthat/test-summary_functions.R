@@ -323,14 +323,15 @@ test_that("print.coverage keeps the rows apart when a long name wraps", {
 })
 
 test_that("print.coverage prints nothing for empty coverage", {
-  expect_silent(res <- print(structure(list(), class = "coverage")))
-  expect_null(res)
+  empty <- structure(list(), class = "coverage")
+  expect_silent(res <- print(empty))
+  expect_identical(res, empty)
 
   # compiled code has no functions, so there is nothing to tally by function
   cov <- code_coverage("f <- function() 1", "f()")
   cov[[1]]$functions <- NA_character_
   expect_silent(res <- print(cov, by = "function"))
-  expect_null(res)
+  expect_identical(res, cov)
 })
 
 test_that("print.coverages prints the coverage of each type", {

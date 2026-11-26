@@ -25,17 +25,19 @@ local_instrumented_packages(
 )
 
 trace_coverage(
-  trace_dir = trace_dir_setting(file.path(.libPaths()[[1]], "covr_traces")),
+  trace_dir = NULL,
   lib = NULL,
   paths = NULL,
   relative_path = TRUE,
   line_exclusions = NULL,
-  function_exclusions = NULL
+  function_exclusions = NULL,
+  packages = NULL
 )
 }
 \arguments{
-\item{packages}{The names of the packages to instrument, installed in
-\code{lib}.}
+\item{packages}{For \code{trace_coverage()}, the names of the packages to
+include, or \code{NULL} for all those with traces in \code{trace_dir} or
+instrumented in \code{lib}.}
 
 \item{lib}{The library the packages are installed in. For
 \code{trace_coverage()}, a library of instrumented packages, whose packages
@@ -46,10 +48,11 @@ variable \code{COVR_TRACE_DIR} is not set when an R process loads an
 instrumented package. It is created if it doesn't exist. \code{NULL} to only
 save the counts when \code{COVR_TRACE_DIR} is set. For \code{trace_coverage()}, the
 directories the counts were saved in, e.g. one for each shard of a CI
-run.}
+run; by default \code{COVR_TRACE_DIR}, or the default \code{trace_dir} of the first
+library in \code{\link[=.libPaths]{.libPaths()}}.}
 
 \item{cores}{The number of packages to instrument at once, each in its own
-R process. On Windows they are instrumented one at a time.}
+R process.}
 
 \item{.local_envir}{The environment whose exit restores the packages.}
 

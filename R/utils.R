@@ -474,21 +474,26 @@ file_packages <- function(x, files) {
     return(stats::setNames(list(files), pkg$package %||% ""))
   }
   root <- attr(x, "root")
-  dirs <- paste0(to_relative_path(pkg$path, root), "/")
-  # A package in the root directory contains all the files relative to it
-  if (!is.null(root)) {
-    dirs[sub("/+$", "", pkg$path) == sub("/+$", "", root)] <- ""
+  dirs <- sub("/*$", "/", to_relative_path(pkg$path, root))
+  # A package in the root directory contains the files relative to it
+  at_root <- if (is.null(root)) {
+    rep(FALSE, length(dirs))
+  } else {
+    sub("/+$", "", pkg$path) == sub("/+$", "", root)
   }
+  dirs[at_root] <- ""
+  absolute <- grepl("^(/|[A-Za-z]:)", files)
   # Each file is in the deepest package that contains it, as packages can be
   # in the directory of another
   owner <- vapply(
-    files,
-    function(file) {
-      inside <- which(startsWith(file, dirs))
+    seq_along(files),
+    function(i) {
+      inside <- which(
+        startsWith(files[[i]], dirs) & !(at_root & absolute[[i]])
+      )
       if (length(inside)) inside[[which.max(nchar(dirs[inside]))]] else 0L
     },
-    integer(1),
-    USE.NAMES = FALSE
+    integer(1)
   )
   groups <- lapply(seq_along(dirs), function(i) files[owner == i])
   names(groups) <- pkg$package

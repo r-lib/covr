@@ -222,6 +222,9 @@ file_report_html <- function(x = package_coverage(), file = NULL) {
   check_report_installed()
 
   files <- display_name(x)
+  if (!length(files)) {
+    covr_abort("{.arg x} has no files with coverage.")
+  }
 
   if (is.null(file)) {
     file <- files[[1]]

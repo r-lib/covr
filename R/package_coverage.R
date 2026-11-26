@@ -797,9 +797,13 @@ add_hooks <- function(
   counters_file = NULL,
   trace_dir = lib
 ) {
+  # Without a `trace_dir` the package is only measured when `COVR_TRACE_DIR`
+  # is set when it is loaded. Otherwise it loads as installed, without covr.
+  dormant <- is.null(trace_dir)
+  active <- 'nzchar(Sys.getenv("COVR_TRACE_DIR"))'
   trace_dir <- paste0(
     "covr:::trace_dir_setting(",
-    if (is.null(trace_dir)) "NULL" else encodeString(trace_dir, quote = '"'),
+    if (dormant) "NULL" else encodeString(trace_dir, quote = '"'),
     ")"
   )
 
@@ -819,7 +823,11 @@ add_hooks <- function(
     }
     lines[db_line] <- sub(
       '"R", pkg)',
-      '"R", paste0(pkg, ".covr"))',
+      if (dormant) {
+        paste0('"R", if (', active, ') paste0(pkg, ".covr") else pkg)')
+      } else {
+        '"R", paste0(pkg, ".covr"))'
+      },
       lines[db_line],
       fixed = TRUE
     )
@@ -833,34 +841,35 @@ add_hooks <- function(
       ", covr_hook = TRUE))"
     )
   }
-  lines <- append(
-    lines,
-    c(
-      hook("options(covr.record_tests = ", record_tests, ")"),
-      hook("options(covr.full_traversal = ", isTRUE(full_traversal), ")"),
-      hook("options(covr.branch_coverage = ", isTRUE(branch_coverage), ")"),
-      if (is.null(counters_file)) {
-        hook(
-          "covr:::trace_environment(ns, scope = ",
-          encodeString(pkg_name, quote = '"'),
-          ")"
-        )
-      } else {
-        hook(
-          "covr:::restore_counters(ns, file.path(info$libname, pkg, \"R\", \"",
-          basename(counters_file),
-          "\"))"
-        )
-      },
-      hook("covr:::register_trace(ns, ", trace_dir, ")")
-    ),
-    length(lines) - 1L
+  hooks <- c(
+    hook("options(covr.record_tests = ", record_tests, ")"),
+    hook("options(covr.full_traversal = ", isTRUE(full_traversal), ")"),
+    hook("options(covr.branch_coverage = ", isTRUE(branch_coverage), ")"),
+    if (is.null(counters_file)) {
+      hook(
+        "covr:::trace_environment(ns, scope = ",
+        encodeString(pkg_name, quote = '"'),
+        ")"
+      )
+    } else {
+      hook(
+        "covr:::restore_counters(ns, file.path(info$libname, pkg, \"R\", \"",
+        basename(counters_file),
+        "\"))"
+      )
+    },
+    hook("covr:::register_trace(ns, ", trace_dir, ")")
   )
+  if (dormant) {
+    hooks <- c(paste0("if (", active, ") {"), hooks, "}")
+  }
+  lines <- append(lines, hooks, length(lines) - 1L)
 
   if (fix_mcexit) {
     lines <- append(
       lines,
       paste0(
+        if (dormant) paste0("if (", active, ") "),
         "covr:::fix_mcexit(",
         encodeString(trace_dir, quote = '"'),
         ", ",

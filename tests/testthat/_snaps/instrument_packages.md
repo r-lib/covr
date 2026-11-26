@@ -6,6 +6,15 @@
       Warning:
       Can't find the coverage of any instrumented package in '.'.
 
+# trace_coverage() gives the file names in the source directories in `paths`
+
+    Code
+      trace_coverage(traces, paths = function(files, package) NA_character_)
+    Condition
+      Error:
+      ! `paths` must return a file name for each of the files of TestNestedOuter.
+      x It returned `NA` for some of them.
+
 # instrument_packages() errors for packages that are not installed or already instrumented
 
     Code
@@ -38,6 +47,6 @@
     Condition
       Warning:
       Can't measure the coverage of the Rust code of b.
-      x It's built with another LLVM version than the Rust code of a (LLVM 18).
+      x It may be built with another LLVM version than the Rust code of a (LLVM 18).
       i Measure the coverage of each of these packages on its own.
 

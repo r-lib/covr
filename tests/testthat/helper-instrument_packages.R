@@ -29,7 +29,7 @@ local_nested_library <- function(frame = parent.frame()) {
     stderr = FALSE
   )
   stopifnot(status == 0)
-  list(lib = normalizePath(lib), src = normalizePath(src))
+  list(lib = normalize_path(lib), src = normalize_path(src))
 }
 
 # Run `code` in a new R process that uses the library `lib` first.

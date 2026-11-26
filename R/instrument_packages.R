@@ -71,9 +71,10 @@
 #'   instrumented package. It is created if it doesn't exist. `NULL` to only
 #'   save the counts when `COVR_TRACE_DIR` is set. For `trace_coverage()`, the
 #'   directories the counts were saved in, e.g. one for each shard of a CI
-#'   run.
+#'   run; by default `COVR_TRACE_DIR`, or the default `trace_dir` of the first
+#'   library in [.libPaths()].
 #' @param cores The number of packages to instrument at once, each in its own
-#'   R process. On Windows they are instrumented one at a time.
+#'   R process.
 #' @return `instrument_packages()` and `local_instrumented_packages()` return
 #'   a logical vector, invisibly, named by package: `TRUE` for a package that
 #'   was instrumented when it was installed, and `FALSE` for one that is
@@ -149,8 +150,13 @@ instrument_packages <- function(
   # The packages that no process loads are in the coverage, with none of their
   # code covered
   if (!is.null(trace_dir)) {
-    for (i in which(!vlapply(counters_files, is.null))) {
-      save_baseline_trace(counters_files[[i]], trace_dir, packages[[i]])
+    for (i in seq_along(packages)) {
+      if (is.null(counters_files[[i]])) {
+        # The baseline of an earlier instrumentation of the package
+        unlink(baseline_trace_file(trace_dir, packages[[i]]), expand = FALSE)
+      } else {
+        save_baseline_trace(counters_files[[i]], trace_dir, packages[[i]])
+      }
     }
   }
   done <- TRUE
@@ -167,7 +173,7 @@ save_baseline_trace <- function(file, directory, pkg) {
     return(invisible())
   }
   tmp <- temp_file(".covr_tmp_", tmpdir = directory)
-  on.exit(unlink(tmp, expand = FALSE), add = TRUE)
+  on.exit(unlink(tmp, force = TRUE, expand = FALSE), add = TRUE)
   saveRDS(
     structure(
       list(
@@ -179,8 +185,12 @@ save_baseline_trace <- function(file, directory, pkg) {
     ),
     tmp
   )
-  file.rename(tmp, file.path(directory, paste0("covr_trace_baseline_", pkg)))
+  file.rename(tmp, baseline_trace_file(directory, pkg))
   invisible()
+}
+
+baseline_trace_file <- function(directory, pkg) {
+  file.path(directory, paste0("covr_trace_baseline_", pkg))
 }
 
 #' @rdname instrument_packages
@@ -293,6 +303,9 @@ local_instrumented_packages <- function(
 #'   contains all of them, or absolute paths. If a string, file names are
 #'   relative to that directory.
 #' @inheritParams package_coverage
+#' @param packages For `trace_coverage()`, the names of the packages to
+#'   include, or `NULL` for all those with traces in `trace_dir` or
+#'   instrumented in `lib`.
 #' @return `trace_coverage()` returns a [coverage] object with the coverage of
 #'   all the instrumented packages whose counts are in `trace_dir`. Files of
 #'   the packages that the `.covrignore` file (see [exclusions]) in their source
@@ -300,13 +313,16 @@ local_instrumented_packages <- function(
 #'   `covr_no_coverage`) and returns a coverage object without any.
 #' @export
 trace_coverage <- function(
-  trace_dir = trace_dir_setting(file.path(.libPaths()[[1]], "covr_traces")),
+  trace_dir = NULL,
   lib = NULL,
   paths = NULL,
   relative_path = TRUE,
   line_exclusions = NULL,
-  function_exclusions = NULL
+  function_exclusions = NULL,
+  packages = NULL
 ) {
+  trace_dir <- trace_dir %||%
+    trace_dir_setting(file.path(.libPaths()[[1]], "covr_traces"))
   if (
     !is.character(trace_dir) ||
       length(trace_dir) == 0 ||
@@ -317,6 +333,9 @@ trace_coverage <- function(
   }
   if (!is.null(lib) && (!is_string(lib) || !dir.exists(lib))) {
     covr_abort("Can't find the library {.path {lib}}.")
+  }
+  if (!is.null(packages)) {
+    check_packages(packages)
   }
   if (
     !is.null(paths) &&
@@ -333,10 +352,11 @@ trace_coverage <- function(
     )
   }
   dirs <- trace_dir
-  trace_dir <- normalize_path(trace_dir)
+  # The same directory given twice would count its traces twice
+  trace_dir <- unique(sub("(.)/+$", "\\1", normalize_path(trace_dir)))
   traces <- merge_coverage(c(
     list.files(trace_dir, pattern = "^covr_trace_", full.names = TRUE),
-    if (!is.null(lib)) instrumented_counters_files(lib)
+    if (!is.null(lib)) instrumented_counters_files(lib, packages)
   ))
   for (dir in trace_dir) {
     warn_unsaved_traces(
@@ -346,6 +366,12 @@ trace_coverage <- function(
     )
   }
   pkg_names <- traced_packages(traces)
+  if (!is.null(packages)) {
+    pkg_names <- intersect(pkg_names, packages)
+    keys <- names(traces) %||% character()
+    scoped <- grepl("/", keys, fixed = TRUE)
+    traces <- traces[!scoped | sub("/.*$", "", keys) %in% pkg_names]
+  }
   if (length(pkg_names) == 0) {
     covr_warn(
       "Can't find the coverage of any instrumented package in {.path {dirs}}.",
@@ -367,10 +393,10 @@ trace_coverage <- function(
   )
 }
 
-# The counters of the packages in the library `lib` that were instrumented
-# after they were installed.
-instrumented_counters_files <- function(lib) {
-  pkgs <- list.files(lib)
+# The counters of the `packages` (or all the packages) in the library `lib`
+# that were instrumented after they were installed.
+instrumented_counters_files <- function(lib, packages = NULL) {
+  pkgs <- packages %||% list.files(lib)
   files <- instrumented_counters_file(pkgs, lib)
   files[file.exists(files)]
 }
@@ -410,9 +436,8 @@ loader_original <- function(lib, pkg) {
 # loaded.
 #
 # Each package is instrumented by its own R process, which are independent, so
-# with several `cores` they run in parallel (on Unix-alikes, in forked
-# processes), the largest first, so that the last ones to start are the
-# quickest.
+# up to `cores` of them run at once, the largest first, so that the last ones
+# to start are the quickest.
 instrument_library_packages <- function(
   pkgs,
   lib,
@@ -421,6 +446,10 @@ instrument_library_packages <- function(
   cores = getOption("Ncpus", 1L)
 ) {
   ahead_of_time <- rep_len(ahead_of_time, length(pkgs))
+  cores <- suppressWarnings(as.integer(cores))
+  if (length(cores) != 1L || is.na(cores) || cores < 1L) {
+    cores <- 1L
+  }
   full_traversal <- lapply(pkgs, function(pkg) {
     getOption(
       "covr.full_traversal",
@@ -428,78 +457,53 @@ instrument_library_packages <- function(
       isTRUE(as.logical(pkg[[tolower("Config/covr/full_traversal")]]))
     )
   })
-  instrument_one <- function(i) {
-    if (ahead_of_time[[i]]) {
-      instrument_package(pkgs[[i]], lib, full_traversal = full_traversal[[i]])
-    }
-  }
   todo <- which(ahead_of_time)
+  sizes <- vapply(
+    pkgs[todo],
+    function(pkg) {
+      file.size(file.path(lib, pkg$package, "R", paste0(pkg$package, ".rdb")))
+    },
+    numeric(1)
+  )
+  todo <- todo[order(sizes, decreasing = TRUE)]
   counters_files <- vector("list", length(pkgs))
-  if (length(todo) > 1L && cores > 1L && !is_windows()) {
-    sizes <- vapply(
-      pkgs[todo],
-      function(pkg) {
-        file.size(file.path(lib, pkg$package, "R", paste0(pkg$package, ".rdb")))
-      },
-      numeric(1)
-    )
-    todo <- todo[order(sizes, decreasing = TRUE)]
-    # The warnings of the forked processes are returned, and given here
-    results <- parallel::mclapply(
-      todo,
-      function(i) {
-        # The fork has the counts of the session, which it would save again
-        # if the session's packages are instrumented with the fix of
-        # `mcexit()` (see `fix_mcexit()`)
-        zero_counters()
-        warnings <- list()
-        file <- withCallingHandlers(
-          instrument_one(i),
-          warning = function(w) {
-            warnings[[length(warnings) + 1L]] <<- w
-            invokeRestart("muffleWarning")
-          }
-        )
-        list(file = file, warnings = warnings)
-      },
-      mc.cores = cores,
-      mc.preschedule = FALSE
-    )
-    for (j in seq_along(todo)) {
-      result <- results[[j]]
-      # A process that was killed, e.g. when it ran out of memory, gives `NULL`
-      # or an error, and its package is instrumented when it is loaded.
-      if (!is.list(result)) {
-        failed <- pkgs[[todo[[j]]]]$package
-        covr_warn(
-          "Can't instrument the installed package {.pkg {failed}} ahead of time.",
-          class = "covr_instrument_failed"
-        )
-        next
-      }
-      for (w in result$warnings) {
-        warning(w)
-      }
-      if (!is.null(result$file)) {
-        counters_files[[todo[[j]]]] <- result$file
-      }
+  running <- list()
+  while (length(todo) || length(running)) {
+    while (length(running) < cores && length(todo)) {
+      i <- todo[[1]]
+      todo <- todo[-1]
+      job <- start_instrument(
+        pkgs[[i]],
+        lib,
+        full_traversal = full_traversal[[i]]
+      )
+      job$index <- i
+      running[[length(running) + 1L]] <- job
     }
-  } else {
-    for (i in todo) {
-      file <- instrument_one(i)
+    # The status of a process that is still running is `NA`
+    status <- lapply(running, function(job) {
+      process_status(job$pid, wait = length(running) == 1L)
+    })
+    done <- !vlapply(status, is.na)
+    if (!any(done)) {
+      Sys.sleep(0.05)
+      next
+    }
+    for (j in which(done)) {
+      file <- finish_instrument(running[[j]], status[[j]])
       if (!is.null(file)) {
-        counters_files[[i]] <- file
+        counters_files[[running[[j]]$index]] <- file
       }
     }
+    running <- running[!done]
   }
-  # A package's code can run in the forked workers of another package that
-  # uses parallel, so the fix is added to all of them if any needs it.
-  fix_mcexit <- any(vlapply(pkgs, should_enable_parallel_mcexit_fix))
+  # One package with the fix saves the traces of all the instrumented packages
+  # in forked workers (see `fix_mcexit()`)
   for (i in seq_along(pkgs)) {
     add_hooks(
       pkgs[[i]]$package,
       lib,
-      fix_mcexit = fix_mcexit,
+      fix_mcexit = should_enable_parallel_mcexit_fix(pkgs[[i]]),
       full_traversal = full_traversal[[i]],
       counters_file = counters_files[[i]],
       trace_dir = trace_dir
@@ -543,7 +547,10 @@ scope_compiled <- function(x, pkg) {
 # their traces. With `paths` (see `trace_coverage()`), the file names of the
 # traces are changed: of the packages that have a `path`, from that directory
 # to their `path`, or with `paths` if it is a function, after which the `path`
-# of each package is the directory that contains its files.
+# of each package is the directory that contains its files, or the parent of
+# their `R` directory. Only the files in the directory the package was
+# installed from are changed: the namespace can have functions with srcrefs
+# from other packages, e.g. re-exported functions.
 trace_source_paths <- function(traces, pkgs, paths = NULL) {
   # Decisions of branch coverage can have srcfiles of their own
   branches <- as.list(traces[["branches"]])
@@ -554,28 +561,34 @@ trace_source_paths <- function(traces, pkgs, paths = NULL) {
     }
     pkg_traces <- package_traces(traces, pkg$package)
     srcfile_traces <- c(pkg_traces, package_traces(branches, pkg$package))
+    installed_from <- installed_source_path(pkg_traces)
+    if (is.null(installed_from) && (is.null(pkg$path) || is.function(paths))) {
+      covr_abort(c(
+        "Can't find source references in the installed package {.pkg {pkg$package}}.",
+        i = "Install it with {.code R CMD INSTALL --with-keep.source}."
+      ))
+    }
     if (is.function(paths)) {
-      move_srcfiles(srcfile_traces, function(x) paths(x, pkg$package))
-      files <- vcapply(pkg_traces, function(trace) {
-        get_source_filename(trace$srcref, full.names = TRUE)
+      mapped <- new.env(parent = emptyenv())
+      from <- paste0(installed_from, "/")
+      move_srcfiles(srcfile_traces, function(x) {
+        inside <- startsWith(x, from) %in% TRUE
+        if (any(inside)) {
+          x[inside] <- map_paths(paths, x[inside], pkg$package)
+          mapped$files <- c(mapped$files, x[inside])
+        }
+        x
       })
-      files <- unique(files[nzchar(files)])
-      pkg$path <- if (length(files)) common_path(unique(dirname(files)))
-      if (is.null(pkg$path)) {
+      dir <- common_path(unique(dirname(mapped$files)))
+      if (is.null(dir)) {
         covr_abort(
           "The files that {.arg paths} gives for {.pkg {pkg$package}} aren't in one directory."
         )
       }
+      pkg$path <- if (basename(dir) == "R") dirname(dir) else dir
       return(pkg)
     }
-    installed_from <- installed_source_path(pkg_traces)
     if (is.null(pkg$path)) {
-      if (is.null(installed_from)) {
-        covr_abort(c(
-          "Can't find source references in the installed package {.pkg {pkg$package}}.",
-          i = "Install it with {.code R CMD INSTALL --with-keep.source}."
-        ))
-      }
       pkg$path <- installed_from
     } else {
       pkg$path <- absolute_path(pkg$path)
@@ -585,6 +598,23 @@ trace_source_paths <- function(traces, pkgs, paths = NULL) {
     }
     pkg
   })
+}
+
+# The file names that the function `paths` gives for the `files` of the
+# package `package`, as absolute paths.
+map_paths <- function(paths, files, package) {
+  res <- paths(files, package)
+  if (!is.character(res) || length(res) != length(files) || anyNA(res)) {
+    covr_abort(c(
+      "{.arg paths} must return a file name for each of the files of {.pkg {package}}.",
+      x = if (is.character(res) && length(res) == length(files)) {
+        "It returned {.code NA} for some of them."
+      } else {
+        "It returned a {.cls {class(res)}} of length {length(res)} for {length(files)} file name{?s}."
+      }
+    ))
+  }
+  absolute_path(res)
 }
 
 # A function that changes file names in the directory `from` to be in `to`.
@@ -664,6 +694,9 @@ coverage_root <- function(relative_path, pkgs) {
 # the path itself for one path, or `NULL` if there is none, e.g. for paths on
 # different Windows drives.
 common_path <- function(paths) {
+  if (length(paths) == 0) {
+    return(NULL)
+  }
   if (length(paths) == 1L) {
     return(paths)
   }
@@ -677,12 +710,12 @@ common_path <- function(paths) {
   }
   # Packages on different Windows drives or network shares (`//server/share`)
   # have none
-  unc <- all(startsWith(paths, "//"))
+  unc <- any(startsWith(paths, "//"))
   if (length(common) == 0 || (unc && length(common) < 4L)) {
     return(NULL)
   }
   # The root of a file system: `/`, or a Windows drive like `C:/`
-  if (length(common) == 1L) {
+  if (length(common) == 1L && grepl("^([A-Za-z]:)?$", common)) {
     return(paste0(common, "/"))
   }
   paste(common, collapse = "/")

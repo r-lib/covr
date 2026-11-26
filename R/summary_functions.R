@@ -438,7 +438,7 @@ print.coverage <- function(
   ...
 ) {
   if (length(x) == 0) {
-    return()
+    return(invisible(x))
   }
   group <- match.arg(group)
 
@@ -451,7 +451,7 @@ print.coverage <- function(
   df <- tally_coverage(x, by = by)
 
   if (!NROW(df)) {
-    return(invisible())
+    return(invisible(x))
   }
 
   if (group == "functions") {

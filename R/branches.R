@@ -328,14 +328,20 @@ subset_branches <- function(branches, counters) {
   counter_files <- srcref_filenames(counters)
   counter_start <- position(counters, 1L, 2L)
   counter_end <- position(counters, 3L, 4L)
+  # Only the traces of the same file are compared, which is much faster for
+  # many files
+  by_file <- split(seq_along(counters), counter_files)
   files <- srcref_filenames(branches)
   start <- position(branches, 1L, 2L)
   end <- position(branches, 3L, 4L)
+  file_index <- match(files, names(by_file))
   keep <- vlapply(seq_along(branches), function(i) {
+    if (is.na(file_index[[i]])) {
+      return(FALSE)
+    }
+    j <- by_file[[file_index[[i]]]]
     any(
-      counter_files == files[[i]] &
-        counter_start >= start[[i]] &
-        counter_end <= end[[i]],
+      counter_start[j] >= start[[i]] & counter_end[j] <= end[[i]],
       na.rm = TRUE
     )
   })

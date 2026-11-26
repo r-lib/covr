@@ -165,7 +165,7 @@ test_that("traces of processes that restored saved counters are merged with them
   .Call(covr_count, "a.R:1")
   save_trace(dir, "")
 
-  merged <- merge_coverage(list.files(dir, full.names = TRUE))
+  merged <- merge_traces(dir)
   values <- vapply(merged, function(x) x$value, numeric(1))
   expect_equal(
     values[sort(names(values), method = "radix")],

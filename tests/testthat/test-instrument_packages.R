@@ -24,6 +24,7 @@ test_that("trace_coverage() reads the coverage of any processes that load instru
   expect_equal(df$value, c(1, 1, 2, 2))
 
   # A Cobertura package for each package
+  skip_if_not_installed("xml2")
   file <- withr::local_tempfile(fileext = ".xml")
   cobertura(cov, file)
   xml <- xml2::read_xml(file)
@@ -71,7 +72,15 @@ test_that("packages instrumented without trace_dir only save their counts in COV
     trace_dir = NULL
   )
 
-  run_with_library(pkgs$lib, "TestNestedOuter::outer_fun(1)")
+  # Without COVR_TRACE_DIR the packages load as installed, without covr
+  run_with_library(
+    pkgs$lib,
+    paste(
+      "TestNestedInner::inner_fun(1)",
+      "stopifnot(!'covr' %in% loadedNamespaces())",
+      sep = "; "
+    )
+  )
   run_with_library(
     pkgs$lib,
     "TestNestedOuter::outer_fun(1)",
@@ -81,6 +90,13 @@ test_that("packages instrumented without trace_dir only save their counts in COV
   expect_length(list.files(pkgs$lib, pattern = "^covr_"), 0)
   df <- tally_coverage(trace_coverage(traces, lib = pkgs$lib))
   expect_equal(df$value, c(0, 0, 1, 1))
+  # Only some of the packages
+  only_outer <- trace_coverage(
+    traces,
+    lib = pkgs$lib,
+    packages = "TestNestedOuter"
+  )
+  expect_equal(attr(only_outer, "package")$package, "TestNestedOuter")
 })
 
 test_that("trace_coverage() reads several trace directories", {
@@ -99,6 +115,11 @@ test_that("trace_coverage() reads several trace directories", {
   }
 
   expect_equal(tally_coverage(trace_coverage(shards))$value, c(2, 2))
+  # A directory given twice is read once
+  expect_equal(
+    tally_coverage(trace_coverage(c(shards, paste0(shards[[1]], "/"))))$value,
+    c(2, 2)
+  )
 })
 
 test_that("trace_coverage() warns and returns no coverage without any traces", {
@@ -235,6 +256,12 @@ test_that("file_packages() puts each file in the deepest package that has it", {
     file_packages(x, c("/repo/R/a.R", "/repo/child/R/b.R", "/other/c.R")),
     list(parent = "/repo/R/a.R", child = "/repo/child/R/b.R", "/other/c.R")
   )
+  # Absolute files aren't in a package at the root of relative ones
+  attr(x, "root") <- "/repo"
+  expect_equal(
+    file_packages(x, c("R/a.R", "/other/c.R")),
+    list(parent = "R/a.R", "/other/c.R")
+  )
 })
 
 test_that("instrumenting a package again replaces its baseline trace", {
@@ -323,6 +350,23 @@ test_that("trace_coverage() gives the file names in the source directories in `p
   expect_equal(
     traced_files(cov)[["TestNestedOuter/helpers/utils.R"]]$file_lines,
     lines
+  )
+  # The package is the parent of the `R` directory of its files, and the
+  # paths can be relative to the working directory
+  withr::with_dir(root, {
+    cov <- trace_coverage(
+      traces,
+      paths = function(files, package) {
+        file.path(package, "R", basename(files))
+      }
+    )
+  })
+  expect_equal(attr(cov, "package")$path, file.path(root, "TestNestedOuter"))
+  expect_equal(unique(tally_coverage(cov)$filename), "R/utils.R")
+
+  expect_snapshot(
+    trace_coverage(traces, paths = function(files, package) NA_character_),
+    error = TRUE
   )
 })
 
@@ -423,6 +467,16 @@ test_that("common_path() is the deepest directory that contains all paths", {
   expect_equal(
     common_path(c("//server/share/a", "//server/share/b")),
     "//server/share"
+  )
+  expect_null(common_path(character()))
+  expect_null(common_path(c("//server/share/a", "/local/b")))
+  expect_equal(common_path(c("a/pkgA", "a/pkgB")), "a")
+})
+
+test_that("unscope_keys() keeps prefixes only of keys of different traces", {
+  expect_equal(
+    unscope_keys(c("a/h.h:1", "a/h.h:1", "a/x.c:1", "b/x.c:1")),
+    c("h.h:1", "h.h:1", "a/x.c:1", "b/x.c:1")
   )
 })
 

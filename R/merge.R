@@ -48,18 +48,19 @@ merge_coverage.character <- function(x) {
   # which is read once at the end.
   merged <- NULL
   counts <- list()
+  # The copies of the same counters in several directories (see
+  # `stage_counters_file()`) are named by their contents, so they are read once
+  counters_paths <- character()
   for (file in x) {
     trace <- read_trace(file)
     if (inherits(trace, "covr_counts")) {
-      # A copy in the directory of the trace (see `stage_counters_file()`)
-      counters_file <- trace$counters_file
-      if (!grepl("/", counters_file, fixed = TRUE)) {
-        counters_file <- file.path(dirname(file), counters_file)
+      key <- trace$counters_file
+      if (!grepl("[/\\\\]", key)) {
+        counters_paths[[key]] <- file.path(dirname(file), key)
+      } else {
+        counters_paths[[key]] <- key
       }
-      counts[[counters_file]] <- add_counts(
-        counts[[counters_file]],
-        trace$counts
-      )
+      counts[[key]] <- add_counts(counts[[key]], trace$counts)
       trace <- if (length(trace$counters) > 0) trace$counters
     }
     if (is.null(trace)) {
@@ -71,10 +72,10 @@ merge_coverage.character <- function(x) {
       merge_coverage_pair(merged, trace)
     }
   }
-  for (counters_file in names(counts)) {
-    counters <- read_trace(counters_file)
+  for (key in names(counts)) {
+    counters <- read_trace(counters_paths[[key]])
     if (!is.null(counters)) {
-      counters <- add_counter_values(counters, counts[[counters_file]])
+      counters <- add_counter_values(counters, counts[[key]])
       merged <- merge_coverage(compact(list(counters, merged)))
     }
   }
