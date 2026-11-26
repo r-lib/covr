@@ -99,7 +99,7 @@ test_that("packages instrumented without trace_dir only save their counts in COV
   expect_equal(attr(only_outer, "package")$package, "TestNestedOuter")
 })
 
-test_that("reloading an instrumented package runs only the hooks of the new load", {
+test_that("an instrumented package loaded again counts the code of each load once", {
   skip_on_cran()
   local_install_defaults()
   pkgs <- local_nested_library()
@@ -112,7 +112,9 @@ test_that("reloading an instrumented package runs only the hooks of the new load
       "TestNestedOuter::outer_fun(1)",
       "unloadNamespace('TestNestedOuter')",
       "TestNestedOuter::outer_fun(1)",
+      "TestNestedOuter::outer_fun(1)",
       "unloadNamespace('TestNestedOuter')",
+      "invisible(gc())",
       # A dormant load runs none of the hooks of the earlier ones
       "Sys.unsetenv('COVR_TRACE_DIR')",
       "options(covr.branch_coverage = TRUE)",
@@ -123,7 +125,7 @@ test_that("reloading an instrumented package runs only the hooks of the new load
     env = c(COVR_TRACE_DIR = traces)
   )
 
-  expect_equal(tally_coverage(trace_coverage(traces))$value, c(2, 2))
+  expect_equal(tally_coverage(trace_coverage(traces))$value, c(3, 3))
 })
 
 test_that("trace_coverage() reads several trace directories", {

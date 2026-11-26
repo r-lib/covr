@@ -150,7 +150,8 @@ the packages are instrumented. Unlike \code{\link[=package_coverage]{package_cov
 instrument_packages(c("pkgA", "pkgB"), lib, trace_dir = "traces")
 
 # Then run anything that loads them from `lib`, e.g.
-#   R_LIBS=lib Rscript -e 'testthat::test_dir("pkgA/tests/testthat")'
+#   R_LIBS=lib Rscript -e 'testthat::test_dir("pkgA/tests/testthat",
+#     package = "pkgA", load_package = "installed")'
 
 cov <- trace_coverage("traces")
 lcov(cov, "lcov.info")

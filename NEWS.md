@@ -1,8 +1,8 @@
 # covr (development version)
 
-* `package_coverage()` no longer counts the code that a package runs after it
-  is unloaded and loaded again twice, as the hooks of its earlier load traced
-  it again (#783).
+* `package_coverage()` counts the code of a package that is unloaded and
+  loaded again correctly: the counts from before it was loaded again were
+  lost, and those from after were counted twice or more (#783).
 
 * A relative `COVR_TRACE_DIR` is relative to the working directory when the
   instrumented package loads, so its trace isn't lost if the process changes

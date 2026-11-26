@@ -17,9 +17,11 @@ merge_traces <- function(directory, counters = NULL) {
 }
 
 # Warn, with class `covr_unsaved_trace`, about the processes in `directory`
-# that did not save their trace. `subject` says what they did.
+# that did not save their trace. `subject` says what they did. A process has a
+# marker for each instrumented package it loaded.
 warn_unsaved_traces <- function(directory, subject, hint) {
-  n <- length(unsaved_traces(directory))
+  markers <- unsaved_traces(directory)
+  n <- length(unique(sub("^covr_pending_([0-9]+)_.*", "\\1", markers)))
   if (n > 0) {
     covr_warn(
       c(

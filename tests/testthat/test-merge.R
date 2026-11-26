@@ -212,3 +212,14 @@ test_that("merge_coverage reports a missing file of saved counters", {
 
   expect_error(merge_coverage(trace), "incomplete", class = "covr_error")
 })
+
+test_that("warn_unsaved_traces() counts each process once", {
+  dir <- withr::local_tempdir()
+  # The markers of two packages loaded by one process, and of another process
+  markers <- c("covr_pending_1_a_x", "covr_pending_1_b_x", "covr_pending_2_x")
+  file.create(file.path(dir, markers))
+
+  expect_snapshot(
+    warn_unsaved_traces(dir, "loaded a package", "Let them exit.")
+  )
+})

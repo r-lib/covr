@@ -60,6 +60,11 @@ trace_environment <- function(env, scope = anonymous_scope) {
   # added or replaced since (#641). Other scopes are never touched.
   entry <- scope_entry(scope)
   if (!identical(entry$env, env)) {
+    # A package loaded again after it was unloaded: the counts of its earlier
+    # namespace are saved before they are cleared (see `register_trace()`)
+    if (!is.null(entry$env) && !is.null(entry$trace_dir)) {
+      try(save_trace_and_clear(entry$trace_dir, scope), silent = TRUE)
+    }
     clear_counters(scope)
     entry$replacements <- list()
   }
@@ -420,11 +425,19 @@ save_registered_traces <- function() {
 # forking creates its own marker, which is removed here. Only the markers of
 # `scope` are removed, so a process that is killed after saving the trace of
 # one package still has the markers of the others.
+#
+# The counts of `scope` that are saved are zeroed, so saving it again only
+# saves what was counted since: a process that loads the package again has the
+# finalizers of both namespaces, which save the same scope (see
+# `trace_environment()`).
 save_trace_and_clear <- function(directory, scope = NULL) {
   if (is.null(directory)) {
     return(invisible())
   }
   res <- save_trace(directory, scope)
+  if (!is.null(scope)) {
+    zero_counters(scope)
+  }
   unlink(
     list.files(
       directory,
