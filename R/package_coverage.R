@@ -877,14 +877,7 @@ add_hooks <- function(
   if (fix_mcexit) {
     lines <- append(
       lines,
-      paste0(
-        if (dormant) paste0("if (", active, ") "),
-        "covr:::fix_mcexit(",
-        encodeString(trace_dir, quote = '"'),
-        ", ",
-        encodeString(pkg_name, quote = '"'),
-        ")"
-      )
+      paste0(if (dormant) paste0("if (", active, ") "), "covr:::fix_mcexit()")
     )
   }
 

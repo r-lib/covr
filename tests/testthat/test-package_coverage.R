@@ -300,9 +300,6 @@ test_that("add_hooks() quotes library paths containing quotes (#774)", {
   expect_no_error(parse(text = lines))
   hook <- parse(text = grep("register_trace", lines, value = TRUE))[[1]]
   expect_equal(eval(hook[[3]][[2]][[3]][[3]]), lib)
-  fix <- parse(text = grep("fix_mcexit", lines, value = TRUE))[[1]]
-  expect_equal(eval(parse(text = fix[[2]])[[1]]), lib)
-  expect_equal(fix[[3]], "pkg")
   trace <- parse(text = grep("trace_environment", lines, value = TRUE))[[1]]
   expect_equal(trace[[3]][[2]][[3]][["scope"]], "pkg")
 })
@@ -312,21 +309,18 @@ test_that("add_hooks() saves traces to COVR_TRACE_DIR, not COVERAGE_DIR", {
   dir.create(file.path(lib, "pkg", "R"), recursive = TRUE)
   load_script <- file.path(lib, "pkg", "R", "pkg")
   writeLines(c("local({", "})"), load_script)
-  add_hooks("pkg", lib, fix_mcexit = TRUE)
+  add_hooks("pkg", lib)
 
   lines <- readLines(load_script)
   hook <- parse(text = grep("register_trace", lines, value = TRUE))[[1]]
   hook_expr <- hook[[3]][[2]][[3]][[3]]
-  fix <- parse(text = grep("fix_mcexit", lines, value = TRUE))[[1]]
-  fix_expr <- parse(text = fix[[2]])[[1]]
 
-  withr::with_envvar(c(COVR_TRACE_DIR = "/trace", COVERAGE_DIR = "/cov"), {
-    expect_equal(eval(hook_expr), "/trace")
-    expect_equal(eval(fix_expr), "/trace")
+  trace <- normalize_path(withr::local_tempdir())
+  withr::with_envvar(c(COVR_TRACE_DIR = trace, COVERAGE_DIR = "/cov"), {
+    expect_equal(eval(hook_expr), trace)
   })
   withr::with_envvar(c(COVR_TRACE_DIR = NA, COVERAGE_DIR = "/cov"), {
     expect_equal(eval(hook_expr), lib)
-    expect_equal(eval(fix_expr), lib)
   })
 })
 

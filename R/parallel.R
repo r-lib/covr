@@ -16,10 +16,9 @@ replace_binding <- function(package, name, value) {
 # saves. The functions are patched once, by the first instrumented package
 # that needs it, so a package's code that runs in the workers of another
 # package is saved too. An error, e.g. if the trace directory was removed after
-# the package was restored, would keep the worker from exiting. `trace_dir`
-# and `scope` are those of the package, which registers them when it is
-# loaded.
-fix_mcexit <- function(trace_dir, scope) {
+# the package was restored, would keep the worker from exiting. Each package
+# registers its own trace directory when it is loaded.
+fix_mcexit <- function() {
   ns <- asNamespace("parallel")
   if (isTRUE(attr(ns$mcexit, "covr_fix"))) {
     return(invisible())
