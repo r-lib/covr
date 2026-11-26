@@ -371,6 +371,17 @@ trace_coverage <- function(
     keys <- names(traces) %||% character()
     scoped <- grepl("/", keys, fixed = TRUE)
     traces <- traces[!scoped | sub("/.*$", "", keys) %in% pkg_names]
+    # The decisions of branch coverage too
+    branches <- traces[["branches"]]
+    if (!is.null(branches)) {
+      branch_list <- as.list(branches, all.names = TRUE)
+      keep <- sub("/.*$", "", names(branch_list)) %in% pkg_names
+      traces[["branches"]] <- if (is.environment(branches)) {
+        list2env(branch_list[keep], parent = emptyenv())
+      } else {
+        branches[keep]
+      }
+    }
   }
   if (length(pkg_names) == 0) {
     covr_warn(

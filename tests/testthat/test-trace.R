@@ -97,6 +97,19 @@ test_that("unsaved_traces ignores the markers of the current process", {
   expect_equal(unsaved_traces(dir), paste0("covr_pending_", pid, "0_b"))
 })
 
+test_that("save_registered_traces() saves the others if one can't be saved", {
+  local_clean_traces()
+  dir <- withr::local_tempdir()
+  a <- scope_entry("a")
+  a$trace_dir <- file.path(dir, "removed")
+  b <- scope_entry("b")
+  b$trace_dir <- dir
+
+  save_registered_traces()
+
+  expect_length(list.files(dir, pattern = "^covr_trace_"), 1)
+})
+
 test_that("save_trace_and_clear() only clears the markers of its package", {
   dir <- withr::local_tempdir()
   local_mocked_bindings(save_trace = function(...) NULL)

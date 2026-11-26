@@ -405,7 +405,8 @@ save_registered_traces <- function() {
   for (id in ls(the$scopes, all.names = TRUE)) {
     directory <- the$scopes[[id]]$trace_dir
     if (!is.null(directory)) {
-      save_trace_and_clear(directory, id)
+      # A scope whose directory was removed doesn't stop the others
+      try(save_trace_and_clear(directory, id), silent = TRUE)
     }
   }
   invisible()

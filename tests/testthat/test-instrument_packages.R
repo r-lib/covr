@@ -122,6 +122,40 @@ test_that("trace_coverage() reads several trace directories", {
   )
 })
 
+test_that("trace_coverage(packages =) leaves out the branches of other packages", {
+  dir <- withr::local_tempdir()
+  trace <- function(pkg) {
+    src <- srcfilecopy(file.path("/src", pkg, "R", "f.R"), "if (x) 1")
+    ref <- srcref(src, c(1, 1, 1, 8))
+    key <- paste0(pkg, "/f.R:1:1:1:8:1:8:1:1")
+    branches <- new.env(parent = emptyenv())
+    branches[[key]] <- list(
+      srcref = ref,
+      functions = "f",
+      labels = c("TRUE", "FALSE"),
+      value = c(1, 0)
+    )
+    res <- list(list(value = 1, srcref = ref, functions = "f"))
+    names(res) <- key
+    res$branches <- branches
+    res
+  }
+  saveRDS(trace("pkgA"), file.path(dir, "covr_trace_a"))
+  saveRDS(trace("pkgB"), file.path(dir, "covr_trace_b"))
+
+  cov <- withr::with_options(
+    list(covr.filter_non_package = FALSE),
+    trace_coverage(dir, packages = "pkgA")
+  )
+
+  expect_equal(unique(tally_coverage(cov, "branch")$filename), "R/f.R")
+  expect_length(attr(cov, "branches"), 1)
+  expect_named(
+    tally_coverage(tally_coverage(cov, "line")[FALSE, ], "function"),
+    c("filename", "functions", "first_line", "last_line", "value")
+  )
+})
+
 test_that("trace_coverage() warns and returns no coverage without any traces", {
   traces <- withr::local_tempdir()
   withr::local_dir(traces)

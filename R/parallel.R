@@ -59,13 +59,17 @@ trace_forks <- function(trace_dir, scope) {
     }
     process
   })
-  replace_binding("parallel", "mcexit", function(...) {
+  patched <- function(...) {
     # An error here would keep the child from exiting, e.g. if it outlives
     # `trace_dir`. Forked children don't run finalizers, so this also removes
     # the pending marker of a child that registered its own trace (#277).
     try(save_trace_and_clear(trace_dir, scope), silent = TRUE)
     mcexit(...)
-  })
+  }
+  # Packages loaded while this is in place don't patch it again (see
+  # `fix_mcexit()`), as it calls the function it wraps
+  attr(patched, "covr_fix") <- attr(mcexit, "covr_fix")
+  replace_binding("parallel", "mcexit", patched)
 
   function() {
     replace_binding("parallel", "mcfork", mcfork)

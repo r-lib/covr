@@ -101,13 +101,14 @@ tally_coverage <- function(
         stringsAsFactors = FALSE
       ),
       "expression" = df,
-      "function" = df[c(
-        "filename",
-        "functions",
-        "first_line",
-        "last_line",
-        "value"
-      )]
+      "function" = data.frame(
+        filename = character(),
+        functions = character(),
+        first_line = numeric(),
+        last_line = numeric(),
+        value = numeric(),
+        stringsAsFactors = FALSE
+      )
     ))
   }
 
