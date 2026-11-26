@@ -92,6 +92,9 @@ start_instrument <- function(
 # `status`. Anything that a process that failed, e.g. was killed, wrote is
 # removed, so the package is left as installed.
 finish_instrument <- function(job, status) {
+  # `status` waits for the process to exit, e.g. in `instrument_package()`, so
+  # it has written its output and, on Windows, let go of the files
+  force(status)
   pkg_name <- job$pkg$package
   output <- unlist(lapply(job$output, function(file) {
     if (file.exists(file)) readLines(file, warn = FALSE)
