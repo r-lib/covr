@@ -9,6 +9,15 @@
       Error in `force()`:
       ! boom
 
+# with_coverage() cleans up when tracing fails
+
+    Code
+      with_mocked_bindings(with_coverage(env$add(1, 2), env = env), replacement = function(
+        ...) stop("boom"))
+    Condition
+      Error in `FUN()`:
+      ! boom
+
 # with_coverage() cleans up when a test file fails
 
     Code

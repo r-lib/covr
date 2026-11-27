@@ -110,9 +110,8 @@ with_coverage <- function(
   compiled <- start_compiled_coverage(env)
   on.exit(stop_compiled_coverage(compiled), add = TRUE)
 
-  untrace_nested_anonymous_scope()
+  local_anonymous_scope()
   trace_environment(env)
-  on.exit(untrace_scope(anonymous_scope), add = TRUE)
 
   coverage <- collect_coverage(code)
   coverage <- add_compiled_coverage(coverage, compiled)

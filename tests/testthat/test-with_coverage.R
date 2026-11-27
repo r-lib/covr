@@ -141,6 +141,24 @@ test_that("with_coverage() restores functions and counters on error", {
   expect_length(ls(.counters), 0)
 })
 
+test_that("with_coverage() cleans up when tracing fails", {
+  env <- local_fixture_env()
+
+  expect_snapshot(
+    with_mocked_bindings(
+      with_coverage(env$add(1, 2), env = env),
+      replacement = function(...) stop("boom")
+    ),
+    error = TRUE
+  )
+
+  expect_no_warning(
+    cov <- with_coverage(env$add(1, 2), env = env),
+    class = "covr_nested_coverage"
+  )
+  expect_equal(as.data.frame(cov)$value, c(1, 1, 0))
+})
+
 test_that("tracing env again keeps the counts and traces new functions (#641)", {
   env <- local_fixture_env()
   sub <- local_r_file(c("sub <- function(x, y) {", "  x - y", "}"))
