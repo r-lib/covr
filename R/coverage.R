@@ -113,13 +113,15 @@ c.coverage <- function(...) {
     )
   }
   packages <- unique(vcapply(covs, function(x) {
-    attr(x, "package")$package %||% NA_character_
+    package_label(x) %||% NA_character_
   }))
   if (length(packages) > 1L) {
     covr_abort(
       c(
         "Can't combine coverage of different packages.",
-        x = "Packages: {.pkg {packages}}."
+        x = "Packages: {.pkg {packages}}.",
+        i = "Their files can have the same names, so their traces can't be told apart.",
+        i = "Read the trace directories of all the runs with {.fn trace_coverage} instead."
       ),
       class = "covr_combine_error"
     )

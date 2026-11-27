@@ -38,8 +38,9 @@ if the \code{if} or \code{switch()} never ran. \code{BRF} and \code{BRH} give th
 branches and the number of branches taken.
 
 Source file paths (\code{SF}) are written as covr reports them, for a package
-relative to the package root, so tools such as \code{genhtml} should be run from
-that directory.
+relative to the package root, and for several packages relative to the
+directory that contains all of them, so tools such as \code{genhtml} should be
+run from that directory.
 }
 \examples{
 cov <- code_coverage(

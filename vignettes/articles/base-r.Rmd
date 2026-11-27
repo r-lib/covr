@@ -23,7 +23,7 @@ This article explains what it does and why.
 R code and compiled code are measured differently.
 
 * **R code.** `instrument_base_r()` rewrites the lazy-load databases of the base packages so that every function counts the expressions it evaluates, and adds a hook to the base package loader.
-  The hook makes every R process that loads base, including the many R processes that the tests start, count the code it runs and write its counts to the directory in the `COVERAGE_DIR` environment variable when it exits.
+  The hook makes every R process that loads base, including the many R processes that the tests start, count the code it runs and write its counts to the directory in the `COVR_TRACE_DIR` environment variable when it exits.
   `base_r_code_coverage()` then combines all the traces.
 * **C, C++ and Fortran code.** R is compiled with gcov instrumentation (`--coverage`), so the programs write `.gcda` files as they run.
   `base_r_compiled_coverage()` runs gcov on the build directory and maps the results to the source files.
@@ -93,13 +93,13 @@ find $BUILD -name '*.gcda' -delete
 
 ### 4. Run the checks
 
-Set `COVERAGE_DIR` to the trace directory for all the processes the tests start.
+Set `COVR_TRACE_DIR` to the trace directory for all the processes the tests start.
 Use `make -k` so that one failing test does not stop the others, and do not fail the job on test failures, because the coverage is still useful.
 Setting `TEST_MC_CORES` runs some of the tests in parallel.
 
 ```sh
 mkdir -p $TRACES && cd $BUILD
-COVERAGE_DIR=$TRACES xvfb-run -a make -k check-all || true
+COVR_TRACE_DIR=$TRACES xvfb-run -a make -k check-all || true
 ```
 
 ### 5. Collect and report

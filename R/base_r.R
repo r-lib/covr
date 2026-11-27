@@ -51,7 +51,7 @@ base_r_counters_file <- function(lib) {
 #' Instruments the installed base packages (base, stats, utils, ...) of the
 #' running R, so that the R processes it starts save the counts of the code
 #' they run, in `trace_dir` or in the directory of the environment variable
-#' `COVERAGE_DIR`. The counts are collected by [base_r_code_coverage()]. This
+#' `COVR_TRACE_DIR`. The counts are collected by [base_r_code_coverage()]. This
 #' changes the library of the running R: undo it with
 #' [uninstrument_base_r()]. Use [base_r_compiled_coverage()] for its C and
 #' Fortran code.
@@ -89,7 +89,7 @@ base_r_counters_file <- function(lib) {
 #' instrument_base_r("R-devel", lib = "build/library", trace_dir = "traces")
 #'
 #' # Then run the checks, saving the counts in `traces`:
-#' #   COVERAGE_DIR=traces make check
+#' #   COVR_TRACE_DIR=traces make check
 #'
 #' cov <- base_r_code_coverage("traces", "R-devel")
 #' report(cov)
@@ -101,7 +101,7 @@ base_r_counters_file <- function(lib) {
 #' @param source_dir The directory of the source of R, that R was built from.
 #' @param lib The library of the base packages of R.
 #' @param trace_dir The directory the counts are saved in, if the environment
-#'   variable `COVERAGE_DIR` is not set when a process of R exits.
+#'   variable `COVR_TRACE_DIR` is not set when a process of R exits.
 #' @param packages The packages to instrument, which must include base, whose
 #'   loader counts the code that runs and saves the counts.
 #' @param cores The number of packages to instrument in parallel, in forked
@@ -398,7 +398,7 @@ instrument_base_r_package <- function(env, pkg, counters, exclude = NULL) {
     counters[[key]] <- .counters[[key]]
   }
   compiled <- character()
-  for (r in the$replacements) {
+  for (r in scope_entry(anonymous_scope)$replacements) {
     compiled[[length(compiled) + 1L]] <- compile_in_place_checked(r)
   }
   if (pkg == "parallel") {
@@ -408,6 +408,9 @@ instrument_base_r_package <- function(env, pkg, counters, exclude = NULL) {
     drop_parse_data(counters)
     drop_function_srcrefs(env)
   }
+  # The record of the anonymous scope would make the next in-process API warn
+  # that coverage is already being measured. The functions stay instrumented.
+  rm(list = scope_id(anonymous_scope), envir = the$scopes)
   list(excluded = names(fixed), uncompiled = compiled[!is.na(compiled)])
 }
 
@@ -592,7 +595,7 @@ patch_parallel_forks <- function(env) {
       2L,
       # `.covr$call` is `.Call` (see `base_r_hook()`), so that neither covr's
       # R CMD check nor that of parallel looks up the routine.
-      list(call("if", quote(!r[1L]), quote(.covr$call(.covr$zero))))
+      list(call("if", quote(!r[1L]), quote(.covr$call(.covr$zero, TRUE))))
     )
   }
   if (is.function(env$mcexit)) {
@@ -728,10 +731,10 @@ base_r_hook <- function(dll_path, counters_file, trace_dir) {
     paste0("    zero = ", symbol("covr_counter_reset"), ","),
     paste0("    gcov_dump = ", symbol("covr_gcov_dump"), ","),
     "    save = function() {",
-    "        counts <- .Call(.covr$take)",
+    "        counts <- .Call(.covr$take, TRUE)",
     "        if (length(counts) > 0L) {",
     "            tryCatch({",
-    '                dir <- Sys.getenv("COVERAGE_DIR")',
+    '                dir <- Sys.getenv("COVR_TRACE_DIR")',
     paste0(
       "                if (!nzchar(dir)) dir <- ",
       quote_string(trace_dir)
@@ -746,7 +749,7 @@ base_r_hook <- function(dll_path, counters_file, trace_dir) {
     '                file.rename(tmp, tempfile("covr_trace_", dir))',
     "            }, error = function(e) NULL, warning = function(w) NULL)",
     "        }",
-    "        .Call(.covr$zero)",
+    "        .Call(.covr$zero, TRUE)",
     "        invisible()",
     "    }",
     ")",

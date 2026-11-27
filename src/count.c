@@ -10,8 +10,13 @@
  * lazy-load database of an instrumented package or sent to another process.
  * Keys that are not added to the process, e.g. because a function was sent to
  * another process, are ignored. A key keeps its count for the life of the
- * process, also after `clear_counters()`. */
+ * process, also after `clear_counters()`.
+ *
+ * The counts of instrumented base R (see `instrument_base_r()`), whose keys are
+ * added by `covr_count_auto()`, are taken and reset apart from those of
+ * packages, as a process can count both and each saves its own. */
 static double *counts = NULL;
+static unsigned char *is_base = NULL; // whether each key is of base R
 static SEXP keys = NULL; // a preserved STRSXP, for reading the counts back
 static int n_keys = 0;
 static int capacity = 0;
@@ -68,10 +73,15 @@ static void grow(void) {
 
   SEXP *new_table_keys = (SEXP *)calloc(new_size, sizeof(SEXP));
   int *new_table_index = (int *)calloc(new_size, sizeof(int));
+  unsigned char *new_is_base =
+      (unsigned char *)realloc(is_base, (size_t)new_capacity);
+  if (new_is_base != NULL) {
+    is_base = new_is_base;
+  }
   double *new_counts =
       (double *)realloc(counts, (size_t)new_capacity * sizeof(double));
   if (new_table_keys == NULL || new_table_index == NULL || // # nocov start
-      new_counts == NULL) {
+      new_counts == NULL || new_is_base == NULL) {
     free(new_table_keys);
     free(new_table_index);
     // `counts` is still valid if only another allocation failed
@@ -112,7 +122,7 @@ static SEXP utf8_key(SEXP x) {
   return Rf_mkCharCE(Rf_translateCharUTF8(x), CE_UTF8);
 }
 
-static void add_key(SEXP x) {
+static void add_key(SEXP x, int base) {
   if (find(x) >= 0) {
     return;
   }
@@ -131,6 +141,7 @@ static void add_key(SEXP x) {
   }
   SET_STRING_ELT(keys, n_keys, x);
   counts[n_keys] = 0;
+  is_base[n_keys] = (unsigned char)base;
   insert(x, n_keys);
   ++n_keys;
 }
@@ -139,7 +150,7 @@ static void add_key(SEXP x) {
 SEXP covr_counter_add(SEXP keys_) {
   R_xlen_t n = XLENGTH(keys_);
   for (R_xlen_t i = 0; i < n; ++i) {
-    add_key(STRING_ELT(keys_, i));
+    add_key(STRING_ELT(keys_, i), 0);
   }
   return R_NilValue;
 }
@@ -170,7 +181,7 @@ SEXP covr_count_auto(SEXP key) {
   SEXP x = STRING_ELT(key, 0);
   int i = find(x);
   if (i < 0) {
-    add_key(x);
+    add_key(x, 1);
     i = find(x);
     if (i < 0) {
       // The key was added as its UTF-8 form
@@ -185,18 +196,20 @@ SEXP covr_count_auto(SEXP key) {
   return R_NilValue;
 }
 
-// A named numeric vector of the non-zero counts (named by key), which are reset.
-SEXP covr_counter_take(void) {
+// A named numeric vector of the non-zero counts (named by key), which are
+// reset: those of base R if `base` is `TRUE`, or of packages otherwise.
+SEXP covr_counter_take(SEXP base) {
+  unsigned char b = (unsigned char)Rf_asLogical(base);
   int n = 0;
   for (int i = 0; i < n_keys; ++i) {
-    if (counts[i] != 0) {
+    if (counts[i] != 0 && is_base[i] == b) {
       ++n;
     }
   }
   SEXP res = PROTECT(Rf_allocVector(REALSXP, n));
   SEXP nms = PROTECT(Rf_allocVector(STRSXP, n));
   for (int i = 0, j = 0; i < n_keys; ++i) {
-    if (counts[i] != 0) {
+    if (counts[i] != 0 && is_base[i] == b) {
       REAL(res)[j] = counts[i];
       SET_STRING_ELT(nms, j, STRING_ELT(keys, i));
       counts[i] = 0;
@@ -208,10 +221,14 @@ SEXP covr_counter_take(void) {
   return res;
 }
 
-// Discard the counts, keeping the keys.
-SEXP covr_counter_reset(void) {
+// Discard the counts of base R if `base` is `TRUE`, or of packages otherwise,
+// keeping the keys.
+SEXP covr_counter_reset(SEXP base) {
+  unsigned char b = (unsigned char)Rf_asLogical(base);
   for (int i = 0; i < n_keys; ++i) {
-    counts[i] = 0;
+    if (is_base[i] == b) {
+      counts[i] = 0;
+    }
   }
   return R_NilValue;
 }

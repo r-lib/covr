@@ -165,7 +165,7 @@ test_that("traces of processes that restored saved counters are merged with them
   .Call(covr_count, "a.R:1")
   save_trace(dir, "")
 
-  merged <- merge_coverage(list.files(dir, full.names = TRUE))
+  merged <- merge_traces(dir)
   values <- vapply(merged, function(x) x$value, numeric(1))
   expect_equal(
     values[sort(names(values), method = "radix")],
@@ -204,7 +204,22 @@ test_that("merge_coverage reports a missing file of saved counters", {
   saveRDS(counters, file)
   restore_counters(new.env(), file)
   trace <- save_trace(withr::local_tempdir(), "")
-  unlink(file)
+  # The counters and the copy of them in the directory of the trace
+  unlink(c(
+    file,
+    list.files(dirname(trace), "^covr_counters_", full.names = TRUE)
+  ))
 
   expect_error(merge_coverage(trace), "incomplete", class = "covr_error")
+})
+
+test_that("warn_unsaved_traces() counts each process once", {
+  dir <- withr::local_tempdir()
+  # The markers of two packages loaded by one process, and of another process
+  markers <- c("covr_pending_1_a_x", "covr_pending_1_b_x", "covr_pending_2_x")
+  file.create(file.path(dir, markers))
+
+  expect_snapshot(
+    warn_unsaved_traces(dir, "loaded a package", "Let them exit.")
+  )
 })

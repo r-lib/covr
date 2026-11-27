@@ -17,9 +17,11 @@ merge_traces <- function(directory, counters = NULL) {
 }
 
 # Warn, with class `covr_unsaved_trace`, about the processes in `directory`
-# that did not save their trace. `subject` says what they did.
+# that did not save their trace. `subject` says what they did. A process has a
+# marker for each instrumented package it loaded.
 warn_unsaved_traces <- function(directory, subject, hint) {
-  n <- length(unsaved_traces(directory))
+  markers <- unsaved_traces(directory)
+  n <- length(unique(sub("^covr_pending_([0-9]+)_.*", "\\1", markers)))
   if (n > 0) {
     covr_warn(
       c(
@@ -48,14 +50,19 @@ merge_coverage.character <- function(x) {
   # which is read once at the end.
   merged <- NULL
   counts <- list()
+  # The copies of the same counters in several directories (see
+  # `stage_counters_file()`) are named by their contents, so they are read once
+  counters_paths <- character()
   for (file in x) {
     trace <- read_trace(file)
     if (inherits(trace, "covr_counts")) {
-      counters_file <- trace$counters_file
-      counts[[counters_file]] <- add_counts(
-        counts[[counters_file]],
-        trace$counts
-      )
+      key <- trace$counters_file
+      if (!grepl("[/\\\\]", key)) {
+        counters_paths[[key]] <- file.path(dirname(file), key)
+      } else {
+        counters_paths[[key]] <- key
+      }
+      counts[[key]] <- add_counts(counts[[key]], trace$counts)
       trace <- if (length(trace$counters) > 0) trace$counters
     }
     if (is.null(trace)) {
@@ -67,11 +74,11 @@ merge_coverage.character <- function(x) {
       merge_coverage_pair(merged, trace)
     }
   }
-  for (counters_file in names(counts)) {
-    counters <- read_trace(counters_file)
+  for (key in names(counts)) {
+    counters <- read_trace(counters_paths[[key]])
     if (!is.null(counters)) {
-      counters <- add_counter_values(counters, counts[[counters_file]])
-      merged <- merge_coverage(compact(list(counters, merged)))
+      counters <- add_counter_values(counters, counts[[key]])
+      merged <- merge_coverage(compact(list(merged, counters)))
     }
   }
   merged

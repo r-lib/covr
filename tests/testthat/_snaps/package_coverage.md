@@ -104,6 +104,14 @@
       i Coverage is lost if a process is killed or outlives the tests.
       i Did a test leave a Shiny app, callr session, or future worker running?
 
+# package_coverage errors for the same package twice
+
+    Code
+      package_coverage(test_path(c("TestSummary", "TestSummary")))
+    Condition
+      Error:
+      ! `path` has the package TestSummary more than once.
+
 # package_coverage() requires a single string as relative_path
 
     Code

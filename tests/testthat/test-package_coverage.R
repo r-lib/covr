@@ -299,12 +299,9 @@ test_that("add_hooks() quotes library paths containing quotes (#774)", {
   lines <- readLines(load_script)
   expect_no_error(parse(text = lines))
   hook <- parse(text = grep("register_trace", lines, value = TRUE))[[1]]
-  expect_equal(eval(hook[[3]][[3]][[3]]), lib)
-  fix <- parse(text = grep("fix_mcexit", lines, value = TRUE))[[1]]
-  expect_equal(eval(parse(text = fix[[2]])[[1]]), lib)
-  expect_equal(fix[[3]], "pkg")
+  expect_equal(eval(hook[[3]][[2]][[3]][[3]]), lib)
   trace <- parse(text = grep("trace_environment", lines, value = TRUE))[[1]]
-  expect_equal(trace[[3]][[3]][["scope"]], "pkg")
+  expect_equal(trace[[3]][[2]][[3]][["scope"]], "pkg")
 })
 
 test_that("add_hooks() saves traces to COVR_TRACE_DIR, not COVERAGE_DIR", {
@@ -312,21 +309,18 @@ test_that("add_hooks() saves traces to COVR_TRACE_DIR, not COVERAGE_DIR", {
   dir.create(file.path(lib, "pkg", "R"), recursive = TRUE)
   load_script <- file.path(lib, "pkg", "R", "pkg")
   writeLines(c("local({", "})"), load_script)
-  add_hooks("pkg", lib, fix_mcexit = TRUE)
+  add_hooks("pkg", lib)
 
   lines <- readLines(load_script)
   hook <- parse(text = grep("register_trace", lines, value = TRUE))[[1]]
-  hook_expr <- hook[[3]][[3]][[3]]
-  fix <- parse(text = grep("fix_mcexit", lines, value = TRUE))[[1]]
-  fix_expr <- parse(text = fix[[2]])[[1]]
+  hook_expr <- hook[[3]][[2]][[3]][[3]]
 
-  withr::with_envvar(c(COVR_TRACE_DIR = "/trace", COVERAGE_DIR = "/cov"), {
-    expect_equal(eval(hook_expr), "/trace")
-    expect_equal(eval(fix_expr), "/trace")
+  trace <- normalize_path(withr::local_tempdir())
+  withr::with_envvar(c(COVR_TRACE_DIR = trace, COVERAGE_DIR = "/cov"), {
+    expect_equal(eval(hook_expr), trace)
   })
   withr::with_envvar(c(COVR_TRACE_DIR = NA, COVERAGE_DIR = "/cov"), {
     expect_equal(eval(hook_expr), lib)
-    expect_equal(eval(fix_expr), lib)
   })
 })
 
@@ -559,6 +553,52 @@ test_that("package_coverage works if its tests measure a package that imports it
   )
   cov <- package_coverage(test_path("TestNestedOuter"))
   expect_equal(tally_coverage(cov)$value, c(3, 3))
+})
+
+test_that("package_coverage measures several packages together", {
+  # TestNestedInner imports TestNestedOuter, so it is installed after it, and
+  # its test runs `outer_fun()` once more than the two calls of
+  # TestNestedOuter's tests. Both files have an expression at the same
+  # position.
+  withr::local_envvar(R_ENVIRON = NA, R_PROFILE = NA)
+  cov <- package_coverage(
+    test_path(c("TestNestedInner", "TestNestedOuter"))
+  )
+  df <- tally_coverage(cov)
+  expect_equal(
+    df$filename,
+    rep(c("TestNestedInner/R/utils.R", "TestNestedOuter/R/utils.R"), each = 2)
+  )
+  expect_equal(df$value, c(1, 1, 3, 3))
+  expect_equal(attr(cov, "root"), normalize_path(test_path(".")))
+  expect_equal(coverage_base_path(cov), normalize_path(test_path(".")))
+  expect_equal(get_package_name(cov), "coverage")
+  expect_equal(
+    attr(cov, "package")$package,
+    c("TestNestedInner", "TestNestedOuter")
+  )
+})
+
+test_that("package_coverage records the test files of several packages in their directories", {
+  withr::local_envvar(R_ENVIRON = NA, R_PROFILE = NA)
+  withr::local_options(covr.record_tests = TRUE)
+  cov <- package_coverage(
+    test_path(c("TestNestedInner", "TestNestedOuter"))
+  )
+  expect_setequal(
+    tally_tests(cov)$test_file,
+    c(
+      "TestNestedInner/tests/testthat/test-inner.R",
+      "TestNestedOuter/tests/testthat/test-nested.R"
+    )
+  )
+})
+
+test_that("package_coverage errors for the same package twice", {
+  expect_snapshot(
+    package_coverage(test_path(c("TestSummary", "TestSummary"))),
+    error = TRUE
+  )
 })
 
 test_that("package_coverage works if the site libraries are removed (#560)", {

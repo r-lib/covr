@@ -9,27 +9,38 @@ replace_binding <- function(package, name, value) {
 }
 
 
-# patch parallel:::mcexit to force it to save the covr trace of the package
-# `scope` on exit, and to clear the pending marker of the worker, since it
-# doesn't run finalizers
-fix_mcexit <- function(trace_dir, scope) {
-  get_from_ns <- `:::` # trick to fool R CMD check
-  mcexit <- get_from_ns('parallel', 'mcexit')
-
-  trace_dir <- parse(text = trace_dir)[[1]]
-
-  # directly patch mcexit
-  body(mcexit) <- as.call(append(
-    after = 1,
-    as.list(body(mcexit)),
-    as.call(list(
-      call(":::", as.symbol("covr"), as.symbol("save_trace_and_clear")),
-      trace_dir,
-      scope
-    ))
-  ))
-
-  replace_binding('parallel', 'mcexit', mcexit)
+# Patch parallel's mcexit() so forked workers, which exit without running
+# finalizers, save the traces of all the instrumented packages loaded in the
+# process (see `register_trace()`) and clear their pending markers, and
+# mcfork() so each worker zeroes the counts it inherits, which the parent
+# saves. The functions are patched once, by the first instrumented package
+# that needs it, so a package's code that runs in the workers of another
+# package is saved too. An error, e.g. if the trace directory was removed after
+# the package was restored, would keep the worker from exiting. Each package
+# registers its own trace directory when it is loaded.
+fix_mcexit <- function() {
+  ns <- asNamespace("parallel")
+  if (isTRUE(attr(ns$mcexit, "covr_fix"))) {
+    return(invisible())
+  }
+  mcfork <- ns$mcfork
+  mcexit <- ns$mcexit
+  replace_binding("parallel", "mcfork", function(...) {
+    process <- mcfork(...)
+    if (inherits(process, "masterProcess")) {
+      zero_counters()
+    }
+    process
+  })
+  patched <- function(...) {
+    try(save_registered_traces(), silent = TRUE)
+    mcexit(...)
+  }
+  attr(patched, "covr_fix") <- TRUE
+  replace_binding("parallel", "mcexit", patched)
+  # For `trace_forks()`, whose restore would otherwise undo this
+  the$mcexit_fixed <- TRUE
+  invisible()
 }
 
 # Patch parallel's mcfork() and mcexit() in the current session, so processes
@@ -49,17 +60,26 @@ trace_forks <- function(trace_dir, scope) {
     }
     process
   })
-  replace_binding("parallel", "mcexit", function(...) {
+  patched <- function(...) {
     # An error here would keep the child from exiting, e.g. if it outlives
     # `trace_dir`. Forked children don't run finalizers, so this also removes
     # the pending marker of a child that registered its own trace (#277).
     try(save_trace_and_clear(trace_dir, scope), silent = TRUE)
     mcexit(...)
-  })
+  }
+  # Packages loaded while this is in place don't patch it again (see
+  # `fix_mcexit()`), as it calls the function it wraps
+  attr(patched, "covr_fix") <- attr(mcexit, "covr_fix")
+  replace_binding("parallel", "mcexit", patched)
 
   function() {
     replace_binding("parallel", "mcfork", mcfork)
     replace_binding("parallel", "mcexit", mcexit)
+    # A package loaded while this was in place patched the functions it
+    # wraps, which are restored, so the fix is applied again
+    if (isTRUE(the$mcexit_fixed) && !isTRUE(attr(mcexit, "covr_fix"))) {
+      fix_mcexit()
+    }
   }
 }
 

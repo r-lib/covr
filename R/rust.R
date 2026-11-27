@@ -114,6 +114,7 @@ rust_coverage_setup <- function(path, dir) {
 
   list(
     sysroot = toolchain$sysroot,
+    llvm_version = toolchain$llvm_version %||% NA_character_,
     llvm_cov = llvm_cov,
     llvm_profdata = llvm_profdata,
     libs = paste(libs, collapse = " "),
@@ -217,6 +218,55 @@ add_rust_flags <- function(flags, rust) {
     flags[!libs],
     PKG_LIBS = paste(c(flags[libs], rust$libs), collapse = " ")
   )
+}
+
+# The R processes that run the code write the counts of all the packages'
+# Rust code to the profiles directory of the first of the `rust` setups (from
+# `rust_coverage_setup()`, by package), as a process can load several of them.
+# Each package's coverage is read from all of the counts. `llvm-profdata` can
+# only merge the counts of code built with the same LLVM, so packages whose
+# toolchain has another version (e.g. pinned by a `rust-toolchain.toml`) are
+# built without coverage, with a warning.
+share_rust_profiles <- function(rust) {
+  rust <- compact(rust)
+  if (length(rust) > 1L) {
+    # A version that can't be read can't be known to be the same
+    version <- rust[[1]]$llvm_version
+    other <- !vlapply(rust, function(x) isTRUE(x$llvm_version == version))
+    other[[1]] <- FALSE
+    if (any(other)) {
+      first <- names(rust)[[1]]
+      version <- if (is.na(version)) "an unknown version" else version
+      covr_warn(c(
+        "Can't measure the coverage of the Rust code of {.pkg {names(rust)[other]}}.",
+        x = "It may be built with another LLVM version than the Rust code of {.pkg {first}} (LLVM {version}).",
+        i = "Measure the coverage of each of these packages on its own."
+      ))
+      rust <- rust[!other]
+    }
+    for (name in names(rust)[-1]) {
+      rust[[name]]$profiles <- rust[[1]]$profiles
+      rust[[name]]$env <- rust[[1]]$env
+    }
+  }
+  rust
+}
+
+# The environment of an R process that loads a package that imports a package
+# built with the `rust` setups, but doesn't run its code, e.g. when installing
+# it. The Rust code writes its counts when the process exits, which would be to
+# `default.profraw` in the working directory, so they go to a file in the
+# temporary directory instead. `NULL` without Rust packages.
+rust_discard_profile <- function(rust) {
+  if (length(rust)) {
+    c(LLVM_PROFILE_FILE = temp_file("covr_discard_", fileext = ".profraw"))
+  }
+}
+
+# The environment of the R processes that run the code, for the `rust`
+# setups.
+rust_env <- function(rust) {
+  if (length(rust)) rust[[1]]$env
 }
 
 # The counts of Rust code are written when the process exits, or when its DLL

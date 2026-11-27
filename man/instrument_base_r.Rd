@@ -19,7 +19,7 @@ instrument_base_r(
 \item{lib}{The library of the base packages of R.}
 
 \item{trace_dir}{The directory the counts are saved in, if the environment
-variable \code{COVERAGE_DIR} is not set when a process of R exits.}
+variable \code{COVR_TRACE_DIR} is not set when a process of R exits.}
 
 \item{packages}{The packages to instrument, which must include base, whose
 loader counts the code that runs and saves the counts.}
@@ -48,7 +48,7 @@ differs from the source files, e.g. as it was created by other code.
 Instruments the installed base packages (base, stats, utils, ...) of the
 running R, so that the R processes it starts save the counts of the code
 they run, in \code{trace_dir} or in the directory of the environment variable
-\code{COVERAGE_DIR}. The counts are collected by \code{\link[=base_r_code_coverage]{base_r_code_coverage()}}. This
+\code{COVR_TRACE_DIR}. The counts are collected by \code{\link[=base_r_code_coverage]{base_r_code_coverage()}}. This
 changes the library of the running R: undo it with
 \code{\link[=uninstrument_base_r]{uninstrument_base_r()}}. Use \code{\link[=base_r_compiled_coverage]{base_r_compiled_coverage()}} for its C and
 Fortran code.
@@ -92,7 +92,7 @@ library(covr)
 instrument_base_r("R-devel", lib = "build/library", trace_dir = "traces")
 
 # Then run the checks, saving the counts in `traces`:
-#   COVERAGE_DIR=traces make check
+#   COVR_TRACE_DIR=traces make check
 
 cov <- base_r_code_coverage("traces", "R-devel")
 report(cov)

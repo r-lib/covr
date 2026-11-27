@@ -1,5 +1,35 @@
 # covr (development version)
 
+* `instrument_base_r()` byte-compiles the S4, R6 and other methods it
+  instruments, and no longer leaves state that made the next
+  `file_coverage()` or `code_coverage()` in the session warn that coverage was
+  already being measured (#783).
+
+* `package_coverage()` counts the code of a package that is unloaded and
+  loaded again correctly: the counts from before it was loaded again were
+  lost, and those from after were counted twice or more (#783).
+
+* A relative `COVR_TRACE_DIR` is relative to the working directory when the
+  instrumented package loads, so its trace isn't lost if the process changes
+  directory before it exits (#783).
+
+* `package_coverage()` measures several packages together when `path` has
+  several paths, e.g. the packages of a monorepo. They are installed and
+  instrumented in the same library, the tests of each are run, and file names
+  are relative to the directory that contains them, e.g. `pkgA/R/utils.R`
+  (#783).
+
+* New `instrument_packages()`, `uninstrument_packages()`,
+  `local_instrumented_packages()` and `trace_coverage()` measure the coverage
+  of installed packages whose code is run by something other than covr, e.g.
+  a test runner or build system. Every R process that loads an instrumented
+  package saves its counts in `COVR_TRACE_DIR` (or `trace_dir`), and
+  `trace_coverage()` reads them into one coverage object for all the
+  packages, including those that no process loaded. Packages can be
+  instrumented once with `trace_dir = NULL` and measured whenever
+  `COVR_TRACE_DIR` is set, the traces of several directories (e.g. CI shards)
+  can be read together, and `paths` maps the files to their source (#783).
+
 * New `instrument_base_r()`, `uninstrument_base_r()`, `base_r_code_coverage()`
   and `base_r_compiled_coverage()` measure the coverage of base R itself, both
   its R code and its C and Fortran code, e.g. while running `make check` on a

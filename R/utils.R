@@ -278,16 +278,31 @@ is_installed_package <- function(path) {
   file.exists(file.path(path, "Meta", "package.rds"))
 }
 
-# The directory of the source an installed package was installed from, the
-# parent of the `R` directory with the files in the srcrefs of its traces, or
-# `NULL` if it was installed without srcrefs. The namespace can also have
-# functions with srcrefs from elsewhere, e.g. other packages, so this is the
-# directory with the most traces.
-installed_source_path <- function(traces) {
+# The directory of the source the installed package `package` was installed
+# from, the parent of the `R` directory with the files in the srcrefs of its
+# `traces`, or `NULL` if it was installed without srcrefs. The namespace can
+# also have functions with srcrefs from elsewhere, e.g. re-exported functions
+# of other packages, which can outnumber its own. The srcfile of an installed
+# package starts with the line that sets its `.packageName`, which identifies
+# the files of the package; if there are none, this is the directory with the
+# most traces.
+installed_source_path <- function(traces, package) {
   files <- vcapply(traces, function(x) {
     get_source_filename(x$srcref, full.names = TRUE)
   })
-  files <- files[grepl("/R/", files, fixed = TRUE)]
+  own <- vlapply(traces, function(x) {
+    srcfile <- attr(x$srcref, "srcfile")
+    original <- if (is.environment(srcfile)) srcfile$original
+    lines <- if (is.environment(original)) original$lines
+    length(lines) > 0L &&
+      identical(lines[[1L]], paste0('.packageName <- "', package, '"'))
+  })
+  in_r <- grepl("/R/", files, fixed = TRUE)
+  if (any(own & in_r)) {
+    files <- files[own & in_r]
+  } else {
+    files <- files[in_r]
+  }
   if (length(files) == 0) {
     return(NULL)
   }
@@ -428,8 +443,121 @@ temp_file <- function(pattern = "file", tmpdir = temp_dir(), fileext = "") {
   normalize_path(tempfile(pattern, tmpdir, fileext))
 }
 
+is_string <- function(x) {
+  is.character(x) && length(x) == 1L && !is.na(x) && nzchar(x)
+}
+
+# `normalize_path()`, which leaves relative paths that don't exist relative on
+# Unix, but relative to the working directory. The symlinks of the directories
+# are resolved even if the path itself doesn't exist, as `normalizePath()`
+# leaves such paths as they are on Unix, so a path that doesn't exist yet is
+# the same as one that does, like its root.
+absolute_path <- function(path) {
+  path <- path.expand(path)
+  relative <- !grepl("^(/|\\\\|[A-Za-z]:)", path)
+  path[relative] <- file.path(getwd(), path[relative])
+  path <- normalize_path(path)
+  missing <- !is.na(path) & !file.exists(path)
+  path[missing] <- vcapply(path[missing], resolve_missing)
+  path
+}
+
+# The (normalized, absolute) `path` that doesn't exist, with the symlinks of its
+# deepest directory that exists resolved.
+resolve_missing <- function(path) {
+  rest <- character()
+  while (!file.exists(path) && dirname(path) != path) {
+    rest <- c(basename(path), rest)
+    path <- dirname(path)
+  }
+  paste(c(sub("/+$", "", normalize_path(path)), rest), collapse = "/")
+}
+
+# The absolute paths of the files `path`, with the symlinks of their
+# directories resolved, but not those of the files, which can be links to
+# files elsewhere, so files in one directory stay in it.
+absolute_file_path <- function(path) {
+  dir <- absolute_path(dirname(path))
+  paste0(sub("/+$", "", dir), "/", basename(path))
+}
+
+# The name of the files of reports: the package's name, or "coverage" for the
+# coverage of none or of several packages, whose names can be too long for a
+# file name.
 get_package_name <- function(x) {
-  attr(x, "package")$package %||% "coverage"
+  pkg <- attr(x, "package")$package
+  if (length(pkg) == 1L) pkg else "coverage"
+}
+
+# The name of the package of the coverage `x`, the names of its packages
+# separated by `sep` if it has several (see `coverage_package()`), or `NULL`.
+package_label <- function(x, sep = ", ") {
+  pkg <- attr(x, "package")$package
+  if (!is.null(pkg)) paste(pkg, collapse = sep)
+}
+
+# The directory of the package of the coverage `x`, or for the coverage of
+# several packages, the directory its file names are relative to, or that
+# contains all of them if they are absolute.
+coverage_base_path <- function(x) {
+  path <- attr(x, "package")$path
+  if (length(path) > 1L) attr(x, "root") %||% common_path(path) else path
+}
+
+# The `files` (file names as in `tally_coverage()`) of each package of the
+# coverage `x`, named by package. The files of the coverage of one package, or
+# of none, are in one group, named by the package or "", as are files of the
+# coverage of several packages that are in none of them.
+file_packages <- function(x, files) {
+  pkg <- attr(x, "package")
+  if (length(pkg$package) <= 1L) {
+    return(stats::setNames(list(files), pkg$package %||% ""))
+  }
+  root <- attr(x, "root")
+  dirs <- sub("/*$", "/", to_relative_path(pkg$path, root))
+  # A package in the root directory contains the files relative to it
+  at_root <- if (is.null(root)) {
+    rep(FALSE, length(dirs))
+  } else {
+    sub("/+$", "", pkg$path) == sub("/+$", "", root)
+  }
+  dirs[at_root] <- ""
+  absolute <- grepl("^(/|[A-Za-z]:)", files)
+  # Each file is in the deepest package that contains it, as packages can be
+  # in the directory of another
+  owner <- vapply(
+    seq_along(files),
+    function(i) {
+      inside <- which(
+        startsWith(files[[i]], dirs) & !(at_root & absolute[[i]])
+      )
+      if (length(inside)) inside[[which.max(nchar(dirs[inside]))]] else 0L
+    },
+    integer(1)
+  )
+  groups <- lapply(seq_along(dirs), function(i) files[owner == i])
+  names(groups) <- pkg$package
+  groups[[length(groups) + 1L]] <- files[owner == 0L]
+  names(groups)[[length(groups)]] <- ""
+  groups[lengths(groups) > 0]
+}
+
+# The tally `df` of the coverage `x` (see `tally_coverage()`), with the
+# functions of the coverage of several packages named `pkg::fun`, as functions
+# of different packages can have the same name.
+qualify_functions <- function(x, df) {
+  if (is.null(df) || length(attr(x, "package")$package) < 2L) {
+    return(df)
+  }
+  groups <- file_packages(x, unique(as.character(df$filename)))
+  pkg <- rep(names(groups), lengths(groups))[
+    match(df$filename, unlist(groups))
+  ]
+  functions <- as.character(df$functions)
+  named <- !is.na(pkg) & nzchar(pkg) & !is.na(functions)
+  functions[named] <- paste0(pkg[named], "::", functions[named])
+  df$functions <- functions
+  df
 }
 
 get_source_filename <- function(

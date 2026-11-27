@@ -60,6 +60,11 @@ trace_environment <- function(env, scope = anonymous_scope) {
   # added or replaced since (#641). Other scopes are never touched.
   entry <- scope_entry(scope)
   if (!identical(entry$env, env)) {
+    # A package loaded again after it was unloaded: the counts of its earlier
+    # namespace are saved before they are cleared (see `register_trace()`)
+    if (!is.null(entry$env) && !is.null(entry$trace_dir)) {
+      try(save_trace_and_clear(entry$trace_dir, scope), silent = TRUE)
+    }
     clear_counters(scope)
     entry$replacements <- list()
   }
@@ -174,7 +179,14 @@ save_trace <- function(directory, scope = NULL) {
       if (!is.null(the$trace_error)) {
         stop(the$trace_error, call. = FALSE)
       }
-      save_rds(process_trace(scope), tmp_file)
+      trace <- process_trace(scope)
+      if (inherits(trace, "covr_counts")) {
+        trace$counters_file <- stage_counters_file(
+          trace$counters_file,
+          directory
+        )
+      }
+      save_rds(trace, tmp_file)
     },
     error = function(e) {
       marker <- structure(
@@ -188,6 +200,34 @@ save_trace <- function(directory, scope = NULL) {
     covr_abort("Can't write trace file {.path {final_file}}.")
   }
   invisible(final_file)
+}
+
+# A copy of the counters `file` of a package instrumented after it was
+# installed in the trace `directory`, named by its contents, so the traces in
+# the directory can be read without the library, e.g. after the package is
+# restored or in another job. Returns the name of the copy, which
+# `merge_coverage()` reads relative to the directory of the trace, or `file`
+# if it can't be copied.
+stage_counters_file <- function(file, directory) {
+  md5 <- unname(tools::md5sum(file))
+  if (is.na(md5)) {
+    return(file)
+  }
+  name <- paste0("covr_counters_", md5, ".rds")
+  dest <- file.path(directory, name)
+  if (!file.exists(dest)) {
+    tmp <- temp_file(".covr_tmp_", tmpdir = directory)
+    on.exit(unlink(tmp, force = TRUE, expand = FALSE), add = TRUE)
+    # The library can be read-only, and another process can rename its copy
+    # into place first, which fails the rename on Windows
+    copied <- suppressWarnings(
+      file.copy(file, tmp, copy.mode = FALSE) && file.rename(tmp, dest)
+    )
+    if (!copied && !file.exists(dest)) {
+      return(file)
+    }
+  }
+  name
 }
 
 # The trace of `scope` in this process, or of all scopes if it is `NULL`. Each
@@ -209,15 +249,16 @@ process_trace <- function(scope = NULL) {
     return(portable_srcfiles(.counters))
   }
   entry <- scope_entry(scope)
-  counters <- scope_counters(scope)
   keys <- entry$counters_keys
+  branches <- .counters[["branches"]]
   if (
     is.null(keys) ||
       isTRUE(getOption("covr.record_tests", FALSE)) ||
-      !is.null(counters[["tests"]]) ||
-      !is.null(counters[["branches"]])
+      !is.null(.counters[["tests"]]) ||
+      (is.environment(branches) &&
+        any(in_scope(ls(branches, all.names = TRUE), scope)))
   ) {
-    return(portable_srcfiles(counters))
+    return(portable_srcfiles(scope_counters(scope)))
   }
   # A numeric vector named by key, without the counters that have no value
   counts <- c(
@@ -228,8 +269,11 @@ process_trace <- function(scope = NULL) {
       "value"
     ))
   )
-  # The other traces of the scope, which are saved as they are
-  others <- counters[setdiff(names(counters), keys)]
+  # The other traces of the scope, which are saved as they are. Only these
+  # are read from `.counters`, which has all the traces of the process.
+  all_keys <- ls(.counters, all.names = TRUE)
+  others <- setdiff(all_keys[in_scope(all_keys, scope)], keys)
+  others <- mget(others, envir = .counters)
   structure(
     list(
       counters_file = entry$counters_file,
@@ -314,42 +358,104 @@ copy_srcfile <- function(srcfile, copies) {
   copy
 }
 
+# The directory instrumented packages save their traces in: the environment
+# variable `COVR_TRACE_DIR`, or `default` if it is unset or empty. `NULL` if
+# both are, when traces aren't saved. A relative `COVR_TRACE_DIR` is relative
+# to the working directory when the package loads, which the process can
+# change before it saves the trace.
+trace_dir_setting <- function(default) {
+  # The process that instruments a package loads the packages it imports, which
+  # must not save their traces (see `start_instrument()`)
+  if (nzchar(Sys.getenv("COVR_INSTRUMENTING"))) {
+    return(NULL)
+  }
+  dir <- Sys.getenv("COVR_TRACE_DIR")
+  if (nzchar(dir)) absolute_path(dir) else default
+}
+
 # Called from the loader script of the instrumented package (see `add_hooks()`)
 # while its namespace is loaded. The finalizer saves the trace of the scope of
 # the package (its name) when the namespace is garbage collected or R exits
 # normally; other packages instrumented in the process have their own
 # finalizer and trace. Until then a
-# `covr_pending_<pid>_*` marker exists in `directory`, so `package_coverage()`
-# can report processes that loaded the package but never saved their trace,
-# e.g. because they were killed (#438). Markers are owned by the process whose
-# pid is in their name; forked children inherit the finalizer but not the
-# parent's markers, so `save_trace_and_clear()` leaves those alone.
+# `covr_pending_<pid>_<package>_*` marker exists in `directory`, so
+# `package_coverage()` can report processes that loaded the package but never
+# saved its trace, e.g. because they were killed (#438). Markers are owned by
+# the process whose pid is in their name; forked children inherit the
+# finalizer but not the parent's markers, so `save_trace_and_clear()` leaves
+# those alone.
 #
 # `directory` (from `COVR_TRACE_DIR`) is fixed when the package loads, so the
 # marker and the trace end up in the same place. A marker that can't be created
 # is not worth a warning during package load; the trace save fails later too.
+# Without a `directory` the package counts the code it runs, but its trace
+# isn't saved.
 register_trace <- function(ns, directory, scope = env_scope(ns)) {
+  if (is.null(directory)) {
+    return(invisible())
+  }
   force(scope)
-  pid <- Sys.getpid()
-  pending <- temp_file(paste0("covr_pending_", pid, "_"), tmpdir = directory)
+  # For forked workers (see `fix_mcexit()`)
+  entry <- scope_entry(scope)
+  entry$trace_dir <- directory
+  pending <- temp_file(
+    paste0("covr_pending_", Sys.getpid(), "_", marker_scope(scope)),
+    tmpdir = directory
+  )
   suppressWarnings(file.create(pending))
   reg.finalizer(
     ns,
-    function(...) save_trace_and_clear(directory, scope),
+    function(ns) {
+      # The namespace of a package that was loaded again, which saved the
+      # counts of this one (see `trace_environment()`) and has its own
+      # finalizer for those since
+      entry <- get0(scope_id(scope), envir = the$scopes, inherits = FALSE)
+      if (is.environment(entry$env) && !identical(entry$env, ns)) {
+        return(invisible())
+      }
+      save_trace_and_clear(directory, scope)
+    },
     onexit = TRUE
   )
   invisible(pending)
 }
 
+# Save the traces of all the scopes registered by `register_trace()`, in a
+# forked worker of parallel that exits (see `fix_mcexit()`).
+save_registered_traces <- function() {
+  for (id in ls(the$scopes, all.names = TRUE)) {
+    directory <- the$scopes[[id]]$trace_dir
+    if (!is.null(directory)) {
+      # A scope whose directory was removed doesn't stop the others, or warn
+      # as the worker exits
+      try(suppressWarnings(save_trace_and_clear(directory, id)), silent = TRUE)
+    }
+  }
+  invisible()
+}
+
 # Also used by the patched `parallel:::mcexit()` (see `fix_mcexit()`), as forked
 # workers exit without running finalizers. A worker that loads the package after
-# forking creates its own marker, which is removed here.
+# forking creates its own marker, which is removed here. Only the markers of
+# `scope` are removed, so a process that is killed after saving the trace of
+# one package still has the markers of the others.
+#
+# The counts of `scope` that are saved are zeroed, so saving it again only
+# saves what was counted since: the finalizer of a package's namespace can save
+# its counts after it is unloaded, before it is loaded again, which saves them
+# again (see `trace_environment()`).
 save_trace_and_clear <- function(directory, scope = NULL) {
+  if (is.null(directory)) {
+    return(invisible())
+  }
   res <- save_trace(directory, scope)
+  if (!is.null(scope)) {
+    zero_counters(scope)
+  }
   unlink(
     list.files(
       directory,
-      pattern = pending_pattern(Sys.getpid()),
+      pattern = pending_pattern(Sys.getpid(), scope),
       full.names = TRUE
     ),
     expand = FALSE
@@ -357,8 +463,23 @@ save_trace_and_clear <- function(directory, scope = NULL) {
   invisible(res)
 }
 
-pending_pattern <- function(pid) {
-  paste0("^covr_pending_", pid, "_")
+# The part of the name of the markers of `scope`: the name of a package, or
+# nothing for other scopes, whose names can't be in file names.
+marker_scope <- function(scope) {
+  if (is.character(scope) && grepl("^[[:alnum:].]+$", scope)) {
+    paste0(scope, "_")
+  } else {
+    ""
+  }
+}
+
+pending_pattern <- function(pid, scope = NULL) {
+  paste0(
+    "^covr_pending_",
+    pid,
+    "_",
+    gsub(".", "\\.", marker_scope(scope), fixed = TRUE)
+  )
 }
 
 # The markers of processes that loaded the package but did not save their
@@ -392,13 +513,17 @@ as_coverage <- function(counters, ...) {
 # `scope_prefix()`), which isn't part of the names of a coverage object. The
 # prefix is kept on keys that would otherwise have the same name as another
 # trace, e.g. of a file with the same name in another package loaded in the
-# process, as traces are merged by name.
+# process, as traces are merged by name. Keys can be repeated, e.g. for a
+# header that gcov reports for each file that includes it, which keep no
+# prefix.
 unscope_keys <- function(keys) {
   if (is.null(keys)) {
     return(keys)
   }
   stripped <- sub("^[^/]*/", "", keys)
-  same <- duplicated(stripped) | duplicated(stripped, fromLast = TRUE)
+  distinct <- !duplicated(keys)
+  colliding <- stripped[distinct][duplicated(stripped[distinct])]
+  same <- stripped %in% colliding
   keys[!same] <- stripped[!same]
   keys
 }

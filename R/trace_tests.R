@@ -237,10 +237,22 @@ test_info <- function(tests, x) {
   )
 
   # tools::testInstalledPackage() runs the tests from a copy of the tests
-  # directory, `<pkg>-tests`, in the temporary library.
-  pkg <- attr(x, "package")$package
-  if (!is.null(pkg)) {
-    file <- sub(paste0("^.*/", pkg, "/", pkg, "-tests/"), "tests/", file)
+  # directory, `<pkg>-tests`, in the temporary library. With several packages,
+  # the tests of each are in the `tests` directory of its source.
+  pkgs <- attr(x, "package")
+  for (i in seq_along(pkgs$package)) {
+    pkg <- gsub(".", "\\.", pkgs$package[[i]], fixed = TRUE)
+    tests_dir <- if (length(pkgs$package) > 1L) {
+      paste0(pkgs$path[[i]], "/tests/")
+    } else {
+      "tests/"
+    }
+    m <- regexpr(paste0("^.*/", pkg, "/", pkg, "-tests/"), file)
+    found <- !is.na(m) & m > 0
+    file[found] <- paste0(
+      tests_dir,
+      substring(file[found], attr(m, "match.length")[found] + 1)
+    )
   }
   file <- to_relative_path(file, attr(x, "root"))
 

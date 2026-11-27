@@ -139,6 +139,10 @@ to_coveralls <- function(x, repo_token = "", service_name = NULL) {
     "source_files" = res,
     "git" = if (has_token) git_info(info)
   ))
+  # Coveralls expects the files, even if there are none
+  if (!length(res)) {
+    payload$source_files <- list()
+  }
 
   jsonlite::toJSON(na = "null", payload)
 }

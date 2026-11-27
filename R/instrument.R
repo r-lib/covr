@@ -24,42 +24,141 @@ instrument_package <- function(
   full_traversal = FALSE,
   branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE))
 ) {
+  job <- start_instrument(
+    pkg,
+    install_path,
+    record_tests = record_tests,
+    full_traversal = full_traversal,
+    branch_coverage = branch_coverage
+  )
+  # An interrupt or error while waiting must not leave the process running, to
+  # write files after they are read and removed
+  done <- FALSE
+  on.exit(if (!done) cancel_instrument(list(job)), add = TRUE)
+  status <- process_status(job$pid, wait = TRUE)
+  done <- TRUE
+  finish_instrument(job, status)
+}
+
+# The exit status of the background process `pid`, `NA` if it is still
+# running and `wait` is `FALSE`, or -1 if it was killed by a signal. On Unix,
+# `sys::exec_status()` gives the status as `waitpid()` does, with the exit
+# status in its second byte and the signal in its first, so a signal is not an
+# error. With `wait`, the process is polled from R rather than waited for by
+# `sys::exec_status(wait = TRUE)`, which swallows an interrupt and returns `NA`
+# while the process is still running, so Ctrl-C stops waiting. Each poll of a
+# running process takes 100 ms in sys.
+process_status <- function(pid, wait = TRUE) {
+  repeat {
+    status <- tryCatch(
+      sys::exec_status(pid, wait = FALSE),
+      error = function(e) -1L
+    )
+    if (!is.na(status) || !wait) {
+      break
+    }
+    Sys.sleep(0.01)
+  }
+  if (!is.na(status) && !is_windows()) {
+    status <- if (status %% 256L != 0L) -1L else status %/% 256L
+  }
+  status
+}
+
+# Start the process of `instrument_package()` in the background, without a
+# shell. The process doesn't save traces of the instrumented packages it
+# loads, e.g. those that the package imports, whether they are dormant (no
+# `COVR_TRACE_DIR`) or have a `trace_dir` of their own (see
+# `trace_dir_setting()`).
+start_instrument <- function(
+  pkg,
+  install_path,
+  record_tests = isTRUE(getOption("covr.record_tests", FALSE)),
+  full_traversal = FALSE,
+  branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE))
+) {
+  output <- temp_file("covr_instrument_", fileext = c(".out", ".err"))
+  # Loading the packages that this one imports, which can have Rust code that
+  # writes its counts when the process exits, would write them to the working
+  # directory
+  profile <- temp_file("covr_instrument_", fileext = ".profraw")
   args <- c(
     "--vanilla",
     "--no-echo",
     "-e",
-    shQuote("covr:::instrument_main()"),
+    "covr:::instrument_main()",
     "--args",
-    shQuote(c(
-      pkg$package,
-      install_path,
-      record_tests,
-      isTRUE(full_traversal),
-      branch_coverage
-    ))
+    pkg$package,
+    install_path,
+    record_tests,
+    isTRUE(full_traversal),
+    branch_coverage
   )
-  output <- withr::with_envvar(
+  pid <- withr::with_envvar(
     c(
       R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
-      R_LIBS = env_path(install_path, .libPaths())
+      R_LIBS = env_path(install_path, .libPaths()),
+      COVR_TRACE_DIR = NA,
+      COVR_INSTRUMENTING = "true",
+      LLVM_PROFILE_FILE = profile
     ),
-    suppressWarnings(system2(
+    sys::exec_background(
       rterm_binary(),
       args,
-      stdout = TRUE,
-      stderr = TRUE
-    ))
+      std_out = output[[1]],
+      std_err = output[[2]]
+    )
   )
-  status <- attr(output, "status") %||% 0L
-  file <- instrumented_counters_file(pkg$package, install_path)
-  if (status == 0L && file.exists(file)) {
+  list(
+    pkg = pkg,
+    install_path = install_path,
+    pid = pid,
+    output = output,
+    profile = profile
+  )
+}
+
+# The lines of the output `file` of a process of `start_instrument()` that
+# exited. On Windows the file can still be open for a moment after the process
+# exits, e.g. by an antivirus scanner, so reading it is retried for a while.
+# The output only explains a failure, so it is left out if it can't be read.
+read_output <- function(file) {
+  for (i in seq_len(50)) {
+    if (!file.exists(file)) {
+      return(character())
+    }
+    lines <- tryCatch(
+      suppressWarnings(readLines(file, warn = FALSE)),
+      error = function(e) NULL
+    )
+    if (!is.null(lines)) {
+      return(lines)
+    }
+    Sys.sleep(0.1)
+  }
+  paste("Can't read", file)
+}
+
+# The result of the process `job` of `start_instrument()` that exited with
+# `status`. Anything that a process that failed, e.g. was killed, wrote is
+# removed, so the package is left as installed.
+finish_instrument <- function(job, status) {
+  # `status` is of a process that exited, so it has written its output and, on
+  # Windows, let go of the files
+  force(status)
+  pkg_name <- job$pkg$package
+  output <- unlist(lapply(job$output, read_output))
+  unlink(c(job$output, job$profile), expand = FALSE)
+  file <- instrumented_counters_file(pkg_name, job$install_path)
+  if (identical(status, 0L) && file.exists(file)) {
     return(file)
   }
+  unlink(instrument_files(job), expand = FALSE)
   # The package can't be instrumented ahead of time
   if (!identical(status, instrument_skipped)) {
     covr_warn(
       c(
-        "Can't instrument the installed package {.pkg {pkg$package}} ahead of time.",
+        "Can't instrument the installed package {.pkg {pkg_name}} ahead of time.",
         i = "It is instrumented each time it is loaded instead.",
         i = "Output: {.val {utils::tail(output, failure_lines())}}"
       ),
@@ -67,6 +166,34 @@ instrument_package <- function(
     )
   }
   NULL
+}
+
+# The files the process `job` of `start_instrument()` writes: the instrumented
+# lazy load database of the package and its counters.
+instrument_files <- function(job) {
+  pkg_name <- job$pkg$package
+  c(
+    paste0(instrumented_db_base(pkg_name, job$install_path), c(".rdb", ".rdx")),
+    instrumented_counters_file(pkg_name, job$install_path)
+  )
+}
+
+# Stop the processes of the `jobs` of `start_instrument()` that are still
+# running, i.e. that have no `status`, and remove what all of them wrote, when
+# an error or an interrupt stops waiting for them. Otherwise they would go on
+# to instrument a library whose packages were restored.
+cancel_instrument <- function(jobs) {
+  for (job in jobs) {
+    if (is.null(job$status)) {
+      tools::pskill(job$pid, tools::SIGKILL)
+      process_status(job$pid, wait = TRUE)
+    }
+    unlink(
+      c(job$output, job$profile, instrument_files(job)),
+      expand = FALSE
+    )
+  }
+  invisible()
 }
 
 # Whether a package is instrumented after it is installed, rather than when it
@@ -126,10 +253,19 @@ instrument_installed_package <- function(pkg_name, lib) {
   }
 
   # Like `tools:::code2LazyLoadDB()`, this doesn't run `.onLoad()` or load
-  # the package's compiled code.
+  # the package's compiled code. It loads the packages it imports, whose
+  # loader scripts set the options of their own instrumentation if they are
+  # instrumented packages, so the options of this one are set again.
+  opts <- lapply(
+    stats::setNames(
+      nm = c("covr.record_tests", "covr.full_traversal", "covr.branch_coverage")
+    ),
+    getOption
+  )
   ns <- suppressPackageStartupMessages(
     loadNamespace(pkg_name, lib.loc = lib, partial = TRUE)
   )
+  options(opts)
   register_namespace(pkg_name, ns)
   trace_environment(ns, scope = pkg_name)
   compiled <- !isFALSE(package_byte_compile(pkg_name, lib))
@@ -272,23 +408,23 @@ restore_counters <- function(ns, file) {
   }
   saved <- readRDS(file)
   check_saved_dot_call(ns, saved)
-  if (file %in% the$restored) {
-    trace_unforced_environment(ns, scope)
-    add_saved_counters(saved)
-  } else {
-    clear_counters(scope)
-    entry$replacements <- list()
-    the$restored <- c(the$restored, file)
-    add_saved_counters(saved)
-    # For `process_trace()`, which only saves the counts of these counters
-    entry$counters_file <- file
-    entry$counters_keys <- setdiff(
-      ls(saved, all.names = TRUE),
-      c("tests", "branches")
-    )
-    entry$env <- ns
-    trace_unforced_environment(ns, scope)
+  # A namespace loaded again, from this library or another, e.g. an instrumented
+  # copy of the package, saves the counts of the earlier one, which the counters
+  # of its own file replace (see `trace_environment()`).
+  if (!is.null(entry$env) && !is.null(entry$trace_dir)) {
+    try(save_trace_and_clear(entry$trace_dir, scope), silent = TRUE)
   }
+  clear_counters(scope)
+  entry$replacements <- list()
+  add_saved_counters(saved)
+  # For `process_trace()`, which only saves the counts of these counters
+  entry$counters_file <- file
+  entry$counters_keys <- setdiff(
+    ls(saved, all.names = TRUE),
+    c("tests", "branches")
+  )
+  entry$env <- ns
+  trace_unforced_environment(ns, scope)
   invisible()
 }
 

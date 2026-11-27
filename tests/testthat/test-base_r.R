@@ -4,20 +4,36 @@ expect_parses <- function(lines) {
 
 test_that("covr_count_auto counts keys that are not registered", {
   key <- "covr-test-count-auto-key"
-  on.exit(.Call(covr_counter_reset), add = TRUE)
-  .Call(covr_counter_reset)
+  on.exit(.Call(covr_counter_reset, TRUE), add = TRUE)
+  .Call(covr_counter_reset, TRUE)
 
   # `covr_count()` ignores keys that are not registered
   .Call(covr_count, key)
-  expect_false(key %in% names(.Call(covr_counter_take)))
+  expect_false(key %in% names(.Call(covr_counter_take, TRUE)))
 
   .Call(covr_count_auto, key)
   .Call(covr_count_auto, key)
-  expect_equal(.Call(covr_counter_take)[[key]], 2)
+  # The counts of packages don't include those of base R, nor the reverse
+  expect_false(key %in% names(.Call(covr_counter_take, FALSE)))
+  .Call(covr_counter_reset, FALSE)
+  expect_equal(.Call(covr_counter_take, TRUE)[[key]], 2)
 
   # The key keeps its count after the counts are taken
   .Call(covr_count, key)
-  expect_equal(.Call(covr_counter_take)[[key]], 1)
+  expect_equal(.Call(covr_counter_take, TRUE)[[key]], 1)
+})
+
+test_that("base R and packages take only their own counts", {
+  local_clean_traces()
+  .Call(covr_counter_reset, TRUE)
+  withr::defer(.Call(covr_counter_reset, TRUE))
+  key <- "covr-test-base-key"
+  register_count("pkg/a.R:1")
+  .Call(covr_count, "pkg/a.R:1")
+  .Call(covr_count_auto, key)
+
+  expect_named(.Call(covr_counter_take, TRUE), key)
+  expect_named(.Call(covr_counter_take, FALSE), "pkg/a.R:1")
 })
 
 test_that("counters call the routine in `the$count_routine`", {
@@ -171,6 +187,29 @@ test_that("add_base_r_hook reads the instrumented code and counts it", {
     add_base_r_hook(base_loader[-21], "a", "b", "c"),
     "Can't find"
   )
+})
+
+test_that("the base R hook saves counts in COVR_TRACE_DIR if it is set", {
+  hook <- parse(text = base_r_hook("covr.so", "counters.rds", "/default"))
+  # The list of `.covr <- list(...)`, counting with stand-ins for the routines
+  # of covr
+  covr_list <- hook[[1]][[3]]
+  covr_list$take <- quote(function(base) if (isTRUE(base)) c(a = 1))
+  covr_list$zero <- quote(function(base) NULL)
+  covr_list$count <- NULL
+  covr_list$gcov_dump <- NULL
+  env <- new.env()
+  env$.Call <- function(f, ...) f(...)
+  env$.covr <- eval(covr_list, env)
+
+  traces <- withr::local_tempdir()
+  withr::with_envvar(c(COVR_TRACE_DIR = traces, COVERAGE_DIR = "/cov"), {
+    env$.covr$save()
+  })
+
+  files <- list.files(traces, pattern = "^covr_trace_", full.names = TRUE)
+  expect_length(files, 1)
+  expect_equal(readRDS(files)$counts, c(a = 1))
 })
 
 test_that("add_base_srcrefs gives functions their source references", {

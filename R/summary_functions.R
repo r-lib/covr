@@ -89,8 +89,27 @@ tally_coverage <- function(
   all_na_rows <- rowSums(is.na(df)) == ncol(df)
   df <- df[!all_na_rows, ]
 
+  # With the columns of the tally of coverage that has traces
   if (NROW(df) == 0) {
-    return(df)
+    return(switch(
+      by,
+      "line" = data.frame(
+        filename = character(),
+        functions = character(),
+        line = numeric(),
+        value = numeric(),
+        stringsAsFactors = FALSE
+      ),
+      "expression" = df,
+      "function" = data.frame(
+        filename = character(),
+        functions = character(),
+        first_line = numeric(),
+        last_line = numeric(),
+        value = numeric(),
+        stringsAsFactors = FALSE
+      )
+    ))
   }
 
   switch(
@@ -381,7 +400,7 @@ zero_coverage <- function(x, ...) {
   ) {
     rstudio_source_markers(
       source_markers(coverage_data),
-      attr(x, "package")$path
+      coverage_base_path(x)
     )
     invisible(res)
   } else {
@@ -438,7 +457,7 @@ print.coverage <- function(
   ...
 ) {
   if (length(x) == 0) {
-    return()
+    return(invisible(x))
   }
   group <- match.arg(group)
 
@@ -451,7 +470,11 @@ print.coverage <- function(
   df <- tally_coverage(x, by = by)
 
   if (!NROW(df)) {
-    return(invisible())
+    return(invisible(x))
+  }
+
+  if (group == "functions") {
+    df <- qualify_functions(x, df)
   }
 
   # Each line counts once for its file, but once for each function on it.
@@ -468,6 +491,9 @@ print.coverage <- function(
   branches <- tally_coverage(x, by = "branch")
   if (!NROW(branches)) {
     branches <- NULL
+  }
+  if (group == "functions") {
+    branches <- qualify_functions(x, branches)
   }
   header <- paste0(
     cli::style_bold(

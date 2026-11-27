@@ -53,8 +53,8 @@ as.data.frame.coverage <- function(
 
   res <- setNames(
     c(
-      list(character(0)),
-      rep(list(numeric(0)), times = length(column_names) - 1)
+      list(character(0), character(0)),
+      rep(list(numeric(0)), times = length(column_names) - 2)
     ),
     column_names
   )
