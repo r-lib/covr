@@ -130,23 +130,33 @@ parse_children <- function(parent_ref) {
   pd_child <- pd[rows, ]
 
   # For `lhs |> call(...)` the srcref covers the whole pipe expression. Use the
-  # parse data of the call on the right-hand side, with `lhs` inserted as its
-  # first argument so it matches the parse data of `call(lhs, ...)`.
+  # parse data of the right-hand side, replacing a `_` placeholder with `lhs`
+  # (R 4.2+ `call(..., arg = _)` and R 4.3+ `_$a`, `_[i]`, `_[[i]]`, `_@a`), or
+  # inserting `lhs` as the first argument so it matches `call(lhs, ...)`.
   if (any(pd_child$token == "PIPE")) {
     lhs <- pd_child[1L, ]
     rhs_id <- pd_child$id[[nrow(pd_child)]]
     pd_child <- pd[pd$parent == rhs_id, ]
     pd_child <- pd_child[order(pd_child$line1, pd_child$col1), ]
     pd_child <- pd_child[pd_child$token != "COMMENT", ]
-    open <- which(pd_child$token == "'('")[[1L]]
-    comma <- lhs
-    comma$token <- "','"
-    pd_child <- rbind(
-      pd_child[seq_len(open), ],
-      lhs,
-      if (pd_child$token[[open + 1L]] != "')'") comma,
-      pd_child[-seq_len(open), ]
-    )
+    placeholder <- which(pd_child$id %in% pd$parent[pd$token == "PLACEHOLDER"])
+    if (length(placeholder) == 1L) {
+      pd_child[placeholder, ] <- lhs
+    } else {
+      open <- which(pd_child$token == "'('")
+      if (length(open) == 0L) {
+        return(NULL)
+      }
+      open <- open[[1L]]
+      comma <- lhs
+      comma$token <- "','"
+      pd_child <- rbind(
+        pd_child[seq_len(open), ],
+        lhs,
+        if (pd_child$token[[open + 1L]] != "')'") comma,
+        pd_child[-seq_len(open), ]
+      )
+    }
   }
 
   # `pd` has either the lines of the file (from `get_parse_data()`) or the

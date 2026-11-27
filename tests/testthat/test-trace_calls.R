@@ -613,6 +613,67 @@ test_that("switch with drop through and the base pipe (#630)", {
   expect_equal(res$value, c(3, 2, 1, 0))
 })
 
+test_that("base pipe with named placeholder maps srcrefs correctly", {
+  skip_if(getRversion() < "4.2.0")
+
+  f <-
+    "f <- function(x) {
+  x |>
+    switch(
+      EXPR = _,
+      a = 1,
+      b = 2
+    )
+}"
+
+  res <- as.data.frame(code_coverage(f, 'f("a")'))
+  expect_equal(res$first_line, c(2, 5, 6))
+  expect_equal(res$value, c(1, 1, 0))
+
+  g <-
+    'g <- function(x) {
+  (if (x)
+    "a"
+  else
+    "b") |> paste(x = _)
+}'
+
+  res_g <- as.data.frame(code_coverage(g, "g(TRUE)"))
+  expect_equal(res_g$first_line, c(2, 2, 3, 5))
+  expect_equal(res_g$value, c(1, 1, 1, 0))
+})
+
+test_that("base pipe with extraction placeholder does not error", {
+  skip_if(getRversion() < "4.3.0")
+
+  f <-
+    "f <- function(x) {
+  (if (x) list(a = 1) else list(a = 2)) |> _$a
+}"
+
+  res <- as.data.frame(code_coverage(f, "f(TRUE)"))
+  expect_equal(res$first_line, 2)
+  expect_equal(res$value, 1)
+
+  g <-
+    "g <- function(x) {
+  list(10, 20) |> _[[if (x) 1 else 2]]
+}"
+
+  res_g <- as.data.frame(code_coverage(g, "g(TRUE)"))
+  expect_equal(res_g$first_line, 2)
+  expect_equal(res_g$value, 1)
+
+  h <-
+    "h <- function(x) {
+  (if (x) list(a = list(b = 1)) else list(a = list(b = 2))) |> _$a$b
+}"
+
+  res_h <- as.data.frame(code_coverage(h, "h(TRUE)"))
+  expect_equal(res_h$first_line, 2)
+  expect_equal(res_h$value, 1)
+})
+
 test_that("switch with ellipses", {
   f <-
     'f <- function(x, ...) {
