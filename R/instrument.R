@@ -118,6 +118,27 @@ start_instrument <- function(
   )
 }
 
+# The lines of the output `file` of a process of `start_instrument()` that
+# exited. On Windows the file can still be open for a moment after the process
+# exits, e.g. by an antivirus scanner, so reading it is retried for a while.
+# The output only explains a failure, so it is left out if it can't be read.
+read_output <- function(file) {
+  for (i in seq_len(50)) {
+    if (!file.exists(file)) {
+      return(character())
+    }
+    lines <- tryCatch(
+      suppressWarnings(readLines(file, warn = FALSE)),
+      error = function(e) NULL
+    )
+    if (!is.null(lines)) {
+      return(lines)
+    }
+    Sys.sleep(0.1)
+  }
+  paste("Can't read", file)
+}
+
 # The result of the process `job` of `start_instrument()` that exited with
 # `status`. Anything that a process that failed, e.g. was killed, wrote is
 # removed, so the package is left as installed.
@@ -126,9 +147,7 @@ finish_instrument <- function(job, status) {
   # Windows, let go of the files
   force(status)
   pkg_name <- job$pkg$package
-  output <- unlist(lapply(job$output, function(file) {
-    if (file.exists(file)) readLines(file, warn = FALSE)
-  }))
+  output <- unlist(lapply(job$output, read_output))
   unlink(c(job$output, job$profile), expand = FALSE)
   file <- instrumented_counters_file(pkg_name, job$install_path)
   if (identical(status, 0L) && file.exists(file)) {
