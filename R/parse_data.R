@@ -39,8 +39,13 @@ impute_child_srcrefs <- function(x, parent_ref) {
     list(NULL, make_srcref(2))
   } else if (n == 3 && token[[1]] == "'('" && is_expr[[2]]) {
     list(NULL, make_srcref(2))
+  } else if (n == 3 && is_expr[[1]] && token[[2]] %in% c("'$'", "'@'")) {
+    # `x$name` or `x@name`: the name is a symbol or a string
+    list(NULL, make_srcref(1), NULL)
   } else if (n >= 3 && is_expr[[1]] && token[[2]] %in% c("'('", "'['", "LBB")) {
-    # function call or subset: one argument per separator
+    # function call or subset: one argument per separator. The function of a
+    # call is its first element, which gets no srcref, but the object of
+    # `x[i]` is the first argument of `[`.
     args <- list()
     current <- NULL
     for (i in seq(3, n)) {
@@ -56,7 +61,7 @@ impute_child_srcrefs <- function(x, parent_ref) {
     if (identical(token[[3]], "')'")) {
       args <- list()
     }
-    c(list(NULL), args)
+    c(list(NULL), if (token[[2]] != "'('") list(make_srcref(1)), args)
   } else {
     NULL
   }
@@ -129,10 +134,13 @@ parse_children <- function(parent_ref) {
   rows <- rows[order(pd$line1[rows], pd$col1[rows])]
   pd_child <- pd[rows, ]
 
-  # For `lhs |> call(...)` the srcref covers the whole pipe expression. Use the
-  # parse data of the right-hand side, replacing a `_` placeholder with `lhs`
-  # (R 4.2+ `call(..., arg = _)` and R 4.3+ `_$a`, `_[i]`, `_[[i]]`, `_@a`), or
-  # inserting `lhs` as the first argument so it matches `call(lhs, ...)`.
+  # For `lhs |> rhs` the srcref covers the whole pipe expression, but the call
+  # is `rhs` with `lhs` in it. Use the parse data of `rhs`, with `lhs` in place
+  # of a `_` placeholder (R 4.2+ `call(arg = _)`, R 4.3+ `_$a`, `_[i]`,
+  # `_[[i]]` and `_@a`), or else inserted as the first argument of the call, so
+  # it matches the parse data of the call. The parser allows a placeholder
+  # nowhere else but at the head of a longer extraction chain, e.g. `_$a$b`,
+  # where `lhs` belongs in a nested call, so no srcrefs are imputed for it.
   if (any(pd_child$token == "PIPE")) {
     lhs <- pd_child[1L, ]
     rhs_id <- pd_child$id[[nrow(pd_child)]]

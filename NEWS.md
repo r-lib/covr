@@ -1,5 +1,15 @@
 # covr (development version)
 
+* Code that pipes into a `_` placeholder no longer stops a package from being
+  instrumented on R >= 4.3 when the pipe has a conditional in it, e.g.
+  `lapply(x, function(i) if (i) 1 else 2) |> _[[1]]`, which left the whole
+  package with zero coverage. `switch()` branches are no longer attributed to
+  the wrong lines when the pipe uses a named placeholder, e.g.
+  `x |> switch(EXPR = _, a = 1, b = 2)` (@chenyangsu, #795).
+
+* Conditionals nested in subsets and extractions, e.g. `x[if (i) 1 else 2]` or
+  `(if (i) a else b)$c`, now get their own counters.
+
 * New `instrument_base_r()`, `uninstrument_base_r()`, `base_r_code_coverage()`
   and `base_r_compiled_coverage()` measure the coverage of base R itself, both
   its R code and its C and Fortran code, e.g. while running `make check` on a

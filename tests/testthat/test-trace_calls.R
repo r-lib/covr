@@ -641,9 +641,24 @@ test_that("base pipe with named placeholder maps srcrefs correctly", {
   res_g <- as.data.frame(code_coverage(g, "g(TRUE)"))
   expect_equal(res_g$first_line, c(2, 2, 3, 5))
   expect_equal(res_g$value, c(1, 1, 1, 0))
+
+  h <-
+    "h <- function(x) {
+  x |>
+    switch(
+      EXPR = _,
+      a = ,
+      b = 2,
+      c = 3
+    )
+}"
+
+  res_h <- as.data.frame(code_coverage(h, 'h("a")'))
+  expect_equal(res_h$first_line, c(2, 6, 7))
+  expect_equal(res_h$value, c(1, 1, 0))
 })
 
-test_that("base pipe with extraction placeholder does not error", {
+test_that("base pipe with extraction placeholder maps srcrefs correctly", {
   skip_if(getRversion() < "4.3.0")
 
   f <-
@@ -652,18 +667,19 @@ test_that("base pipe with extraction placeholder does not error", {
 }"
 
   res <- as.data.frame(code_coverage(f, "f(TRUE)"))
-  expect_equal(res$first_line, 2)
-  expect_equal(res$value, 1)
+  expect_equal(res$first_column, c(3, 8, 11, 28))
+  expect_equal(res$value, c(1, 1, 1, 0))
 
   g <-
-    "g <- function(x) {
-  list(10, 20) |> _[[if (x) 1 else 2]]
+    "g <- function(xs) {
+  lapply(xs, function(i) if (i > 1) i else 0) |> _[[if (xs[[1]] > 0) 2 else 1]]
 }"
 
-  res_g <- as.data.frame(code_coverage(g, "g(TRUE)"))
-  expect_equal(res_g$first_line, 2)
-  expect_equal(res_g$value, 1)
+  res_g <- as.data.frame(code_coverage(g, "g(1:3)"))
+  expect_equal(res_g$first_column, c(3, 30, 37, 44, 57, 70, 77))
+  expect_equal(res_g$value, c(1, 3, 2, 1, 1, 1, 0))
 
+  # The placeholder of a longer extraction chain isn't mapped
   h <-
     "h <- function(x) {
   (if (x) list(a = list(b = 1)) else list(a = list(b = 2))) |> _$a$b
@@ -672,6 +688,19 @@ test_that("base pipe with extraction placeholder does not error", {
   res_h <- as.data.frame(code_coverage(h, "h(TRUE)"))
   expect_equal(res_h$first_line, 2)
   expect_equal(res_h$value, 1)
+})
+
+test_that("if nested in subsets and extractions", {
+  f <- "f <- function(x, i) {
+  x[if (i) 1 else 2] <- 0
+  x[, if (i) 1 else 2, drop = FALSE]
+  (if (i) list(a = 1) else list(a = 2))$a
+}"
+
+  res <- as.data.frame(code_coverage(f, "f(matrix(1:4, 2), TRUE)"))
+  expect_equal(res$first_line, rep(2:4, each = 4))
+  expect_equal(res$first_column, c(3, 9, 12, 19, 3, 11, 14, 21, 3, 8, 11, 28))
+  expect_equal(res$value, rep(c(1, 1, 1, 0), 3))
 })
 
 test_that("switch with ellipses", {
