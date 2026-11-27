@@ -799,7 +799,7 @@ test_that("trace_coverage(paths =) finds the files of a package with more re-exp
   expect_equal(tally_coverage(cov)$value, c(1, 0, 1, 1))
   expect_equal(
     unname(attr(cov, "package")$path),
-    normalize_path(file.path(moved, c("pkgA", "pkgB")))
+    absolute_path(file.path(moved, c("pkgA", "pkgB")))
   )
 })
 
