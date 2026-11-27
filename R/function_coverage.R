@@ -28,7 +28,7 @@ function_coverage <- function(
     )
   }
 
-  untrace_nested_anonymous_scope()
+  local_anonymous_scope()
   clear_counters(anonymous_scope)
 
   replacement <- if (!is.null(env)) {
@@ -37,7 +37,6 @@ function_coverage <- function(
     replacement(fun)
   }
 
-  on.exit(untrace_scope(anonymous_scope), add = TRUE)
   trace_replacement(replacement, anonymous_scope)
 
   collect_coverage(eval(code, enc))

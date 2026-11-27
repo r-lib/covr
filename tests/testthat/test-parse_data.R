@@ -86,8 +86,19 @@ test_that("impute_child_srcrefs imputes unary operators and calls without argume
   expect_equal(as.integer(res[[2]])[c(2, 4)], c(2L, 2L))
 })
 
-test_that("impute_child_srcrefs returns NULL for unsupported calls or mismatched parse data", {
-  p <- parse_srcrefs(c("a$b", "x[[1]]"))
+test_that("impute_child_srcrefs imputes the object of extractions and subsets", {
+  p <- parse_srcrefs(c("a$b", "a@b", "x[[1]]", "x[, 1]"))
+  cols <- function(i) {
+    res <- impute_child_srcrefs(p$exprs[[i]], p$refs[[i]])
+    lapply(res, function(ref) if (!is.null(ref)) as.integer(ref)[c(2, 4)])
+  }
+  expect_equal(cols(1), list(NULL, c(1L, 1L), NULL))
+  expect_equal(cols(2), list(NULL, c(1L, 1L), NULL))
+  expect_equal(cols(3), list(NULL, c(1L, 1L), c(4L, 4L)))
+  expect_equal(cols(4), list(NULL, c(1L, 1L), NULL, c(5L, 5L)))
+})
+
+test_that("impute_child_srcrefs returns NULL for unsupported calls", {
+  p <- parse_srcrefs("base::c")
   expect_null(impute_child_srcrefs(p$exprs[[1]], p$refs[[1]]))
-  expect_null(impute_child_srcrefs(p$exprs[[2]], p$refs[[2]]))
 })

@@ -108,26 +108,28 @@ trace_replacement <- function(replacement, scope) {
 }
 
 # The in-process APIs all trace into `anonymous_scope`, whose record only
-# exists while one of them runs (see `untrace_scope()`). One that runs inside
-# another would clear the outer call's counts and restore its functions when
-# it ends, so the outer call's tracing is undone first, with a warning. Its
-# record is gone after that, so later nested calls in the same outer call
-# don't warn again.
-untrace_nested_anonymous_scope <- function() {
+# exists while one of them runs: it is untraced when the calling function
+# returns (see `untrace_scope()`). This is set up before anything is traced, so
+# an error while tracing, e.g. in the parse data of a function, doesn't leave
+# the record behind. One that runs inside another would clear the outer call's
+# counts and restore its functions when it ends, so the outer call's tracing is
+# undone first, with a warning. Its record is gone after that, so later nested
+# calls in the same outer call don't warn again.
+local_anonymous_scope <- function(frame = parent.frame()) {
   id <- scope_id(anonymous_scope)
-  if (is.null(get0(id, envir = the$scopes, inherits = FALSE))) {
-    return(invisible())
+  if (!is.null(get0(id, envir = the$scopes, inherits = FALSE))) {
+    covr_warn(
+      c(
+        "Coverage is already being measured by an enclosing call.",
+        i = "{.fn with_coverage}, {.fn file_coverage}, {.fn function_coverage}
+          and the functions that call them can't be nested; the enclosing
+          call's coverage is incomplete."
+      ),
+      class = "covr_nested_coverage"
+    )
+    untrace_scope(anonymous_scope)
   }
-  covr_warn(
-    c(
-      "Coverage is already being measured by an enclosing call.",
-      i = "{.fn with_coverage}, {.fn file_coverage}, {.fn function_coverage}
-        and the functions that call them can't be nested; the enclosing
-        call's coverage is incomplete."
-    ),
-    class = "covr_nested_coverage"
-  )
-  untrace_scope(anonymous_scope)
+  withr::defer(untrace_scope(anonymous_scope), envir = frame)
 }
 
 # Undo the tracing of one scope, or of all scopes if `scope` is `NULL`: restore
