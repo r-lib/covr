@@ -18,6 +18,15 @@ replacement <- function(
       return(NULL)
     }
 
+    # A function of another package that a namespace re-exports, e.g.
+    # `f <- pkgA::f`, is code of that package, which traces it. Its source
+    # references can refer to where that package was installed from when this
+    # one was, which may be gone.
+    fun_env <- topenv(environment(target_value))
+    if (isNamespace(env) && isNamespace(fun_env) && !identical(fun_env, env)) {
+      return(NULL)
+    }
+
     # The `.Call` the counters call, for `trace_calls()`
     old_dot_call <- the$dot_call
     the$dot_call <- dot_call(environment(target_value))
