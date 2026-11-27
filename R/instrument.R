@@ -31,27 +31,45 @@ instrument_package <- function(
     full_traversal = full_traversal,
     branch_coverage = branch_coverage
   )
-  finish_instrument(job, process_status(job$pid, wait = TRUE))
+  # An interrupt or error while waiting must not leave the process running, to
+  # write files after they are read and removed
+  done <- FALSE
+  on.exit(if (!done) cancel_instrument(list(job)), add = TRUE)
+  status <- process_status(job$pid, wait = TRUE)
+  done <- TRUE
+  finish_instrument(job, status)
 }
 
 # The exit status of the background process `pid`, `NA` if it is still
-# running, or -1 if it was killed by a signal, for which sys signals an error.
-# On Unix, `sys::exec_status()` gives the status as `waitpid()` does, with the
-# exit status in its second byte.
+# running and `wait` is `FALSE`, or -1 if it was killed by a signal. On Unix,
+# `sys::exec_status()` gives the status as `waitpid()` does, with the exit
+# status in its second byte and the signal in its first, so a signal is not an
+# error. With `wait`, the process is polled from R rather than waited for by
+# `sys::exec_status(wait = TRUE)`, which swallows an interrupt and returns `NA`
+# while the process is still running, so Ctrl-C stops waiting. Each poll of a
+# running process takes 100 ms in sys.
 process_status <- function(pid, wait = TRUE) {
-  status <- tryCatch(
-    sys::exec_status(pid, wait = wait),
-    error = function(e) -1L
-  )
-  if (!is.na(status) && !is_windows() && status > 255L) {
-    status <- status %/% 256L
+  repeat {
+    status <- tryCatch(
+      sys::exec_status(pid, wait = FALSE),
+      error = function(e) -1L
+    )
+    if (!is.na(status) || !wait) {
+      break
+    }
+    Sys.sleep(0.01)
+  }
+  if (!is.na(status) && !is_windows()) {
+    status <- if (status %% 256L != 0L) -1L else status %/% 256L
   }
   status
 }
 
 # Start the process of `instrument_package()` in the background, without a
 # shell. The process doesn't save traces of the instrumented packages it
-# loads, e.g. those that the package imports.
+# loads, e.g. those that the package imports, whether they are dormant (no
+# `COVR_TRACE_DIR`) or have a `trace_dir` of their own (see
+# `trace_dir_setting()`).
 start_instrument <- function(
   pkg,
   install_path,
@@ -60,6 +78,10 @@ start_instrument <- function(
   branch_coverage = isTRUE(getOption("covr.branch_coverage", FALSE))
 ) {
   output <- temp_file("covr_instrument_", fileext = c(".out", ".err"))
+  # Loading the packages that this one imports, which can have Rust code that
+  # writes its counts when the process exits, would write them to the working
+  # directory
+  profile <- temp_file("covr_instrument_", fileext = ".profraw")
   args <- c(
     "--vanilla",
     "--no-echo",
@@ -76,7 +98,9 @@ start_instrument <- function(
     c(
       R_DEFAULT_PACKAGES = "datasets,utils,grDevices,graphics,stats,methods",
       R_LIBS = env_path(install_path, .libPaths()),
-      COVR_TRACE_DIR = NA
+      COVR_TRACE_DIR = NA,
+      COVR_INSTRUMENTING = "true",
+      LLVM_PROFILE_FILE = profile
     ),
     sys::exec_background(
       rterm_binary(),
@@ -85,21 +109,27 @@ start_instrument <- function(
       std_err = output[[2]]
     )
   )
-  list(pkg = pkg, install_path = install_path, pid = pid, output = output)
+  list(
+    pkg = pkg,
+    install_path = install_path,
+    pid = pid,
+    output = output,
+    profile = profile
+  )
 }
 
 # The result of the process `job` of `start_instrument()` that exited with
 # `status`. Anything that a process that failed, e.g. was killed, wrote is
 # removed, so the package is left as installed.
 finish_instrument <- function(job, status) {
-  # `status` waits for the process to exit, e.g. in `instrument_package()`, so
-  # it has written its output and, on Windows, let go of the files
+  # `status` is of a process that exited, so it has written its output and, on
+  # Windows, let go of the files
   force(status)
   pkg_name <- job$pkg$package
   output <- unlist(lapply(job$output, function(file) {
     if (file.exists(file)) readLines(file, warn = FALSE)
   }))
-  unlink(job$output, expand = FALSE)
+  unlink(c(job$output, job$profile), expand = FALSE)
   file <- instrumented_counters_file(pkg_name, job$install_path)
   if (identical(status, 0L) && file.exists(file)) {
     return(file)
@@ -139,7 +169,10 @@ cancel_instrument <- function(jobs) {
       tools::pskill(job$pid, tools::SIGKILL)
       process_status(job$pid, wait = TRUE)
     }
-    unlink(c(job$output, instrument_files(job)), expand = FALSE)
+    unlink(
+      c(job$output, job$profile, instrument_files(job)),
+      expand = FALSE
+    )
   }
   invisible()
 }
@@ -356,23 +389,23 @@ restore_counters <- function(ns, file) {
   }
   saved <- readRDS(file)
   check_saved_dot_call(ns, saved)
-  if (file %in% the$restored) {
-    trace_unforced_environment(ns, scope)
-    add_saved_counters(saved)
-  } else {
-    clear_counters(scope)
-    entry$replacements <- list()
-    the$restored <- c(the$restored, file)
-    add_saved_counters(saved)
-    # For `process_trace()`, which only saves the counts of these counters
-    entry$counters_file <- file
-    entry$counters_keys <- setdiff(
-      ls(saved, all.names = TRUE),
-      c("tests", "branches")
-    )
-    entry$env <- ns
-    trace_unforced_environment(ns, scope)
+  # A namespace loaded again, from this library or another, e.g. an instrumented
+  # copy of the package, saves the counts of the earlier one, which the counters
+  # of its own file replace (see `trace_environment()`).
+  if (!is.null(entry$env) && !is.null(entry$trace_dir)) {
+    try(save_trace_and_clear(entry$trace_dir, scope), silent = TRUE)
   }
+  clear_counters(scope)
+  entry$replacements <- list()
+  add_saved_counters(saved)
+  # For `process_trace()`, which only saves the counts of these counters
+  entry$counters_file <- file
+  entry$counters_keys <- setdiff(
+    ls(saved, all.names = TRUE),
+    c("tests", "branches")
+  )
+  entry$env <- ns
+  trace_unforced_environment(ns, scope)
   invisible()
 }
 

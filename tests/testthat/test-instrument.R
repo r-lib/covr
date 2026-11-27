@@ -175,7 +175,7 @@ test_that("instrument_package() warns if the package can't be instrumented", {
 test_that("package_coverage() instruments the package when it is loaded if it can't ahead of time", {
   skip_on_cran()
   local_install_defaults()
-  local_mocked_bindings(instrument_package = function(...) NULL)
+  withr::local_options(covr.install_instrument = FALSE)
   cov <- package_coverage(
     test_path("TestInstrument"),
     type = "none",
@@ -185,6 +185,42 @@ test_that("package_coverage() instruments the package when it is loaded if it ca
   df <- as.data.frame(cov)
   expect_equal(df$value[df$first_line == 16L], 1)
   expect_equal(df$value[df$first_line == 18L], 0)
+})
+
+test_that("process_status() decodes the status of a process", {
+  skip_on_os("windows")
+  status <- function(command) {
+    pid <- sys::exec_background("sh", c("-c", command))
+    process_status(pid, wait = TRUE)
+  }
+  expect_identical(status("exit 0"), 0L)
+  expect_identical(status("exit 3"), 3L)
+  # Killed by a signal, as `SIGKILL` and `SIGINT` are
+  expect_identical(status("kill -9 $$"), -1L)
+  expect_identical(status("kill -2 $$"), -1L)
+
+  pid <- sys::exec_background("sleep", "5")
+  withr::defer(tools::pskill(pid, tools::SIGKILL))
+  expect_true(is.na(process_status(pid, wait = FALSE)))
+  tools::pskill(pid, tools::SIGKILL)
+  expect_identical(process_status(pid, wait = TRUE), -1L)
+})
+
+test_that("instrument_package() doesn't read files while the process runs", {
+  skip_on_os("windows")
+  pkg <- list(package = "pkg")
+  lib <- withr::local_tempdir()
+  killed <- FALSE
+  local_mocked_bindings(
+    start_instrument = function(...) {
+      list(pkg = pkg, install_path = lib, pid = 1L, output = character())
+    },
+    # As an interrupt while waiting does
+    process_status = function(...) stop("interrupted"),
+    cancel_instrument = function(jobs) killed <<- TRUE
+  )
+  expect_error(instrument_package(pkg, lib), "interrupted")
+  expect_true(killed)
 })
 
 test_that("restore_counters() errors without the saved counters", {
@@ -390,7 +426,7 @@ test_that("instrumenting after installing gives the traces of instrumenting when
   }
   after_install <- run()
   when_loaded <- local({
-    local_mocked_bindings(instrument_package = function(...) NULL)
+    withr::local_options(covr.install_instrument = FALSE)
     run()
   })
 
@@ -440,4 +476,46 @@ test_that("restore_counters() keeps the counters and counts of other packages", 
   expect_equal(scope_entry("B")$counters_file, file_b)
   expect_equal(scope_entry("A")$counters_keys, "A/a.R:1:1")
   expect_equal(process_trace("B")$counters_file, file_b)
+})
+
+test_that("restore_counters() saves the counts of a package loaded from another library", {
+  local_clean_traces()
+  local_mocked_bindings(env_scope = function(env) attr(env, "scope"))
+  save_counters <- function() {
+    file <- withr::local_tempfile(.local_envir = parent.frame())
+    counters <- new.env()
+    counters[["A/a.R:1:1"]] <- list(value = 0, functions = "f")
+    saveRDS(counters, file)
+    file
+  }
+  file1 <- save_counters()
+  file2 <- save_counters()
+  traces <- withr::local_tempdir()
+  ns1 <- structure(new.env(), scope = "A")
+  ns2 <- structure(new.env(), scope = "A")
+
+  restore_counters(ns1, file1)
+  entry <- scope_entry("A")
+  entry$trace_dir <- traces
+  .Call(covr_count, "A/a.R:1:1")
+  restore_counters(ns2, file2)
+  sync_counts()
+
+  # The counts of the first library are saved, with its counters
+  saved <- list.files(traces, "^covr_trace_", full.names = TRUE)
+  expect_length(saved, 1L)
+  trace <- readRDS(saved)
+  expect_equal(
+    basename(trace$counters_file),
+    paste0("covr_counters_", unname(tools::md5sum(file1)), ".rds")
+  )
+  expect_equal(unname(trace$counts), 1)
+  # The second one starts from zero
+  expect_equal(.counters[["A/a.R:1:1"]]$value, 0)
+  expect_equal(scope_entry("A")$counters_file, file2)
+  expect_identical(scope_entry("A")$env, ns2)
+
+  # Back to the first library
+  restore_counters(ns1, file1)
+  expect_equal(scope_entry("A")$counters_file, file1)
 })

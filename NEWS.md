@@ -1,5 +1,10 @@
 # covr (development version)
 
+* `instrument_base_r()` byte-compiles the S4, R6 and other methods it
+  instruments, and no longer leaves state that made the next
+  `file_coverage()` or `code_coverage()` in the session warn that coverage was
+  already being measured (#783).
+
 * `package_coverage()` counts the code of a package that is unloaded and
   loaded again correctly: the counts from before it was loaded again were
   lost, and those from after were counted twice or more (#783).

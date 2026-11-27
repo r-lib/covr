@@ -252,6 +252,18 @@ test_that("instrumented packages save their counts in COVR_TRACE_DIR if it is se
   expect_equal(tally_coverage(trace_coverage(traces))$value, c(0, 0))
 })
 
+test_that("trace_coverage(lib =) reads the default trace directory of lib", {
+  skip_on_cran()
+  local_install_defaults()
+  withr::local_envvar(COVR_TRACE_DIR = NA)
+  pkgs <- local_nested_library()
+  local_instrumented_packages("TestNestedOuter", pkgs$lib)
+
+  run_with_library(pkgs$lib, "TestNestedOuter::outer_fun(1)")
+
+  expect_equal(tally_coverage(trace_coverage(lib = pkgs$lib))$value, c(1, 1))
+})
+
 test_that("trace_coverage() reads traces after the packages are restored", {
   skip_on_cran()
   local_install_defaults()
@@ -421,6 +433,39 @@ test_that("keep_counters_file() keeps the counters of a loaded package", {
   unlink(file)
 
   expect_true(file.exists(scope_entry("pkg")$counters_file))
+})
+
+test_that("uninstrument_packages() keeps the counters of a package that is not loaded", {
+  local_clean_traces()
+  lib <- withr::local_tempdir()
+  dir.create(file.path(lib, "pkg", "R"), recursive = TRUE)
+  writeLines("instrumented", loader(lib, "pkg"))
+  writeLines("original", loader_original(lib, "pkg"))
+  file <- instrumented_counters_file("pkg", lib)
+  saveRDS(list(), file)
+  # Its exit finalizer refers to the counters of a namespace that was unloaded
+  entry <- scope_entry("pkg")
+  entry$counters_file <- file
+  expect_false(isNamespaceLoaded("pkg"))
+
+  uninstrument_packages("pkg", lib)
+
+  expect_false(file.exists(file))
+  expect_true(file.exists(scope_entry("pkg")$counters_file))
+})
+
+test_that("instrumenting a package that imports an instrumented one saves no trace", {
+  skip_on_cran()
+  local_install_defaults()
+  pkgs <- local_nested_library()
+  traces <- withr::local_tempdir()
+  instrument_packages("TestNestedOuter", pkgs$lib, traces)
+  withr::defer(uninstrument_packages("TestNestedOuter", pkgs$lib))
+  instrument_packages("TestNestedInner", pkgs$lib, traces)
+  withr::defer(uninstrument_packages("TestNestedInner", pkgs$lib))
+
+  files <- list.files(traces, "^covr_(trace|pending)_")
+  expect_equal(files[!grepl("^covr_trace_baseline_", files)], character())
 })
 
 test_that("trace_coverage() gives the file names in the source directories in `paths`", {
@@ -665,4 +710,230 @@ test_that("share_rust_profiles() leaves out packages built with another LLVM", {
   expect_named(shared, c("a", "c"))
   expect_equal(shared$c$profiles, "a")
   expect_equal(rust_env(shared), c(X = "a"))
+})
+
+# pkgB re-exports `helper()` of pkgA
+local_reexport_packages <- function(frame = parent.frame()) {
+  root <- withr::local_tempdir(.local_envir = frame)
+  a <- write_test_package(
+    root,
+    "pkgA",
+    list(
+      a.R = c(
+        "helper <- function(x) {",
+        "  y <- x + 1",
+        "  if (y) 1 else 2",
+        "}",
+        "helper2 <- function(x) {",
+        "  x",
+        "}"
+      )
+    ),
+    namespace = "export(helper, helper2)"
+  )
+  b <- write_test_package(
+    root,
+    "pkgB",
+    list(
+      b.R = c(
+        "reexp <- pkgA::helper",
+        "reexp2 <- pkgA::helper2",
+        "own <- function(x) {",
+        "  x",
+        "}"
+      )
+    ),
+    imports = "pkgA",
+    namespace = "export(reexp, reexp2, own)"
+  )
+  list(root = root, a = a, b = b)
+}
+
+test_that("package_coverage() doesn't count a re-exported function as code of the other package", {
+  skip_on_cran()
+  local_install_defaults()
+  withr::local_options(covr.branch_coverage = TRUE)
+  pkgs <- local_reexport_packages()
+
+  cov <- package_coverage(
+    c(pkgs$a, pkgs$b),
+    type = "none",
+    code = "pkgA::helper(1); pkgA::helper2(1); pkgB::own(1)"
+  )
+
+  # pkgB's copy of helper() has no counts, as only pkgA's own traces count them
+  expect_equal(
+    tally_coverage(cov)[c("filename", "functions", "line", "value")],
+    data.frame(
+      filename = c("pkgA/R/a.R", "pkgA/R/a.R", "pkgA/R/a.R", "pkgB/R/b.R"),
+      functions = c("helper", "helper", "helper2", "own"),
+      line = c(2L, 3L, 6L, 4L),
+      value = c(1, 0, 1, 1)
+    ),
+    ignore_attr = TRUE
+  )
+  expect_equal(tally_coverage(cov, "branch")$value, c(1, 0))
+})
+
+test_that("trace_coverage(paths =) finds the files of a package with more re-exported code than its own", {
+  skip_on_cran()
+  local_install_defaults()
+  pkgs <- local_reexport_packages()
+  lib <- file.path(pkgs$root, "lib")
+  dir.create(lib)
+  install_test_packages(c(pkgs$a, pkgs$b), lib)
+  traces <- withr::local_tempdir()
+  local_instrumented_packages(c("pkgA", "pkgB"), lib, traces)
+  run_with_library(lib, "pkgA::helper(1); pkgA::helper2(1); pkgB::own(1)")
+  moved <- file.path(pkgs$root, "moved")
+
+  cov <- trace_coverage(
+    traces,
+    paths = c(pkgA = file.path(moved, "pkgA"), pkgB = file.path(moved, "pkgB"))
+  )
+
+  expect_equal(
+    tally_coverage(cov)$filename,
+    c("pkgA/R/a.R", "pkgA/R/a.R", "pkgA/R/a.R", "pkgB/R/b.R")
+  )
+  expect_equal(tally_coverage(cov)$value, c(1, 0, 1, 1))
+  expect_equal(
+    unname(attr(cov, "package")$path),
+    normalize_path(file.path(moved, c("pkgA", "pkgB")))
+  )
+})
+
+# The traces of the file `R/f.R` of the package `pkg` with the decisions of its
+# `if`, in an environment like the traces of a process.
+fake_branch_trace <- function(pkg, branches = TRUE) {
+  src <- srcfilecopy(file.path("/src", pkg, "R", "f.R"), "if (x) 1")
+  ref <- srcref(src, c(1, 1, 1, 8))
+  key <- paste0(pkg, "/f.R:1:1:1:8:1:8:1:1")
+  res <- list(list(value = 1, srcref = ref, functions = "f"))
+  names(res) <- key
+  if (branches) {
+    res$branches <- list2env(
+      structure(
+        list(list(
+          srcref = ref,
+          functions = "f",
+          labels = c("TRUE", "FALSE"),
+          value = c(1, 0)
+        )),
+        names = key
+      ),
+      parent = emptyenv()
+    )
+  }
+  res
+}
+
+test_that("trace_coverage(packages =) without branches in the packages has no branches", {
+  withr::local_options(covr.filter_non_package = FALSE)
+  # One process that loaded both packages: the decisions are an environment
+  one <- withr::local_tempdir()
+  both <- c(
+    fake_branch_trace("pkgA", branches = FALSE),
+    fake_branch_trace("pkgB")
+  )
+  saveRDS(both, file.path(one, "covr_trace_a"))
+  # Processes of each: the merged decisions are a list
+  several <- withr::local_tempdir()
+  saveRDS(
+    fake_branch_trace("pkgA", branches = FALSE),
+    file.path(several, "covr_trace_a")
+  )
+  saveRDS(fake_branch_trace("pkgB"), file.path(several, "covr_trace_b"))
+
+  for (dir in c(one, several)) {
+    cov <- trace_coverage(dir, packages = "pkgA")
+    expect_equal(tally_coverage(cov)$filename, "R/f.R")
+    expect_null(attr(cov, "branches"))
+    file <- withr::local_tempfile(fileext = ".info")
+    lcov(cov, file)
+    expect_false(any(grepl("^BR", readLines(file))))
+  }
+})
+
+test_that("as_branch_list() gives NULL for no decisions", {
+  expect_null(as_branch_list(NULL))
+  expect_null(as_branch_list(list()))
+  expect_null(as_branch_list(new.env()))
+})
+
+# A directory `root` that is a symlink to the directory `real`, which has the
+# directory `foo/bar`.
+local_symlinked_root <- function(frame = parent.frame()) {
+  dir <- normalize_path(withr::local_tempdir(.local_envir = frame))
+  real <- file.path(dir, "real")
+  dir.create(file.path(real, "foo", "bar"), recursive = TRUE)
+  root <- file.path(dir, "link")
+  file.symlink(real, root)
+  list(dir = dir, real = real, link = root)
+}
+
+test_that("map_paths() resolves the symlinks of the directories of files that don't exist", {
+  skip_on_os("windows")
+  dirs <- local_symlinked_root()
+  to_link <- function(files, package) {
+    file.path(dirs$link, "foo", "bar", "R", basename(files))
+  }
+
+  res <- map_paths(to_link, c("x/a.R", "x/b.R"), "pkg")
+
+  expect_equal(res, file.path(dirs$real, "foo", "bar", "R", c("a.R", "b.R")))
+  expect_equal(
+    path_in_roots(res, file.path(dirs$link, "foo", "bar")),
+    c(TRUE, TRUE)
+  )
+})
+
+test_that("map_paths() doesn't resolve the symlinks of files", {
+  skip_on_os("windows")
+  dirs <- local_symlinked_root()
+  elsewhere <- file.path(dirs$dir, "elsewhere")
+  dir.create(file.path(dirs$real, "R"))
+  dir.create(elsewhere)
+  writeLines("a <- 1", file.path(elsewhere, "a.R"))
+  file.symlink(file.path(elsewhere, "a.R"), file.path(dirs$real, "R", "a.R"))
+  writeLines("b <- 1", file.path(dirs$real, "R", "b.R"))
+  to_link <- function(files, package) {
+    file.path(dirs$link, "R", basename(files))
+  }
+
+  res <- map_paths(to_link, c("x/a.R", "x/b.R"), "pkg")
+
+  expect_equal(res, file.path(dirs$real, "R", c("a.R", "b.R")))
+  expect_equal(common_path(unique(dirname(res))), file.path(dirs$real, "R"))
+})
+
+test_that("trace_coverage(paths =) keeps files under a symlink that don't exist", {
+  skip_on_cran()
+  skip_on_os("windows")
+  local_install_defaults()
+  dirs <- local_symlinked_root()
+  pkgs <- local_reexport_packages()
+  lib <- file.path(pkgs$root, "lib")
+  dir.create(lib)
+  install_test_packages(pkgs$a, lib)
+  traces <- withr::local_tempdir()
+  local_instrumented_packages("pkgA", lib, traces)
+  run_with_library(lib, "pkgA::helper(1)")
+
+  cov <- trace_coverage(
+    traces,
+    paths = function(files, package) {
+      file.path(dirs$link, "foo", "bar", "R", basename(files))
+    }
+  )
+
+  expect_equal(tally_coverage(cov)$filename, c("R/a.R", "R/a.R", "R/a.R"))
+  expect_equal(attr(cov, "package")$path, file.path(dirs$real, "foo", "bar"))
+})
+
+test_that("empty package names and file names are errors", {
+  expect_snapshot(error = TRUE, {
+    check_packages(c("pkgA", ""))
+    map_paths(function(files, package) "", "a.R", "pkgA")
+  })
 })

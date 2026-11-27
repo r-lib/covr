@@ -283,7 +283,7 @@ zero_branches <- function(scope = NULL) {
 
 # The decisions as a list sorted by key, or `NULL` if there are none.
 as_branch_list <- function(x) {
-  if (is.null(x)) {
+  if (!length(x)) {
     return(NULL)
   }
   x <- as.list(x, all.names = TRUE)

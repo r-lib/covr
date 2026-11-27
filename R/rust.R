@@ -252,6 +252,17 @@ share_rust_profiles <- function(rust) {
   rust
 }
 
+# The environment of an R process that loads a package that imports a package
+# built with the `rust` setups, but doesn't run its code, e.g. when installing
+# it. The Rust code writes its counts when the process exits, which would be to
+# `default.profraw` in the working directory, so they go to a file in the
+# temporary directory instead. `NULL` without Rust packages.
+rust_discard_profile <- function(rust) {
+  if (length(rust)) {
+    c(LLVM_PROFILE_FILE = temp_file("covr_discard_", fileext = ".profraw"))
+  }
+}
+
 # The environment of the R processes that run the code, for the `rust`
 # setups.
 rust_env <- function(rust) {

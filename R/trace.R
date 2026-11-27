@@ -364,6 +364,11 @@ copy_srcfile <- function(srcfile, copies) {
 # to the working directory when the package loads, which the process can
 # change before it saves the trace.
 trace_dir_setting <- function(default) {
+  # The process that instruments a package loads the packages it imports, which
+  # must not save their traces (see `start_instrument()`)
+  if (nzchar(Sys.getenv("COVR_INSTRUMENTING"))) {
+    return(NULL)
+  }
   dir <- Sys.getenv("COVR_TRACE_DIR")
   if (nzchar(dir)) absolute_path(dir) else default
 }

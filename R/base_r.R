@@ -398,7 +398,7 @@ instrument_base_r_package <- function(env, pkg, counters, exclude = NULL) {
     counters[[key]] <- .counters[[key]]
   }
   compiled <- character()
-  for (r in the$replacements) {
+  for (r in scope_entry(anonymous_scope)$replacements) {
     compiled[[length(compiled) + 1L]] <- compile_in_place_checked(r)
   }
   if (pkg == "parallel") {
@@ -408,6 +408,9 @@ instrument_base_r_package <- function(env, pkg, counters, exclude = NULL) {
     drop_parse_data(counters)
     drop_function_srcrefs(env)
   }
+  # The record of the anonymous scope would make the next in-process API warn
+  # that coverage is already being measured. The functions stay instrumented.
+  rm(list = scope_id(anonymous_scope), envir = the$scopes)
   list(excluded = names(fixed), uncompiled = compiled[!is.na(compiled)])
 }
 

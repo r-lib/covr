@@ -50,3 +50,17 @@
       x It may be built with another LLVM version than the Rust code of a (LLVM 18).
       i Measure the coverage of each of these packages on its own.
 
+# empty package names and file names are errors
+
+    Code
+      check_packages(c("pkgA", ""))
+    Condition
+      Error:
+      ! `packages` must be a character vector of package names.
+    Code
+      map_paths(function(files, package) "", "a.R", "pkgA")
+    Condition
+      Error:
+      ! `paths` must return a file name for each of the files of pkgA.
+      x It returned an empty string for some of them.
+

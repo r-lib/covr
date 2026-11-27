@@ -41,9 +41,11 @@ to_relative_path <- function(path, base) {
 
 # Is each of the (normalized) `path`s one of the `roots`, or inside it? This
 # compares whole path components, not the start of their names, so `/pkg2/a.R`
-# isn't in `/pkg`. Missing paths give `NA`.
+# isn't in `/pkg`. Missing paths give `NA`. The symlinks of the roots are
+# resolved, also if they don't exist, as they are in the file names that
+# `trace_source_paths()` gives (see `absolute_path()`).
 path_in_roots <- function(path, roots) {
-  roots <- sub("/+$", "", normalize_path(roots))
+  roots <- sub("/+$", "", absolute_path(roots))
   inside <- rep(FALSE, length(path))
   for (root in roots) {
     inside <- inside | path == root | startsWith(path, paste0(root, "/"))

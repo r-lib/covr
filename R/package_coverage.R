@@ -253,7 +253,7 @@ package_coverage <- function(
         install_path,
         add_rust_flags(flags, pkg_rust),
         quiet,
-        env = pkg_rust$build_env,
+        env = pkg_rust$build_env %||% rust_discard_profile(rust),
         byte_compile = !instrument
       )
       if (!is.null(pkg_rust)) {

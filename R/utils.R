@@ -278,16 +278,31 @@ is_installed_package <- function(path) {
   file.exists(file.path(path, "Meta", "package.rds"))
 }
 
-# The directory of the source an installed package was installed from, the
-# parent of the `R` directory with the files in the srcrefs of its traces, or
-# `NULL` if it was installed without srcrefs. The namespace can also have
-# functions with srcrefs from elsewhere, e.g. other packages, so this is the
-# directory with the most traces.
-installed_source_path <- function(traces) {
+# The directory of the source the installed package `package` was installed
+# from, the parent of the `R` directory with the files in the srcrefs of its
+# `traces`, or `NULL` if it was installed without srcrefs. The namespace can
+# also have functions with srcrefs from elsewhere, e.g. re-exported functions
+# of other packages, which can outnumber its own. The srcfile of an installed
+# package starts with the line that sets its `.packageName`, which identifies
+# the files of the package; if there are none, this is the directory with the
+# most traces.
+installed_source_path <- function(traces, package) {
   files <- vcapply(traces, function(x) {
     get_source_filename(x$srcref, full.names = TRUE)
   })
-  files <- files[grepl("/R/", files, fixed = TRUE)]
+  own <- vlapply(traces, function(x) {
+    srcfile <- attr(x$srcref, "srcfile")
+    original <- if (is.environment(srcfile)) srcfile$original
+    lines <- if (is.environment(original)) original$lines
+    length(lines) > 0L &&
+      identical(lines[[1L]], paste0('.packageName <- "', package, '"'))
+  })
+  in_r <- grepl("/R/", files, fixed = TRUE)
+  if (any(own & in_r)) {
+    files <- files[own & in_r]
+  } else {
+    files <- files[in_r]
+  }
   if (length(files) == 0) {
     return(NULL)
   }
@@ -433,12 +448,37 @@ is_string <- function(x) {
 }
 
 # `normalize_path()`, which leaves relative paths that don't exist relative on
-# Unix, but relative to the working directory.
+# Unix, but relative to the working directory. The symlinks of the directories
+# are resolved even if the path itself doesn't exist, as `normalizePath()`
+# leaves such paths as they are on Unix, so a path that doesn't exist yet is
+# the same as one that does, like its root.
 absolute_path <- function(path) {
   path <- path.expand(path)
   relative <- !grepl("^(/|\\\\|[A-Za-z]:)", path)
   path[relative] <- file.path(getwd(), path[relative])
-  normalize_path(path)
+  path <- normalize_path(path)
+  missing <- !is.na(path) & !file.exists(path)
+  path[missing] <- vcapply(path[missing], resolve_missing)
+  path
+}
+
+# The (normalized, absolute) `path` that doesn't exist, with the symlinks of its
+# deepest directory that exists resolved.
+resolve_missing <- function(path) {
+  rest <- character()
+  while (!file.exists(path) && dirname(path) != path) {
+    rest <- c(basename(path), rest)
+    path <- dirname(path)
+  }
+  paste(c(sub("/+$", "", normalize_path(path)), rest), collapse = "/")
+}
+
+# The absolute paths of the files `path`, with the symlinks of their
+# directories resolved, but not those of the files, which can be links to
+# files elsewhere, so files in one directory stay in it.
+absolute_file_path <- function(path) {
+  dir <- absolute_path(dirname(path))
+  paste0(sub("/+$", "", dir), "/", basename(path))
 }
 
 # The name of the files of reports: the package's name, or "coverage" for the

@@ -103,6 +103,30 @@ test_that("file_coverage() restores parallel's functions when code fails", {
 })
 
 
+test_that("fix_mcexit() installed while forks are traced is kept when they are restored", {
+  skip_on_os("windows")
+  ns <- asNamespace("parallel")
+  mcfork <- ns$mcfork
+  mcexit <- ns$mcexit
+  fixed <- the$mcexit_fixed
+  withr::defer({
+    replace_binding("parallel", "mcfork", mcfork)
+    replace_binding("parallel", "mcexit", mcexit)
+    the$mcexit_fixed <- fixed
+  })
+  the$mcexit_fixed <- NULL
+  expect_null(attr(ns$mcexit, "covr_fix"))
+
+  restore_forks <- trace_forks(withr::local_tempdir(), anonymous_scope)
+  # An instrumented package loaded while `with_coverage()` runs
+  fix_mcexit()
+  restore_forks()
+
+  expect_true(attr(ns$mcexit, "covr_fix"))
+  expect_false(identical(ns$mcfork, mcfork))
+})
+
+
 test_that("uses_parallel", {
   pkg <- covr:::as_package("TestParallel")
   expect_true(covr:::uses_parallel(pkg))

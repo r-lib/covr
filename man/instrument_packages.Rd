@@ -27,17 +27,17 @@ local_instrumented_packages(
 trace_coverage(
   trace_dir = NULL,
   lib = NULL,
+  packages = NULL,
   paths = NULL,
   relative_path = TRUE,
   line_exclusions = NULL,
-  function_exclusions = NULL,
-  packages = NULL
+  function_exclusions = NULL
 )
 }
 \arguments{
-\item{packages}{For \code{trace_coverage()}, the names of the packages to
-include, or \code{NULL} for all those with traces in \code{trace_dir} or
-instrumented in \code{lib}.}
+\item{packages}{The names of the packages to instrument, installed in
+\code{lib}. For \code{trace_coverage()}, the packages to include, or \code{NULL} for all
+those with traces in \code{trace_dir} or instrumented in \code{lib}.}
 
 \item{lib}{The library the packages are installed in. For
 \code{trace_coverage()}, a library of instrumented packages, whose packages
@@ -46,10 +46,11 @@ that no process loaded are included with no coverage, or \code{NULL}.}
 \item{trace_dir}{The directory the counts are saved in, if the environment
 variable \code{COVR_TRACE_DIR} is not set when an R process loads an
 instrumented package. It is created if it doesn't exist. \code{NULL} to only
-save the counts when \code{COVR_TRACE_DIR} is set. For \code{trace_coverage()}, the
+measure the packages when \code{COVR_TRACE_DIR} is set; otherwise they load
+their original code without covr. For \code{trace_coverage()}, the
 directories the counts were saved in, e.g. one for each shard of a CI
-run; by default \code{COVR_TRACE_DIR}, or the default \code{trace_dir} of the first
-library in \code{\link[=.libPaths]{.libPaths()}}.}
+run; by default \code{COVR_TRACE_DIR}, or the default \code{trace_dir} of \code{lib}
+(or of the first library in \code{\link[=.libPaths]{.libPaths()}}).}
 
 \item{cores}{The number of packages to instrument at once, each in its own
 R process.}
@@ -114,7 +115,9 @@ e.g. those of a monorepo.
 \verb{R CMD INSTALL --with-keep.source}. File names in the coverage are those
 of the source the packages were installed from.
 \item covr must be installed in a library that the R processes use, as the
-instrumented packages call it when they are loaded.
+instrumented packages call it when they are loaded, unless they were
+instrumented with \code{trace_dir = NULL} and \code{COVR_TRACE_DIR} is not set:
+they then load as installed, without covr.
 \item Processes must exit normally to save their counts; processes that are
 killed lose them, and \code{trace_coverage()} warns (with class
 \code{covr_unsaved_trace}) about the processes that loaded an instrumented
@@ -122,10 +125,12 @@ package but didn't save their counts.
 }
 
 The R processes save their counts in the directory in the environment
-variable \code{COVR_TRACE_DIR}, or if it is not set, in \code{trace_dir}. With
-\code{trace_dir = NULL} they only save them if \code{COVR_TRACE_DIR} is set, so
-packages can be instrumented once, e.g. when they are built, and their
-coverage measured whenever it is set. Compiled code isn't instrumented.
+variable \code{COVR_TRACE_DIR}, or if it is not set, in \code{trace_dir}. Packages
+instrumented with \code{trace_dir = NULL} are only measured when
+\code{COVR_TRACE_DIR} is set, and otherwise load the code they were installed
+with, without covr, so they can be instrumented once, e.g. when they are
+built, and their coverage measured whenever it is set. Compiled code isn't
+instrumented.
 
 The coverage includes the instrumented packages that no process loaded,
 with none of their code covered, if they were instrumented with a

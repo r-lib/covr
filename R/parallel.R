@@ -38,6 +38,8 @@ fix_mcexit <- function() {
   }
   attr(patched, "covr_fix") <- TRUE
   replace_binding("parallel", "mcexit", patched)
+  # For `trace_forks()`, whose restore would otherwise undo this
+  the$mcexit_fixed <- TRUE
   invisible()
 }
 
@@ -73,6 +75,11 @@ trace_forks <- function(trace_dir, scope) {
   function() {
     replace_binding("parallel", "mcfork", mcfork)
     replace_binding("parallel", "mcexit", mcexit)
+    # A package loaded while this was in place patched the functions it
+    # wraps, which are restored, so the fix is applied again
+    if (isTRUE(the$mcexit_fixed) && !isTRUE(attr(mcexit, "covr_fix"))) {
+      fix_mcexit()
+    }
   }
 }
 

@@ -78,7 +78,7 @@ merge_coverage.character <- function(x) {
     counters <- read_trace(counters_paths[[key]])
     if (!is.null(counters)) {
       counters <- add_counter_values(counters, counts[[key]])
-      merged <- merge_coverage(compact(list(counters, merged)))
+      merged <- merge_coverage(compact(list(merged, counters)))
     }
   }
   merged
